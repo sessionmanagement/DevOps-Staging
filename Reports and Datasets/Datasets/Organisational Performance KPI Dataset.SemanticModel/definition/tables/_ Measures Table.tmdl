@@ -1,0 +1,391 @@
+table '_ Measures Table'
+	lineageTag: a63b2fbe-dcde-425f-9125-6eda0f452045
+
+	measure 'Strategic Focus Area KPI' = ```
+			
+			VAR _kpi =
+			    DISTINCTCOUNT ( 'Fact KPI'[Fact KPI Key] )
+			VAR _countgreen =
+			    CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact KPI',
+			                'Fact KPI'[Fact KPI Key],
+			                'Fact KPI'[KPI Value]
+			            )
+			        ),
+			        'Fact KPI'[KPI Status] = "Green"
+			    )
+			VAR _countamber =
+			    CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact KPI',
+			                'Fact KPI'[Fact KPI Key],
+			                'Fact KPI'[KPI Value]
+			            )
+			        ),
+			        'Fact KPI'[KPI Status] = "Amber"
+			    )
+			VAR _countred =
+			    CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact KPI',
+			                'Fact KPI'[Fact KPI Key],
+			                'Fact KPI'[KPI Value]
+			            )
+			        ),
+			        'Fact KPI'[KPI Status] = "Red"
+			    )
+			VAR _rollupGreenThreshold =
+			    CALCULATE (
+			        MAXX (
+			            SUMMARIZE (
+			                'Fact KPI',
+			                'Fact KPI'[Fact KPI Key],
+			                "Rollup Green Threshold", MAX('Fact KPI'[Rollup Green Threshold])
+			            ),
+			            [Rollup Green Threshold]
+			        )
+			    )
+			VAR _rollupAmberThreshold =
+			    CALCULATE (
+			        MAXX (
+			            SUMMARIZE (
+			                'Fact KPI',
+			                'Fact KPI'[Fact KPI Key],
+			                "Rollup Amber Threshold", MAX('Fact KPI'[Rollup Amber Threshold])
+			            ),
+			            [Rollup Amber Threshold]
+			        )
+			    )
+			RETURN
+			    IF (
+			        _kpi > 0,
+			        SWITCH (
+			            TRUE (),
+			            DIVIDE ( _countgreen, _kpi, 0 ) >= _rollupGreenThreshold, "3. Green",
+			            DIVIDE ( _countgreen + _countamber, _kpi, 0 ) > _rollupAmberThreshold
+			                && DIVIDE ( _countgreen, _kpi, 0 ) < _rollupGreenThreshold, "2. Amber",
+			            "1. Red"
+			        ),
+			        "No data"
+			        //BLANK ()
+			    )
+			
+			```
+		lineageTag: 367d96c4-f18c-4a63-aa6b-7d6a52c0f03e
+
+	measure 'Kaimahi Hierarchy Display Measure' =
+			
+			SWITCH(
+			    TRUE(),
+			    ISINSCOPE('Dim Kaimahi Hierarchy'[Kaimahi People Leader Business Unit Name Level 1]), MAX('Dim Kaimahi Hierarchy'[Kaimahi People Leader Business Unit Name Level 1]),
+			    ISINSCOPE('Dim Kaimahi Hierarchy'[Kaimahi People Leader Business Unit Name Level 2]), MAX('Dim Kaimahi Hierarchy'[Kaimahi People Leader Business Unit Name Level 2]),
+			    ISINSCOPE('Dim Kaimahi Hierarchy'[Kaimahi People Leader Business Unit Name Level 3]), MAX('Dim Kaimahi Hierarchy'[Kaimahi People Leader Business Unit Name Level 3]),
+			    ISINSCOPE('Dim Kaimahi Hierarchy'[Kaimahi People Leader Business Unit Name Level 4]), MAX('Dim Kaimahi Hierarchy'[Kaimahi People Leader Business Unit Name Level 4]),
+			    ISINSCOPE('Dim Kaimahi Hierarchy'[Kaimahi People Leader Business Unit Name Level 5]), MAX('Dim Kaimahi Hierarchy'[Kaimahi People Leader Business Unit Name Level 5]),
+			    ISINSCOPE('Dim Kaimahi Hierarchy'[Kaimahi People Leader Business Unit Name Level 6]), MAX('Dim Kaimahi Hierarchy'[Kaimahi People Leader Business Unit Name Level 6]),
+			    ISINSCOPE('Dim Kaimahi Hierarchy'[Kaimahi People Leader Business Unit Name Level 7]), MAX('Dim Kaimahi Hierarchy'[Kaimahi People Leader Business Unit Name Level 7]),
+			    BLANK()
+			)
+		lineageTag: d059fd36-a501-4754-a287-6358cf85ccdd
+
+	measure 'Non-Blank Hierarchy' =
+			
+			VAR Level1 = MAX('Dim Kaimahi Hierarchy'[Kaimahi People Leader Business Unit Name Level 1])
+			VAR Level2 = MAX('Dim Kaimahi Hierarchy'[Kaimahi People Leader Business Unit Name Level 2])
+			VAR Level3 = MAX('Dim Kaimahi Hierarchy'[Kaimahi People Leader Business Unit Name Level 3])
+			VAR Level4 = MAX('Dim Kaimahi Hierarchy'[Kaimahi People Leader Business Unit Name Level 4])
+			VAR Level5 = MAX('Dim Kaimahi Hierarchy'[Kaimahi People Leader Business Unit Name Level 5])
+			VAR Level6 = MAX('Dim Kaimahi Hierarchy'[Kaimahi People Leader Business Unit Name Level 6])
+			VAR Level7 = MAX('Dim Kaimahi Hierarchy'[Kaimahi People Leader Business Unit Name Level 7])
+			RETURN
+			    CONCATENATE(
+			        CONCATENATE(
+			            CONCATENATE(
+			                CONCATENATE(
+			                    CONCATENATE(
+			                        CONCATENATE(
+			                            IF(NOT(ISBLANK(Level1)), Level1 & " > ", ""),
+			                            IF(NOT(ISBLANK(Level2)), Level2 & " > ", "")
+			                        ),
+			                        IF(NOT(ISBLANK(Level3)), Level3 & " > ", "")
+			                    ),
+			                    IF(NOT(ISBLANK(Level4)), Level4 & " > ", "")
+			                ),
+			                IF(NOT(ISBLANK(Level5)), Level5 & " > ", "")
+			            ),
+			            IF(NOT(ISBLANK(Level6)), Level6 & " > ", "")
+			        ),
+			        IF(NOT(ISBLANK(Level7)), Level7, "")
+			    )
+		lineageTag: 270e1826-2630-4a97-9cdd-d594f0555c78
+
+	measure 'Display Measure' =
+			
+			VAR Val = [Strategic Focus Area KPI]
+			VAR EntityShowRow =
+			    [EntityBrowseDepth] <= [EntityRowDepth]
+			VAR Result =
+			    IF ( EntityShowRow, Val )
+			RETURN
+			    Result
+		lineageTag: 1b29cd12-689a-4dbb-ba27-a178df0b1aed
+
+	measure 'Colour Formatting (Display Measure)' =
+			
+			VAR _DisplayMeasure = CALCULATE([Display Measure],REMOVEFILTERS('Dim RAG Status'), REMOVEFILTERS('Fact KPI'[KPI Status]))
+			//VAR _DisplayMeasure = [Display Measure]
+			RETURN
+			IF(_DisplayMeasure = "3. Green", "#018DB1",
+			IF(_DisplayMeasure = "1. Red", "#f47c20",
+			IF(_DisplayMeasure = "2. Amber", "#FFD40B"
+			)))
+		lineageTag: 4c470a79-03a3-4ec1-af91-1106f781af7c
+
+	measure 'Strategic Focus Area KPI BACKUP - MIKE G ORIGINAL' =
+			
+			VAR _kpi =
+			    DISTINCTCOUNT ( 'Fact KPI'[Fact KPI Key] )
+			VAR _countgreen =
+			    CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZECOLUMNS (
+			                'Fact KPI'[Fact KPI Key],
+			                'Fact KPI'[KPI Value],
+			                "Distinct", DISTINCT ( 'Fact KPI'[Fact KPI Key] )
+			            )
+			        ),
+			        'Fact KPI'[KPI Status] = "Green"
+			    )
+			VAR _countamber =
+			    CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZECOLUMNS (
+			                'Fact KPI'[Fact KPI Key],
+			                'Fact KPI'[KPI Value],
+			                "Distinct", DISTINCT ( 'Fact KPI'[Fact KPI Key] )
+			            )
+			        ),
+			        'Fact KPI'[KPI Status] = "Amber"
+			    )
+			VAR _countred =
+			    CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZECOLUMNS (
+			                'Fact KPI'[Fact KPI Key],
+			                'Fact KPI'[KPI Value],
+			                "Distinct", DISTINCT ( 'Fact KPI'[Fact KPI Key] )
+			            )
+			        ),
+			        'Fact KPI'[KPI Status] = "Red"
+			    )
+			VAR _rollupGreenThreshold =
+			    CALCULATE (
+			        MAXX (
+			            SUMMARIZECOLUMNS (
+			                'Fact KPI'[Fact KPI Key],
+			                'Fact KPI'[Rollup Green Threshold],
+			                "Distinct", DISTINCT ( 'Fact KPI'[Fact KPI Key] )
+			            ),
+			            VALUE ( [Rollup Green Threshold] )
+			        )
+			    )
+			VAR _rollupAmberThreshold =
+			    CALCULATE (
+			        MAXX (
+			            SUMMARIZECOLUMNS (
+			                'Fact KPI'[Fact KPI Key],
+			                'Fact KPI'[Rollup Amber Threshold],
+			                "Distinct", DISTINCT ( 'Fact KPI'[Fact KPI Key] )
+			            ),
+			            VALUE ( [Rollup Amber Threshold] )
+			        )
+			    )
+			RETURN
+			    IF (
+			        _kpi > 0,
+			        SWITCH (
+			            TRUE (),
+			            DIVIDE ( _countgreen, _kpi, 0 ) >= _rollupGreenThreshold, "Green",
+			            DIVIDE ( _countgreen + _countamber, _kpi, 0 ) > _rollupAmberThreshold
+			                && DIVIDE ( _countgreen, _kpi, 0 ) < _rollupGreenThreshold, "Amber",
+			            "Red"
+			        ),
+			        BLANK ()
+			    )
+		lineageTag: 381c9db6-5ad6-4e91-ab9f-a2a06652594f
+
+	measure 'Fact KPI Key Percentage Green' = ```
+			
+			VAR _Green = 
+			CALCULATE(
+			    DISTINCTCOUNT('Fact KPI'[Fact KPI Key]),
+			    ALLSELECTED('Dim Kaimahi'),
+			    ALLSELECTED('Dim KPI'),
+			    'Fact KPI'[KPI Status] = "Green"
+			)
+			VAR _Amber = 
+			CALCULATE(
+			    DISTINCTCOUNT('Fact KPI'[Fact KPI Key]),
+			    ALLSELECTED('Dim Kaimahi'),
+			    ALLSELECTED('Dim KPI'),
+			    'Fact KPI'[KPI Status] = "Amber"
+			)
+			VAR _Red = 
+			CALCULATE(
+			    DISTINCTCOUNT('Fact KPI'[Fact KPI Key]),
+			    ALLSELECTED('Dim Kaimahi'),
+			    ALLSELECTED('Dim KPI'),
+			    'Fact KPI'[KPI Status] = "Red"
+			)
+			RETURN
+			DIVIDE(_Green,(_Green+_Amber+_Red))
+			```
+		formatString: 0%;-0%;0%
+		lineageTag: c904303b-f25c-4020-a49c-c86f19a154d1
+
+	measure 'Max Rollup ID (for Drillthrough)' =
+			
+			MAX(
+			    'Dim KPI'[SFA Rollup Areas: Rollup ID]
+			)
+		lineageTag: c7ffa8a7-410e-4302-87bb-021c2651360b
+
+	measure 'Max Call to Action' =
+			
+			MAX(
+			    'Dim KPI'[Call to action]
+			)
+		lineageTag: 63d34984-3e57-4e31-ae71-37530492fe56
+
+	measure 'Title - Kaimahi Drill Through Vis.' =
+			
+			IFERROR(
+			    MAX(
+			        'Dim KPI'[What is measured?]
+			    ),BLANK()
+			)
+		lineageTag: a3e7b403-f8ec-4d28-ac22-8c8b8d204f5c
+
+	measure 'Max SFA (for Drillthrough)' =
+			
+			MAX(
+			    'Dim KPI'[SFA Rollup Areas: Strategic Focus Area (SFA)]
+			)
+		lineageTag: 4bb1a498-ff4e-4a20-9dbb-9946e3ce4236
+
+	measure 'Related Outcome Title' =
+			
+			MAX(
+			    'Dim KPI'[Related Outcome]
+			)
+		lineageTag: 0eae6de3-97ca-4900-927d-c742fbbb4b4a
+
+	measure 'Title: Overall score for this measure' =
+			
+			IF(
+			    HASONEVALUE('Dim KPI'[What is measured?]),
+			    CONCATENATE("Overall score for this measure: ", CALCULATE([Display Measure], REMOVEFILTERS('Dim RAG Status'))),
+			    "Please select a single measure to view its overall score."
+			)
+		lineageTag: 7f8e93a2-e103-4e1e-9406-6c330faa911e
+
+	measure '0.8' = 0.8
+		lineageTag: ffe85f7e-926a-40c7-8d34-e7982e22fae4
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Call to Action Display (HASONEVALUE)' = ```
+			
+			IF(
+			    HASONEVALUE('Dim KPI'[What is measured?]),
+			    MAX('Dim KPI'[Call to action]),
+			    "Please click on a measure in one of the tables to view the call to action."
+			)
+			
+			```
+		lineageTag: 05d8a22a-b138-4069-a9bd-a16a6e6346ea
+
+	measure 'KPI Value (HASONEVALUE)' = ```
+			
+			IF(
+			    HASONEVALUE('Dim KPI'[What is measured?]),
+			    MAX('Fact KPI'[KPI Value]),
+			    ""
+			)
+			
+			```
+		lineageTag: 91372d07-087c-449c-bcdd-b29a2e803f5b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Colour Formatting (Display Measure - HASONEVALUE)' =
+			
+			IF(
+			    HASONEVALUE('Dim KPI'[What is measured?]),
+			    [Colour Formatting (Display Measure)],
+			    BLANK()
+			)
+		lineageTag: b3132c30-ec83-4dfd-85ee-e7be6d63786f
+
+	measure 'What is measured (HASONEVALUE)' =
+			
+			IF(
+			    HASONEVALUE('Dim KPI'[What is measured?]),
+			    MAX('Dim KPI'[What is measured?]),
+			    BLANK()
+			)
+		lineageTag: 3c9b0ac1-8c12-4196-a7a3-0ac05bdc113d
+
+	measure 'White text formatting' =
+			
+			IF(
+			    [Colour Formatting (Display Measure)] = "#018DB1", "#FFFFFF", BLANK()
+			)
+		lineageTag: c4904df8-167c-4cfb-8f65-e94fb124f742
+
+	measure 'Percentage Achieved (HASONEVALUE)' =
+			
+			IF(
+			    HASONEVALUE('Dim KPI'[What is measured?]),
+			    MAX('Fact KPI'[Percentage Achieved]),
+			    ""
+			)
+		lineageTag: ccefc737-6aa0-493c-81c6-a4f398b2cb12
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Filters Applied' =
+			
+			VAR Entity_Service_Name = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES('Entity'[Service Name]), NOT(ISBLANK('Entity'[Service Name]))), 'Entity'[Service Name], ASC),
+			    "Service Name_display", 'Entity'[Service Name]
+			)
+			VAR Entity_Service_NameCount = IF(ISFILTERED('Entity'[Service Name]), COUNTROWS(VALUES('Entity'[Service Name])), 0)
+			VAR More_Entity_Service_Name = IF(Entity_Service_NameCount > 10, " and " & (Entity_Service_NameCount - 10) & " more", "")
+			VAR FC_Entity_Service_Name = IF(Entity_Service_NameCount > 0, "SERVICES CHOSEN: " & CONCATENATEX(Entity_Service_Name, [Service Name_display], ", "), BLANK()) & More_Entity_Service_Name
+			
+			RETURN
+			IF(
+			    (ISBLANK(FC_Entity_Service_Name) || FC_Entity_Service_Name = ""),
+			    "No filters are currently applied to this page.",
+			    "Please note that the following filters are currently applied to this page: " &
+			    CONCATENATEX(FILTER({ FC_Entity_Service_Name }, [Value] <> BLANK()), [Value], " | ")
+			)
+		lineageTag: 4ca52c30-ed4c-4969-9418-0e6a57250844
+
+	partition '_ Measures Table' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+

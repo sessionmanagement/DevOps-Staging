@@ -1,0 +1,63 @@
+table 'Dim Department'
+	lineageTag: 1cbe58a5-b8b7-48c1-ab57-a67d2213e4b7
+
+	column 'Dim Department KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 0ccf1436-5023-46c9-ac80-3d569133c9e0
+		summarizeBy: none
+		sourceColumn: Dim Department KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Department Code'
+		dataType: string
+		lineageTag: ce3d30c9-71e6-4a2c-a0d3-fc14417061bf
+		summarizeBy: none
+		sourceColumn: Department Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Department Name'
+		dataType: string
+		lineageTag: 346ca38f-d18f-4701-916a-33c6d722bb98
+		summarizeBy: none
+		sourceColumn: Department Name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Department' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)    [dim_department_key],#(lf)    [department_code],#(lf)    [department_name]#(lf)FROM [edw].[vw_dim_department];"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_))
+				in
+				    #"Transformed Column Names"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

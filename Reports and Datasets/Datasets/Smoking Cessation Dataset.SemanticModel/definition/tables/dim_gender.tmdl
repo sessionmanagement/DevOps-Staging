@@ -1,0 +1,62 @@
+table dim_gender
+	lineageTag: acdc2695-f943-45ff-9777-7a337b849ce5
+
+	column GenderID
+		dataType: string
+		lineageTag: 17dd5243-62a3-4d01-8118-b65d15eaff1f
+		summarizeBy: none
+		sourceColumn: GenderID
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderText
+		dataType: string
+		lineageTag: d5067085-02d0-4f40-ab17-a299a7809f93
+		summarizeBy: none
+		sourceColumn: GenderText
+
+		annotation SummarizationSetBy = Automatic
+
+	column CompanyIdentifier
+		dataType: string
+		lineageTag: 6a2f494d-f31b-4f8b-b258-d34351f8928c
+		summarizeBy: none
+		sourceColumn: CompanyIdentifier
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderValue
+		dataType: string
+		lineageTag: ee634d6d-53b7-40dd-b36d-fbbdf556b935
+		summarizeBy: none
+		sourceColumn: GenderValue
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderParentID
+		dataType: string
+		lineageTag: cc51351a-4e3f-4685-abdb-41c6204c3505
+		summarizeBy: none
+		sourceColumn: GenderParentID
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderIsActive
+		dataType: int64
+		formatString: 0
+		lineageTag: b1c0a2af-0855-46a7-a5f0-4dd21fd9d84e
+		summarizeBy: sum
+		sourceColumn: GenderIsActive
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_gender-09c02345-6e8a-4608-9dd5-3c6ac28633a5 = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="-- ============================================================#(lf)-- Model:  Smoking Cessation Dataset#(lf)-- Table:  dim_gender#(lf)-- Source: native query (complex CTE/window) - emitted in full#(lf)-- Used columns: 2 (mapped 2, unmapped 0)  [full query, not trimmed]#(lf)-- Auto-generated from pbi_complete_dump.csv + model M + EDW/ODS schema.#(lf)-- Review before use; verify joins/filters against the model.#(lf)-- ============================================================#(lf)-- USED model columns: GenderID; GenderText#(lf)#(lf)SELECT#(lf)'MNB' AS CompanyIdentifier,#(lf)CASE WHEN GenderID IS NOT NULL THEN CONCAT('M',GenderID) ELSE NULL END AS GenderID,#(lf)GenderValue,#(lf)GenderText,#(lf)CASE WHEN GenderParentID IS NOT NULL THEN CONCAT('M',GenderParentID) ELSE NULL END AS GenderParentID,#(lf)GenderIsActive#(lf)FROM [RBMNB].[dlDimGender]#(lf)#(lf)UNION ALL#(lf)#(lf)SELECT#(lf)'EAL' AS CompanyIdentifier,#(lf)CASE WHEN GenderID IS NOT NULL THEN CONCAT('E',GenderID) ELSE NULL END AS GenderID,#(lf)GenderValue,#(lf)GenderText,#(lf)CASE WHEN GenderParentID IS NOT NULL THEN CONCAT('E',GenderParentID) ELSE NULL END AS GenderParentID,#(lf)GenderIsActive#(lf)FROM [RBEAL].[dlDimGender];#(lf)"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+

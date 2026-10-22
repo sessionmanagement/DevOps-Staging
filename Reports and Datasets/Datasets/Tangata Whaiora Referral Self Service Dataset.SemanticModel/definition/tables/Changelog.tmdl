@@ -1,0 +1,549 @@
+table Changelog
+	lineageTag: e96a511e-1e19-43d2-b091-bce9fc05d8e0
+
+	measure 'Latest Version' =
+			
+			VAR LatestChangeID =
+			    MAX ( 'Changelog'[Change ID] )
+			VAR LatestVersion =
+			    MAXX (
+			        FILTER ( 'Changelog', 'Changelog'[Change ID] = LatestChangeID ),
+			        'Changelog'[Version]
+			    )
+			RETURN
+			    "Tangata Whaiora Referral Self Service Dataset - v" & LatestVersion
+		lineageTag: 3fbf9a79-05eb-404d-b582-d9d4195a4ab4
+
+		changedProperty = IsHidden
+
+	measure FiltersAppliedRefs = ```
+			
+			VAR __ParentAreas =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Company Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[Company Name] ) )
+			            ),
+			            'Dim Service'[Company Name], ASC
+			        ),
+			        "AreaParentName_display", 'Dim Service'[Company Name]
+			    )
+			VAR __ParentAreasCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Company Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Company Name] ) ),
+			        0
+			    )
+			VAR __MoreParentAreas =
+			    IF (
+			        __ParentAreasCount > 10,
+			        " and " & ( __ParentAreasCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __Services =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ),
+			                NOT ( ISBLANK ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ) )
+			            ),
+			            'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name], ASC
+			        ),
+			        "TeamName_display", 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name]
+			    )
+			VAR __ServicesCount =
+			    IF (
+			        ISFILTERED ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ) ),
+			        0
+			    )
+			VAR __MoreServices =
+			    IF ( __ServicesCount > 10, " and " & ( __ServicesCount - 10 ) & " more", "" )
+			VAR _FC_ParentAreas =
+			    IF (
+			        __ParentAreasCount > 0,
+			        "| Company: " & CONCATENATEX ( __ParentAreas, [AreaParentName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentAreas =
+			    IF (
+			        __ParentAreasCount > 5,
+			        " and " & ( __ParentAreasCount - 10 ) & " more",
+			        ""
+			    )
+			VAR _FC_Services =
+			    IF (
+			        __ServicesCount > 0,
+			        "| Teams chosen: " & CONCATENATEX ( __Services, [TeamName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreServices =
+			    IF ( __ServicesCount > 5, " and " & ( __ServicesCount - 10 ) & " more", "" )
+			VAR __ParentRegion =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Region Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[Region Name] ) )
+			            ),
+			            'Dim Service'[Region Name], ASC
+			        ),
+			        "AreaParentRegionName_display", 'Dim Service'[Region Name]
+			    )
+			VAR __ParentRegionCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Region Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Region Name] ) ),
+			        0
+			    )
+			VAR _FC_ParentRegion =
+			    IF (
+			        __ParentRegionCount > 0,
+			        "| Region: "
+			            & CONCATENATEX ( __ParentRegion, [AreaParentRegionName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentRegionAreas =
+			    IF (
+			        __ParentRegionCount > 5,
+			        " and " & ( __ParentRegionCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __ParentDistrict =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[District Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[District Name] ) )
+			            ),
+			            'Dim Service'[District Name], ASC
+			        ),
+			        "AreaParentDistrictName_display", 'Dim Service'[District Name]
+			    )
+			VAR __ParentDistrictCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[District Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[District Name] ) ),
+			        0
+			    )
+			VAR _FC_ParentDistrict =
+			    IF (
+			        __ParentDistrictCount > 0,
+			        "| District: "
+			            & CONCATENATEX ( __ParentDistrict, [AreaParentDistrictName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentDistrictAreas =
+			    IF (
+			        __ParentDistrictCount > 5,
+			        " and " & ( __ParentDistrictCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __ParentServiceType =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Service Type Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[Service Type Name] ) )
+			            ),
+			            'Dim Service'[Service Type Name], ASC
+			        ),
+			        "AreaParentServiceTypeName_display", 'Dim Service'[Service Type Name]
+			    )
+			VAR __ParentServiceTypeCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Service Type Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Service Type Name] ) ),
+			        0
+			    )
+			VAR _FC_ParentServiceType =
+			    IF (
+			        __ParentServiceTypeCount > 0,
+			        "| Service Type: "
+			            & CONCATENATEX ( __ParentServiceType, [AreaParentServiceTypeName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentServiceTypeAreas =
+			    IF (
+			        __ParentServiceTypeCount > 5,
+			        " and " & ( __ParentServiceTypeCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __ParentTeamFunction =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] ),
+			                NOT ( ISBLANK ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] ) )
+			            ),
+			            'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function], ASC
+			        ),
+			        "AreaParentTeamFunction_display", 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function]
+			    )
+			VAR __ParentTeamFunctionCount =
+			    IF (
+			        ISFILTERED ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] ),
+			        COUNTROWS (
+			            VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] )
+			        ),
+			        0
+			    )
+			VAR _FC_ParentTeamFunction =
+			    IF (
+			        __ParentTeamFunctionCount > 0,
+			        "| Team Function: "
+			            & CONCATENATEX ( __ParentTeamFunction, [AreaParentTeamFunction_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentTeamFunctionAreas =
+			    IF (
+			        __ParentTeamFunctionCount > 5,
+			        " and " & ( __ParentTeamFunctionCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __FinancialYears =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Date'[Financial Year Desc] ),
+			                NOT ( ISBLANK ( 'Dim Date'[Financial Year Desc] ) )
+			            ),
+			            'Dim Date'[Financial Year Desc], ASC
+			        ),
+			        "FinancialYearNum", 'Dim Date'[Financial Year Desc]
+			    )
+			VAR __FYearCount =
+			    IF (
+			        ISFILTERED ( 'Dim Date'[Financial Year Desc] ),
+			        COUNTROWS ( VALUES ( 'Dim Date'[Financial Year Desc] ) ),
+			        0
+			    )
+			VAR __MoreFinYears =
+			    IF (
+			        __FYearCount > 10,
+			        " and " & ( __FYearCount - 10 ) & " more",
+			        ""
+			    )
+			    VAR ___FinYearDisplay =
+			    IF (
+			        __FYearCount > 0,
+			        "| Financial Year/s: " & CONCATENATEX ( __FinancialYears, [FinancialYearNum], ", " ),
+			        BLANK ()
+			    )
+			RETURN
+			     " -- Summary of filters applied to page: " & " " & _FC_ParentAreas & _FC_MoreParentAreas & " " & _FC_ParentRegion & _FC_MoreParentRegionAreas
+			        & UNICHAR ( 10 )
+			        & UNICHAR ( 13 ) & " " 
+			        &___FinYearDisplay & " "        
+			        
+			        & _FC_ParentDistrict & _FC_MoreParentDistrictAreas & " " & _FC_ParentServiceType & _FC_MoreParentServiceTypeAreas & _FC_ParentTeamFunction & _FC_MoreParentTeamFunctionAreas & _FC_Services & _FC_MoreServices
+			```
+		lineageTag: 0c95b355-b9bc-4abb-b4eb-9da94911ef84
+
+		changedProperty = IsHidden
+
+	measure __AverageLengthofStay = calculate(sum('Fact Tangata Whaiora Referral'[Lengthofstay]),'Fact Tangata Whaiora Referral'[Lengthofstay]<9999999)
+		formatString: 0.0
+		lineageTag: 7fa93cd4-c969-4b21-8914-9b1f4ecb8305
+
+		changedProperty = IsHidden
+
+	column Version
+		dataType: string
+		lineageTag: 1d903aae-5db1-4ff6-aa1b-ed64e61c6ebb
+		summarizeBy: none
+		sourceColumn: Version
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: 2cf1186a-0c42-4df4-9b03-0e9d4d9f72e5
+		summarizeBy: none
+		sourceColumn: Description
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Change ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: d57862cc-a547-463f-8888-1300648eb666
+		summarizeBy: none
+		sourceColumn: Change ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column 'Change Date'
+		dataType: string
+		lineageTag: efa97f30-8573-42b3-a40f-531c630136ed
+		summarizeBy: none
+		sourceColumn: Change Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Changed By'
+		dataType: string
+		lineageTag: f519c384-2447-4b2d-8b7f-fc087ad9cd4d
+		summarizeBy: none
+		sourceColumn: Changed By
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'User Story ID'
+		dataType: string
+		lineageTag: 38818f77-01b3-4074-8d71-b2b4b5e81fda
+		summarizeBy: none
+		sourceColumn: User Story ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Changelog = m
+		mode: import
+		queryGroup: Changelog
+		source = ```
+				let
+				    // Define the table schema with the entries reversed
+				    InitialTable = #table(
+				        {"Version", "Change Date", "Changed By", "User Story ID", "Description"},
+				        {
+				            // Add new entries at the top here
+				                       {
+				                "2.3.3", /* Version */
+				                #date(2026, 07, 28),  /* Date */
+				                "Timi",  /* Changed By */
+				                "14165",  /* User Story */
+				                "Adding Filter application to make more sense"  /* Description */
+				            }, 
+				                         {
+				                "2.3.2", /* Version */
+				                #date(2026, 07, 21),  /* Date */
+				                "Timi",  /* Changed By */
+				                "14165",  /* User Story */
+				                "Changing dataset so it matches the MORe Report Visuals - Using AI"  /* Description */
+				            },{
+				                "2.3.1", /* Version */
+				                #date(2026, 07, 07),  /* Date */
+				                "Timi",  /* Changed By */
+				                "14164",  /* User Story */
+				                "Added measures from TW Demographic Report Using AI"  /* Description */
+				            },
+				                      {
+				                "2.3.0", /* Version */
+				                #date(2026, 07, 07),  /* Date */
+				                "Timi",  /* Changed By */
+				                "",  /* User Story */
+				                "Removed Family and Whanau and added it to the Fact TW Referral Table"  /* Description */
+				            },  {
+				                "2.2.0", /* Version */
+				                #date(2026, 06, 29),  /* Date */
+				                "Timi",  /* Changed By */
+				                "",  /* User Story */
+				                "Added pending days and days in service correction. Got rid of PII in dim_employee"  /* Description */
+				            }, 
+				                   {
+				                "2.1.00", /* Version */
+				                #date(2026, 06, 29),  /* Date */
+				                "Timi",  /* Changed By */
+				                "",  /* User Story */
+				                "Added in Family and Whanau Involvement"  /* Description */
+				            },  {
+				            
+				                "2.0.00", /* Version */
+				                #date(2026, 04, 29),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Taking out unused columns, PII, Ready for Self Service"  /* Description */
+				            },  {
+				                "1.0.23", /* Version */
+				                #date(2026, 01, 26),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Added Unknown Flag to Dim_Tangata_Whaiora"  /* Description */
+				            }, 
+				                  {
+				                "1.0.22", /* Version */
+				                #date(2025, 12, 10),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Changed Measures and Definition Table to point to Tangata Whaiora Referral Dataset"  /* Description */
+				            },  {
+				                "1.0.21", /* Version */
+				                #date(2025, 11, 12),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "New column Referral Status over all to add discharged to accepted"  /* Description */
+				            }, 
+				               {
+				                "1.0.20", /* Version */
+				                #date(2025, 10, 22),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Exclusion column added to dim_team"  /* Description */
+				            },  
+				             {
+				                "1.0.19", /* Version */
+				                #date(2025, 10, 21),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "gender diverse fix"  /* Description */
+				            },      
+				            {
+				                "1.0.18", /* Version */
+				                #date(2025, 10, 21),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Added Asian and European Flags, Added Service Group to get HD, Housing"  /* Description */
+				            }, 
+				             {
+				                "1.0.17", /* Version */
+				                #date(2025, 10, 20),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Added length of stay variable to get current LOS"  /* Description */
+				            },      {
+				                "1.0.16", /* Version */
+				                #date(2025, 10, 16),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Added financial quarter offset to dim date"  /* Description */
+				            },
+				             {
+				                "1.0.15", /* Version */
+				                #date(2025, 10, 15),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Changed the join in Fact Referral to use client_id not the dim key"  /* Description */
+				            },
+				            {
+				                "1.0.14", /* Version */
+				                #date(2025, 09, 24),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Accepted and Discharged on Same day not showing as active, adding in."  /* Description */
+				            },
+				            {
+				                "1.0.13", /* Version */
+				                #date(2025, 07, 03),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Added exec masking."  /* Description */
+				            },
+				            {
+				                "1.0.12", /* Version */
+				                #date(2025, 06, 04),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Added Column for easy switch between referral types"  /* Description */
+				            },
+				            {
+				                "1.0.11", /* Version */
+				                #date(2025, 03, 04),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Changed link between for dim_service to Fact_TW_Referral"  /* Description */
+				            },
+				            {
+				                "1.0.10", /* Version */
+				                #date(2025, 03, 03),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Changed link between dim_service and dim_client_team"  /* Description */
+				            },
+				             {
+				                "1.0.9", /* Version */
+				                #date(2025, 02, 04),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9620",  /* User Story */
+				                "Changed filter on additional access"  /* Description */
+				            },
+				            {
+				                "1.0.8", /* Version */
+				                #date(2025, 01, 27),  /* Date */
+				                "Mike",  /* Changed By */
+				                "8643",  /* User Story */
+				                "Added RecordBase RLS model"  /* Description */
+				            },
+				            {
+				                "1.0.7", /* Version */
+				                #date(2024, 12, 2),  /* Date */
+				                "Timi",  /* Changed By */
+				                "8643",  /* User Story */
+				                "Changed dim service mapping from joining to dim client team to joining to fact client referral"  /* Description */
+				            },
+							{
+				                "1.0.5", /* Version */
+				                #date(2024, 9, 3),  /* Date */
+				                "Timi",  /* Changed By */
+				                "6787",  /* User Story */
+				                "Error in absences - had select top 100 - so have changed it"  /* Description */
+				            },
+							{
+				                "1.0.4", /* Version */
+				                #date(2024, 9, 3),  /* Date */
+				                "Timi",  /* Changed By */
+				                "6787",  /* User Story */
+				                "Changing Company Name blank and N/A to Unknown"  /* Description */
+				            },
+				            {
+				                "1.0.3", /* Version */
+				                #date(2024, 9, 3),  /* Date */
+				                "Timi",  /* Changed By */
+				                "6787",  /* User Story */
+				                "Adding to TW Fact Referral Absence Data"  /* Description */
+				            },
+							{
+				                "1.0.2", /* Version */
+				                #date(2024, 8, 2),  /* Date */
+				                "Timi",  /* Changed By */
+				                "6787",  /* User Story */
+				                "Adding in Dim Age Group"  /* Description */
+				            },
+							{
+				                "1.0.1", /* Version */
+				                #date(2024, 7, 5),  /* Date */
+				                "Timi",  /* Changed By */
+				                "6787",  /* User Story */
+				                "Dataset Creation "  /* Description */
+				            }
+				        }
+				    ),
+				
+				    // Reverse the order of the rows so new entries are at the top
+				    ReversedTable = Table.ReverseRows(InitialTable),
+				
+				    // Add an Index column to generate incremental numbers
+				    TableWithIndex = Table.AddIndexColumn(ReversedTable, "Change ID", 1, 1, Int64.Type),
+				
+				    // Reorder the columns to place ChangeID first
+				    ReorderedColumns = Table.ReorderColumns(TableWithIndex, {"Change ID", "Version", "Change Date", "Changed By", "User Story ID", "Description"}),
+				    #"Sorted Rows" = Table.Sort(ReorderedColumns,{{"Change ID", Order.Descending}})
+				in
+				    #"Sorted Rows"
+				```
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,96 @@
+table Dim_Service
+	lineageTag: b4b98f54-ca97-44c0-8fdd-605e1efa65d7
+
+	column 'Dim Service KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 7b3b00c6-a04d-4a86-9119-35a4c795a032
+		summarizeBy: none
+		sourceColumn: Dim Service KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Code'
+		dataType: string
+		lineageTag: 83b8a3ba-68d4-4dd5-85ac-57b3d9c73fd4
+		summarizeBy: none
+		sourceColumn: Service Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Name'
+		dataType: string
+		lineageTag: 609cf76d-2f89-4cbe-b598-8fc278ab1c79
+		summarizeBy: none
+		sourceColumn: Service Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Intellihr Service ID'
+		dataType: string
+		lineageTag: 22c36ed4-e49f-4945-8de3-91a80565bcb2
+		summarizeBy: none
+		sourceColumn: Intellihr Service ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Department Name'
+		dataType: string
+		lineageTag: 001ba0e2-d48f-45da-a4b9-410e4466d1b8
+		summarizeBy: none
+		sourceColumn: Department Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'District Name'
+		dataType: string
+		lineageTag: 28f3ebbb-34c8-41b9-9ae0-2c31b5b2475e
+		summarizeBy: none
+		sourceColumn: District Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Region Name'
+		dataType: string
+		lineageTag: 7463e720-9740-4c35-8f07-350140390235
+		summarizeBy: none
+		sourceColumn: Region Name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Service = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT#(lf)    [dim_service_key],#(lf)    [service_code],#(lf)    [service_name],#(lf)    [intellihr_service_id],#(lf)    [department_name],#(lf)    [district_name],#(lf)    [region_name]#(lf)FROM [edw].[vw_dim_service]#(lf)WHERE dwhiscurrent = 1"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				    #"Replace nulls in Region" = Table.ReplaceValue(#"Transformed Column Names", null,"No Region",Replacer.ReplaceValue,{"Region Name"}),
+				    #"Replace nulls in Service Name" = Table.ReplaceValue(#"Replace nulls in Region",null,"No ServiceName",Replacer.ReplaceValue,{"Service Name"}),
+				    #"Replace nulls in Department" = Table.ReplaceValue(#"Replace nulls in Service Name",null,"No Department",Replacer.ReplaceValue,{"Department Name"}),
+				    #"Replaced nulls in District" = Table.ReplaceValue(#"Replace nulls in Department",null,"No District",Replacer.ReplaceValue,{"District Name"})
+				in
+				    #"Replaced nulls in District"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

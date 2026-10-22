@@ -1,0 +1,131 @@
+table DimTeam(ODS)
+	lineageTag: 6d18a573-b7d2-476f-ac44-b02136a268b0
+
+	column TeamIDKey
+		dataType: string
+		lineageTag: bcf4731f-2334-408e-a5a5-eacf3231776c
+		summarizeBy: none
+		sourceColumn: TeamIDKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Company
+		dataType: string
+		lineageTag: a1107c62-396c-4197-8db1-40a31692a6a9
+		summarizeBy: none
+		sourceColumn: Company
+
+		annotation SummarizationSetBy = Automatic
+
+	column Teamid
+		dataType: int64
+		formatString: 0
+		lineageTag: 80a26b84-415c-4f10-bc7d-7c5773782bde
+		summarizeBy: sum
+		sourceColumn: Teamid
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Team Name'
+		dataType: string
+		lineageTag: dc6fa65f-dbd4-4c0e-b133-5e6e7be12b25
+		summarizeBy: none
+		sourceColumn: Team Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Team Function Name'
+		dataType: string
+		lineageTag: 1af79fbe-19a4-4c44-bb3a-b954c8786813
+		summarizeBy: none
+		sourceColumn: Team Function Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamStartDate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 36752578-56b6-4659-aa90-cdbb92722732
+		summarizeBy: none
+		sourceColumn: TeamStartDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamEndDate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 39e76c49-05b8-4d2a-8532-f64998a03bbd
+		summarizeBy: none
+		sourceColumn: TeamEndDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column Region_Name
+		dataType: string
+		lineageTag: 63d4c5e8-1bc9-4ae8-af6c-148ab9c546b5
+		summarizeBy: none
+		sourceColumn: Region_Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column District_Name
+		dataType: string
+		lineageTag: 2dd1ae68-914f-411f-8518-0defc46188b6
+		summarizeBy: none
+		sourceColumn: District_Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Service_Type_Name
+		dataType: string
+		lineageTag: 5b6fbc50-ee56-49a5-9f73-29f8c872a7a1
+		summarizeBy: none
+		sourceColumn: Service_Type_Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Service_Name
+		dataType: string
+		lineageTag: d52e4ac4-b240-4d99-8cb3-78e0ffa8eb32
+		summarizeBy: none
+		sourceColumn: Service_Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_client_team_unique_key
+		dataType: string
+		lineageTag: d502ff0e-30a3-4e70-9e56-46ca0a77015e
+		summarizeBy: none
+		sourceColumn: dim_client_team_unique_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column company_name
+		dataType: string
+		lineageTag: 48c2531d-5fdf-43dd-b688-d1c45aad7a3c
+		summarizeBy: none
+		sourceColumn: company_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column board_report_status
+		dataType: string
+		lineageTag: 5433dc11-68b4-48c2-a318-3304bf52e670
+		summarizeBy: none
+		sourceColumn: board_report_status
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimTeam(ODS)-868115ae-4405-4f84-a007-78ef3fe5aed7 = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="#(lf)select #(lf)dim_client_team_unique_key,#(lf)case when company_id = 1 then 'EAL,'+cast(client_team_id as nvarchar) #(lf)when company_id = 5 then 'MNB,'+cast(client_team_id as nvarchar) #(lf)end#(lf)as TeamIDKey,#(lf)case when company_id = 1 then 'EAL'#(lf)when company_id = 5 then 'MNB'#(lf)end#(lf)as company,#(lf)client_team_id as Teamid,#(lf)client_team_name as Teamname,#(lf)client_team_function as TeamFunctionName,#(lf)cast(dim_client_team_start_date as date) as TeamStartDate,#(lf)cast(dim_client_team_end_date as date) as TeamEndDate,#(lf)case when region_name = 'N/A' then 'Unknown'#(lf)else region_name#(lf)end as Region_Name,#(lf)case when district_name = 'N/A' then 'Unknown'#(lf)else district_name#(lf)end as District_Name,#(lf)Case when service_type_name= 'N/A' then 'Unknown'#(lf)else service_type_name#(lf)end as Service_Type_Name,#(lf)#(lf)Case when service_name  = 'N/A' then 'Unknown'#(lf)else service_name#(lf)end as Service_Name ,#(lf)dim_service.company_name ,#(lf)case #(lf)when client_team_id = 378 then 'Exempt Board Report - approved' --Bach Day Prog#(lf)when client_team_id = 491 then 'Exempt Board Report - approved' --Bach Youth Resp#(lf)when client_team_id = 132 then 'Exempt Board Report - approved' --Crisis Respite Upper Hutt#(lf)when client_team_id = 417 then 'Exempt Board Report - approved' --CS Tauranga#(lf)when client_team_id = 762 then 'Exempt Board Report - approved' --Day Programme - Te Whare O Te Rito - Waiwhetu#(lf)when client_team_id = 458 then 'Exempt Board Report - approved' --Housing and Recovery - Colson#(lf)when client_team_id = 641 then 'Exempt Board Report - approved' --Individual Placement Support#(lf)when client_team_id = 391 then 'Exempt Board Report - approved' --Key We Way Crisis Respite Wlgtn#(lf)when client_team_id = 517 then 'Exempt Board Report - approved' --L3, 156 15th Ave Tauranga#(lf)when client_team_id = 515 then 'Exempt Board Report - approved' --L3, 156C 15th Ave Tauranga#(lf)when client_team_id = 520 then 'Exempt Board Report - approved' --L4, 160 15th Ave Tauranga#(lf)when client_team_id = 522 then 'Exempt Board Report - approved' --L4, 470 Devonport Rd Tauranga#(lf)when client_team_id = 427 then 'Exempt Board Report - approved' --Maternal#(lf)when client_team_id = 403 then 'Exempt Board Report - approved' --Ngā Manu Tau#(lf)when client_team_id = 389 then 'Exempt Board Report - approved' --Norfolk Mobile#(lf)when client_team_id = 399 then 'Exempt Board Report - approved' --Nthld C&Y#(lf)when client_team_id = 513 then 'Exempt Board Report - approved' --Planned Respite - Colson#(lf)when client_team_id = 45  then 'Exempt Board Report - approved' --Planned Respite Tauranga#(lf)when client_team_id = 608 then 'Exempt Board Report - approved' --Respite - Te Whare O Te Rito - Waiwhetu#(lf)when client_team_id = 462 then 'Exempt Board Report - approved' --Te Mana Kai Ora Residential#(lf)when client_team_id = 526 then 'Exempt Board Report - approved' --Te Mana Kai Ora Respite#(lf)when client_team_id = 637 then 'Exempt Board Report - approved' --Toe Afua Le Taeao#(lf)when client_team_id = 573 then 'Exempt Board Report - approved' --ILoC#(lf)when client_team_id = 747 then 'Exempt Board Report - approved' --Intensive Community Support#(lf)when client_team_id = 544 then 'Exempt Board Report - approved' --Jansen House - Clinical#(lf)when client_team_id = 545 then 'Exempt Board Report - approved' --Jansen House - Non-clinical#(lf)when client_team_id = 739 then 'Exempt Board Report - approved' --Kia Ora Ake#(lf)when client_team_id = 602 then 'Exempt Board Report - approved' --MacLaurin St Youth#(lf)when client_team_id = 543 then 'Exempt Board Report - approved' --Mapusaga - Non-clinical#(lf)when client_team_id = 542 then 'Exempt Board Report - approved' --Mapusaga Clinical#(lf)when client_team_id = 750 then 'Exempt Board Report - approved' --MST - KPKOEA#(lf)when client_team_id = 482 then 'Exempt Board Report - approved' --MST AOD Wairarapa#(lf)when client_team_id = 460 then 'Exempt Board Report - approved' --MST AOD Wellington#(lf)when client_team_id = 481 then 'Exempt Board Report - approved' --MST Christchurch#(lf)when client_team_id = 546 then 'Exempt Board Report - approved' --Nga Taumahatanga - Clinical#(lf)when client_team_id = 547 then 'Exempt Board Report - approved' --Nga Taumahatanga - Non-clinical#(lf)when client_team_id = 664 then 'Exempt Board Report - approved' --NGO Partner team#(lf)when client_team_id = 450 then 'Exempt Board Report - approved' --Phoenix - Clinical#(lf)when client_team_id = 404 then 'Exempt Board Report - approved' --Phoenix - Peer Supp#(lf)when client_team_id = 432 then 'Exempt Board Report - approved' --Piki Te Ora#(lf)when client_team_id = 431 then 'Exempt Board Report - approved' --Planned Respite Gisb#(lf)when client_team_id = 455 then 'Exempt Board Report - approved' --Planned Respite Napier#(lf)when client_team_id = 479 then 'Exempt Board Report - approved' --Planned Respite Timaru#(lf)when client_team_id = 405 then 'Exempt Board Report - approved' --Pounamu Crisis Resp#(lf)when client_team_id = 701 then 'Exempt Board Report - approved' --Pounamu Planned Respite#(lf)when client_team_id = 763 then 'Exempt Board Report - approved' --SIA MST Christchurch#(lf)when client_team_id = 764 then 'Exempt Board Report - approved' --SIA MST Hamilton#(lf)when client_team_id = 745 then 'Exempt Board Report - approved' --SOC Kirikiriroa#(lf)when client_team_id = 214 then 'Exempt Board Report - approved' --Specialist Support Service ChCh#(lf)when client_team_id = 219 then 'Exempt Board Report - approved' --Specialist Support Service Hutt Valley#(lf)when client_team_id = 402 then 'Exempt Board Report - approved' --Te Puna Oranga DD#(lf)when client_team_id = 440 then 'Exempt Board Report - approved' --Te Whare Hurihuri#(lf)when client_team_id = 438 then 'Exempt Board Report - approved' --Te Whare Kauri#(lf)when client_team_id = 474 then 'Exempt Board Report - approved' --Te Whare O Te Kaahu#(lf)when client_team_id = 721 then 'Exempt Board Report - approved' --Tiakina - DBT Group#(lf)when client_team_id = 436 then 'Exempt Board Report - approved' --Tumanako Me Whakapono#(lf)when client_team_id = 722 then 'Exempt Board Report - approved' --Waimoko#(lf)when client_team_id = 712 then 'Exempt Board Report - approved' --WayPoint#(lf)when client_team_id = 408 then 'Exempt Board Report - approved' --WDHB Mainstream - Clinical#(lf)when client_team_id = 411 then 'Exempt Board Report - approved' --WDHB Mainstream - Non-clinical#(lf)when client_team_id = 428 then 'Exempt Board Report - approved' --Whariki Family/Whanau#(lf)when client_team_id = 683 then 'Exempt Board Report - approved' --EaseUp - ADHB - One Off Support#(lf)when client_team_id = 749 then 'Exempt Board Report - approved' --EaseUp - North - One Off Support#(lf)when client_team_id = 709 then 'Exempt Board Report - approved' --EaseUp - Waikato - One Off Support#(lf)when client_team_id = 686 then 'Exempt Board Report - approved' --EaseUp - West - One Off Support#(lf)when client_team_id = 741 then 'Exempt Board Report - approved' --EH Christchurch F/up#(lf)when client_team_id = 753 then 'Exempt Board Report - approved' --EH Dunedin F/up#(lf)when client_team_id = 743 then 'Exempt Board Report - approved' --EH Motels F/Up#(lf)when client_team_id = 731 then 'Exempt Board Report - approved' --EH Motels Masterton F/up#(lf)when client_team_id = 725 then 'Exempt Board Report - approved' --EH Motels Wellington F/up#(lf)when client_team_id = 740 then 'Exempt Board Report - approved' --EH Standalones Hamilton F/up#(lf)when client_team_id = 742 then 'Exempt Board Report - approved' --Kia Ora Ake - One Off Support#(lf)when client_team_id = 759 then 'Exempt Board Report - approved' --TH Barber Grove F/up#(lf)when client_team_id = 703 then 'Exempt Board Report - approved' --TH Chapel Rd Hub F/Up#(lf)when client_team_id = 549 then 'Exempt Board Report - approved' --TH Hse Napier F/up#(lf)when client_team_id = 530 then 'Exempt Board Report - approved' --TH Hub Manurewa F/up#(lf)when client_team_id = 551 then 'Exempt Board Report - approved' --TH Hub Swanson F/up#(lf)when client_team_id = 620 then 'Exempt Board Report - approved' --TH Hub Tara Rd F/up#(lf)when client_team_id = 633 then 'Exempt Board Report - approved' --TH Hubs Hamilton F/up#(lf)when client_team_id = 720 then 'Exempt Board Report - approved' --TH Motels Akld South F/Up#(lf)when client_team_id = 733 then 'Exempt Board Report - approved' --TH Motels Akld West F/Up#(lf)when client_team_id = 618 then 'Exempt Board Report - approved' --TH Motels Hamilton F/Up#(lf)when client_team_id = 724 then 'Exempt Board Report - approved' --TH Motels Hutt Valley F/up#(lf)when client_team_id = 564 then 'Exempt Board Report - approved' --TH Motels Napier F/Up#(lf)when client_team_id = 744 then 'Exempt Board Report - approved' --TH Rotorua F/up#(lf)when client_team_id = 760 then 'Exempt Board Report - approved' --TH Spinnaker F/up#(lf)when client_team_id = 563 then 'Exempt Board Report - approved' --TH Standalones Akld F/up#(lf)when client_team_id = 540 then 'Exempt Board Report - approved' --TH Standalones Christchurch F/up#(lf)when client_team_id = 662 then 'Exempt Board Report - approved' --TH Standalones Dunedin F/up#(lf)when client_team_id = 714 then 'Exempt Board Report - approved' --TH Standalones Hamilton F/Up#(lf)when client_team_id = 538 then 'Exempt Board Report - approved' --TH Standalones Hutt Valley F/up#(lf)when client_team_id = 661 then 'Exempt Board Report - approved' --TH Standalones Invercargill F/up#(lf)when client_team_id = 571 then 'Exempt Board Report - approved' --TH Standalones Masterton F/up#(lf)when client_team_id = 532 then 'Exempt Board Report - approved' --TH Standalones Porirua F/up#(lf)when client_team_id = 738 then 'Exempt Board Report - approved' --TH Standalones Tauranga F/up#(lf)when client_team_id = 679 then 'Exempt Board Report - approved' --TH Standalones Wellington F/up#(lf)when client_team_id = 553 then 'Exempt Board Report - approved' --TH Standalones Whangarei F/up#(lf)when client_team_id = 717 then 'Exempt Board Report - approved' --TH Webb St F/up#(lf)when client_team_id = 413 then 'Exempt Board Report - approved' --Whariki Pacific Peer Supp#(lf)when client_team_id = 682 then 'Exempt Board Report - awaiting approval' --Access and Choice – HBDHB#(lf)when client_team_id = 211 then 'Exempt Board Report - awaiting approval' --CreativeWorks Christchurch#(lf)when client_team_id = 216 then 'Exempt Board Report - awaiting approval' --CreativeWorks Wellington#(lf)when client_team_id = 420 then 'Exempt Board Report - awaiting approval' --Family/Whanau Hawkes Bay#(lf)when client_team_id = 715 then 'Exempt Board Report - awaiting approval' --Mahea#(lf)when client_team_id = 441 then 'Exempt Board Report - awaiting approval' --MCS Sth Akl#(lf)else ''#(lf)#(lf)end as board_report_status #(lf)#(lf)from edw.dim_client_team#(lf)left join edw.dim_service on dim_client_team.service_id  = dim_service.service_code  #(lf)and dim_service.DWHIsCurrent = 1 and dim_service.DWHDMLOperation <>'d'#(lf)and region_name not like '%mind and body%'#(lf)where dim_client_team.dwhdmloperation <> 'd'#(lf)and dim_client_team.dwhdmloperation <> 'm'#(lf)--and dim_service.DWHIsCurrent = 1  -- this indicator doesnt' work properly at this stage 27-03-2024#(lf)and dim_client_team.client_team_id not in (0,-1)#(lf)and region_name not in ('unknown')#(lf)and isnull(dim_client_team_end_date,getdate()) >= '2020-07-01'#(lf)--and dim_client_team.client_team_id = 194#(lf)"]),
+				    #"Renamed Columns" = Table.RenameColumns(Source,{{"company", "Company"}, {"TeamFunctionName", "Team Function Name"}, {"Teamname", "Team Name"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

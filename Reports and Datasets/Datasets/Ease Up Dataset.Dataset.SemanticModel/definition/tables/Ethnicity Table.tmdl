@@ -1,0 +1,44 @@
+table 'Ethnicity Table'
+	lineageTag: 5b45913f-24bc-42d2-be40-e937a33b14c7
+
+	column Ethnicity
+		dataType: string
+		lineageTag: 5969157c-7c43-4def-ae59-f575fd1ba453
+		summarizeBy: none
+		sourceColumn: Ethnicity
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ethnicity Group'
+		dataType: string
+		lineageTag: 5c6cf21c-e72e-40ff-9af7-90abe1e59148
+		summarizeBy: none
+		sourceColumn: Ethnicity Group
+		sortByColumn: ethnicitysortvalue
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column ethnicitysortvalue
+		dataType: int64
+		formatString: 0
+		lineageTag: 6110209e-ebfa-415d-8348-692be4ca5eb5
+		summarizeBy: sum
+		sourceColumn: ethnicitysortvalue
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Ethnicity Table-9baba0ea-bc98-4d38-932e-f10d359fddd4' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT DISTINCT#(lf)    EthnicityText,#(lf)    CASE #(lf)        WHEN EthnicityText IN (#(lf)            'don''t know', 'Refused to answer', 'response outside scope', #(lf)            'response unidentifiable', 'not stated'#(lf)        ) THEN 'Unknown/Not Specified'#(lf)        WHEN EthnicityParentId = 11183 #(lf)            OR EthnicityText = 'Maori' #(lf)            OR EthnicityValue = 21 #(lf)        THEN 'Maori'#(lf)        WHEN EthnicityValue IN (10, 11, 12) #(lf)            OR EthnicityText IN (#(lf)                'australian', 'british and irish', 'dutch', 'German', 'Italian',#(lf)                'Greek (including Greek Cypriot)', 'Other European NFD', 'Polish',#(lf)                'South Slav (formerly Yugoslav)'#(lf)            ) #(lf)        THEN 'European'#(lf)        WHEN EthnicityValue BETWEEN 30 AND 37 #(lf)        THEN 'Pacific Peoples'#(lf)        WHEN EthnicityValue BETWEEN 40 AND 49 #(lf)            OR EthnicityText IN (#(lf)                'sri lankan', 'vietnamese', 'filipino', 'japanese', 'korean',#(lf)                'Khmer/Kampuchean/Cambodian', 'Other Southeast Asian'#(lf)            ) #(lf)            OR EthnicityText LIKE '% asian %'#(lf)        THEN 'Asian'#(lf)        WHEN EthnicityValue BETWEEN 50 AND 54 #(lf)        or EthnicityText = 'Other' #(lf)        THEN 'Other'#(lf)    END AS ethnicitygroup,#(lf)    CASE #(lf)        WHEN EthnicityText IN (#(lf)            'don''t know', 'Refused to answer', 'response outside scope', #(lf)            'response unidentifiable', 'not stated'#(lf)        ) THEN 99#(lf)        WHEN EthnicityParentId = 11183 #(lf)            OR EthnicityText = 'Maori' #(lf)            OR EthnicityValue = 21 #(lf)        THEN 1#(lf)        WHEN EthnicityValue BETWEEN 30 AND 37 #(lf)        THEN 2#(lf)        WHEN EthnicityValue IN (10, 11, 12) #(lf)            OR EthnicityText IN (#(lf)                'australian', 'british and irish', 'dutch', 'German', 'Italian',#(lf)                'Greek (including Greek Cypriot)', 'Other European NFD', 'Polish',#(lf)                'South Slav (formerly Yugoslav)'#(lf)            ) #(lf)        THEN 3#(lf)        WHEN EthnicityValue BETWEEN 40 AND 49 #(lf)            OR EthnicityText IN (#(lf)                'sri lankan', 'vietnamese', 'filipino', 'japanese', 'korean',#(lf)                'Khmer/Kampuchean/Cambodian', 'Other Southeast Asian'#(lf)            ) #(lf)            OR EthnicityText LIKE '% asian %'#(lf)        THEN 4#(lf)        WHEN EthnicityValue BETWEEN 50 AND 54 #(lf)        THEN 5#(lf)        WHEN EthnicityText = 'Other' then 5#(lf)    END AS ethnicitysortvalue#(lf)FROM RBEAL.dlDimEthnicity#(lf)ORDER BY ethnicitysortvalue"]),
+				    #"Renamed Columns" = Table.RenameColumns(Source,{{"ethnicitygroup", "Ethnicity Group"}, {"EthnicityText", "Ethnicity"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

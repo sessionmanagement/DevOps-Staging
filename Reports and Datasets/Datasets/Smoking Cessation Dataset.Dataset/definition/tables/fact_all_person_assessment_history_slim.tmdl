@@ -1,0 +1,82 @@
+table fact_all_person_assessment_history_slim
+	lineageTag: 1f0ca465-1073-4e99-9628-c434a9d4eeec
+
+	column PersonID
+		lineageTag: 47ef3620-aa57-4009-96d8-980f1a8e6c4a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: fact_smoking_assessment_explosion[PersonID]
+
+		annotation SummarizationSetBy = Automatic
+
+	column MaxRowNumberAscPerson
+		formatString: 0
+		lineageTag: 0d618792-2a25-4d5c-aa02-743efc8c86bd
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [MaxRowNumberAscPerson]
+
+		annotation SummarizationSetBy = Automatic
+
+	column SmokerStatus
+		lineageTag: 7d9f0407-3f51-4e55-8e0c-cdbb341748ca
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [SmokerStatus]
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonSmokingHistoryAssessmentDate
+		formatString: Short Date
+		lineageTag: efa68918-a001-4c8f-b992-8b4812e2df66
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: fact_smoking_assessment_explosion[PersonSmokingHistoryAssessmentDate]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column BriefAdviceGiven
+		lineageTag: 379f6494-d2ea-4b52-980b-5fc373b5dfaf
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [BriefAdviceGiven]
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReferredToCessationServices
+		lineageTag: a408ab36-c80c-41ef-9bc4-1a8fbb013745
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [ReferredToCessationServices]
+
+		annotation SummarizationSetBy = Automatic
+
+	column GivenSupportServices
+		lineageTag: d1ec6971-b211-4585-ac62-17850e1edfb9
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [GivenSupportServices]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_all_person_assessment_history_slim = calculated
+		mode: import
+		source = ```
+				
+				// This table has been created specifically for the "Number of current clients whose most recent smoking status is current smoker" measure. Do not join it or use for any other purpose unless you're sure.
+				SUMMARIZE(
+				    fact_smoking_assessment_explosion, 
+				    fact_smoking_assessment_explosion[PersonID], 
+				    fact_smoking_assessment_explosion[PersonSmokingHistoryAssessmentDate],
+				    "MaxRowNumberAscPerson", MAX(fact_smoking_assessment_explosion[RowNumberAscPerson]),
+				    "SmokerStatus", LASTNONBLANK(fact_smoking_assessment_explosion[SmokerOrNonSmoker], 1),
+				    "BriefAdviceGiven", LASTNONBLANK(fact_smoking_assessment_explosion[BriefAdviceGiven], 1),
+				    "ReferredToCessationServices", LASTNONBLANK(fact_smoking_assessment_explosion[ReferredToExternalCessationSupportServiceYN], 1),
+				    "GivenSupportServices", LASTNONBLANK(fact_smoking_assessment_explosion[SupportServicesOfferedYN], 1)
+				)
+				```
+
+	annotation PBI_Id = ad497ffeab8c4923bf4db22c9310a35c
+

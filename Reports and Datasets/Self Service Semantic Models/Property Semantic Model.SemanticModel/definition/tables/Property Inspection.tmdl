@@ -1,0 +1,392 @@
+/// Property inspection records including routine inspections, move-in/move-out inspections, and compliance checks. Contains inspection findings, condition assessments, and follow-up requirements. Grain = one row per inspection (44,754 rows). Actively related only to Tenancy via Property Tenancy ID; Property ID, Property Maintenance ID and the Dim* surrogate keys are carried as reference identifiers but have no active model relationship (reach Property via Tenancy).
+table 'Property Inspection'
+	lineageTag: 3a2b5ef8-3486-4a60-ab9a-66fbd88f6606
+
+	column 'Fact Property Inspection KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d66d01ad-990a-4f55-abc6-a4edbac895ed
+		summarizeBy: none
+		sourceColumn: Fact Property Inspection KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Inspection ID'
+		dataType: string
+		isHidden
+		lineageTag: 26ae8b7a-ec57-4e84-a8ca-15409abc0af5
+		summarizeBy: none
+		sourceColumn: Property Inspection ID
+
+	column 'Dim Property KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: f0b95a59-0a09-4b56-b109-157bd897db50
+		summarizeBy: none
+		sourceColumn: Dim Property KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Detail KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: e59f399f-580f-4129-b243-cc9628cf8f68
+		summarizeBy: none
+		sourceColumn: Dim Property Detail KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Healthy Homes KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 01b1e0f3-50b2-4f7a-8c1f-58f2821e4712
+		summarizeBy: none
+		sourceColumn: Dim Property Healthy Homes KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Tenancy KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d477b5fd-3a73-4792-adc6-9dcdbede299a
+		summarizeBy: none
+		sourceColumn: Dim Property Tenancy KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Maintenance KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 311e6c61-f12e-43ff-95e0-109e8f50997e
+		summarizeBy: none
+		sourceColumn: Dim Property Maintenance KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property ID'
+		dataType: string
+		isHidden
+		lineageTag: da936ba0-5ad5-4807-8554-e2006f234d4f
+		summarizeBy: none
+		sourceColumn: Property ID
+
+	column 'Property Tenancy ID'
+		dataType: string
+		isHidden
+		lineageTag: 9c0279a3-6849-4e91-9fee-7d7647a0d278
+		summarizeBy: none
+		sourceColumn: Property Tenancy ID
+
+	column 'Property Maintenance ID'
+		dataType: string
+		isHidden
+		lineageTag: 0d9745da-e1f4-4489-af10-2fbfb2ccd0f4
+		summarizeBy: none
+		sourceColumn: Property Maintenance ID
+
+	/// Human-readable reference code for the individual inspection record, formatted like 'I-048752' (every value is prefixed 'I-'). It is unique per inspection, so its distinct count equals the table row count, and it is never blank. This identifies a single inspection record, not an inspection type - group by Category or Type to analyse by inspection type.
+	column 'Inspection Code'
+		dataType: string
+		lineageTag: 963e06d2-7c93-415b-973c-668509c64203
+		summarizeBy: none
+		sourceColumn: Inspection Code
+
+	/// Descriptive title of the inspection, built from the property address and usually the inspection type, for example 'Inspection - 104/2 Hutt Road - Routine tenancy'; every value begins 'Inspection - '. It is never blank but not unique - there are far fewer distinct titles than rows because the same title recurs across a property's repeated inspections, so it should not be used as a record key. It is not a reusable inspection-type name; group by Category or Type to analyse by inspection type.
+	column 'Inspection Name'
+		dataType: string
+		lineageTag: f543ac8e-1b28-4912-aaa4-94548a545c0f
+		summarizeBy: none
+		sourceColumn: Inspection Name
+
+	/// Date the inspection was actually conducted.
+	column 'Actual Inspection Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 08bb316b-d9ae-46d2-8ff4-5347e8776090
+		summarizeBy: none
+		sourceColumn: Actual Inspection Date
+
+		variation Variation
+			isDefault
+			relationship: 674a6a4b-6d19-49df-b3bf-71efd179db65
+			defaultHierarchy: LocalDateTable_4473d748-f7a4-44cd-b465-2f09557b548a.'Date Hierarchy'
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Originally scheduled date for the inspection.
+	column 'Scheduled Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: cfb789bc-4b5a-41a1-91d1-34e6cf7b8adc
+		summarizeBy: none
+		sourceColumn: Scheduled Date
+
+		variation Variation
+			isDefault
+			relationship: 7b1d13e8-b60a-4ffc-9982-883f79214739
+			defaultHierarchy: LocalDateTable_024f5745-055f-4b16-be01-d31792aa5b91.'Date Hierarchy'
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date the inspection report was completed and finalised.
+	column 'Date Inspection Finalized'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 724d9cb3-061f-44a3-abe9-56eb6825b6ac
+		summarizeBy: none
+		sourceColumn: Date Inspection Finalized
+
+		variation Variation
+			isDefault
+			relationship: 3e5094af-849d-4dd5-a3f1-c1f513db7ef2
+			defaultHierarchy: LocalDateTable_199f4189-8a12-4dde-99c8-40789662ab22.'Date Hierarchy'
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Scheduled date for the next routine inspection.
+	column 'Next Routine Inspection'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: c7d2a4f9-4d55-427e-bc30-98c756c76e6e
+		summarizeBy: none
+		sourceColumn: Next Routine Inspection
+
+		variation Variation
+			isDefault
+			relationship: 961eaf9a-4d55-44d4-a8af-3c1ca0203011
+			defaultHierarchy: LocalDateTable_ca78ab13-2d47-4110-9016-40d29d40c236.'Date Hierarchy'
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Brief summary of the inspection findings.
+	column 'Inspection Summary'
+		dataType: string
+		lineageTag: 3e8d6474-f99c-4c71-99e2-0061e71d37b5
+		summarizeBy: none
+		sourceColumn: Inspection Summary
+
+	/// Name of the person who conducted the inspection.
+	column 'Inspected By'
+		dataType: string
+		lineageTag: 3cf6caff-9bc1-4d06-8cef-b0f5840c55a8
+		summarizeBy: none
+		sourceColumn: Inspected By
+
+	/// Category of inspection (e.g., Routine, Pre-tenancy, Exit, Compliance).
+	column Category
+		dataType: string
+		lineageTag: 5aa59d5a-2f91-41cf-9845-34fa1cd04504
+		summarizeBy: none
+		sourceColumn: Category
+
+	/// Specific type of inspection within the category.
+	column Type
+		dataType: string
+		lineageTag: b75dce64-f251-4afe-907b-6d5264d4dd5c
+		summarizeBy: none
+		sourceColumn: Type
+
+	/// Summary of any maintenance issues identified during inspection.
+	column 'Maintenance Required'
+		dataType: string
+		lineageTag: 07dee898-b52c-4e2e-8671-8c7b3f0c80f2
+		summarizeBy: none
+		sourceColumn: Maintenance Required
+
+	/// System state of the inspection record.
+	column State
+		dataType: string
+		lineageTag: 2c21a7c4-b39c-487d-a6aa-11b3efceba19
+		summarizeBy: none
+		sourceColumn: State
+
+	/// Current status of the inspection (e.g., Scheduled, Completed, Cancelled).
+	column Status
+		dataType: string
+		lineageTag: bddb9b9e-ac6c-4e97-ba93-923e085b30bc
+		summarizeBy: none
+		sourceColumn: Status
+
+	/// Flag indicating if the tenant was present during the inspection.
+	column 'Tenant Present'
+		dataType: int64
+		formatString: 0
+		lineageTag: d818f3b8-86fe-4410-85b4-e3540f8704a7
+		summarizeBy: none
+		sourceColumn: Tenant Present
+
+		annotation SummarizationSetBy = User
+
+	/// Flag indicating if the inspection was cancelled.
+	column 'Cancel Inspection'
+		dataType: int64
+		formatString: 0
+		lineageTag: 70eddc44-2c36-4559-89a8-0ffa7299f8e7
+		summarizeBy: none
+		sourceColumn: Cancel Inspection
+
+		annotation SummarizationSetBy = User
+
+	column 'Ignore Plugin Validate'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 81357c07-dfc5-4a84-ac98-31a698e779e9
+		summarizeBy: none
+		sourceColumn: Ignore Plugin Validate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Flag indicating if the tenant confirmed/agreed with the property condition assessment.
+	column 'Tenant Confirmed Condition'
+		dataType: int64
+		formatString: 0
+		lineageTag: 8381090b-47e6-40be-8b74-cfd91ea08330
+		summarizeBy: none
+		sourceColumn: Tenant Confirmed Condition
+
+		annotation SummarizationSetBy = User
+
+	column 'Owning Business Unit'
+		dataType: string
+		lineageTag: e7e0578d-504d-4053-8015-13bf6bf6963a
+		summarizeBy: none
+		sourceColumn: Owning Business Unit
+
+	column Client
+		dataType: string
+		isHidden
+		lineageTag: 9101cb97-9df4-42dd-a5b9-705154200123
+		summarizeBy: none
+		sourceColumn: Client
+
+	column Property
+		dataType: string
+		isHidden
+		lineageTag: cb1f568b-8922-4c73-99b3-db0529916c8a
+		summarizeBy: none
+		sourceColumn: Property
+
+		changedProperty = IsHidden
+
+	column 'Property Manager'
+		dataType: string
+		isHidden
+		lineageTag: 15d56822-51b5-498a-ac31-cceb494b85dc
+		summarizeBy: none
+		sourceColumn: Property Manager
+
+	column 'Tenancy Manager'
+		dataType: string
+		isHidden
+		lineageTag: a6c86f98-fb13-4a60-869e-b113effcacaf
+		summarizeBy: none
+		sourceColumn: Tenancy Manager
+
+	column Tenant
+		dataType: string
+		isHidden
+		lineageTag: 946f3d69-bbf7-4f72-9dc4-0ad24c564e8a
+		summarizeBy: none
+		sourceColumn: Tenant
+
+	column Owner
+		dataType: string
+		isHidden
+		lineageTag: ec315069-b65c-4d13-a9ea-f715e0bf09db
+		summarizeBy: none
+		sourceColumn: Owner
+
+	/// Free-text field for any additional issues noted during inspection.
+	column 'Any Other Issues'
+		dataType: string
+		lineageTag: 51128aa0-21ce-45c3-a6e4-709de52656fb
+		summarizeBy: none
+		sourceColumn: Any Other Issues
+
+	/// Free-text comments captured on the inspection record.
+	column Comments
+		dataType: string
+		lineageTag: 3bdcb9dd-0137-4ed8-a00b-7651eb907ac7
+		summarizeBy: none
+		sourceColumn: Comments
+
+	/// Inspector's recommendations for property improvements.
+	column 'Suggested Improvements'
+		dataType: string
+		lineageTag: 3a9b585d-6e0b-418e-a962-4933e8b9b8b4
+		summarizeBy: none
+		sourceColumn: Suggested Improvements
+
+	/// URL path to the inspection record in the source system.
+	column 'Relative Url'
+		dataType: string
+		lineageTag: b682fc41-1d58-42f8-b2e1-ecb83ce92349
+		summarizeBy: none
+		sourceColumn: Relative Url
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Property Inspection' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT [fact_property_inspection_key]
+				      ,[property_inspection_id]
+				      ,[dim_property_key]
+				      ,[dim_property_detail_key]
+				      ,[dim_property_healthy_homes_key]
+				      ,[dim_property_tenancy_key]
+				      ,[dim_property_maintenance_key]
+				      ,[property_id]
+				      ,[property_tenancy_id]
+				      ,[property_maintenance_id]
+				      ,[property_inspection_code] AS [Inspection Code]
+				      ,[property_inspection_name] AS [Inspection Name]
+				      ,TRY_CONVERT(DATE, CAST(NULLIF([property_inspection_date_key], -1) AS VARCHAR(8)), 112) AS [Actual Inspection Date]
+				      ,TRY_CONVERT(DATE, CAST(NULLIF([property_inspection_scheduled_date_key], -1) AS VARCHAR(8)), 112) AS [Scheduled Date]
+				      ,TRY_CONVERT(DATE, CAST(NULLIF([property_inspection_completion_date_key], -1) AS VARCHAR(8)), 112) AS [Date Inspection Finalized]
+				      ,TRY_CONVERT(DATE, CAST(NULLIF([property_inspection_next_routine_inspection_date_key], -1) AS VARCHAR(8)), 112) AS [Next Routine Inspection]
+				      ,[property_inspection_summary] AS [Inspection Summary]
+				      ,[property_inspection_inspected_by] AS [Inspected By]
+				      ,[property_inspection_category] AS [Category]
+				      ,[property_inspection_type] AS [Type]
+				      ,[property_inspection_maintenance_summary] AS [Maintenance Required]
+				      ,[property_inspection_state] AS [State]
+				      ,[property_inspection_status] AS [Status]
+				      ,[property_inspection_tenant_present_flag] AS [Tenant Present]
+				      ,[property_inspection_cancel_inspection_flag] AS [Cancel Inspection]
+				      ,[property_inspection_ignore_plugin_validate_flag] AS [Ignore Plugin Validate]
+				      ,[property_inspection_tenant_confirmed_condition_flag] AS [Tenant Confirmed Condition]
+				      ,[property_inspection_owning_business_unit_name] AS [Owning Business Unit]
+				      ,[property_inspection_client] AS [Client]
+				      ,[property_inspection_property] AS [Property]
+				      ,[property_inspection_property_manager] AS [Property Manager]
+				      ,[property_inspection_tenancy_manager] AS [Tenancy Manager]
+				      ,[property_inspection_tenant] AS [Tenant]
+				      ,[property_inspection_owner_name] AS [Owner]
+				      ,[property_inspection_other_issue_comments] AS [Any Other Issues]
+				      ,[property_inspection_comments] AS [Comments]
+				      ,[property_inspection_relative_url] AS [Relative URL]
+				      ,[property_inspection_suggested_improvements] AS [Suggested Improvements]
+				FROM [edw].[fact_property_inspection]
+				WHERE [DWHDMLOperation] <> 'D'
+				  AND [property_inspection_is_delete_flag] IS NULL"]),
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, fnApplyNamingConventions),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Transformed Column Names",{{"Actual Inspection Date", type date}, {"Scheduled Date", type date}, {"Date Inspection Finalized", type date}, {"Next Routine Inspection", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

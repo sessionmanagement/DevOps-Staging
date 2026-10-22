@@ -1,0 +1,138 @@
+table fact_position_roster
+	lineageTag: 2b2dc224-a554-4e18-952b-ed458cce86dc
+
+	column fact_sixdegree_positionroster_key
+		dataType: int64
+		formatString: 0
+		lineageTag: d6590410-e1ca-46fe-afce-a5b4080fa29e
+		summarizeBy: sum
+		sourceColumn: fact_sixdegree_positionroster_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column position_description
+		dataType: string
+		lineageTag: ff913462-b770-408a-a2e7-25e69ed6c91b
+		summarizeBy: none
+		sourceColumn: position_description
+
+		annotation SummarizationSetBy = Automatic
+
+	column sixd_position_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 22df2b23-208b-4c7c-95f8-f07b7071e672
+		summarizeBy: sum
+		sourceColumn: sixd_position_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_service_key
+		dataType: int64
+		formatString: 0
+		lineageTag: beed79b6-4094-4108-ac2a-d91c1d718386
+		summarizeBy: none
+		sourceColumn: dim_service_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column entity_code
+		dataType: string
+		lineageTag: efdda24f-26aa-4536-98c4-5a1e2cc51df0
+		summarizeBy: none
+		sourceColumn: entity_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column entity_parent_code
+		dataType: string
+		lineageTag: 6bb793ef-dbd4-40c3-a99b-4f721fed82b6
+		summarizeBy: none
+		sourceColumn: entity_parent_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column fte_pa
+		dataType: double
+		lineageTag: fdedcf9a-59db-4099-b1d8-c2e90505c9ee
+		summarizeBy: sum
+		sourceColumn: fte_pa
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hours_pw
+		dataType: string
+		lineageTag: 03fd4c60-16a8-4db3-8ccf-a1e681867f3d
+		summarizeBy: none
+		sourceColumn: hours_pw
+
+		annotation SummarizationSetBy = Automatic
+
+	column DWHBatchId
+		dataType: int64
+		formatString: 0
+		lineageTag: 9e77ea22-caca-468c-99d5-925dd75c44f1
+		summarizeBy: count
+		sourceColumn: DWHBatchId
+
+		annotation SummarizationSetBy = Automatic
+
+	column DWHEffectiveFrom
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 833097f6-0503-4ac3-b905-eb6888cebda3
+		summarizeBy: none
+		sourceColumn: DWHEffectiveFrom
+
+		annotation SummarizationSetBy = Automatic
+
+	column DWHEffectiveTo
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 8b0aa9ce-38a1-4253-93b2-4aeb0dbadbf8
+		summarizeBy: none
+		sourceColumn: DWHEffectiveTo
+
+		annotation SummarizationSetBy = Automatic
+
+	column DWHDMLOperation
+		dataType: string
+		lineageTag: 9e8abdb5-d5df-4aba-abb6-d4fdf1fa4a70
+		summarizeBy: none
+		sourceColumn: DWHDMLOperation
+
+		annotation SummarizationSetBy = Automatic
+
+	column DWHIsCurrent
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 1e10c3bc-2f99-4c97-b5ee-809f608cb653
+		summarizeBy: none
+		sourceColumn: DWHIsCurrent
+
+		annotation SummarizationSetBy = Automatic
+
+	column DWHSourceSystem
+		dataType: string
+		lineageTag: bb2dc12b-5119-478d-8b97-283cebf03ef6
+		summarizeBy: none
+		sourceColumn: DWHSourceSystem
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_position_roster = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT  [fact_sixdegree_positionroster_key]#(lf)      ,[position_description]#(lf)      ,[sixd_position_key]#(lf)      ,[dim_service_key]#(lf)      ,[entity_code]#(lf)      ,[entity_parent_code]#(lf)      --,[hours]#(lf)      --,[fte]#(lf)      --,[allocated_fte]#(lf)      ,[fte_pa]#(lf)      ,[hours_pw]#(lf)      ,[DWHBatchId]#(lf)      ,[DWHEffectiveFrom]#(lf)      ,[DWHEffectiveTo]#(lf)      ,[DWHDMLOperation]#(lf)      ,[DWHIsCurrent]#(lf)      ,[DWHSourceSystem]#(lf)  FROM [edw].[vw_fact_sixdegree_positionroster]#(lf)"])
+				in
+				    Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

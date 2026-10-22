@@ -1,0 +1,1252 @@
+table 'Other Measures'
+	lineageTag: 4e143469-6c06-4689-9b26-bdfbdd1d9f3b
+
+	measure 'Strategic Focus Area KPI' = ```
+			
+			VAR _kpi =
+			    DISTINCTCOUNT ( 'Fact KPI'[Entity KEY] )
+			VAR _countgreen =
+			    CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact KPI',
+			                'Fact KPI'[Entity KEY],
+			                'Fact KPI'[KPI Value]
+			            )
+			        ),
+			        'Fact KPI'[KPI Status] = "Achieving"
+			    )
+			VAR _countamber =
+			    CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact KPI',
+			                'Fact KPI'[Entity KEY],
+			                'Fact KPI'[KPI Value]
+			            )
+			        ),
+			        'Fact KPI'[KPI Status] = "Review"
+			    )
+			VAR _countred =
+			    CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact KPI',
+			                'Fact KPI'[Entity KEY],
+			                'Fact KPI'[KPI Value]
+			            )
+			        ),
+			        'Fact KPI'[KPI Status] = "Take Action"
+			    )
+			VAR _rollupGreenThreshold =
+			
+			CALCULATE (
+			    MAXX (
+			        FILTER (
+			            ADDCOLUMNS (
+			                SUMMARIZE ( 'Fact KPI', 'Fact KPI'[Entity KEY] ),
+			                "Rollup Green Threshold", MAX ( 'Dim KPI'[Kpi Ru G Value] )
+			            ),
+			            NOT ISBLANK ( [Rollup Green Threshold] )
+			        ),
+			        [Rollup Green Threshold]
+			    )
+			)
+			    // CALCULATE (
+			    //     MAXX (
+			    //         SUMMARIZE (
+			    //             'Fact KPI',
+			    //             'Fact KPI'[Entity KEY],
+			    //             "Rollup Green Threshold", MAX('Dim KPI'[Kpi Ru G Value])
+			    //         ),
+			    //         [Rollup Green Threshold]
+			    //     )
+			    // )
+			
+			
+			VAR _rollupAmberThreshold =
+			CALCULATE (
+			    MAXX (
+			        FILTER (
+			            ADDCOLUMNS (
+			                SUMMARIZE ( 'Fact KPI', 'Fact KPI'[Entity KEY] ),
+			                "Rollup Amber Threshold", MAX ( 'Dim KPI'[Kpi Ru A Value] )
+			            ),
+			            NOT ISBLANK ( [Rollup Amber Threshold] )
+			        ),
+			        [Rollup Amber Threshold]
+			    )
+			)
+			
+			    // CALCULATE (
+			    //     MAXX (
+			    //         SUMMARIZE (
+			    //             'Fact KPI',
+			    //             'Fact KPI'[Entity KEY],
+			    //             "Rollup Amber Threshold", MAX('Dim KPI'[Kpi Ru A Value])
+			    //         ),
+			    //         [Rollup Amber Threshold]
+			    //     )
+			    // )
+			RETURN
+			
+			    IF (
+			        _kpi > 0,
+			        SWITCH (
+			            TRUE (),
+			            DIVIDE ( _countgreen, _kpi, 0 ) >= _rollupGreenThreshold, "Achieving",
+			            DIVIDE ( _countgreen + _countamber, _kpi, 0 ) > _rollupAmberThreshold
+			                && DIVIDE ( _countgreen, _kpi, 0 ) < _rollupGreenThreshold, "Review",
+			            "Take Action"
+			        ),
+			        "No data"
+			        //BLANK ()
+			    )
+			
+			```
+		lineageTag: 367d96c4-f18c-4a63-aa6b-7d6a52c0f03e
+
+	measure '0.8' = 0.8
+		lineageTag: ffe85f7e-926a-40c7-8d34-e7982e22fae4
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'What is measured (ONEVALUE)' = ```
+			
+			IF(
+			    HASONEVALUE('Dim KPI'[What Is Measured]),
+			    CONCATENATE("Click here to view detail for: ", MAX('Dim KPI'[What Is Measured])),
+			    "To view detail, select a single item in the table above" )
+			
+			```
+		lineageTag: c25cdc79-541c-4cce-b759-73b7c1f3dbaa
+
+	measure FiltersApplied = ```
+			
+			VAR __ParentAreas =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Company Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[Company Name] ) )
+			            ),
+			            'Dim Service'[Company Name], ASC
+			        ),
+			        "AreaParentName_display", 'Dim Service'[Company Name]
+			    )
+			VAR __ParentAreasCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Company Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Company Name] ) ),
+			        0
+			    )
+			VAR __MoreParentAreas =
+			    IF (
+			        __ParentAreasCount > 10,
+			        " and " & ( __ParentAreasCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __Services =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Service Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[Service Name]  ) )
+			            ),
+			            'Dim Service'[Service Name] , ASC
+			        ),
+			        "TeamName_display", 'Dim Service'[Service Name] 
+			    )
+			VAR __ServicesCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Service Name]  ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Service Name]  ) ),
+			        0
+			    )
+			VAR __MoreServices =
+			    IF ( __ServicesCount > 10, " and " & ( __ServicesCount - 10 ) & " more", "" )
+			VAR _FC_ParentAreas =
+			    IF (
+			        __ParentAreasCount > 0,
+			        "| Company: " & CONCATENATEX ( __ParentAreas, [AreaParentName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentAreas =
+			    IF (
+			        __ParentAreasCount > 5,
+			        " and " & ( __ParentAreasCount - 10 ) & " more",
+			        ""
+			    )
+			VAR _FC_Services =
+			    IF (
+			        __ServicesCount > 0,
+			        "| Services chosen: " & CONCATENATEX ( __Services, [TeamName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreServices =
+			    IF ( __ServicesCount > 5, " and " & ( __ServicesCount - 10 ) & " more", "" )
+			VAR __ParentRegion =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Region Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[Region Name] ) )
+			            ),
+			            'Dim Service'[Region Name], ASC
+			        ),
+			        "AreaParentRegionName_display", 'Dim Service'[Region Name]
+			    )
+			VAR __ParentRegionCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Region Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Region Name] ) ),
+			        0
+			    )
+			VAR _FC_ParentRegion =
+			    IF (
+			        __ParentRegionCount > 0,
+			        "| Region: "
+			            & CONCATENATEX ( __ParentRegion, [AreaParentRegionName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentRegionAreas =
+			    IF (
+			        __ParentRegionCount > 5,
+			        " and " & ( __ParentRegionCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __ParentDistrict =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[District Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[District Name] ) )
+			            ),
+			            'Dim Service'[District Name], ASC
+			        ),
+			        "AreaParentDistrictName_display", 'Dim Service'[District Name]
+			    )
+			VAR __ParentDistrictCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[District Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[District Name] ) ),
+			        0
+			    )
+			VAR _FC_ParentDistrict =
+			    IF (
+			        __ParentDistrictCount > 0,
+			        "| District: "
+			            & CONCATENATEX ( __ParentDistrict, [AreaParentDistrictName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentDistrictAreas =
+			    IF (
+			        __ParentDistrictCount > 5,
+			        " and " & ( __ParentDistrictCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __ParentServiceType =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Service Type Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[Service Type Name] ) )
+			            ),
+			            'Dim Service'[Service Type Name], ASC
+			        ),
+			        "AreaParentServiceTypeName_display", 'Dim Service'[Service Type Name]
+			    )
+			VAR __ParentServiceTypeCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Service Type Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Service Type Name] ) ),
+			        0
+			    )
+			VAR _FC_ParentServiceType =
+			    IF (
+			        __ParentServiceTypeCount > 0,
+			        "| Service Type: "
+			            & CONCATENATEX ( __ParentServiceType, [AreaParentServiceTypeName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentServiceTypeAreas =
+			    IF (
+			        __ParentServiceTypeCount > 5,
+			        " and " & ( __ParentServiceTypeCount - 5 ) & " more",
+			        ""
+			    )
+			// VAR __ParentTeamFunction =
+			//     ADDCOLUMNS (
+			//         TOPN (
+			//             10,
+			//             FILTER (
+			//                 VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] ),
+			//                 NOT ( ISBLANK ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] ) )
+			//             ),
+			//             'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function], ASC
+			//         ),
+			//         "AreaParentTeamFunction_display", 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function]
+			//     )
+			// VAR __ParentTeamFunctionCount =
+			//     IF (
+			//         ISFILTERED ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] ),
+			//         COUNTROWS (
+			//             VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] )
+			//         ),
+			//         0
+			//     )
+			// VAR _FC_ParentTeamFunction =
+			//     IF (
+			//         __ParentTeamFunctionCount > 0,
+			//         "| Team Function: "
+			//             & CONCATENATEX ( __ParentTeamFunction, [AreaParentTeamFunction_display], ", " ),
+			//         BLANK ()
+			//     )
+			// VAR _FC_MoreParentTeamFunctionAreas =
+			//     IF (
+			//         __ParentTeamFunctionCount > 5,
+			//         " and " & ( __ParentTeamFunctionCount - 10 ) & " more",
+			//         ""
+			//     )
+			RETURN
+			   
+			        " Summary of filters applied: " & " " & _FC_ParentAreas & _FC_MoreParentAreas & " " & _FC_ParentRegion & _FC_MoreParentRegionAreas & " " & _FC_ParentDistrict & _FC_MoreParentDistrictAreas & " " & 
+			        _FC_ParentServiceType & _FC_MoreParentServiceTypeAreas & 
+			        _FC_Services & _FC_MoreServices 
+			        
+			```
+		lineageTag: ebf6e8d2-f512-4e8b-896f-da4adc601dbf
+
+	measure 'Roll Up KPI Status' = ```
+			
+			
+			
+			-- total distinct entity/KPIValue combinations in current filter context
+			VAR _kpi =
+			    COUNTROWS (
+			        SUMMARIZE (
+			            'Fact KPI',
+			            'Fact KPI'[Entity KEY],
+			            'Fact KPI'[KPI Value],
+			            'Fact KPI'[Kpi ID]
+			        )
+			    )
+			
+			-- total distinct KPIs in the selection (respects filter context)
+			VAR _kpi_count =
+			    CALCULATE ( DISTINCTCOUNT ( 'Fact KPI'[Kpi ID] ) )
+			
+			-- counts per status in the current context
+			VAR _countgreen =
+			    CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact KPI',
+			                'Fact KPI'[Entity KEY],
+			                'Fact KPI'[KPI Value],
+			                'Fact KPI'[Kpi ID]
+			            )
+			        ),
+			        'Fact KPI'[KPI Status] = "Achieving"
+			    )
+			
+			VAR _countamber =
+			    CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact KPI',
+			                'Fact KPI'[Entity KEY],
+			                'Fact KPI'[KPI Value],
+			                'Fact KPI'[Kpi ID]
+			            )
+			        ),
+			        'Fact KPI'[KPI Status] = "Review"
+			    )
+			
+			VAR _countred =
+			    CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact KPI',
+			                'Fact KPI'[Entity KEY],
+			                'Fact KPI'[KPI Value],
+			                'Fact KPI'[Kpi ID]
+			            )
+			        ),
+			        'Fact KPI'[KPI Status] = "Take Action"
+			    )
+			
+			-- thresholds for single KPI roll-up (taken from Dim KPI)
+			VAR _rollupGreenThreshold =
+			    CALCULATE (
+			        MAXX (
+			            FILTER (
+			                ADDCOLUMNS (
+			                    SUMMARIZE ( 'Fact KPI', 'Fact KPI'[Entity KEY] ),
+			                    "Thres", MAX ( 'Dim KPI'[Kpi Ru G Value] )
+			                ),
+			                NOT ISBLANK ( [Thres] )
+			            ),
+			            [Thres]
+			        )
+			    )
+			
+			VAR _rollupAmberThreshold =
+			    CALCULATE (
+			        MAXX (
+			            FILTER (
+			                ADDCOLUMNS (
+			                    SUMMARIZE ( 'Fact KPI', 'Fact KPI'[Entity KEY] ),
+			                    "Thres", MAX ( 'Dim KPI'[Kpi Ru A Value] )
+			                ),
+			                NOT ISBLANK ( [Thres] )
+			            ),
+			            [Thres]
+			        )
+			    )
+			
+			-- thresholds for multiple KPI roll-up (static values as requested)
+			VAR _rollupGreenThreshold_multiple = 0.9
+			VAR _rollupAmberThreshold_multiple = 0.8
+			
+			-- choose which thresholds to use based on number of KPIs in context
+			VAR _greenThresholdToUse =
+			    IF ( _kpi_count > 1, _rollupGreenThreshold_multiple, _rollupGreenThreshold )
+			
+			VAR _amberThresholdToUse =
+			    IF ( _kpi_count > 1, _rollupAmberThreshold_multiple, _rollupAmberThreshold )
+			
+			-- precompute rates to keep the SWITCH readable
+			VAR _greenRate =
+			    DIVIDE ( _countgreen, _kpi, 0 )
+			
+			VAR _greenAmberRate =
+			    DIVIDE ( _countgreen + _countamber, _kpi, 0 )
+			
+			RETURN
+			
+			IF (
+			    _kpi = 0,
+			    "No data",
+			    SWITCH (
+			        TRUE (),
+			        _greenRate >= _greenThresholdToUse, "Achieving",
+			        _greenAmberRate > _amberThresholdToUse
+			            && _greenRate < _greenThresholdToUse, "Review",
+			        "Take Action"
+			    )
+			)
+			
+			
+			// -- total distinct entity/KPIValue combinations in current filter context
+			// VAR _kpi =
+			//     COUNTROWS(
+			//         SUMMARIZE(
+			//             'Fact KPI',
+			//             'Fact KPI'[Entity KEY],
+			//             'Fact KPI'[KPI Value]
+			//         )
+			//     )
+			
+			// -- total distinct KPIs in the selection
+			// VAR _kpi_count =
+			//     CALCULATE(DISTINCTCOUNT('Fact KPI'[Kpi ID]))
+			
+			// -- counts are calculated by re-evaluating the SUMMARIZE inside CALCULATE so filters apply
+			// VAR _countgreen =
+			//     CALCULATE (
+			//         COUNTROWS (
+			//             SUMMARIZE (
+			//                 'Fact KPI',
+			//                 'Fact KPI'[Entity KEY],
+			//                 'Fact KPI'[KPI Value]
+			//             )
+			//         ),
+			//         'Fact KPI'[KPI Status] = "Achieving"
+			//     )
+			
+			// VAR _countamber =
+			//     CALCULATE (
+			//         COUNTROWS (
+			//             SUMMARIZE (
+			//                 'Fact KPI',
+			//                 'Fact KPI'[Entity KEY],
+			//                 'Fact KPI'[KPI Value]
+			//             )
+			//         ),
+			//         'Fact KPI'[KPI Status] = "Review"
+			//     )
+			
+			// VAR _countred =
+			//     CALCULATE (
+			//         COUNTROWS (
+			//             SUMMARIZE (
+			//                 'Fact KPI',
+			//                 'Fact KPI'[Entity KEY],
+			//                 'Fact KPI'[KPI Value]
+			//             )
+			//         ),
+			//         'Fact KPI'[KPI Status] = "Take Action"
+			//     )
+			
+			// -- thresholds for single KPI roll up or multiple KPI roll up (different thresholds are used for each)
+			// VAR _rollupGreenThreshold = 
+			//     CALCULATE (
+			//         MAXX (
+			//             FILTER (
+			//                 ADDCOLUMNS (
+			//                     SUMMARIZE ( 'Fact KPI', 'Fact KPI'[Entity KEY] ),
+			//                     "Thres", MAX ( 'Dim KPI'[Kpi Ru G Value] )
+			//                 ),
+			//                 NOT ISBLANK ( [Thres] )
+			//             ),
+			//             [Thres]
+			//         )
+			//     )
+			
+			//  VAR _rollupGreenThreshold_multiple =  0.9 
+			
+			// VAR _rollupAmberThreshold =
+			//     CALCULATE (
+			//         MAXX (
+			//             FILTER (
+			//                 ADDCOLUMNS (
+			//                     SUMMARIZE ( 'Fact KPI', 'Fact KPI'[Entity KEY] ),
+			//                     "Thres", MAX ( 'Dim KPI'[Kpi Ru A Value] )
+			//                 ),
+			//                 NOT ISBLANK ( [Thres] )
+			//             ),
+			//             [Thres]
+			//         )
+			//     )
+			// VAR _rollupAmberThreshold_multiple = 0.8
+			
+			// RETURN
+			
+			// IF (
+			//     _kpi = 0,
+			//     "No data",
+			//     SWITCH (
+			//         TRUE (),
+			//         DIVIDE ( _countgreen, _kpi, 0 ) >= _rollupGreenThreshold, "Achieving",
+			//         DIVIDE ( _countgreen + _countamber, _kpi, 0 ) > _rollupAmberThreshold
+			//             && DIVIDE ( _countgreen, _kpi, 0 ) < _rollupGreenThreshold, "Review",
+			//         "Take Action"
+			//     )
+			// )
+			
+			
+			
+			
+			
+			
+			// VAR _kpi =
+			//  CALCULATE (
+			//         COUNTROWS (
+			//             SUMMARIZE (
+			//                 'Fact KPI',
+			//                'Fact KPI'[Entity KEY],
+			//                 'Fact KPI'[KPI Value]
+			//             ) ) )
+			//    // DISTINCTCOUNT ( 'Fact KPI'[Entity KEY] ) -- This shouldn't be distinct count because one entity key can occur in many KPIs --ThB
+			// VAR _countgreen =
+			// // IF (
+			// //     "3. Performing" IN VALUES('Fact KPI'[KPI Status]),
+			// //     CALCULATE(
+			// //         COUNT('Fact KPI'[Entity KEY]),
+			// //         'Fact KPI'[KPI Status] = "3. Performing"
+			// //     ),
+			// //     0
+			// // )
+			//     CALCULATE (
+			//         COUNTROWS (
+			//             SUMMARIZE (
+			//                 'Fact KPI',
+			//                'Fact KPI'[Entity KEY],
+			//                 'Fact KPI'[KPI Value]
+			//             )
+			//         ),
+			//         'Fact KPI'[KPI Status] = "Achieving"
+			//     )
+			
+			// VAR _countamber =
+			// // IF (
+			// //     "2. Review" IN VALUES('Fact KPI'[KPI Status]),
+			// //     CALCULATE(
+			// //         COUNT('Fact KPI'[Entity KEY]),
+			// //         'Fact KPI'[KPI Status] = "2. Review"
+			// //     ),
+			// //     0
+			// // )
+			//     CALCULATE (
+			//         COUNTROWS (
+			//             SUMMARIZE (
+			//                 'Fact KPI',
+			//                 'Fact KPI'[Entity KEY],
+			//                 'Fact KPI'[KPI Value]
+			//             )
+			//         ),
+			//         'Fact KPI'[KPI Status] = "Review"
+			//     )
+			// VAR _countred =
+			// // IF (
+			// //     "1. Take Action" IN VALUES('Fact KPI'[KPI Status]),
+			// //     CALCULATE(
+			// //         COUNT('Fact KPI'[Entity KEY]),
+			// //         'Fact KPI'[KPI Status] = "1. Take Action"
+			// //     ),
+			// //     0
+			// // )
+			//     CALCULATE (
+			//         COUNTROWS (
+			//             SUMMARIZE (
+			//                 'Fact KPI',
+			//                 'Fact KPI'[Entity KEY],
+			//                 'Fact KPI'[KPI Value]
+			//             )
+			//         ),
+			//         'Fact KPI'[KPI Status] = "Take Action"
+			//     )
+			// VAR _rollupGreenThreshold =
+			// CALCULATE (
+			//     MAXX (
+			//         FILTER (
+			//             ADDCOLUMNS (
+			//                 SUMMARIZE ( 'Fact KPI', 'Fact KPI'[Entity KEY] ),
+			//                 "Rollup Green Threshold", MAX ( 'Dim KPI'[Kpi Ru G Value] )
+			//             ),
+			//             NOT ISBLANK ( [Rollup Green Threshold] )
+			//         ),
+			//         [Rollup Green Threshold]
+			//     )
+			// )
+			//     // CALCULATE (
+			//     //     MAXX (
+			//     //         SUMMARIZE (
+			//     //             'Fact KPI',
+			//     //             'Fact KPI'[Entity KEY],
+			//     //             "Rollup Green Threshold", MAX('Dim KPI'[Kpi Ru G Value])
+			//     //         ),
+			//     //         [Rollup Green Threshold]
+			//     //     )
+			//     // )
+			// VAR _rollupAmberThreshold =
+			
+			// CALCULATE (
+			//     MAXX (
+			//         FILTER (
+			//             ADDCOLUMNS (
+			//                 SUMMARIZE ( 'Fact KPI', 'Fact KPI'[Entity KEY] ),
+			//                 "Rollup Amber Threshold", MAX ( 'Dim KPI'[Kpi Ru A Value] )
+			//             ),
+			//             NOT ISBLANK ( [Rollup Amber Threshold] )
+			//         ),
+			//         [Rollup Amber Threshold]
+			//     )
+			// )
+			//     // CALCULATE (
+			//     //     MAXX (
+			//     //         SUMMARIZE (
+			//     //             'Fact KPI',
+			//     //             'Fact KPI'[Entity KEY],
+			//     //             "Rollup Amber Threshold", MAX('Dim KPI'[Kpi Ru A Value])
+			//     //         ),
+			//     //         [Rollup Amber Threshold]
+			//     //     )
+			//     // )
+			// RETURN
+			
+			//     IF (
+			//         _kpi > 0,
+			//         SWITCH (
+			//             TRUE (),
+			//             DIVIDE ( _countgreen, _kpi, 0 ) >= _rollupGreenThreshold, "Achieving",
+			//             DIVIDE ( _countgreen + _countamber, _kpi, 0 ) > _rollupAmberThreshold
+			//                 && DIVIDE ( _countgreen, _kpi, 0 ) < _rollupGreenThreshold, "Review",
+			//             "Take Action"
+			//         ),
+			//         "No data"
+			//         //BLANK ()
+			//     )
+			
+			```
+		lineageTag: e8271137-11c5-4db4-a8c1-dd5f79e231e5
+
+	measure 0 = 0
+		formatString: 0
+		lineageTag: 54b934e1-732b-4a9d-a860-fa2d979bd122
+
+	measure 'SIM Title (ONEVALUE)' =
+			
+			IF(
+			    HASONEVALUE('Dim KPI'[Sim Title]),
+			    CONCATENATE("Click here to view detail for: ", MAX('Dim KPI'[Sim Title])),
+			    "To view detail, select a single item in the table above" )
+		lineageTag: dc400885-ce0e-4f11-ba56-b2454be56375
+
+	measure 'MSForms Dynamic Hyperlink' = ```
+			
+			
+			VAR __SelectedServices =
+			CONCATENATEX(
+			    VALUES('Fact KPI'[Service ID]),
+			    SUBSTITUTE('Fact KPI'[Service ID], 
+			    " ", "%20"),
+			    ";"
+			)
+			
+			
+			RETURN
+			IF(HASONEVALUE('Dim KPI'[Sim Title]),
+			    "https://forms.office.com/Pages/ResponsePage.aspx?id=5pwaljhNL0WdnSaUJZm74Bi141T6_MhAomzln6LwAm1UOVUxWkVXNlM4QkRLMkZFNzRDWDZJWTNVTi4u"
+			    & "&rdf81682663434d93aa3c2020db0b5c4f=" & MAX('Dim KPI'[Sim Title]) //1. Measure selected
+			    & "&rd670e6a47bd54ee2941d0b73b0c22eec="  //2. Please provide your commentary below
+			    & "&r9b1a88fb7dc1451da1a76abea9af20e7=" & FORMAT(MAX('Dim Service'[Dim Company KEY]), "0")  //3. Company ID
+			    & "&r9e4a1859ee48430ca572888e143e2f6a=" & __SelectedServices //4. Service IDs
+			    & "&r7bbf2e7c772748b79b4bbf21dfce399b=" & MAX('Dim KPI'[Kpi ID]) ,
+			    "#")
+			
+			```
+		lineageTag: 03b3a6dd-c129-49ae-b4f6-5dec51dd38ea
+
+	measure HasData = ```
+			
+			IF(COUNTROWS(RELATEDTABLE('Fact KPI')) > 0, 1, 0)
+			
+			```
+		formatString: 0
+		lineageTag: c063ec37-6ad7-4562-b861-8b573fed0752
+
+	measure 'Call to action (ONEVALUE)' =
+			
+			IF(
+			    HASONEVALUE('Dim KPI'[Call To Action]) && [Roll Up KPI Status] <> "Achieving",
+			     MAX('Dim KPI'[Call To Action]),
+			     IF(HASONEVALUE('Dim KPI'[Call To Action]) && [Roll Up KPI Status] = "Achieving",
+			     "You are achieving, keep up the great work",
+			    BLANK() ))
+		lineageTag: 58a80ac7-9df4-41b8-9371-7afc6368eb55
+
+	measure Context =
+			
+			IF(
+			    HASONEVALUE('Dim KPI'[Related Outcome]) && HASONEVALUE('Dim KPI'[Sfa Rollup Area] ),
+			    CONCATENATE("Related Strategic Focus Area: ", MAX('Dim KPI'[Sfa Rollup Area])) & CONCATENATE( " and Related Driver: ",  MAX('Dim KPI'[Related Outcome])),
+			    "  " )
+		lineageTag: 9ec47d2d-fda5-459b-9906-06b1ff526b74
+
+	measure 'Info Page Link' =
+			
+			VAR _HousingLink = "https://emergeaotearoaltd.sharepoint.com/sites/OperationalSuccessManagement/SitePages/About-our-measures-Housing.aspx?csf=1&web=1&e=AaC0nb&clickparams=eyAiWC1BcHBOYW1lIiA6ICJNaWNyb3NvZnQgT3V0bG9vayIsICJYLUFwcFZlcnNpb24iIDogIjE2LjAuMTg4MjcuMjAyMDIiLCAiT1MiIDogIldpbmRvd3MiIH0%3d&CID=1859b7a1-70e1-5000-949e-33e37be474c8&cidOR=SPO"
+			
+			VAR _HDLink = "https://emergeaotearoaltd.sharepoint.com/sites/OperationalSuccessManagement/SitePages/About-our-measures-H&D.aspx?csf=1&web=1&e=EofsAi&clickparams=eyAiWC1BcHBOYW1lIiA6ICJNaWNyb3NvZnQgT3V0bG9vayIsICJYLUFwcFZlcnNpb24iIDogIjE2LjAuMTg4MjcuMjAyMDIiLCAiT1MiIDogIldpbmRvd3MiIH0%3d&CID=1859b7a1-00e1-5000-949e-37d2bea4dc84&cidOR=SPO"
+			
+			VAR _TenancyLink = "https://emergeaotearoaltd.sharepoint.com/sites/OperationalSuccessManagement/SitePages/About-our-measures---Tenancy.aspx"
+			
+			VAR _GeneralLink = "https://emergeaotearoaltd.sharepoint.com/sites/OperationalSuccessManagement/SitePages/How-to-use-the-dashboards.aspx"
+			
+			VAR _AccessibleServices =
+			    VALUES('Fact KPI'[Latest_Dim Service KEY])
+			
+			VAR _DistinctAreaCount =
+			    CALCULATE(
+			        DISTINCTCOUNT('Dim Service'[Business Unit]),
+			        TREATAS(
+			            _AccessibleServices,
+			            'Dim Service'[Dim Service Key]
+			        )
+			    )
+			
+			VAR _SelectedArea =
+			    CALCULATE(
+			        SELECTEDVALUE('Dim Service'[Business Unit]),
+			        TREATAS(
+			            _AccessibleServices,
+			            'Dim Service'[Dim Service Key]
+			        )
+			    )
+			
+			VAR _Area =
+			    IF(
+			        _DistinctAreaCount = 1,
+			        _SelectedArea,
+			        "General"
+			    )
+			
+			RETURN
+			    SWITCH(
+			        _Area,
+			        "Housing", _HousingLink,
+			        "Health & Disability", _HDLink,
+			        "Tenancy", _TenancyLink,
+			        _GeneralLink
+			    )
+		lineageTag: e914952b-a1e9-4164-b459-23d53676e65e
+
+	measure RefreshedAt = "Refreshed at: " &  MAX('Last Refreshed'[Date Last Refreshed])
+		lineageTag: 82c41302-8fcc-4123-ac9e-164cfbddf8b9
+
+	measure 'Achieving KPI Count' = ```
+			
+			SUMX(
+			    SUMMARIZE(
+			        'Dim KPI' 
+			        , 'Dim KPI'[Kpi ID]
+			    )
+			    ,CALCULATE(
+			    DISTINCTCOUNT('Dim Service'[Service ID]),
+			    FILTER(
+			        'Dim Service',
+			        [Roll Up KPI Status] = "Achieving"
+			    )
+			)
+			)
+			
+			// CALCULATE(
+			//     DISTINCTCOUNT('Dim KPI'[Kpi ID]),
+			//     FILTER(
+			//         'Dim KPI',
+			//         [Roll Up KPI Status] = "Achieving"
+			//     )
+			// )
+			```
+		formatString: 0
+		lineageTag: 168bd66d-c93c-4cae-b4c9-a4be56aca633
+
+	measure 'Review KPI Count' = ```
+			
+			SUMX(
+			    SUMMARIZE(
+			        'Dim KPI' 
+			        , 'Dim KPI'[Kpi ID]
+			    )
+			    ,CALCULATE(
+			    DISTINCTCOUNT('Dim Service'[Service ID]),
+			    FILTER(
+			        'Dim Service',
+			        [Roll Up KPI Status] = "Review"
+			    )
+			)
+			)
+			
+			// CALCULATE(
+			//     DISTINCTCOUNT('Dim KPI'[Kpi ID]),
+			//     FILTER(
+			//         'Dim KPI',
+			//         [Roll Up KPI Status] = "Review"
+			//     )
+			// )
+			```
+		formatString: 0
+		lineageTag: 10d63ba3-8570-4ee4-ab2f-bcb6289ad208
+
+	measure 'Take Action KPI Count' = ```
+			
+			
+			SUMX(
+			    SUMMARIZE(
+			        'Dim KPI' 
+			        , 'Dim KPI'[Kpi ID]
+			    )
+			    ,CALCULATE(
+			    DISTINCTCOUNT('Dim Service'[Service ID]),
+			    FILTER(
+			        'Dim Service',
+			        [Roll Up KPI Status] = "Take Action"
+			    )
+			)
+			)
+			
+			// CALCULATE(
+			//     DISTINCTCOUNT('Dim KPI'[Kpi ID]),
+			//     FILTER(
+			//         'Dim KPI',
+			//         [Roll Up KPI Status] = "Take Action"
+			//     )
+			// )
+			```
+		formatString: 0
+		lineageTag: 9b164e9e-6ff4-4c55-ab8e-64797f5e2409
+
+	measure 'Roll Up HISTORY KPI Status' = ```
+			
+			
+			-- total distinct entity/KPIValue combinations in current filter context
+			VAR _kpi =
+			    COUNTROWS (
+			        SUMMARIZE (
+			            'Fact History',
+			            'Fact History'[Entity KEY],
+			            'Fact History'[KPI Value],
+			             'Fact History'[Kpi ID]
+			        )
+			    )
+			
+			-- total distinct KPIs in the selection (respects filter context)
+			VAR _kpi_count =
+			    CALCULATE ( DISTINCTCOUNT ( 'Fact History'[Kpi ID] ) )
+			
+			-- counts per status in the current context
+			VAR _countgreen =
+			    CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact History',
+			                'Fact History'[Entity KEY],
+			                'Fact History'[KPI Value],
+			                'Fact History'[Kpi ID]
+			            )
+			        ),
+			        'Fact History'[KPI Status] = "Achieving"
+			    )
+			
+			VAR _countamber =
+			    CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact History',
+			                'Fact History'[Entity KEY],
+			                'Fact History'[KPI Value],
+			                'Fact History'[Kpi ID]
+			            )
+			        ),
+			        'Fact History'[KPI Status] = "Review"
+			    )
+			
+			VAR _countred =
+			    CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact History',
+			                'Fact History'[Entity KEY],
+			                'Fact History'[KPI Value],
+			                'Fact History'[Kpi ID]
+			            )
+			        ),
+			        'Fact History'[KPI Status] = "Take Action"
+			    )
+			
+			-- thresholds for single KPI roll-up (from Dim KPI)
+			VAR _rollupGreenThreshold =
+			    CALCULATE (
+			        MAXX (
+			            FILTER (
+			                ADDCOLUMNS (
+			                    SUMMARIZE ( 'Fact History', 'Fact History'[Entity KEY] ),
+			                    "Thres", MAX ( 'Dim KPI'[Kpi Ru G Value] )
+			                ),
+			                NOT ISBLANK ( [Thres] )
+			            ),
+			            [Thres]
+			        )
+			    )
+			
+			VAR _rollupAmberThreshold = 
+			    CALCULATE (
+			        MAXX (
+			            FILTER (
+			                ADDCOLUMNS (
+			                    SUMMARIZE ( 'Fact History', 'Fact History'[Entity KEY] ),
+			                    "Thres", MAX ( 'Dim KPI'[Kpi Ru A Value] )
+			                ),
+			                NOT ISBLANK ( [Thres] )
+			            ),
+			            [Thres]
+			        )
+			    )
+			
+			-- thresholds for multiple KPI roll-up (static)
+			VAR _rollupGreenThreshold_multiple = 0.9
+			VAR _rollupAmberThreshold_multiple = 0.8
+			
+			-- choose thresholds based on number of KPIs in context
+			VAR _greenThresholdToUse =
+			    IF ( _kpi_count > 1, _rollupGreenThreshold_multiple, _rollupGreenThreshold )
+			
+			VAR _amberThresholdToUse =
+			    IF ( _kpi_count > 1, _rollupAmberThreshold_multiple, _rollupAmberThreshold )
+			
+			-- precompute rates
+			VAR _greenRate =
+			    DIVIDE ( _countgreen, _kpi, 0 )
+			
+			VAR _greenAmberRate =
+			    DIVIDE ( _countgreen + _countamber, _kpi, 0 )
+			
+			RETURN
+			IF (
+			    _kpi = 0,
+			    "No data",
+			    SWITCH (
+			        TRUE (),
+			        _greenRate >= _greenThresholdToUse, "Achieving",
+			        _greenAmberRate > _amberThresholdToUse
+			            && _greenRate < _greenThresholdToUse, "Review",
+			        "Take Action"
+			    )
+			)
+			
+			
+			
+			
+			// VAR _kpi =
+			//     COUNTROWS (
+			//         SUMMARIZE (
+			//             'Fact History',
+			//             'Fact History'[Entity KEY],
+			//             'Fact History'[KPI Value]
+			//         )
+			//     )
+			
+			// VAR _countgreen =
+			//     CALCULATE (
+			//         COUNTROWS (
+			//             SUMMARIZE (
+			//                 'Fact History',
+			//                 'Fact History'[Entity KEY],
+			//                 'Fact History'[KPI Value]
+			//             )
+			//         ),
+			//         'Fact History'[KPI Status] = "Achieving"
+			//     )
+			
+			// VAR _countamber =
+			//     CALCULATE (
+			//         COUNTROWS (
+			//             SUMMARIZE (
+			//                 'Fact History',
+			//                 'Fact History'[Entity KEY],
+			//                 'Fact History'[KPI Value]
+			//             )
+			//         ),
+			//         'Fact History'[KPI Status] = "Review"
+			//     )
+			
+			// VAR _countred =
+			//     CALCULATE (
+			//         COUNTROWS (
+			//             SUMMARIZE (
+			//                 'Fact History',
+			//                 'Fact History'[Entity KEY],
+			//                 'Fact History'[KPI Value]
+			//             )
+			//         ),
+			//         'Fact History'[KPI Status] = "Take Action"
+			//     )
+			
+			// VAR _rollupGreenThreshold =
+			//     CALCULATE (
+			//         MAXX (
+			//             FILTER (
+			//                 ADDCOLUMNS (
+			//                     SUMMARIZE ( 'Fact History', 'Fact History'[Entity KEY] ),
+			//                     "Thres", MAX ( 'Dim KPI'[Kpi Ru G Value] )
+			//                 ),
+			//                 NOT ISBLANK ( [Thres] )
+			//             ),
+			//             [Thres]
+			//         )
+			//     )
+			
+			// VAR _rollupAmberThreshold = 
+			//     CALCULATE (
+			//         MAXX (
+			//             FILTER (
+			//                 ADDCOLUMNS (
+			//                     SUMMARIZE ( 'Fact History', 'Fact History'[Entity KEY] ),
+			//                     "Thres", MAX ( 'Dim KPI'[Kpi Ru A Value] )
+			//                 ),
+			//                 NOT ISBLANK ( [Thres] )
+			//             ),
+			//             [Thres]
+			//         )
+			//     )
+			
+			// RETURN
+			// IF (
+			//     _kpi = 0,
+			//     "No data",
+			//     SWITCH (
+			//         TRUE (),
+			//         DIVIDE ( _countgreen, _kpi, 0 ) >= _rollupGreenThreshold, "Achieving",
+			//         DIVIDE ( _countgreen + _countamber, _kpi, 0 ) > _rollupAmberThreshold
+			//             && DIVIDE ( _countgreen, _kpi, 0 ) < _rollupGreenThreshold, "Review",
+			//         "Take Action"
+			//     )
+			// )
+			
+			
+			
+			
+			
+			// VAR _kpi =
+			//  CALCULATE (
+			//         COUNTROWS (
+			//             SUMMARIZE (
+			//                 'Fact History',
+			//                'Fact History'[Entity KEY],
+			//                 'Fact History'[KPI Value]
+			//             ) ) )
+			// VAR _countgreen =
+			
+			//     CALCULATE (
+			//         COUNTROWS (
+			//             SUMMARIZE (
+			//                 'Fact History',
+			//                'Fact History'[Entity KEY],
+			//                 'Fact History'[KPI Value]
+			                
+			//             )
+			//         ),
+			//         'Fact History'[KPI Status] = "Achieving"
+			//     )
+			
+			// VAR _countamber =
+			
+			//     CALCULATE (
+			//         COUNTROWS (
+			//             SUMMARIZE (
+			//                 'Fact History',
+			//                 'Fact History'[Entity KEY],
+			//                 'Fact History'[KPI Value]
+			               
+			//             )
+			//         ),
+			//         'Fact History'[KPI Status] = "Review"
+			//     )
+			// VAR _countred =
+			
+			//     CALCULATE (
+			//         COUNTROWS (
+			//             SUMMARIZE (
+			//                 'Fact History',
+			//                 'Fact History'[Entity KEY],
+			//                 'Fact History'[KPI Value]
+			              
+			//             )
+			//         ),
+			//         'Fact History'[KPI Status] = "Take Action"
+			//     )
+			// VAR _rollupGreenThreshold =
+			// CALCULATE (
+			//     MAXX (
+			//         FILTER (
+			//             ADDCOLUMNS (
+			//                 SUMMARIZE ( 'Fact History', 'Fact History'[Entity KEY] ),
+			//                 "Rollup Green Threshold", MAX ( 'Dim KPI'[Kpi Ru G Value] )
+			//             ),
+			//             NOT ISBLANK ( [Rollup Green Threshold] )
+			//         ),
+			//         [Rollup Green Threshold]
+			//     )
+			// )
+			
+			// VAR _rollupAmberThreshold =
+			
+			// CALCULATE (
+			//     MAXX (
+			//         FILTER (
+			//             ADDCOLUMNS (
+			//                 SUMMARIZE ( 'Fact History', 'Fact History'[Entity KEY] ),
+			//                 "Rollup Amber Threshold", MAX ( 'Dim KPI'[Kpi Ru A Value] )
+			//             ),
+			//             NOT ISBLANK ( [Rollup Amber Threshold] )
+			//         ),
+			//         [Rollup Amber Threshold]
+			//     )
+			// )
+			// RETURN
+			
+			//     IF (
+			//         _kpi > 0,
+			//         SWITCH (
+			//             TRUE (),
+			//             DIVIDE ( _countgreen, _kpi, 0 ) >= _rollupGreenThreshold, "Achieving",
+			//             DIVIDE ( _countgreen + _countamber, _kpi, 0 ) > _rollupAmberThreshold
+			//                 && DIVIDE ( _countgreen, _kpi, 0 ) < _rollupGreenThreshold, "Review",
+			//             "Take Action"
+			//         ),
+			//         "No data"
+			        
+			//     )
+			
+			```
+		lineageTag: 01386827-3c64-4430-8765-b4908318e22d
+
+	measure 'Review HISTORY KPI Count' = ```
+			
+			SUMX(
+			    SUMMARIZE(
+			        'Dim KPI' 
+			        , 'Dim KPI'[Kpi ID]
+			    )
+			    ,CALCULATE(
+			    DISTINCTCOUNT('Dim Service'[Service ID]),
+			    FILTER(
+			        'Dim Service',
+			        [Roll Up HISTORY KPI Status] = "Review"
+			    )
+			)
+			)
+			```
+		formatString: 0
+		lineageTag: ca758cc8-5905-40ac-adac-b8c9471341cc
+
+	measure 'Take Action HISTORY KPI Count' = ```
+			
+			SUMX(
+			    SUMMARIZE(
+			        'Dim KPI' 
+			        , 'Dim KPI'[Kpi ID]
+			    )
+			    ,CALCULATE(
+			    DISTINCTCOUNT('Dim Service'[Service ID]),
+			    FILTER(
+			        'Dim Service',
+			        [Roll Up HISTORY KPI Status] = "Take Action"
+			    )
+			)
+			)
+			```
+		formatString: 0
+		lineageTag: 0c519293-09d5-4ee7-8761-cbfbb987fadd
+
+	measure 'Achieving HISTORY KPI Count' = ```
+			
+			SUMX(
+			    SUMMARIZE(
+			        'Dim KPI' 
+			        , 'Dim KPI'[Kpi ID]
+			    )
+			    ,CALCULATE(
+			    DISTINCTCOUNT('Dim Service'[Service ID]),
+			    FILTER(
+			        'Dim Service',
+			        [Roll Up HISTORY KPI Status] = "Achieving"
+			    )
+			)
+			)
+			
+			```
+		formatString: 0
+		lineageTag: a06d1006-e484-42ce-aa95-c1fe1f361c9d
+
+	partition 'Other Measures' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

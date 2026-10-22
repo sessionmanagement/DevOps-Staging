@@ -1,0 +1,33 @@
+table 'Dim Gender'
+	lineageTag: 2abcc468-2446-4d63-9709-ce862fc04822
+
+	column Gender
+		dataType: string
+		lineageTag: ffa73295-5a9a-4acf-bd76-9d1b6e930976
+		summarizeBy: none
+		sourceColumn: Gender
+
+		annotation SummarizationSetBy = Automatic
+
+	column Total
+		dataType: int64
+		formatString: 0
+		lineageTag: df8382fa-557c-46b0-a342-d01c86366df9
+		summarizeBy: sum
+		sourceColumn: Total
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Gender' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WckvNTcxJVdBXCD/SmJGZl6qko2RhaqAUqxOt5AuRCDnSCBY2MzYCC7un5qWkFim4ZJalFhWDFHikKmQWJSpkH5mskJh3tBeo1NAIojQ0r7ggNTkzLTM1RSG/SCE0LzsvvzwPqMDIWCk2FgA=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Gender = _t, Total = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Gender", type text}, {"Total", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

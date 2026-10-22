@@ -1,0 +1,306 @@
+/// Aged debt snapshot records for property tenancies - one row per tenancy per charge type per monthly snapshot ('As At Date'). Each row holds the outstanding balance split into ageing buckets (Current 0-6 ... 91+ days) plus payment-recency flags. Related to 'Tenancy' via the business key 'Property Tenancy ID'; property attributes are reached indirectly through Tenancy (the 'Property ID' column here is NOT an active relationship).
+table 'Aged Debt'
+	lineageTag: 0bfb3d29-827d-49ab-9042-a876f86efbf2
+
+	/// Surrogate key for the aged debt fact record from the EDW.
+	column 'Fact Aged Debt KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 386ae3cb-0f85-465c-a7c8-90d352e945f3
+		summarizeBy: sum
+		sourceColumn: Fact Aged Debt KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	/// EDW surrogate key to the property tenancy dimension.
+	column 'Dim Property Tenancy KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 4e231378-d7b1-4c4a-9159-79cb641a25b8
+		summarizeBy: sum
+		sourceColumn: Dim Property Tenancy KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	/// EDW surrogate key to the property dimension.
+	column 'Dim Property KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 6551519b-e4e0-4e7c-8bf8-bb054aa32739
+		summarizeBy: sum
+		sourceColumn: Dim Property KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	/// EDW surrogate key to the property program dimension.
+	column 'Dim Property Program KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 24341d73-f5dd-49fb-b006-0922bc8c4419
+		summarizeBy: sum
+		sourceColumn: Dim Property Program KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Business key linking this aged debt record to the tenancy.
+	column 'Property Tenancy ID'
+		dataType: string
+		isHidden
+		lineageTag: 88a26126-985b-498d-b4d4-9dfb9ee9dde4
+		summarizeBy: none
+		sourceColumn: Property Tenancy ID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Business key linking this aged debt record to the property.
+	column 'Property ID'
+		dataType: string
+		isHidden
+		lineageTag: 0c4d1017-8c47-4911-b959-9a3f97f040cb
+		summarizeBy: none
+		sourceColumn: Property ID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Tenant name associated with the aged debt record.
+	column 'Tenant Name'
+		dataType: string
+		lineageTag: 4edd5672-3123-4b7a-a7a7-77c6468651ee
+		summarizeBy: none
+		sourceColumn: Tenant Name
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Type of charge included in the aged debt balance, such as rent or non-rent.
+	column 'Charge Type'
+		dataType: string
+		lineageTag: 6a913def-d005-454c-993c-bcc5ce76229e
+		summarizeBy: none
+		sourceColumn: Charge Type
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Snapshot date for the aged debt calculation.
+	column 'As At Date'
+		dataType: dateTime
+		formatString: d mmmm yyyy
+		lineageTag: dccfec5f-1445-4eb3-8302-f189bcdf14ab
+		summarizeBy: none
+		sourceColumn: As At Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	/// Outstanding amount aged from 0 to 6 days.
+	column 'Current 0-6 Days'
+		dataType: double
+		formatString: #,0.00
+		lineageTag: aa4e9651-f8b9-4594-914b-b29870aece40
+		summarizeBy: sum
+		sourceColumn: Current 0-6 Days
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Outstanding amount aged from 7 to 14 days.
+	column '7-14 Days'
+		dataType: double
+		formatString: #,0.00
+		lineageTag: c2a965a3-31d9-465c-9b95-d853b8b898b9
+		summarizeBy: sum
+		sourceColumn: 7-14 Days
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Outstanding amount aged from 15 to 21 days.
+	column '15-21 Days'
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 4428e20b-dbec-4293-88cb-02372816d543
+		summarizeBy: sum
+		sourceColumn: 15-21 Days
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Outstanding amount aged from 22 to 28 days.
+	column '22-28 Days'
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 5c9c1148-6d79-4d18-9d1c-d593539d4d2f
+		summarizeBy: sum
+		sourceColumn: 22-28 Days
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Outstanding amount aged from 29 to 60 days.
+	column '29-60 Days'
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 3a5c3cf4-51bc-4305-b05b-1e406f70cebc
+		summarizeBy: sum
+		sourceColumn: 29-60 Days
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Outstanding amount aged from 61 to 90 days.
+	column '61-90 Days'
+		dataType: double
+		formatString: #,0.00
+		lineageTag: d1ff9aa6-fc3a-47b8-ac1d-ba169f13dcec
+		summarizeBy: sum
+		sourceColumn: 61-90 Days
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Outstanding amount aged over 91 days.
+	column '91 Plus Days'
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 7655e69f-4da9-43e1-9004-c9ebcb98ffc6
+		summarizeBy: sum
+		sourceColumn: 91 Plus Days
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Total outstanding balance across all ageing buckets.
+	column 'Total Balance'
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 65033311-006b-4215-80a3-bdc940604948
+		summarizeBy: sum
+		sourceColumn: Total Balance
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the most recent payment was received for the tenancy.
+	column 'Last Payment Date'
+		dataType: dateTime
+		formatString: d mmmm yyyy
+		lineageTag: 98e5ada3-d50c-4152-83f2-67e2caf4710b
+		summarizeBy: none
+		sourceColumn: Last Payment Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	/// Indicates whether no recent payment has been received for the tenancy.
+	column 'No Recent Payment'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 053d01cb-5ee4-4427-90fa-71675a190646
+		summarizeBy: none
+		sourceColumn: No Recent Payment
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates whether the tenancy has no total outstanding debt.
+	column 'Has No Overall Debt'
+		dataType: string
+		lineageTag: 66372596-505d-4238-b838-c1159439ecd5
+		summarizeBy: none
+		sourceColumn: Has No Overall Debt
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Calendar year of the aged debt snapshot date. Use this for aged debt report slicers when the central Date Table is disconnected.
+	column 'As At Year'
+		dataType: int64
+		formatString: 0
+		lineageTag: ae8116bd-c4d6-49b0-ad31-903be3ddf6fc
+		summarizeBy: none
+		sourceColumn: As At Year
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Month number of the aged debt snapshot date, used to sort month labels.
+	column 'As At Month Number'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 213f94af-c893-4a8d-ab11-339d2b87d231
+		summarizeBy: none
+		sourceColumn: As At Month Number
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Abbreviated month name of the aged debt snapshot date.
+	column 'As At Month Name Short'
+		dataType: string
+		lineageTag: c4d0bff7-de6f-4ef8-ad45-53d5f281e739
+		summarizeBy: none
+		sourceColumn: As At Month Name Short
+		sortByColumn: 'As At Month Number'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Year-month label of the aged debt snapshot date in YYYY-MM format.
+	column 'As At Year Month'
+		dataType: string
+		lineageTag: 50110c17-6f1e-4e15-9bd2-da30f1848119
+		summarizeBy: none
+		sourceColumn: As At Year Month
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Month and year label of the aged debt snapshot date for monthly trend visuals.
+	column 'As At Month'
+		dataType: string
+		lineageTag: 9b5b14b8-1f3b-4ea4-96b4-2f97a0e7d6c1
+		summarizeBy: none
+		sourceColumn: As At Month
+		sortByColumn: 'As At Month Sort'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Numeric year-month sort key for the aged debt snapshot month.
+	column 'As At Month Sort'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 5dd8e9e2-5e2f-4f7a-b59f-df85987d78c5
+		summarizeBy: none
+		sourceColumn: As At Month Sort
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Labels records from the latest aged debt snapshot as Today for report slicers without relying on the central Date Table.
+	column 'Current Date'
+		dataType: string
+		lineageTag: 0705589d-1eee-4aa1-b60a-df35adfa2eae
+		summarizeBy: none
+		sourceColumn: Current Date
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Aged Debt' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT [fact_aged_debt_key] AS [Fact Aged Debt KEY]#(lf)      ,[dim_property_tenancy_key] AS [Dim Property Tenancy KEY]#(lf)      ,[dim_property_key] AS [Dim Property KEY]#(lf)      ,[dim_property_program_key] AS [Dim Property Program KEY]#(lf)      ,[property_tenancy_id] AS [Property Tenancy ID]#(lf)      ,[Property_id] AS [Property ID]#(lf)      ,[TenantName] AS [Tenant Name]#(lf)      ,[ChargeType] AS [Charge Type]#(lf)      ,[AsAtDate] AS [As At Date]#(lf)      ,[Current_0_6] AS [Current 0-6 Days]#(lf)      ,[Days_7_14] AS [7-14 Days]#(lf)      ,[Days_15_21] AS [15-21 Days]#(lf)      ,[Days_22_28] AS [22-28 Days]#(lf)      ,[Days_29_60] AS [29-60 Days]#(lf)      ,[Days_61_90] AS [61-90 Days]#(lf)      ,[Days_91_Plus] AS [91 Plus Days]#(lf)      ,[ActualBalance] AS [Total Balance]#(lf)      ,[LastPaymentDate] AS [Last Payment Date]#(lf)      ,CAST([NoRecentPayment] AS bit) AS [No Recent Payment]#(lf)      ,[HasNoOverallDebt] AS [Has No Overall Debt]#(lf)FROM [edw].[fact_aged_debt]"]),
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, fnApplyNamingConventions),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Transformed Column Names",{{"As At Date", type date}, {"Last Payment Date", type date}, {"No Recent Payment", type logical}}),
+				    MaxAsAtDate = List.Max(#"Changed Type"[As At Date]),
+				    #"Added As At Year" = Table.AddColumn(#"Changed Type", "As At Year", each Date.Year([As At Date]), Int64.Type),
+				    #"Added As At Month Number" = Table.AddColumn(#"Added As At Year", "As At Month Number", each Date.Month([As At Date]), Int64.Type),
+				    #"Added As At Month Name Short" = Table.AddColumn(#"Added As At Month Number", "As At Month Name Short", each Date.ToText([As At Date], "MMM", "en-NZ"), type text),
+				    #"Added As At Year Month" = Table.AddColumn(#"Added As At Month Name Short", "As At Year Month", each Date.ToText([As At Date], "yyyy-MM", "en-NZ"), type text),
+				    #"Added As At Month" = Table.AddColumn(#"Added As At Year Month", "As At Month", each Date.ToText([As At Date], "MMM yyyy", "en-NZ"), type text),
+				    #"Added As At Month Sort" = Table.AddColumn(#"Added As At Month", "As At Month Sort", each Date.Year([As At Date]) * 100 + Date.Month([As At Date]), Int64.Type),
+				    #"Added Current Date" = Table.AddColumn(#"Added As At Month Sort", "Current Date", each if [As At Date] = MaxAsAtDate then "Today" else "Other Dates", type text)
+				in
+				    #"Added Current Date"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Exception
+

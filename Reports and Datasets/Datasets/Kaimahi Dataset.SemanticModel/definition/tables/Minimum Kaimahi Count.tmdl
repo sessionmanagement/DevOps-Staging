@@ -1,0 +1,24 @@
+table 'Minimum Kaimahi Count'
+	lineageTag: 29409c25-39e3-4d9c-afc8-0f1ef926c154
+
+	column 'Minimum Kaimahi Count'
+		dataType: int64
+		formatString: 0
+		lineageTag: b63d5a19-fc54-4863-b0d7-8f64070fd500
+		summarizeBy: sum
+		sourceColumn: Minimum Kaimahi Count
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Minimum Kaimahi Count' = m
+		mode: import
+		source =
+				let
+				Source = #table(type table [Minimum Kaimahi Count = Int64.Type], {{MinimumKaimahiCountParameter}})
+				in
+				Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

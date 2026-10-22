@@ -1,0 +1,44 @@
+table 'Dim Age Group'
+	lineageTag: 84e9fbe9-9bb1-4532-8d97-abfe430be992
+
+	column 'Age Group'
+		dataType: string
+		lineageTag: 4db9ed38-d114-48ad-8a1a-79c8900ad14c
+		summarizeBy: none
+		sourceColumn: Age Group
+		sortByColumn: Sort
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Total
+		dataType: int64
+		formatString: 0
+		lineageTag: 5d3b47b8-01b7-4394-a4a1-6ae1f94d619d
+		summarizeBy: sum
+		sourceColumn: Total
+
+		annotation SummarizationSetBy = Automatic
+
+	column Sort
+		dataType: string
+		lineageTag: c0bb8603-694c-4cc5-a83d-a7ccfe4bd725
+		summarizeBy: none
+		sourceColumn: Sort
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Age Group' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("Hcs7DoAwDAPQq6CsEKnpDy7CVHXiI1VILYKB65N6iIdnJyUybA1NZIOGUJ4SWWHXSYztBcwJexh2DuaFAwxrDwvCEeZFM8CiGfGpEQFrfe9jK2c59qE9w1qv2r6q9aI3U84/", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Age Group" = _t, Total = _t, Sort = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Age Group", type text}, {"Total", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

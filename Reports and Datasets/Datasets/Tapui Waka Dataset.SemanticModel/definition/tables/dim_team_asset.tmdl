@@ -1,0 +1,159 @@
+table dim_team_asset
+	lineageTag: 384ce44e-efea-4e7e-81c0-5bc7468e71e1
+
+	column dim_asset_key
+		dataType: int64
+		formatString: 0
+		lineageTag: bc77d1dc-48ad-4b3e-bad7-16205f05f277
+		summarizeBy: none
+		sourceColumn: dim_asset_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column asset_name
+		dataType: string
+		lineageTag: aea97ae4-38c6-49c5-9460-7997c4d81e5f
+		summarizeBy: none
+		sourceColumn: asset_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column team_name
+		dataType: string
+		lineageTag: 5a99de8b-e58f-4138-bbf7-f9e9213ebc0f
+		summarizeBy: none
+		sourceColumn: team_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column number_plate
+		dataType: string
+		lineageTag: 4c13448e-a1b2-4930-9b11-31eb2482983b
+		summarizeBy: none
+		sourceColumn: number_plate
+
+		annotation SummarizationSetBy = Automatic
+
+	column asset_entity_id
+		dataType: string
+		lineageTag: 48376549-5e07-4497-9cd9-b84ca60eb78f
+		summarizeBy: none
+		sourceColumn: asset_entity_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column asset_nzta_subject_to_ruc
+		dataType: int64
+		formatString: 0
+		lineageTag: 57754a8c-f303-4188-a1ba-97837aaf8929
+		summarizeBy: sum
+		sourceColumn: asset_nzta_subject_to_ruc
+
+		annotation SummarizationSetBy = Automatic
+
+	column asset_nzta_subject_to_ruc_hubo
+		dataType: int64
+		formatString: 0
+		lineageTag: 8ab398e8-446b-4c72-9400-33795257da78
+		summarizeBy: sum
+		sourceColumn: asset_nzta_subject_to_ruc_hubo
+
+		annotation SummarizationSetBy = Automatic
+
+	column asset_nzta_wof_expiry_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 8d000f75-bf8f-4527-ba39-d79361679fca
+		summarizeBy: none
+		sourceColumn: asset_nzta_wof_expiry_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column asset_nzta_wof_type
+		dataType: string
+		lineageTag: 2f300d36-7e01-49f0-8917-1f624af757da
+		summarizeBy: none
+		sourceColumn: asset_nzta_wof_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column asset_nzta_license_expiry_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 02236b03-1f77-4242-a9e6-e34e52019ac0
+		summarizeBy: none
+		sourceColumn: asset_nzta_license_expiry_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column asset_nzta_fuel_type
+		dataType: string
+		lineageTag: 07ed6c12-18b5-4ca4-a186-0cdabf3e1539
+		summarizeBy: none
+		sourceColumn: asset_nzta_fuel_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column asset_nzta_ruc_expiry
+		dataType: int64
+		formatString: 0
+		lineageTag: 445cf3b1-efcb-41a8-bfba-9501e88394da
+		summarizeBy: sum
+		sourceColumn: asset_nzta_ruc_expiry
+
+		annotation SummarizationSetBy = Automatic
+
+	column asset_nzta_ruc_expiry_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: ba5941ef-5d6e-4469-ab53-7321fd042aa1
+		summarizeBy: none
+		sourceColumn: asset_nzta_ruc_expiry_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column days_to_wof_expiry =
+			
+			DATEDIFF(TODAY(), dim_team_asset[asset_nzta_wof_expiry_date], DAY)
+		formatString: 0
+		lineageTag: b9d36386-0f8d-4078-8dd8-682c2ed0db4e
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column days_to_rego_expiry =
+			
+			DATEDIFF(TODAY(), dim_team_asset[asset_nzta_license_expiry_date], DAY)
+		formatString: 0
+		lineageTag: d4e31827-ed85-476a-8a52-b984179c1a4c
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_team_asset = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT DISTINCT#(lf)#(tab)[name] AS [asset_name]#(lf)#(tab),[identifier] AS [number_plate]#(lf)#(tab),RTRIM(LTRIM([asset_id])) AS [asset_entity_id]#(lf)#(tab),[asset_nzta_subject_to_ruc]#(lf)#(tab),[asset_nzta_subject_to_ruc_hubo]#(lf)#(tab),[asset_nzta_wof_expiry_date]#(lf)#(tab),[asset_nzta_wof_type]#(lf)#(tab),[asset_nzta_license_expiry_date]#(lf)#(tab),[asset_nzta_fuel_type]#(lf)#(tab),[asset_nzta_ruc_expiry]#(lf)#(tab),[asset_nzta_ruc_expiry_date]#(lf)FROM TapuiWaka.[asset]#(lf)WHERE ODSIsCurrent=1"]),
+				    #"Added Team Name" = Table.AddColumn(#"Source","team_name", each Text.BeforeDelimiter([asset_name], " ", {0, RelativePosition.FromEnd})),
+				    #"Added Index" = Table.AddIndexColumn(#"Added Team Name", "dim_asset_key", 1, 1, Int64.Type),
+				    #"Added Unknown Row" = Table.Combine({
+				        #table({"dim_asset_key", "asset_name", "team_name", "number_plate", "asset_entity_id"}, {{0, "Unknown", "Unknown", "Unknown", "Unknown"}}),
+				        #"Added Index"
+				    }),
+				    #"Sorted Rows" = Table.Sort(#"Added Unknown Row",{{"dim_asset_key", Order.Ascending}}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Sorted Rows",{{"asset_entity_id", type text}, {"asset_nzta_ruc_expiry_date", type date}, {"asset_nzta_license_expiry_date", type date}, {"asset_nzta_wof_expiry_date", type date}, {"dim_asset_key", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

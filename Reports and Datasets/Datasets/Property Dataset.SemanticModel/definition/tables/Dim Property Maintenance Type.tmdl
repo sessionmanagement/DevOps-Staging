@@ -1,0 +1,24 @@
+table 'Dim Property Maintenance Type'
+	lineageTag: 7d892430-2b48-426c-aa2c-4a0ebe71ab41
+
+	column property_maintenance_type_id
+		dataType: string
+		lineageTag: 4d2c918c-7c87-4442-a4f2-26b70b992c8a
+		summarizeBy: none
+		sourceColumn: property_maintenance_type_id
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Property Maintenance Type' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)property_maintenance_type_id FROM edw.vw_dim_property_maintenace_type"])
+				in
+				    Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,435 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.8.0/schema.json",
+  "name": "c7e0b25a07c3bc801cda",
+  "position": {
+    "x": 11.18885485161265,
+    "y": 238.16276755575498,
+    "z": 4000,
+    "height": 481.120758619344,
+    "width": 1209.994731810111,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_fuelcard_expenditure"
+                    }
+                  },
+                  "Property": "Date"
+                }
+              },
+              "queryRef": "fact_fuelcard_expenditure.Date",
+              "nativeQueryRef": "Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_team_asset"
+                    }
+                  },
+                  "Property": "asset_name"
+                }
+              },
+              "queryRef": "dim_team_asset.asset_name",
+              "nativeQueryRef": "asset_name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_team_asset"
+                    }
+                  },
+                  "Property": "number_plate"
+                }
+              },
+              "queryRef": "dim_team_asset.number_plate",
+              "nativeQueryRef": "number_plate"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_team_asset"
+                    }
+                  },
+                  "Property": "asset_nzta_fuel_type"
+                }
+              },
+              "queryRef": "dim_team_asset.asset_nzta_fuel_type",
+              "nativeQueryRef": "asset_nzta_fuel_type"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "fact_fuelcard_expenditure"
+                        }
+                      },
+                      "Property": "Voucher Value"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(fact_fuelcard_expenditure.Voucher Value)",
+              "nativeQueryRef": "Voucher Value"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_fuelcard_expenditure"
+                    }
+                  },
+                  "Property": "Distance Since Previous Fill Km"
+                }
+              },
+              "queryRef": "fact_fuelcard_expenditure.Distance Since Previous Fill Km",
+              "nativeQueryRef": "Distance Since Previous Fill Km"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_fuelcard_expenditure"
+                    }
+                  },
+                  "Property": "Fuel Quantity for Interval"
+                }
+              },
+              "queryRef": "fact_fuelcard_expenditure.Fuel Quantity for Interval",
+              "nativeQueryRef": "Fuel Quantity for Interval"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_fuelcard_expenditure"
+                    }
+                  },
+                  "Property": "Fuel Spend for Interval"
+                }
+              },
+              "queryRef": "fact_fuelcard_expenditure.Fuel Spend for Interval",
+              "nativeQueryRef": "Fuel Spend for Interval"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Fuel Spend per 100km"
+                }
+              },
+              "queryRef": "_Measures.Fuel Spend per 100km",
+              "nativeQueryRef": "Fuel Spend per 100km"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "_Measures"
+                  }
+                },
+                "Property": "Fuel Spend per 100km"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "86.76145045641854D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "dim_team_asset.asset_name"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "150.18070294368667D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "fact_fuelcard_expenditure.Date"
+          }
+        }
+      ],
+      "grid": [
+        {
+          "properties": {
+            "gridVertical": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "FilterValidFuelIntervals",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_fuelcard_expenditure"
+              }
+            },
+            "Property": "Has Valid Odometer Interval"
+          }
+        },
+        "type": "Advanced",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "f",
+              "Entity": "fact_fuelcard_expenditure",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "Comparison": {
+                  "ComparisonKind": 0,
+                  "Left": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Source": "f"
+                        }
+                      },
+                      "Property": "Has Valid Odometer Interval"
+                    }
+                  },
+                  "Right": {
+                    "Literal": {
+                      "Value": "1L"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User"
+      },
+      {
+        "name": "c76f4fb39da24b643ceb",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "_Measures"
+              }
+            },
+            "Property": "Fuel Spend per 100km"
+          }
+        },
+        "type": "Advanced",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "_",
+              "Entity": "_Measures",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "Comparison": {
+                  "ComparisonKind": 1,
+                  "Left": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Source": "_"
+                        }
+                      },
+                      "Property": "Fuel Spend per 100km"
+                    }
+                  },
+                  "Right": {
+                    "Literal": {
+                      "Value": "0L"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "05044d17532977c34432",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_fuelcard_expenditure"
+              }
+            },
+            "Property": "Date"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "4d05456fe7265031a0fc",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_team_asset"
+              }
+            },
+            "Property": "asset_name"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "c5efb50d83a4bcf79250",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_team_asset"
+              }
+            },
+            "Property": "number_plate"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "0cfe637f238eba210e3a",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_team_asset"
+              }
+            },
+            "Property": "asset_nzta_fuel_type"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "c8b0c496ae00fc582a2f",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_fuelcard_expenditure"
+              }
+            },
+            "Property": "Distance Since Previous Fill Km"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "f5c49123f4a28568120e",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_fuelcard_expenditure"
+              }
+            },
+            "Property": "Fuel Quantity for Interval"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "873d2c3a187c9e26692d",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_fuelcard_expenditure"
+              }
+            },
+            "Property": "Fuel Spend for Interval"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "5c621b529c0f4eba162c",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "fact_fuelcard_expenditure"
+                  }
+                },
+                "Property": "Voucher Value"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}

@@ -1,0 +1,68 @@
+table RLS-Employee
+	lineageTag: dda09431-67fc-4fc4-971e-3fae87327521
+
+	column dim_employee_key
+		dataType: int64
+		formatString: 0
+		lineageTag: a1e66195-39ab-44f5-a20b-0941b70e0a1c
+		summarizeBy: sum
+		sourceColumn: dim_employee_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column employee_id
+		dataType: int64
+		formatString: 0
+		lineageTag: a720ad45-ef3a-4afc-acd5-7a20aaff445b
+		summarizeBy: sum
+		sourceColumn: employee_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'User Principal Name'
+		dataType: string
+		lineageTag: 7fa08786-a795-46c2-b5f6-fdcb1db4cd44
+		summarizeBy: none
+		sourceColumn: User Principal Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column mapped_employee_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 7e16ea71-bc56-48a0-afeb-16911051ff76
+		summarizeBy: sum
+		sourceColumn: mapped_employee_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column mapped_employee_name
+		dataType: string
+		lineageTag: 6bc90b35-1914-4d73-8f21-af462fe2427c
+		summarizeBy: none
+		sourceColumn: mapped_employee_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column mapped_employee_job_title
+		dataType: string
+		lineageTag: 8ad54e25-2b2f-4f8f-9b1b-ac268e89cc58
+		summarizeBy: none
+		sourceColumn: mapped_employee_job_title
+
+		annotation SummarizationSetBy = Automatic
+
+	partition RLS-Employee = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT [dim_employee_key]#(lf)      ,[employee_id]#(lf)      ,[email] AS 'User Principal Name'#(lf)      ,[mapped_employee_id]#(lf)      ,[mapped_employee_name]#(lf)      ,[mapped_employee_job_title]#(lf)  FROM [edw].[row_level_security_general]#(lf)  WHERE RLS_type = 'Employee'"]),
+				    #"Lowercased Text" = Table.TransformColumns(#"Source",{{"User Principal Name", Text.Lower, type text}}),
+				    #"Removed Duplicates" = Table.Distinct(#"Lowercased Text")
+				in
+				    #"Removed Duplicates"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

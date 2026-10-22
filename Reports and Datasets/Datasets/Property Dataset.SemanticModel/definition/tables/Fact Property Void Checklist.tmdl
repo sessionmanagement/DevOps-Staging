@@ -1,0 +1,119 @@
+table 'Fact Property Void Checklist'
+	lineageTag: 75d6b624-d545-4435-9ae6-8bae6ad46e10
+
+	column 'Dim Property KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 134db738-d435-40de-b685-8e2717b093ba
+		summarizeBy: none
+		sourceColumn: Dim Property KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Tenancy KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: b4391aa0-2e1d-4e49-8453-03e77b6e9dee
+		summarizeBy: none
+		sourceColumn: Dim Property Tenancy KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Void Checklist Void Category ID'
+		dataType: string
+		lineageTag: fc5273ec-e026-4ac6-83e0-517ff47e4836
+		summarizeBy: none
+		sourceColumn: Void Checklist Void Category ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Void Checklist Property Name'
+		dataType: string
+		lineageTag: 9db571ea-68f2-4460-8214-357f5f54316d
+		summarizeBy: none
+		sourceColumn: Void Checklist Property Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Void Checklist Vacated Tenancy Name'
+		dataType: string
+		lineageTag: 9e1debd8-013a-44ff-82fb-8e16d2697ab9
+		summarizeBy: none
+		sourceColumn: Void Checklist Vacated Tenancy Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Void Checklist Void Category Name'
+		dataType: string
+		lineageTag: 3bd1a0c7-e71f-4f6c-9371-00c29cf9b4d3
+		summarizeBy: none
+		sourceColumn: Void Checklist Void Category Name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Fact Property Void Checklist' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)    [dim_property_key],#(lf)    [dim_property_tenancy_key],#(lf)    [void_checklist_void_category_id],#(lf)    [void_checklist_property_name],#(lf)    [void_checklist_vacated_tenancy_name],#(lf)    [void_checklist_void_category_name],#(lf)    [DWHIsCurrent]#(lf)FROM [edw].[vw_fact_void_checklist]"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				
+				    // Step to add and convert date key columns
+				    #"Added and Converted Date Columns" = List.Accumulate(
+				        List.Select(Table.ColumnNames(#"Transformed Column Names"), each Text.EndsWith(_, " Date KEY")),
+				        #"Transformed Column Names",
+				        (state, columnName) =>
+				            Table.AddColumn(
+				                state,
+				                Text.BeforeDelimiter(columnName, " KEY"),
+				                each
+				                    if Record.Field(_, columnName) <> null then
+				                        let
+				                            dateValue = Text.From(Record.Field(_, columnName)),
+				                            yearPart = Text.Start(dateValue, 4),
+				                            monthPart = Text.Middle(dateValue, 4, 2),
+				                            dayPart = Text.End(dateValue, 2),
+				                            formattedDate = yearPart & "-" & monthPart & "-" & dayPart
+				                        in
+				                            if Text.Length(dateValue) = 8 then
+				                                Date.FromText(formattedDate)
+				                            else
+				                                null
+				                    else
+				                        null,
+				                type date
+				            )
+				    ),
+				    #"Filtered Rows" = Table.SelectRows(#"Added and Converted Date Columns", each ([DWH Is Current] = true)),
+				
+				    // Step to remove columns that start with "DWH" if needed
+				    RemoveDWHColumns = Table.RemoveColumns(
+				        #"Filtered Rows",
+				        List.Select(Table.ColumnNames(#"Filtered Rows"), each Text.StartsWith(_, "DWH"))
+				    )
+				in
+				    RemoveDWHColumns
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

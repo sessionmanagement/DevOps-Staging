@@ -1,0 +1,71 @@
+table dim_driver
+	lineageTag: 71c158cb-840c-43b6-8871-4725cec0ffab
+
+	column dim_driver_key
+		dataType: int64
+		formatString: 0
+		lineageTag: aa542493-8aef-4568-a5bf-654ecb1e3020
+		summarizeBy: none
+		sourceColumn: dim_driver_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column driver_name
+		dataType: string
+		lineageTag: b903a027-278b-42d4-b31d-da17fe45937b
+		summarizeBy: none
+		sourceColumn: driver_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column email_address
+		dataType: string
+		lineageTag: 4430d82e-82ff-498c-8dc9-d270449e3c2f
+		summarizeBy: none
+		sourceColumn: email_address
+
+		annotation SummarizationSetBy = Automatic
+
+	column id
+		dataType: string
+		lineageTag: 630b1c2c-6a80-4d6a-9ed6-b5ed857583cc
+		summarizeBy: none
+		sourceColumn: id
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_service_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 1cbc42b6-f4d8-4b21-9170-8e302ed8b1cd
+		summarizeBy: none
+		sourceColumn: dim_service_key
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_driver = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="    SELECT DISTINCT#(lf)#(tab)CONCAT_WS(' ', first_name, last_name) AS driver_name,#(lf)#(tab)LOWER(email_address) AS email_address,#(lf)#(tab)RTRIM(LTRIM(contact_id)) AS [id]#(lf) FROM TapuiWaka.[contact]#(lf)WHERE ODSisCurrent=1"]),
+				    EmployeeServices = Sql.Database(Server, Database, [Query="WITH ServicesEDW AS (#(lf)    SELECT DISTINCT#(lf)        [dim_service_key],#(lf)        [service_name],#(lf)        [dim_company_key],#(lf)        [company_name]#(lf)    FROM [edw].[dim_service]#(lf)    WHERE [DWHIsCurrent] = 1#(lf)        AND [DWHDMLOperation] <> 'D'#(lf)),#(lf)EmployeeServices AS (#(lf)    SELECT#(lf)        LOWER(h.[employee_primary_email_address]) AS [email_address],#(lf)        s.[dim_service_key],#(lf)        ROW_NUMBER() OVER (#(lf)            PARTITION BY LOWER(h.[employee_primary_email_address])#(lf)            ORDER BY CASE WHEN s.[dim_service_key] IS NULL THEN 1 ELSE 0 END, s.[dim_service_key]#(lf)        ) AS [row_num]#(lf)    FROM [edw].[vw_dim_employee_hierarchy] h#(lf)    LEFT JOIN ServicesEDW s#(lf)        ON h.[employee_Business_unit_name] COLLATE Latin1_General_CI_AI = s.[service_name] COLLATE Latin1_General_CI_AI#(lf)        AND CASE#(lf)            WHEN h.[employee_primary_email_address] COLLATE Latin1_General_CI_AI LIKE '%mind%body%' THEN 'Mind and Body'#(lf)            WHEN h.[employee_primary_email_address] COLLATE Latin1_General_CI_AI LIKE '%ignite%' THEN 'Ignite'#(lf)            ELSE 'Emerge'#(lf)        END = CASE#(lf)            WHEN s.[dim_company_key] = 5 THEN 'Mind and Body'#(lf)            WHEN s.[company_name] COLLATE Latin1_General_CI_AI LIKE '%ignite%' THEN 'Ignite'#(lf)            ELSE 'Emerge'#(lf)        END#(lf)    WHERE h.[DWHIsCurrent] = 1#(lf)        AND h.[DWHDMLOperation] <> 'D'#(lf)        AND h.[employee_primary_email_address] IS NOT NULL#(lf))#(lf)SELECT#(lf)    [email_address],#(lf)    [dim_service_key]#(lf)FROM EmployeeServices#(lf)WHERE [row_num] = 1"]),
+				    #"Merged Queries" = Table.NestedJoin(Source, {"email_address"}, EmployeeServices, {"email_address"}, "EmployeeServices", JoinKind.LeftOuter),
+				    #"Expanded EmployeeServices" = Table.ExpandTableColumn(#"Merged Queries", "EmployeeServices", {"dim_service_key"}, {"dim_service_key"}),
+				    #"Changed Type0" = Table.TransformColumnTypes(#"Expanded EmployeeServices",{{"dim_service_key", Int64.Type}}),
+				    #"Added Index" = Table.AddIndexColumn(#"Changed Type0", "Index", 1, 1, Int64.Type),
+				    #"Added Unknown Row" = Table.Combine({
+				        #table({"Index", "driver_name", "email_address", "id", "dim_service_key"}, {{0, "Unknown", "Unknown", "Unknown", null}}),
+				        #"Added Index"
+				    }),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Added Unknown Row",{"Index", "driver_name", "email_address", "id", "dim_service_key"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Reordered Columns",{{"Index", "dim_driver_key"}}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns",{{"dim_driver_key", Int64.Type}, {"dim_service_key", Int64.Type}}),
+				    #"Removed Duplicates" = Table.Distinct(#"Changed Type", {"email_address"})
+				in
+				    #"Removed Duplicates"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

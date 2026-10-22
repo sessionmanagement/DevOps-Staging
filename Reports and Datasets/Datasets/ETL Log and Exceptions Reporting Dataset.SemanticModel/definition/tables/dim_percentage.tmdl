@@ -1,0 +1,74 @@
+table dim_percentage
+	lineageTag: 2b583d09-9941-460f-b3f6-34f489c3eda1
+
+	column Value
+		formatString: 0
+		lineageTag: df1be730-3a5a-4438-ab30-43062be1c4a6
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Value]
+
+		annotation SummarizationSetBy = Automatic
+
+	column PercentageValue
+		lineageTag: 4a270c14-edb4-4160-af68-f7a2f345e3c7
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [PercentageValue]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column PercentageLabel
+		lineageTag: 59fd4df8-5794-4f80-913c-7c0df9a785e2
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [PercentageLabel]
+
+		annotation SummarizationSetBy = Automatic
+
+	column PercentageRange
+		lineageTag: 7305e1d4-f1fa-471e-813e-2486cee872e1
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [PercentageRange]
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_percentage_key
+		formatString: 0
+		lineageTag: 29ed482f-8511-420b-a9dc-71fac8d01bd8
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [dim_percentage_key]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_percentage = calculated
+		mode: import
+		source = ```
+				
+				GENERATE(
+				    GENERATESERIES(0, 100, 1),
+				    VAR Percentage = [Value] / 100
+				    RETURN ROW(
+				        "dim_percentage_key", [Value],
+				        "PercentageValue", Percentage,
+				        "PercentageLabel", FORMAT(Percentage, "0%"),
+				        "PercentageRange", 
+				            SWITCH(
+				                TRUE(),
+				                Percentage = 0, "0%",
+				                Percentage <= 0.25, "1% - 25%",
+				                Percentage <= 0.50, "26% - 50%",
+				                Percentage <= 0.75, "51% - 75%",
+				                Percentage <= 0.99, "76% - 99%",
+				                "100%"
+				            )
+				    )
+				)
+				```
+
+	annotation PBI_Id = 639d2ed41d0342a5b2e3d3391d4900fe
+

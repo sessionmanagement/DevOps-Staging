@@ -1,0 +1,282 @@
+table dim_time
+	lineageTag: ecba8752-7b14-46b9-99a9-b1f414a0fc39
+
+	column time
+		dataType: dateTime
+		isHidden
+		formatString: Long Time
+		lineageTag: 40c19208-2d21-4870-9298-b98f90194c45
+		summarizeBy: none
+		sourceColumn: time
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Time
+
+	column hour12h
+		dataType: string
+		isHidden
+		lineageTag: 4ab088fd-6f98-4af2-b910-e30d79bad6b6
+		summarizeBy: none
+		sourceColumn: hour12h
+
+		annotation SummarizationSetBy = Automatic
+
+	column hour24h
+		dataType: string
+		isHidden
+		lineageTag: ffe4189c-a776-463e-bf38-aedf631a925b
+		summarizeBy: none
+		sourceColumn: hour24h
+
+		annotation SummarizationSetBy = Automatic
+
+	column minute
+		dataType: string
+		isHidden
+		lineageTag: dfffed84-e16e-4572-b6d2-b4bde48676fb
+		summarizeBy: none
+		sourceColumn: minute
+
+		annotation SummarizationSetBy = Automatic
+
+	column second
+		dataType: string
+		isHidden
+		lineageTag: 9c55e7c5-3ba7-4e96-92ec-02260ffbe686
+		summarizeBy: none
+		sourceColumn: second
+
+		annotation SummarizationSetBy = Automatic
+
+	column ampm
+		dataType: string
+		isHidden
+		lineageTag: 7b571fab-74c5-4958-bf00-f61424983597
+		summarizeBy: none
+		sourceColumn: ampm
+
+		annotation SummarizationSetBy = Automatic
+
+	column standardtime
+		dataType: string
+		isHidden
+		lineageTag: 63280f0d-4fa5-426e-a81f-502b4aacd9cd
+		summarizeBy: none
+		sourceColumn: standardtime
+
+		annotation SummarizationSetBy = Automatic
+
+	column HourBucket = ```
+			
+			IF(
+			    dim_time[hour24h] = "00", "12:00am - 12:59am",
+			    IF(
+			        dim_time[hour24h] = "01", "1:00am - 1:59am",
+			        IF(
+			            dim_time[hour24h] = "02", "2:00am - 2:59am",
+			            IF(
+			                dim_time[hour24h] = "03", "3:00am - 3:59am",
+			                IF(
+			                    dim_time[hour24h] = "04", "4:00am - 4:59am",
+			                    IF(
+			                        dim_time[hour24h] = "05", "5:00am - 5:59am",
+			                        IF(
+			                            dim_time[hour24h] = "06", "6:00am - 6:59am",
+			                            IF(
+			                                dim_time[hour24h] = "07", "7:00am - 7:59am",
+			                                IF(
+			                                    dim_time[hour24h] = "08", "8:00am - 8:59am",
+			                                    IF(
+			                                        dim_time[hour24h] = "09", "9:00am - 9:59am",
+			                                        IF(
+			                                            dim_time[hour24h] = "10", "10:00am - 10:59am",
+			                                            IF(
+			                                                dim_time[hour24h] = "11", "11:00am - 11:59am",
+			                                                IF(
+			                                                    dim_time[hour24h] = "12", "12:00pm - 12:59pm",
+			                                                    IF(
+			                                                        dim_time[hour24h] = "13", "1:00pm - 1:59pm",
+			                                                        IF(
+			                                                            dim_time[hour24h] = "14", "2:00pm - 2:59pm",
+			                                                            IF(
+			                                                                dim_time[hour24h] = "15", "3:00pm - 3:59pm",
+			                                                                IF(
+			                                                                    dim_time[hour24h] = "16", "4:00pm - 4:59pm",
+			                                                                    IF(
+			                                                                        dim_time[hour24h] = "17", "5:00pm - 5:59pm",
+			                                                                        IF(
+			                                                                            dim_time[hour24h] = "18", "6:00pm - 6:59pm",
+			                                                                            IF(
+			                                                                                dim_time[hour24h] = "19", "7:00pm - 7:59pm",
+			                                                                                IF(
+			                                                                                    dim_time[hour24h] = "20", "8:00pm - 8:59pm",
+			                                                                                    IF(
+			                                                                                        dim_time[hour24h] = "21", "9:00pm - 9:59pm",
+			                                                                                        IF(
+			                                                                                            dim_time[hour24h] = "22", "10:00pm - 10:59pm",
+			                                                                                            IF(
+			                                                                                                dim_time[hour24h] = "23", "11:00pm - 11:59pm",
+			                                                                                                "Unknown Hour"  -- Fallback for unexpected values
+			                                                                                            )
+			                                                                                        )
+			                                                                                    )
+			                                                                                )
+			                                                                            )
+			                                                                        )
+			                                                                    )
+			                                                                )
+			                                                            )
+			                                                        )
+			                                                    )
+			                                                )
+			                                            )
+			                                        )
+			                                    )
+			                                )
+			                            )
+			                        )
+			                    )
+			                )
+			            )
+			        )
+			    )
+			)
+			
+			```
+		isHidden
+		lineageTag: 4b5b6daf-4e68-45a4-8ff8-194a19a86b24
+		summarizeBy: none
+		sortByColumn: hour24h
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column FourHourlyBucket =
+			
+			IF(
+			    dim_time[dim_time_key] < 40000, "12:00am - 3:59am",
+			    IF(
+			        dim_time[dim_time_key] < 80000, "4:00am - 7:59am",
+			        IF(
+			            dim_time[dim_time_key] < 120000, "8:00am - 11:59am",
+			            IF(
+			                dim_time[dim_time_key] < 160000, "12:00pm - 3:59pm",
+			                IF(
+			                    dim_time[dim_time_key] < 20000, "4:00pm - 7:59pm",
+			                    "8:00pm - 11.59pm"
+			                )
+			            )
+			        )
+			    )
+			)
+		isHidden
+		lineageTag: 951a57cc-9f5e-4eac-a96f-96f8aebf0ba0
+		summarizeBy: none
+		sortByColumn: FourHourlyBucketSort
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column EightHourlyBucket =
+			
+			IF(
+			    dim_time[dim_time_key] < 80000, "12:00am - 7:59am",
+			    IF(
+			        dim_time[dim_time_key] < 160000, "8:00am - 5:59pm",
+			        "6:00pm - 11:59pm"
+			    )
+			)
+		isHidden
+		lineageTag: 32b12d5e-1b56-4060-8ad0-460b9e7335c4
+		summarizeBy: none
+		sortByColumn: EightHourlyBucketSort
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column FourHourlyBucketSort =
+			
+			IF(
+			    dim_time[dim_time_key] < 40000, 1,
+			    IF(
+			        dim_time[dim_time_key] < 80000, 2,
+			        IF(
+			            dim_time[dim_time_key] < 120000, 3,
+			            IF(
+			                dim_time[dim_time_key] < 160000, 4,
+			                IF(
+			                    dim_time[dim_time_key] < 20000, 5,
+			                    6
+			                )
+			            )
+			        )
+			    )
+			)
+		isHidden
+		formatString: 0
+		lineageTag: c1f188fc-13bd-44b3-89fd-c066cb5662ab
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column EightHourlyBucketSort =
+			
+			IF(
+			    dim_time[dim_time_key] < 80000, 1,
+			    IF(
+			        dim_time[dim_time_key] < 160000, 2,
+			        3
+			    )
+			)
+		isHidden
+		formatString: 0
+		lineageTag: 05901702-dd5d-4fff-83b2-37e79d355d82
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_time_key
+		dataType: int64
+		formatString: 0
+		lineageTag: a3efa742-8ba8-43ab-97d9-b79ab17f87fd
+		summarizeBy: none
+		sourceColumn: dim_time_key
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'Hour Bucket Hierarchy'
+		lineageTag: 007db110-9f08-4924-ad93-39ff74b03159
+
+		level EightHourlyBucket
+			lineageTag: 649618c8-c9ab-4224-b0f6-67da0112fef0
+			column: EightHourlyBucket
+
+		level FourHourlyBucket
+			lineageTag: 6b6c8d56-f631-4294-9fe8-f9e1b33b2bc1
+			column: FourHourlyBucket
+
+		level HourBucket
+			lineageTag: b2d80ac3-0a19-43cb-92f9-1d872fe318ca
+			column: HourBucket
+
+	partition dim_time = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT [dim_time_key] as [dim_time_key]#(lf)      ,[time]#(lf)      ,[hour_12h] as [hour12h]#(lf)      ,[hour_24h] as [hour24h]#(lf)      ,[minute]#(lf)      ,[second]#(lf)      ,[am.pm] as [ampm]#(lf)      ,[standard_time] as [standardtime]#(lf)  FROM [edw].[vw_dim_time]"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Exception
+
+	annotation PBI_NavigationStepName = Navigation
+

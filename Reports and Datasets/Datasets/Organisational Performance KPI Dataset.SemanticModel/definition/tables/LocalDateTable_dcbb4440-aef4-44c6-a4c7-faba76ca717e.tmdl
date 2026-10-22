@@ -1,0 +1,111 @@
+table LocalDateTable_dcbb4440-aef4-44c6-a4c7-faba76ca717e
+	isHidden
+	showAsVariationsOnly
+	lineageTag: b872f4c8-acd9-47e0-88c7-a43620a80797
+
+	column Date
+		dataType: dateTime
+		isHidden
+		lineageTag: a21dbbb5-61f7-40de-a672-10915301378a
+		dataCategory: PaddedDateTableDates
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Date]
+
+		annotation SummarizationSetBy = User
+
+	column Year = YEAR([Date])
+		dataType: int64
+		isHidden
+		lineageTag: bd6911dd-b722-4fc9-ba4e-ac6512f901d8
+		dataCategory: Years
+		summarizeBy: none
+
+		annotation SummarizationSetBy = User
+
+		annotation TemplateId = Year
+
+	column MonthNo = MONTH([Date])
+		dataType: int64
+		isHidden
+		lineageTag: f03e6bd7-742e-40d4-bae4-1e61e730fad6
+		dataCategory: MonthOfYear
+		summarizeBy: none
+
+		annotation SummarizationSetBy = User
+
+		annotation TemplateId = MonthNumber
+
+	column Month = FORMAT([Date], "MMMM")
+		dataType: string
+		isHidden
+		lineageTag: 9ef61c00-5140-4859-bf03-67224ae03ea5
+		dataCategory: Months
+		summarizeBy: none
+		sortByColumn: MonthNo
+
+		annotation SummarizationSetBy = User
+
+		annotation TemplateId = Month
+
+	column QuarterNo = INT(([MonthNo] + 2) / 3)
+		dataType: int64
+		isHidden
+		lineageTag: a32890de-f326-4ede-ae21-a76bcbb41cd4
+		dataCategory: QuarterOfYear
+		summarizeBy: none
+
+		annotation SummarizationSetBy = User
+
+		annotation TemplateId = QuarterNumber
+
+	column Quarter = "Qtr " & [QuarterNo]
+		dataType: string
+		isHidden
+		lineageTag: 77a4693b-cce2-4ade-9989-dafcd2526d64
+		dataCategory: Quarters
+		summarizeBy: none
+		sortByColumn: QuarterNo
+
+		annotation SummarizationSetBy = User
+
+		annotation TemplateId = Quarter
+
+	column Day = DAY([Date])
+		dataType: int64
+		isHidden
+		lineageTag: a24bc391-4015-438a-8f61-a1139828aeff
+		dataCategory: DayOfMonth
+		summarizeBy: none
+
+		annotation SummarizationSetBy = User
+
+		annotation TemplateId = Day
+
+	hierarchy 'Date Hierarchy'
+		lineageTag: 9676a93b-f451-4f75-aa8b-734989dd29f4
+
+		level Year
+			lineageTag: f624cfed-6177-4848-8dfd-96bbe099dff5
+			column: Year
+
+		level Quarter
+			lineageTag: 93850ab3-fc04-4e7d-a772-96171cdb2152
+			column: Quarter
+
+		level Month
+			lineageTag: d5aad259-cd88-4f12-827b-bd6c1a157998
+			column: Month
+
+		level Day
+			lineageTag: b377c0f9-f363-4ba3-a922-9389b24536b3
+			column: Day
+
+		annotation TemplateId = DateHierarchy
+
+	partition LocalDateTable_dcbb4440-aef4-44c6-a4c7-faba76ca717e = calculated
+		mode: import
+		source = Calendar(Date(Year(MIN('Dim Kaimahi'[Kaimahi Exception Police Vetting Expiry])), 1, 1), Date(Year(MAX('Dim Kaimahi'[Kaimahi Exception Police Vetting Expiry])), 12, 31))
+
+	annotation __PBI_LocalDateTable = true
+

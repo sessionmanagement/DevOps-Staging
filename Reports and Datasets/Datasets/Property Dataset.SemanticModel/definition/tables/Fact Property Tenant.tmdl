@@ -1,0 +1,192 @@
+table 'Fact Property Tenant'
+	lineageTag: 8cf2fa9c-d956-43fd-a689-9e9f427c638f
+
+	column 'Dim Property KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 5cadddb2-3a1d-4b5d-b77c-daa594d6847d
+		summarizeBy: none
+		sourceColumn: Dim Property KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Detail KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: bd14668b-8f52-44d7-aa51-e536a87cb654
+		summarizeBy: none
+		sourceColumn: Dim Property Detail KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Healthy Homes KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 92dc7cee-bdac-4c64-b562-02baf21b92df
+		summarizeBy: none
+		sourceColumn: Dim Property Healthy Homes KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Tenancy KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 2b03d48e-4c52-4504-95f1-acf3a6ccfd6a
+		summarizeBy: none
+		sourceColumn: Dim Property Tenancy KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenant Opportunity Status'
+		dataType: string
+		lineageTag: edd6e9ac-deab-49e8-8133-01c5a299c65d
+		summarizeBy: none
+		sourceColumn: Property Tenant Opportunity Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenant Household Name'
+		dataType: string
+		lineageTag: 306d1af3-affe-462c-a108-cea16bc27acb
+		summarizeBy: none
+		sourceColumn: Property Tenant Household Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenant Tenancy Name'
+		dataType: string
+		lineageTag: e17f924e-93c2-4049-ab1c-87829b92d518
+		summarizeBy: none
+		sourceColumn: Property Tenant Tenancy Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenancy Household IDentifier'
+		dataType: string
+		lineageTag: 0bde73b9-da21-4bb3-97e0-66437c988668
+		summarizeBy: none
+		sourceColumn: Property Tenancy Household IDentifier
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenant Named Household Members'
+		dataType: string
+		lineageTag: 55870f96-3b1c-42ce-9a9c-430f36877a6b
+		summarizeBy: none
+		sourceColumn: Property Tenant Named Household Members
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenant First Name'
+		dataType: string
+		lineageTag: b332e24b-7582-4bf5-bae0-e5a5ff805920
+		summarizeBy: none
+		sourceColumn: Property Tenant First Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenant Last Name'
+		dataType: string
+		lineageTag: c7ea9abc-56dd-4340-b19b-e45b282f7ef7
+		summarizeBy: none
+		sourceColumn: Property Tenant Last Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenant Full Name'
+		dataType: string
+		lineageTag: 80d48a5c-b30f-455a-a664-89e5cd2405a9
+		summarizeBy: none
+		sourceColumn: Property Tenant Full Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenant Ethnicity Name'
+		dataType: string
+		lineageTag: 9bcb1c4b-3e9e-4a48-ab4a-bff5601ffae3
+		summarizeBy: none
+		sourceColumn: Property Tenant Ethnicity Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenancy Tenant Date Of Birth'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 0e8f5518-1670-4dbf-95ba-6403d8d298b1
+		summarizeBy: none
+		sourceColumn: Property Tenancy Tenant Date Of Birth
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Occupant Gender Label'
+		dataType: string
+		lineageTag: 33551ad8-23cf-4393-9688-e9d76c5e7519
+		summarizeBy: none
+		sourceColumn: Occupant Gender Label
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Fact Property Tenant' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)    [dim_property_key],#(lf)    [dim_property_detail_key],#(lf)    [dim_property_healthy_homes_key],#(lf)    [dim_property_tenancy_key],#(lf)    [property_tenant_first_name],#(lf)    [property_tenant_last_name],#(lf)    [property_tenant_full_name],#(lf)    [property_tenant_opportunity_status],#(lf)    [property_tenant_tenancy_name],#(lf)    [property_tenant_household_name],#(lf)    [property_tenancy_household_identifier],#(lf)    [property_tenant_named_household_members],#(lf)    occupant_gender_label,#(lf)    property_tenant_ethnicity_name,#(lf)    property_tenancy_tenant_date_of_birth#(lf)FROM [edw].[vw_fact_property_tenant]#(lf)WHERE ([DWHDMLOperation] <> 'D');"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				
+				    // Step to add and convert date key columns
+				    #"Added and Converted Date Columns" = List.Accumulate(
+				        List.Select(Table.ColumnNames(#"Transformed Column Names"), each Text.EndsWith(_, " Date KEY")),
+				        #"Transformed Column Names",
+				        (state, columnName) =>
+				            Table.AddColumn(
+				                state,
+				                Text.BeforeDelimiter(columnName, " KEY"),
+				                each
+				                    if Record.Field(_, columnName) <> null then
+				                        let
+				                            dateValue = Text.From(Record.Field(_, columnName)),
+				                            yearPart = Text.Start(dateValue, 4),
+				                            monthPart = Text.Middle(dateValue, 4, 2),
+				                            dayPart = Text.End(dateValue, 2),
+				                            formattedDate = yearPart & "-" & monthPart & "-" & dayPart
+				                        in
+				                            if Text.Length(dateValue) = 8 then
+				                                Date.FromText(formattedDate)
+				                            else
+				                                null
+				                    else
+				                        null,
+				                type date
+				            )
+				    ),
+				    // Step to remove columns that start with "DWH" if needed
+				    RemoveDWHColumns = Table.RemoveColumns(
+				        #"Added and Converted Date Columns",
+				        List.Select(Table.ColumnNames(#"Added and Converted Date Columns"), each Text.StartsWith(_, "DWH"))
+				    )
+				in
+				    RemoveDWHColumns
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

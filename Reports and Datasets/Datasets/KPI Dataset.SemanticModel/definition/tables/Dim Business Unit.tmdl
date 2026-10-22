@@ -1,0 +1,50 @@
+table 'Dim Business Unit'
+	lineageTag: afcb92b5-d6ee-40c1-ad14-cb029d0b3244
+
+	column BU_KPI_KEY
+		dataType: string
+		lineageTag: 632f3876-4b25-4c88-9837-324246cd6d7a
+		summarizeBy: none
+		sourceColumn: BU_KPI_KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column service_id
+		dataType: int64
+		formatString: 0
+		lineageTag: ceadd651-b96e-491a-91eb-b1ff2d67d600
+		summarizeBy: sum
+		sourceColumn: service_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column kpi_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 60e19a24-9912-43c5-a1fa-cf5d8a0d9895
+		summarizeBy: sum
+		sourceColumn: kpi_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column RelevantBU
+		dataType: string
+		lineageTag: 33f666a6-9351-46ec-9cf5-800da132d682
+		summarizeBy: none
+		sourceColumn: RelevantBU
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Business Unit' = m
+		mode: import
+		queryGroup: 'EDW Dim Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="-- ============================================================#(lf)-- Model:  KPI Dataset#(lf)-- Table:  Dim Business Unit#(lf)-- Source: native query (complex CTE/window) - emitted in full#(lf)-- Used columns: 2 (mapped 2, unmapped 0)  [full query, not trimmed]#(lf)-- Auto-generated from pbi_complete_dump.csv + model M + EDW/ODS schema.#(lf)-- Review before use; verify joins/filters against the model.#(lf)-- ============================================================#(lf)-- USED model columns: BU_KPI_KEY; RelevantBU#(lf)#(lf)WITH SplitBU AS (#(lf)    SELECT #(lf)        s.[service_id],#(lf)#(lf)        -- BusinessUnit logic translated from PowerQuery#(lf)        CASE#(lf)            WHEN (s.[department_name] IS NULL OR LTRIM(RTRIM(s.[department_name])) = '')#(lf)                 AND s.[region_name] LIKE '%Tenancy%' THEN 'Tenancy'#(lf)#(lf)            WHEN (s.[department_name] IS NULL OR LTRIM(RTRIM(s.[department_name])) = '')#(lf)                 AND (s.[region_name] IS NULL OR LTRIM(RTRIM(s.[region_name])) = '')#(lf)                 AND s.[dim_company_key] = 6 THEN 'Unknown'#(lf)#(lf)            WHEN s.[dim_company_key] = 4 THEN 'Ignite'#(lf)#(lf)            WHEN s.[department_name] LIKE '%Health%' #(lf)                 AND s.[department_name] LIKE '%Disability%' THEN 'Health & Disability'#(lf)#(lf)            WHEN s.[department_name] LIKE '%Peer%' THEN 'Health & Disability'#(lf)#(lf)            WHEN s.[department_name] LIKE '%Housing%' THEN 'Housing;Tenancy'#(lf)            WHEN s.[department_name] LIKE '%Tenancy%' THEN 'Tenancy'#(lf)            WHEN s.[department_name] LIKE '%Social Property%' THEN 'Tenancy'#(lf)            WHEN s.[department_name] LIKE '%Owned%' THEN 'Tenancy'#(lf)            WHEN s.[department_name] LIKE '%Leased%' THEN 'Tenancy'#(lf)            WHEN s.[department_name] LIKE '%Shared%' THEN 'Shared Services'#(lf)#(lf)            ELSE 'Unknown'#(lf)        END AS BusinessUnitRaw#(lf)#(lf)    FROM edw.dim_service s#(lf)),#(lf)SplitBU_Expanded AS (#(lf)    SELECT #(lf)        [service_id],#(lf)        TRIM(value) AS BusinessUnit#(lf)    FROM SplitBU#(lf)    CROSS APPLY STRING_SPLIT(BusinessUnitRaw, ';')#(lf)),#(lf)ServiceKPI AS (#(lf)    SELECT DISTINCT#(lf)        bu.BusinessUnit,#(lf)        bu.[service_id],#(lf)        f.[kpi_id]#(lf)    FROM SplitBU_Expanded bu#(lf)    INNER JOIN kpi.fact_kpi_current f#(lf)        ON bu.[service_id] = f.[service_id]#(lf)),#(lf)JoinedKPI AS (#(lf)    SELECT DISTINCT#(lf)        sk.BusinessUnit,#(lf)        sk.[service_id],#(lf)        sk.[kpi_id],#(lf)        k.[relevant_bu]#(lf)    FROM ServiceKPI sk#(lf)    LEFT JOIN kpi.dim_kpi_master k#(lf)        ON sk.[kpi_id] = k.[kpi_id]#(lf)),#(lf)SplitRelevantBU AS (#(lf)    SELECT #(lf)        BusinessUnit,#(lf)        [service_id],#(lf)        [kpi_id],#(lf)        TRIM(value) AS RelevantBU#(lf)    FROM JoinedKPI#(lf)    CROSS APPLY STRING_SPLIT([relevant_bu], ',')#(lf)),#(lf)FinalResult AS (#(lf)    SELECT#(lf)        *,#(lf)        CASE #(lf)            WHEN BusinessUnit = RelevantBU#(lf)                THEN CONCAT([service_id], '_', [kpi_id])#(lf)            ELSE NULL#(lf)        END AS BU_KPI_KEY#(lf)    FROM SplitRelevantBU#(lf))#(lf)SELECT DISTINCT service_id,kpi_id,RelevantBU,BU_KPI_KEY#(lf)FROM FinalResult#(lf)WHERE BU_KPI_KEY IS NOT NULL;#(lf)"])
+				in
+				    Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

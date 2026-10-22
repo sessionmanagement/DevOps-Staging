@@ -1,0 +1,54 @@
+expression 'intelli Jobs' =
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT#(lf)       [person_id]#(lf)      ,[person_displayName]#(lf)      ,[person_employeeNumber]#(lf)      ,[location_id]#(lf)      ,[businessUnit_id]#(lf)      ,[supervisorPerson_displayName]#(lf)      ,[workType]#(lf)      ,[workClass]#(lf)#(tab)  ,[isprimaryjob]#(lf)#(tab)  ,[companystartdate]#(lf)#(tab)  ,[companyenddate]#(lf)#(tab)  ,jobStatus#(lf)  FROM [IntelliHR].[jobs]#(lf)  WHERE ODSIsCurrent=1#(lf)  --AND jobStatus IN( 'Current Job', 'Ending Job')#(lf)  AND isPrimaryJob = 1#(lf)AND ODSDMLOperation <> 'D'"])
+		in
+		    Source
+	lineageTag: c429f6bf-6402-4fb0-97b5-120b9fa9ed40
+	queryGroup: Workings
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'DimPeople working' =
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT [people_id]#(lf)      ,[displayName]#(lf)      ,[employeeNumber]#(lf)      ,[primaryEmailAddress_email]#(lf)      ,[employmentStatus]#(lf)  FROM [IntelliHR].[people]#(lf)  WHERE ODSIsCurrent = 1"])
+		in
+		    Source
+	lineageTag: 6bc9673f-511e-432f-9520-a286bd29fcc9
+	queryGroup: Workings
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'Sample File' =
+		let
+		    Source = SharePoint.Files("https://emergeaotearoaltd.sharepoint.com/sites/ITServices37/", [ApiVersion = 15]),
+		    #"Sorted Rows" = Table.Sort(Source,{{"Folder Path", Order.Ascending}}),
+		    #"Filtered Rows" = Table.SelectRows(#"Sorted Rows", each ([Folder Path] = "https://emergeaotearoaltd.sharepoint.com/sites/ITServices37/Business Intelligence/Client Folders/Ignite/KPI Report/")),
+		    Navigation1 = #"Filtered Rows"{0}[Content]
+		in
+		    Navigation1
+	lineageTag: 70dfcd97-8986-47fe-b06d-be52ce40e97c
+	queryGroup: 'Helper Queries'
+
+	annotation PBI_ResultType = Binary
+
+expression 'Transform File' =
+		let
+		    Source = (Parameter1 as binary) => let
+		    Source = Excel.Workbook(Parameter1, null, true),
+		    Sheet1_Sheet = Source{[Item="Sheet1",Kind="Sheet"]}[Data],
+		    #"Promoted Headers" = Table.PromoteHeaders(Sheet1_Sheet, [PromoteAllScalars=true])
+		in
+		    #"Promoted Headers"
+		in
+		    Source
+	lineageTag: 4423c6f6-28a3-450d-86d3-2f13dfb1c267
+	queryGroup: 'Helper Queries'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Function
+

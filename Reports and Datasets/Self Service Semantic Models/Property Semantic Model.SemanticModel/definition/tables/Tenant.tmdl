@@ -1,0 +1,640 @@
+/// Individual tenants and household members associated with tenancies. Contains demographic information, contact details, and tenancy relationship data. Each tenant links to a tenancy via Property Tenancy ID. Includes both primary tenants (lease signatories) and other household occupants.
+table Tenant
+	lineageTag: b03dbf07-1c07-4b68-b2b1-a732556bfdf6
+
+	column 'Fact Property Tenant KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d3453afd-64c6-4c45-82e8-286e2188c284
+		summarizeBy: none
+		sourceColumn: Fact Property Tenant KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d91b1578-d4a7-419b-902e-9150a4c7e8a4
+		summarizeBy: none
+		sourceColumn: Dim Property KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Tenancy KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: a66b5de7-6502-41f8-8d5b-f295123ea295
+		summarizeBy: none
+		sourceColumn: Dim Property Tenancy KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Program KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 666930d0-3b82-403d-9239-bbe965d21ed1
+		summarizeBy: none
+		sourceColumn: Dim Property Program KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenancy ID'
+		dataType: string
+		isHidden
+		lineageTag: e1df3cef-c48a-4580-b4e1-822fa0fe8bcd
+		summarizeBy: none
+		sourceColumn: Property Tenancy ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenant ID'
+		dataType: string
+		isHidden
+		lineageTag: 7471acaa-8ea2-4891-9c6e-33e9221fc82c
+		summarizeBy: none
+		sourceColumn: Property Tenant ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property ID'
+		dataType: string
+		isHidden
+		lineageTag: 9b5bfaa9-83b3-45fc-95d5-52a3412a16dd
+		summarizeBy: none
+		sourceColumn: Property ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Program ID'
+		dataType: string
+		isHidden
+		lineageTag: 6cad68c8-aa94-480b-b043-d3ace124740f
+		summarizeBy: none
+		sourceColumn: Property Program ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Subprogram ID'
+		dataType: string
+		isHidden
+		lineageTag: e17c593e-68c2-4b02-959f-c79e3cc52820
+		summarizeBy: none
+		sourceColumn: Property Subprogram ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Total rent amount associated with this tenant's tenancy.
+	column 'Total Rent Amount'
+		dataType: double
+		formatString: \$#,0.00
+		lineageTag: 866aa9e5-3948-4bac-8e5a-c7d3b3d0fde0
+		summarizeBy: none
+		sourceColumn: Total Rent Amount
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Date the tenancy (lease) agreement was signed for this tenant's tenancy.
+	column 'Tenancy Agreement Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: d0747527-342c-48fb-85d5-b4b826e3e3aa
+		summarizeBy: none
+		sourceColumn: Tenancy Agreement Date
+
+		variation Variation
+			isDefault
+			relationship: 8fffa1d8-38ef-4738-ac22-af56c2d12327
+			defaultHierarchy: LocalDateTable_1f1e2262-cefb-4cb2-8725-5d32a2a577ee.'Date Hierarchy'
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date the tenant's tenancy started. Used by the demographic (Period) measures as the activity window (tenancy active during the selected Date Table range).
+	column 'Tenancy Start Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 981899d3-0819-4e96-bc60-3eef10019d14
+		summarizeBy: none
+		sourceColumn: Tenancy Start Date
+
+		variation Variation
+			isDefault
+			relationship: ce3c8095-17c8-4d1d-ad05-a7ea2b518404
+			defaultHierarchy: LocalDateTable_03afc284-5193-432f-8726-24004a8a00a0.'Date Hierarchy'
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'First Name'
+		dataType: string
+		isHidden
+		lineageTag: a191cea6-3a30-436c-abe3-acc12be50e1d
+		summarizeBy: none
+		sourceColumn: First Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Last Name'
+		dataType: string
+		isHidden
+		lineageTag: cfa3ce37-6a95-4770-ac77-3ca2a0293ba1
+		summarizeBy: none
+		sourceColumn: Last Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Tenant's full name (PII). Displayed name; First/Last Name are the hidden components. Used with Property Tenant ID as the person grain in tenant-list measures.
+	column 'Full Name'
+		dataType: string
+		lineageTag: 95929998-1a4f-4760-ab37-27a339f53e2d
+		summarizeBy: none
+		sourceColumn: Full Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Date Of Birth'
+		dataType: dateTime
+		isHidden
+		formatString: d/mm/yyyy
+		lineageTag: 3525252b-43c4-48e4-ba11-de848d32f33e
+		summarizeBy: none
+		sourceColumn: Date Of Birth
+
+		variation Variation
+			isDefault
+			relationship: 20a9a4de-ec18-4c65-9bdc-ffd7a6c76134
+			defaultHierarchy: LocalDateTable_8902c8cb-8d35-426e-ad46-cdc9ec53fc3c.'Date Hierarchy'
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the tenant was registered in the source system.
+	column 'Registration Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: caf6bb47-dca9-45a1-b0c9-316c1788426f
+		summarizeBy: none
+		sourceColumn: Registration Date
+
+		variation Variation
+			isDefault
+			relationship: 3aaa5ad1-fa9a-47c1-b737-50730ea3b7b8
+			defaultHierarchy: LocalDateTable_2a97e304-d328-4438-a7b5-b08bb91c92b9.'Date Hierarchy'
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Client identifier from Waharoa, the case management and referral system used for transitional housing placements.
+	column 'Waharoa Client ID'
+		dataType: string
+		isHidden
+		lineageTag: 20ed09f4-83d6-476a-ad56-3ec040d1d1a2
+		summarizeBy: none
+		sourceColumn: Waharoa Client ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Flag indicating if this person is the primary tenant (1) or a household member (0). Primary tenant is the main signatory on the lease.
+	column 'Is Primary Tenant'
+		dataType: int64
+		formatString: 0
+		lineageTag: e5a65315-5603-4140-a7ba-69b6acb7070c
+		summarizeBy: none
+		sourceColumn: Is Primary Tenant
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Source system where this tenant record originated from.
+	column 'Record Source'
+		dataType: string
+		isHidden
+		lineageTag: 0e93b3da-5d88-42d2-8e55-dedf80a7239f
+		summarizeBy: none
+		sourceColumn: Record Source
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Numeric state code from the source CRM system.
+	column 'State Code'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 3ff7c033-e1da-467c-9aaa-793ebc6e5179
+		summarizeBy: none
+		sourceColumn: State Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Numeric status code from the source CRM system.
+	column 'Status Code'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 22b5aeaa-707f-4de8-a2bb-59e6b054543b
+		summarizeBy: none
+		sourceColumn: Status Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Name/label of the tenancy this tenant belongs to (denormalized from the Tenancy record).
+	column 'Tenancy Name'
+		dataType: string
+		lineageTag: cbbcd1fc-fb2c-44a5-83bf-94834e3cae43
+		summarizeBy: none
+		sourceColumn: Tenancy Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Name assigned to the household unit, typically derived from the primary tenant's name.
+	column 'Household Name'
+		dataType: string
+		lineageTag: d40ad7b8-4e5f-4abb-bfb5-542e980c525f
+		summarizeBy: none
+		sourceColumn: Household Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Household ID'
+		dataType: string
+		isHidden
+		lineageTag: 4e7be2ac-ff0a-4c83-bc1f-8d6e4bdad73a
+		summarizeBy: none
+		sourceColumn: Household ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Total count of people living in the household, including the primary tenant.
+	column 'Number Of Household Members'
+		dataType: int64
+		formatString: 0
+		lineageTag: 3bc7c672-f811-4f35-8e16-9e376621d3aa
+		summarizeBy: none
+		sourceColumn: Number Of Household Members
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// List of named individuals in the household.
+	column 'Named Household Members'
+		dataType: string
+		lineageTag: 1d9d67c7-7eb7-49f0-a275-03cb89824a22
+		summarizeBy: none
+		sourceColumn: Named Household Members
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// This tenant's share of the total rent amount.
+	column 'Rent Share Total'
+		dataType: double
+		formatString: \$#,0.00
+		lineageTag: 6eaebdd7-1ead-4dcd-b591-82e093197db0
+		summarizeBy: sum
+		sourceColumn: Rent Share Total
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Intended to capture the combined gross income of all household members for rent-subsidy calculations, in dollars. In the current data the column carries no usable values: every populated row is exactly zero, only a small minority of rows are blank, and the column sums to zero - a source/ETL population gap rather than genuine zero incomes. Consequently the downstream Total Household Income and Avg Household Income measures both currently return zero.
+	column 'Total Income Of The Household'
+		dataType: double
+		isHidden
+		lineageTag: 1cda3ff6-f784-4551-97ec-d828fcf97f46
+		summarizeBy: none
+		sourceColumn: Total Income Of The Household
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Tenant's ethnicity as recorded in the source CRM (free-text label; may be blank/unrecorded). Basis of the Tenants - Maori/Pacific/European/Asian/Other ethnicity measures.
+	column Ethnicity
+		dataType: string
+		lineageTag: 14adc164-8769-4556-8256-861287592210
+		summarizeBy: none
+		sourceColumn: Ethnicity
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Tenant's gender label from the source CRM (e.g. 'Wahine/Female', 'Tane/Male', other; may be blank). Basis of the Tenants - Female/Male/Other gender measures.
+	column Gender
+		dataType: string
+		lineageTag: b76471ea-8a7d-4ac1-b183-8256fbd33729
+		summarizeBy: none
+		sourceColumn: Gender
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Disability
+		dataType: string
+		isHidden
+		lineageTag: 8305b565-3b9e-429a-b2d5-29383bd80644
+		summarizeBy: none
+		sourceColumn: Disability
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// General target demographic group the tenant belongs to, used for service allocation and reporting.
+	column 'Target Group'
+		dataType: string
+		lineageTag: 139ab6b4-1c71-4cab-b784-700a7b228f97
+		summarizeBy: none
+		sourceColumn: Target Group
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Tenant's employment status label from the source CRM, one row per tenant record. In the current data the field is blank or 'Unknown' for the large majority of tenants; the remaining populated values are a small free-text set that includes Benefits, Unemployed, Full-time Employment, Part-time Employment, Casual Employment, Student and N/A. The 'Tenants Employed' measure counts only the paid-work labels 'Full-time Employment', 'Part-time Employment' and 'Casual Employment'. Employment Status is recorded almost entirely on non-primary household-member rows (primary tenants are blank), so employed counts reflect household members rather than lease signatories.
+	column 'Employment Status'
+		dataType: string
+		lineageTag: 9d799b86-4a78-4242-b641-4ee75d177872
+		summarizeBy: none
+		sourceColumn: Employment Status
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Type of contact record (e.g., Individual, Organisation).
+	column 'Contact Type'
+		dataType: string
+		lineageTag: a69d8e5e-6e0e-43b7-96cd-e62334aaac2b
+		summarizeBy: none
+		sourceColumn: Contact Type
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// System state of the occupant record (Active/Inactive).
+	column 'Occupant State'
+		dataType: string
+		lineageTag: c3478a99-c7d8-440c-bb5a-b42d2fdecb4f
+		summarizeBy: none
+		sourceColumn: Occupant State
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Status of the person as an occupant (e.g., Current, Former, Pending).
+	column 'Occupant Status'
+		dataType: string
+		lineageTag: 32fa3fc6-4338-4e97-9e8a-3f8dddfe91b8
+		summarizeBy: none
+		sourceColumn: Occupant Status
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// System state of the household record.
+	column 'Household State'
+		dataType: string
+		lineageTag: 1c71c39d-b26e-4dcf-8137-bf6485420bac
+		summarizeBy: none
+		sourceColumn: Household State
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Current status of the household unit.
+	column 'Household Status'
+		dataType: string
+		lineageTag: 9553807f-0543-4a25-84b5-3462e07d419a
+		summarizeBy: none
+		sourceColumn: Household Status
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH DML Operation'
+		dataType: string
+		isHidden
+		lineageTag: 2ec4269d-8807-4f0b-a659-c86f950ac040
+		summarizeBy: none
+		sourceColumn: DWH DML Operation
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Emerge Aotearoa (EA) target group classification for the tenant (e.g., Youth, Families, Mental Health, Disability).
+	column 'EA Target Group'
+		dataType: string
+		isHidden
+		lineageTag: 3f57ff03-139f-4928-b444-1a720403a3b7
+		summarizeBy: none
+		sourceColumn: EA Target Group
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// System state of the tenancy from the tenant's perspective.
+	column 'Tenancy State'
+		dataType: string
+		lineageTag: 75c1eab9-c1bf-4940-b659-9db902017460
+		summarizeBy: none
+		sourceColumn: Tenancy State
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Current status of the tenant's tenancy relationship.
+	column 'Tenancy Status'
+		dataType: string
+		isHidden
+		lineageTag: feab0f86-4bf9-459d-8290-ad3603735910
+		summarizeBy: none
+		sourceColumn: Tenancy Status
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Created Date'
+		dataType: dateTime
+		isHidden
+		formatString: d/mm/yyyy
+		lineageTag: ff0a6b29-2b2d-4c23-af02-5aadb200283c
+		summarizeBy: none
+		sourceColumn: Created Date
+
+		variation Variation
+			isDefault
+			relationship: 4458cfea-21dd-4927-9218-1a8ddccb005e
+			defaultHierarchy: LocalDateTable_8957566d-5766-4929-9f03-1edac0d71f5b.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Modified Date'
+		dataType: dateTime
+		isHidden
+		formatString: d/mm/yyyy
+		lineageTag: 3e21b365-83a6-45bf-9360-b46d793097d5
+		summarizeBy: none
+		sourceColumn: Modified Date
+
+		variation Variation
+			isDefault
+			relationship: e42799e6-6657-4a7b-a159-aacc5a0a4aeb
+			defaultHierarchy: LocalDateTable_9030c357-ba98-497e-b245-567b215bb0e4.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Flag: 1 = the person is the head of the household, 0 = not; blank where unset. Distinct from Is Primary Tenant (lease signatory).
+	column 'Head Of Household'
+		dataType: int64
+		formatString: 0
+		lineageTag: 6e441660-d98e-4365-bc5a-f2f731861ac0
+		summarizeBy: none
+		sourceColumn: Head Of Household
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Tenant's age in whole years derived from Date Of Birth, incrementing only after the birthday has passed. It is a calculated column evaluated with TODAY() at each data refresh, so it is frozen between refreshes rather than updated live-daily, and is blank when Date Of Birth is missing. A small number of rows carry implausible ages - some negative and a few above any realistic human lifespan - reflecting dirty or erroneous source dates of birth; these outliers are data-quality noise rather than real ages.
+	column Age = ```
+			VAR BirthDate = 'Tenant'[Date Of Birth]
+			VAR Today = TODAY()
+			VAR BirthYear = YEAR(BirthDate)
+			VAR BirthMonth = MONTH(BirthDate)
+			VAR BirthDay = DAY(BirthDate)
+			VAR CurrentYear = YEAR(Today)
+			VAR CurrentMonth = MONTH(Today)
+			VAR CurrentDay = DAY(Today)
+			VAR HadBirthdayThisYear = 
+			    (CurrentMonth > BirthMonth) || 
+			    (CurrentMonth = BirthMonth && CurrentDay >= BirthDay)
+			RETURN
+			IF(
+			    ISBLANK(BirthDate),
+			    BLANK(),
+			    CurrentYear - BirthYear - IF(HadBirthdayThisYear, 0, 1)
+			)
+			```
+		dataType: int64
+		formatString: #,0
+		lineageTag: 361f58c3-746b-453a-85e8-2623ac0fe9d4
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Categorizes tenant as 'Adult' (18 years and over) or 'Child' (under 18) based on Date Of Birth. Uses accurate age calculation that only increments after birthday has passed.
+	column 'Age Group' = ```
+			VAR BirthDate = 'Tenant'[Date Of Birth]
+			VAR Today = TODAY()
+			VAR BirthYear = YEAR(BirthDate)
+			VAR BirthMonth = MONTH(BirthDate)
+			VAR BirthDay = DAY(BirthDate)
+			VAR CurrentYear = YEAR(Today)
+			VAR CurrentMonth = MONTH(Today)
+			VAR CurrentDay = DAY(Today)
+			VAR HadBirthdayThisYear = 
+			    (CurrentMonth > BirthMonth) || 
+			    (CurrentMonth = BirthMonth && CurrentDay >= BirthDay)
+			VAR AgeYears = CurrentYear - BirthYear - IF(HadBirthdayThisYear, 0, 1)
+			RETURN
+			IF(
+			    ISBLANK(BirthDate),
+			    BLANK(),
+			    IF(AgeYears >= 18, "Adult", "Child")
+			)
+			```
+		dataType: string
+		lineageTag: e71a9166-71d8-4aad-8228-19796e849aa9
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Tenant = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT [fact_property_tenant_key]#(lf)      ,[dim_property_key]#(lf)      ,[dim_property_tenancy_key]#(lf)      ,[dim_property_program_key]#(lf)      ,[property_tenancy_id]#(lf)      ,[property_tenant_id]#(lf)      ,[property_id]#(lf)      ,[property_program_id]#(lf)      ,[property_subprogram_id]#(lf)      ,[property_tenancy_total_rent_amount] AS [Total Rent Amount]#(lf)      ,[property_tenant_tenancy_lease_agreement_date_id] AS [Tenancy Agreement Date]#(lf)      ,[property_tenant_tenancy_start_date_id] AS [Tenancy Start Date]#(lf)      ,[property_tenant_first_name] AS [First Name]#(lf)      ,[property_tenant_last_name] AS [Last Name]#(lf)      ,[property_tenant_full_name] AS [Full Name]#(lf)      ,CAST([property_tenancy_tenant_date_of_birth] AS DATE) AS [Date of Birth]#(lf)      ,CAST([property_tenant_registration_date] AS DATE) AS [Registration Date]#(lf)      ,[property_tenant_client_identifier] AS [Waharoa Client ID]#(lf)      ,[occupant_is_main_applicant_flag] AS [Is Primary Tenant]#(lf)      ,[property_tenant_head_of_household_flag] AS [Head of Household]#(lf)      ,[occupant_record_source] AS [Record Source]#(lf)      ,[occupant_statecode] AS [State Code]#(lf)      ,[occupant_statuscode] AS [Status Code]#(lf)      ,[property_tenant_tenancy_name] AS [Tenancy Name]#(lf)      ,[property_tenant_household_name] AS [Household Name]#(lf)      ,[property_tenancy_household_identifier] AS [Household ID]#(lf)      ,[property_tenant_number_of_household_members] AS [Number of Household Members]#(lf)      ,[property_tenant_named_household_members] AS [Named Household Members]#(lf)      ,[property_tenant_rent_share_total] AS [Rent share total]#(lf)      ,[property_tenant_total_household_income] AS [Total Income of the Household]#(lf)      ,[property_tenant_ethnicity_name] AS [Ethnicity]#(lf)      ,CAST([property_tenant_created_datetime] AS DATE) AS [Created Date]#(lf)      ,CAST([property_tenant_modified_datetime] AS DATE) AS [Modified Date]#(lf)      ,[occupant_gender_label] AS [Gender]#(lf)      ,[occupant_disability_label] AS [Disability]#(lf)      ,[occupant_targetgroup_label] AS [Target Group]#(lf)      ,[occupant_employment_label] AS [Employment Status]#(lf)      ,[occupant_contacttype_label] AS [Contact Type]#(lf)      ,[occupant_eatargetgroup_label] AS [EA Target Group]#(lf)      ,[occupant_state_label] AS [Occupant State]#(lf)      ,[occupant_status_label] AS [Occupant Status]#(lf)      ,[household_state_label] AS [Household State]#(lf)      ,[household_status_label] AS [Household Status]#(lf)      ,[property_tenant_opportunity_state] AS [Tenancy State]#(lf)      ,[property_tenant_opportunity_status] AS [Tenancy Status]#(lf)      ,[DWHDMLOperation] AS [DWH DML Operation]#(lf)  FROM [edw].[fact_property_tenant]#(lf)  WHERE [DWHDMLOperation] <> 'D'#(lf)  AND [property_tenant_is_delete_flag] IS NULL"]),
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, fnApplyNamingConventions),
+				    #"Convert Date Columns" = Table.TransformColumns(#"Transformed Column Names", {
+				        {"Tenancy Agreement Date", each if _ = null or _ = 0 then null else #date(Number.IntegerDivide(_, 10000), Number.Mod(Number.IntegerDivide(_, 100), 100), Number.Mod(_, 100)), type date},
+				        {"Tenancy Start Date", each if _ = null or _ = 0 then null else #date(Number.IntegerDivide(_, 10000), Number.Mod(Number.IntegerDivide(_, 100), 100), Number.Mod(_, 100)), type date}
+				    })
+				in
+				    #"Convert Date Columns"
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Exception
+

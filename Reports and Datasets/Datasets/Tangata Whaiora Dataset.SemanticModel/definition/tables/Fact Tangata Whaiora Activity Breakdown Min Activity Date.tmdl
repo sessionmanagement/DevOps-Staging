@@ -1,0 +1,36 @@
+table 'Fact Tangata Whaiora Activity Breakdown Min Activity Date'
+	lineageTag: 7e7af18f-da1b-4c4c-9ca5-1d30c685e164
+
+	column 'Dim Tangata Whaiora Referral KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: bc96b0ac-2689-448e-9ad9-ef55ef923255
+		summarizeBy: none
+		sourceColumn: Dim Tangata Whaiora Referral KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Earliest Activity Date for Referral'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: ac37a0f7-71c0-456a-99db-c6d43cb00c89
+		summarizeBy: none
+		sourceColumn: Earliest Activity Date for Referral
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition 'Fact Tangata Whaiora Activity Breakdown Min Activity Date' = m
+		mode: import
+		queryGroup: 'Calculation Tables'
+		source =
+				let
+				    Source = Table.Buffer(#"Work_ Referral First Activity"),
+				    #"Removed Columns" = Table.RemoveColumns(Source,{"Tangata Whaiora Activity Breakdown Type Code"}),
+				    #"Grouped Rows" = Table.Group(#"Removed Columns", {"Dim Tangata Whaiora Referral KEY"}, {{"Earliest Activity Date for Referral", each List.Min([Calendar Date]), type nullable date}})
+				in
+				    #"Grouped Rows"
+
+	annotation PBI_ResultType = Table
+

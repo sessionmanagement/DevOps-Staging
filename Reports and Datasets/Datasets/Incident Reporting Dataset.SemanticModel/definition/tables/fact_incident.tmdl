@@ -1,0 +1,179 @@
+table fact_incident
+	lineageTag: 8de7f819-e68e-42d1-ad1e-3c81501a48a0
+
+	column IncidentDate
+		dataType: dateTime
+		formatString: DD/MM/YYYY
+		lineageTag: a3039332-5d50-4729-bdc9-4ca6263abd01
+		summarizeBy: none
+		sourceColumn: IncidentDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	column IncidentCreatedDate
+		dataType: dateTime
+		formatString: DD/MM/YYYY
+		lineageTag: 8d1809a0-dd9e-47a3-9153-436053625cc8
+		summarizeBy: none
+		sourceColumn: IncidentCreatedDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	column IncidentID
+		dataType: int64
+		formatString: 0
+		lineageTag: 98906e73-9df9-41c0-bb35-cec119e276d1
+		summarizeBy: count
+		sourceColumn: IncidentID
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 4484a6af-b984-4a86-b075-9a9436877ea1
+		summarizeBy: none
+		sourceColumn: IncidentKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrentIncidentStatusTypeKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 102f8ab1-61ca-4830-8bc2-178e12577813
+		summarizeBy: none
+		sourceColumn: CurrentIncidentStatusTypeKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrentOwnerUserKey
+		dataType: int64
+		formatString: 0
+		lineageTag: cb25f4db-c814-4b22-9f23-074b84394eb3
+		summarizeBy: none
+		sourceColumn: CurrentOwnerUserKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrentInvestigatorUserKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 85a9b410-3859-4052-8cdc-f6975262b21c
+		summarizeBy: none
+		sourceColumn: CurrentInvestigatorUserKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CurrentReporterUserKey
+		dataType: int64
+		formatString: 0
+		lineageTag: e298713b-7125-4a1b-8613-d4a807b86fd2
+		summarizeBy: none
+		sourceColumn: CurrentReporterUserKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column DaysOverdue =
+			
+			IF(
+			    AND(
+			        RELATED(dim_incident_status[IncidentStatusTypeText]) <> "Completed",
+			        fact_incident[IncidentCreatedPlusCompletionAllowance] < TODAY()),
+			        DATEDIFF(fact_incident[IncidentCreatedPlusCompletionAllowance],TODAY(),DAY),
+			        0
+			)
+		formatString: 0
+		lineageTag: 15fd7a8e-66aa-4ea4-852b-deda2b77443f
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column OverdueOrNot =
+			
+			VAR Today_UTC = DATEVALUE(UTCNOW() + 13 / 24)
+			RETURN
+			IF(
+			    AND(
+			        RELATED(dim_incident_status[IncidentStatusTypeText]) <> "Completed",
+			        fact_incident[IncidentCreatedPlusCompletionAllowance] < Today_UTC),
+			        "Overdue",
+			        "Not overdue"
+			)
+		lineageTag: 005414df-de57-453f-a697-a9a5b044a30d
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Severity = RELATED(dim_severity[IncidentSeverityText])
+		lineageTag: ccf4b83e-3a91-4a1b-8f27-2cf338f2ddcb
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentCreatedPlusCompletionAllowance =
+			
+			fact_incident[IncidentCreatedDate] + RELATED(dim_severity[CompletionAllowanceDays])
+		formatString: General Date
+		lineageTag: 4b7e8122-2aff-4640-bc62-53255bc3fda2
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column OriginatorKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 6d0e97d3-5ab9-4108-b430-4724e42fbb7b
+		summarizeBy: none
+		sourceColumn: OriginatorKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Dim_Client_Team_Unique_Key
+		dataType: int64
+		formatString: 0
+		lineageTag: bd086a2c-d2c3-4078-a31d-98fbc2adcc22
+		summarizeBy: none
+		sourceColumn: Dim_Client_Team_Unique_Key
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentSeverityKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 1c19f7d2-86b1-4baf-ad55-145d3499149b
+		summarizeBy: none
+		sourceColumn: IncidentSeverityKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Latency
+		dataType: int64
+		formatString: 0
+		lineageTag: ac8cedcc-4971-4591-a611-c2f523f5467a
+		summarizeBy: sum
+		sourceColumn: Latency
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_incident-47be2dcb-e69e-4cb5-b1a2-ebabebcac749 = m
+		mode: import
+		queryGroup: Facts
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="Select#(tab)#(tab)fci.dim_client_incident_company_key_incident_id_key As IncidentKey,#(lf)#(tab)#(tab)#(tab)fci.incident_id As IncidentID,#(lf)#(tab)#(tab)#(tab)Cast(fci.incident_date As Date) As IncidentDate,#(lf)#(tab)#(tab)#(tab)Cast(fci.incident_created_date As Date) As IncidentCreatedDate,#(tab)#(tab)#(tab)#(lf)#(tab)#(tab)#(tab)fci.dim_client_incident_company_key_status_type_id_key As CurrentIncidentStatusTypeKey,#(lf)#(tab)#(tab)#(tab)fci.dim_client_team_key As Dim_Client_Team_Unique_Key,#(lf)#(tab)#(tab)#(tab)fci.dim_current_owner_employee_key As CurrentOwnerUserKey,#(lf)#(tab)#(tab)#(tab)fci.dim_current_investigator_employee_key As CurrentInvestigatorUserKey,#(lf)#(tab)#(tab)#(tab)fci.dim_current_reporter_employee_key As CurrentReporterUserKey,#(lf)#(tab)#(tab)#(tab)fci.dim_originator_employee_key As OriginatorKey,#(lf)#(tab)#(tab)#(tab)fci.dim_client_incident_company_key_severity_id_key As IncidentSeverityKey,#(lf)#(tab)#(tab)#(tab)DateDiff(Day, fci.incident_date, fci.incident_created_date) As Latency#(lf)From#(tab)#(tab)edw.vw_fact_client_incident fci#(lf)Where#(tab)#(tab)fci.DWHIsCurrent = 1#(lf)#(tab)And#(tab)#(tab)fci.DWHDMLOperation <> 'D'#(lf)"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"IncidentDate", type date}, {"IncidentCreatedDate", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

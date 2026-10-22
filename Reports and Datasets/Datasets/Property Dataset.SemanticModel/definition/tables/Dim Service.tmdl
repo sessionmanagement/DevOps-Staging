@@ -1,0 +1,150 @@
+table 'Dim Service'
+	lineageTag: d2757eda-52a3-4597-8b82-933f32e7ecf8
+
+	column 'Dim Service KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 15b85dfa-877e-4ee6-81f1-e6e5d9b823af
+		summarizeBy: none
+		sourceColumn: Dim Service KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Company KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: b94ec926-7cf6-4c60-84c2-83873e662a06
+		summarizeBy: none
+		sourceColumn: Dim Company KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 4f1454a6-dc1a-4a10-9f9c-4cfcba2b7f66
+		summarizeBy: none
+		sourceColumn: Service ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Name'
+		dataType: string
+		lineageTag: ec724065-5b9b-4d85-9307-eb6851dbba15
+		summarizeBy: none
+		sourceColumn: Service Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Type Name'
+		dataType: string
+		lineageTag: 6f606da5-1086-4d11-b246-b5a0bd5db53f
+		summarizeBy: none
+		sourceColumn: Service Type Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Department Code'
+		dataType: string
+		lineageTag: be6eb31d-ced7-4dd3-af0d-63ff9821ddba
+		summarizeBy: none
+		sourceColumn: Department Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Department Name'
+		dataType: string
+		lineageTag: 47b8a06d-cbb2-4759-931c-6a18b16f5390
+		summarizeBy: none
+		sourceColumn: Department Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'District Name'
+		dataType: string
+		lineageTag: 015a713f-bb1e-4777-a5c8-8aaaf5d232f6
+		summarizeBy: none
+		sourceColumn: District Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Region Code'
+		dataType: string
+		lineageTag: 4f077d14-65be-4d7c-bd33-84f07f6a18fd
+		summarizeBy: none
+		sourceColumn: Region Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Region Name'
+		dataType: string
+		lineageTag: f47561ff-7d23-4401-a91b-2f3628c8261f
+		summarizeBy: none
+		sourceColumn: Region Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Finance Contract Name'
+		dataType: string
+		lineageTag: a0dacb47-c2e6-4fd3-bd66-67e3df51f9c0
+		summarizeBy: none
+		sourceColumn: Finance Contract Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company Name'
+		dataType: string
+		lineageTag: 3425e0d1-30ea-4594-9f3b-4417d628bcc9
+		summarizeBy: none
+		sourceColumn: Company Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Last Modified Date Time'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: bff4998f-7366-433e-b9fc-e28ca2aa003c
+		summarizeBy: none
+		sourceColumn: Service Last Modified Date Time
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Service' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source = ```
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)    [dim_service_key],#(lf)    [dim_company_key],#(lf)    [service_id],#(lf)    [service_name],#(lf)    [service_type_name],#(lf)    [department_code],#(lf)    [department_name],#(lf)    [district_name],#(lf)    [region_code],#(lf)    [region_name],#(lf)    [finance_contract_name],#(lf)    [company_name],#(lf)    [service_last_modified_date_time]#(lf)FROM [edw].[vw_dim_service]"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				    
+				    // Step to remove columns that start with "DWH" if needed
+				    RemoveDWHColumns = Table.RemoveColumns(
+				        #"Transformed Column Names",
+				        List.Select(Table.ColumnNames(#"Transformed Column Names"), each Text.StartsWith(_, "DWH"))
+				    )
+				in
+				    RemoveDWHColumns
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

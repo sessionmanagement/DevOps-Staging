@@ -1,0 +1,60 @@
+table dim_activity_type
+	lineageTag: 5b6ce926-f5ae-440e-add2-6810114534c1
+
+	column ActivityTypeKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 5e74179a-8497-40e6-87c5-ecaf7f307b20
+		summarizeBy: none
+		sourceColumn: ActivityTypeKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column activity
+		dataType: string
+		lineageTag: 5b539f49-6328-4bf3-9227-ff952d7e7c4f
+		summarizeBy: none
+		sourceColumn: activity
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Activity Group'
+		dataType: string
+		isHidden
+		lineageTag: 1a8d7962-e1ca-4059-9408-4be64c243d73
+		summarizeBy: none
+		sourceColumn: Activity Group
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Activity Description'
+		dataType: string
+		isHidden
+		lineageTag: e69da150-9952-4237-aabf-c9d196906029
+		summarizeBy: none
+		sourceColumn: Activity Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Activity Notes'
+		dataType: string
+		isHidden
+		lineageTag: b9da251f-bb07-4d52-927e-78785d7d2ed2
+		summarizeBy: none
+		sourceColumn: Activity Notes
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_activity_type = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT#(lf)#(tab) [dim_powerbi_activity_type_key] as ActivityTypeKey#(lf)#(tab),activity#(lf)#(tab),activity_group#(lf)#(tab),activity_description#(lf)#(tab),activity_notes#(lf)FROM [edw].[dim_powerbi_activity_type]"]),
+				    #"Renamed Columns" = Table.RenameColumns(Source,{{"activity_description", "Activity Description"}, {"activity_group", "Activity Group"}, {"activity_notes", "Activity Notes"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+

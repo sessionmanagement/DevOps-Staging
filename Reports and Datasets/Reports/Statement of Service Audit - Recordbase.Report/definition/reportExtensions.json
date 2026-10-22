@@ -1,0 +1,16 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/reportExtension/1.0.0/schema.json",
+  "name": "extension",
+  "entities": [
+    {
+      "name": "_Measures",
+      "measures": [
+        {
+          "name": "Average Days From Accepted Date to FY End",
+          "dataType": "Double",
+          "expression": "\nAVERAGEX(\n    ALL_FactReferral, -- Adjust the table as needed based on your filtering requirements\n    VAR _FYEnd = MAX(DimDate_AcceptedDate[calendar_date])\n    VAR _AcceptedDate = ALL_FactReferral[AcceptedDate]\n    VAR _DischargeDate = ALL_FactReferral[DischargeDate]\n    VAR _EndDate = \n        IF(\n            ISBLANK(_DischargeDate),\n            _FYEnd,\n            MIN(_FYEnd, _DischargeDate)\n        )\n    RETURN\n        IF(\n            NOT(ISBLANK(_AcceptedDate)),\n            DATEDIFF(_AcceptedDate, _EndDate, DAY),\n            BLANK()\n        )\n)"
+        }
+      ]
+    }
+  ]
+}

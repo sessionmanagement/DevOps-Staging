@@ -1,0 +1,63 @@
+table dim_household
+	lineageTag: 578c069f-dddd-4089-9ea4-6d95e21d24e0
+
+	column zav_name
+		dataType: string
+		isHidden
+		lineageTag: 2e7f4061-7737-4c1d-8770-497d69adaaea
+		summarizeBy: none
+		sourceColumn: zav_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_hhid
+		dataType: string
+		isHidden
+		lineageTag: 1527261c-6da5-4f19-b3ef-682424a894b5
+		summarizeBy: none
+		sourceColumn: zav_hhid
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_tenancy
+		dataType: string
+		isHidden
+		lineageTag: e5d612cf-01cf-4f84-a1f3-4df91bbf59e4
+		summarizeBy: none
+		sourceColumn: zav_tenancy
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_tenancyname
+		dataType: string
+		isHidden
+		lineageTag: 6832600a-9a2f-4886-945d-3220a3e328c7
+		summarizeBy: none
+		sourceColumn: zav_tenancyname
+
+		annotation SummarizationSetBy = Automatic
+
+	column Composite
+		dataType: string
+		isHidden
+		lineageTag: 4959aa59-1550-45cc-8945-a92314de65fe
+		summarizeBy: none
+		sourceColumn: Composite
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_household-f420bab1-03d8-4fc6-8e49-950cac3c03b6 = m
+		mode: import
+		queryGroup: dimensions
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="WITH RecentHouseholds AS (#(lf)    SELECT#(lf)        zav_name,#(lf)        zav_hhid,#(lf)        zav_tenancy,#(lf)        zav_tenancyname,#(lf)        SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (PARTITION BY zav_hhid ORDER BY SinkModifiedOn DESC) AS rn#(lf)    FROM#(lf)        [Zavanti].[vw_zav_household]#(lf))#(lf)SELECT#(lf)    zav_name,#(lf)    zav_hhid,#(lf)    zav_tenancy,#(lf)    zav_tenancyname#(lf)FROM#(lf)    RecentHouseholds#(lf)WHERE#(lf)    rn = 1"]),
+				    #"Sorted Rows" = Table.Sort(Source,{{"zav_name", Order.Ascending}}),
+				    #"Added Custom" = Table.AddColumn(#"Sorted Rows", "Composite", each [zav_name]&[zav_hhid]&[zav_tenancy]&[zav_tenancyname]),
+				    #"Filtered Rows" = Table.SelectRows(#"Added Custom", each ([Composite] <> null)),
+				    #"Removed Duplicates" = Table.Distinct(#"Filtered Rows", {"zav_hhid"})
+				in
+				    #"Removed Duplicates"
+
+	annotation PBI_ResultType = Table
+

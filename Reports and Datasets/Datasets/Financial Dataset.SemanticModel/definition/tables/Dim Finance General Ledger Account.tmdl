@@ -1,0 +1,190 @@
+table 'Dim Finance General Ledger Account'
+	lineageTag: 5ff94660-870e-4b5d-aaeb-148de8dc41e2
+
+	column 'Dim Finance General Ledger Account KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: e82bd62a-2897-45a7-b71f-3230a538c105
+		summarizeBy: none
+		sourceColumn: Dim Finance General Ledger Account KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Finance General Ledger Account Code'
+		dataType: int64
+		formatString: 0
+		lineageTag: a4ebcd81-684e-4910-8788-0a42d10f11e0
+		summarizeBy: count
+		sourceColumn: Finance General Ledger Account Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Finance General Ledger Account Description'
+		dataType: string
+		lineageTag: 2491a833-c36d-4ee2-96b1-a35842035339
+		summarizeBy: none
+		sourceColumn: Finance General Ledger Account Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Finance General Ledger Account Hierarchy Second Level Code'
+		dataType: string
+		lineageTag: a113a84b-eda3-412a-9c2f-ba3a35d8a9f1
+		summarizeBy: none
+		sourceColumn: Finance General Ledger Account Hierarchy Second Level Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Finance General Ledger Account Hierarchy Second Level Name'
+		dataType: string
+		lineageTag: a5d44595-3622-430f-9cd0-5dc4b7b8b135
+		summarizeBy: none
+		sourceColumn: Finance General Ledger Account Hierarchy Second Level Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Finance General Ledger Account Hierarchy Third Level Code'
+		dataType: string
+		lineageTag: 804acfea-a67c-4945-9190-41b8b3f904f7
+		summarizeBy: none
+		sourceColumn: Finance General Ledger Account Hierarchy Third Level Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Finance General Ledger Account Hierarchy Third Level Name'
+		dataType: string
+		lineageTag: a00e3921-7f98-49e3-b7a5-4cd6808955a8
+		summarizeBy: none
+		sourceColumn: Finance General Ledger Account Hierarchy Third Level Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Finance General Ledger Account Hierarchy Fourth Level Code'
+		dataType: string
+		lineageTag: bbe14539-3079-41bf-9cad-7dd2a11bcab9
+		summarizeBy: none
+		sourceColumn: Finance General Ledger Account Hierarchy Fourth Level Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Finance General Ledger Account Hierarchy Fourth Level Name'
+		dataType: string
+		lineageTag: 73248f2d-0a65-4ef7-a650-34f08ed17d1d
+		summarizeBy: none
+		sourceColumn: Finance General Ledger Account Hierarchy Fourth Level Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Finance General Ledger Account Hierarchy Fifth Level Code'
+		dataType: string
+		lineageTag: f13c5821-bf02-4402-8c9d-69d9988f8a51
+		summarizeBy: none
+		sourceColumn: Finance General Ledger Account Hierarchy Fifth Level Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Finance General Ledger Account Hierarchy Fifth Level Name'
+		dataType: string
+		lineageTag: 9ba89474-4320-4faf-a054-046f9afa9919
+		summarizeBy: none
+		sourceColumn: Finance General Ledger Account Hierarchy Fifth Level Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Account Name & No' = ```
+			IF('Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Fourth Level Code] = "", "",
+			    IF(
+			        ISBLANK('Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Fourth Level Code]), 
+			        "", 'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Fourth Level Code] & " : " & 'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Fourth Level Name])
+			)
+			```
+		lineageTag: 5362a183-da0c-4151-92b7-e29ed4ba5af5
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Account Name & No.' =
+			IF(
+			    'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Fifth Level Code] = "",
+			     "",
+			     IF(ISBLANK('Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Fifth Level Code]),"",
+			      'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Fifth Level Code] & " : " & 'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Fifth Level Name])
+			)
+		lineageTag: 91e4c8ea-c88a-4891-a3cf-bde60c9d272a
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Revenue or Exp Category' = ```
+			IF('Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Third Level Code] = "", "",
+			    IF(
+			    ISBLANK('Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Third Level Code]), " ", 'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Third Level Code] & " : " & 'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Third Level Name])
+			)
+			
+			
+			    
+			```
+		lineageTag: 3092fec6-f15e-4a04-bb55-fa2dda0d86fc
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Account Code & Description' = ```
+			'Dim Finance General Ledger Account'[Finance General Ledger Account Code] & " : " & 'Dim Finance General Ledger Account'[Finance General Ledger Account Description]
+			
+			```
+		lineageTag: 26e7ba4b-9fe2-4c98-8c3a-5e972baca676
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Constant = "All"
+		lineageTag: 7b9d397d-ad3f-4a98-8301-f205c7aec466
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Finance General Ledger Account Subcategory Description'
+		dataType: string
+		lineageTag: e61cb8b4-1d16-4137-892a-47bc24e10e1e
+		summarizeBy: none
+		sourceColumn: Finance General Ledger Account Subcategory Description
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Finance General Ledger Account' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)    [dim_finance_general_ledger_account_key],#(lf)    [finance_general_ledger_account_code],#(lf)    [finance_general_ledger_account_description],#(lf)    [finance_general_ledger_account_hierarchy_second_level_code],#(lf)    [finance_general_ledger_account_hierarchy_second_level_name],#(lf)    [finance_general_ledger_account_hierarchy_third_level_code],#(lf)    [finance_general_ledger_account_hierarchy_third_level_name],#(lf)    [finance_general_ledger_account_hierarchy_fourth_level_code],#(lf)    [finance_general_ledger_account_hierarchy_fourth_level_name],#(lf)    [finance_general_ledger_account_hierarchy_fifth_level_code],#(lf)    [finance_general_ledger_account_hierarchy_fifth_level_name],#(lf)    [finance_general_ledger_account_subcategory_description]#(lf)FROM [edw].[vw_dim_finance_general_ledger_account];"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Transformed Column Names",{{"Finance General Ledger Account Code", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

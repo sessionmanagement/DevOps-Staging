@@ -1,0 +1,122 @@
+table fact_property
+	lineageTag: d4d29a22-ac0b-44f6-b28f-408a41ad745f
+
+	column zav_propertyid
+		dataType: string
+		isHidden
+		lineageTag: 2b426d8b-a496-4243-adc1-0d6233cce003
+		summarizeBy: none
+		sourceColumn: zav_propertyid
+
+		annotation SummarizationSetBy = Automatic
+
+	column length_of_ownership_days =
+			
+			IF(
+			    ISBLANK(RELATED(dim_property[zav_confirmeddisposaldate])),
+			        DATEDIFF(RELATED(dim_property[zav_acquireddate]),TODAY(),DAY),
+			        DATEDIFF(RELATED(dim_property[zav_acquireddate]),RELATED(dim_property[zav_confirmeddisposaldate]),DAY)
+			)
+		isHidden
+		formatString: 0
+		lineageTag: 7ad5ec9c-4f0c-4eb6-9351-bf1e01e7b911
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column approx_build_date =
+			
+			IF(
+			    ISBLANK(RELATED(dim_property[new_yearbuilt])),
+			    BLANK(),
+			    DATE(RELATED(dim_property[new_yearbuilt]),06,01)
+			)
+		isHidden
+		formatString: Short Date
+		lineageTag: 4bda149d-b10f-48d4-8be0-a558df4a9e7e
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column house_age_days =
+			
+			IF(
+			    ISBLANK(fact_property[approx_build_date]),
+			        BLANK(),
+			        DATEDIFF(fact_property[approx_build_date],TODAY(),DAY)
+			)
+		isHidden
+		formatString: 0
+		lineageTag: 20dbab1f-5839-4f73-8ece-7350016d18ea
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column statuscode
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 119a09eb-019b-4300-b565-26f78a108e5c
+		summarizeBy: sum
+		sourceColumn: statuscode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_acquireddate
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: 91efcec0-d5c5-47c7-a982-8d93e0b519e3
+		summarizeBy: none
+		sourceColumn: zav_acquireddate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column zav_confirmeddisposaldate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 8a1a1cc5-84cd-436f-ae8b-52ae140928d1
+		summarizeBy: none
+		sourceColumn: zav_confirmeddisposaldate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column new_yearbuilt
+		dataType: int64
+		formatString: 0
+		lineageTag: 288a8f01-09b4-427e-bb44-54eae4a67854
+		summarizeBy: sum
+		sourceColumn: new_yearbuilt
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_disposaldate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 63809ff7-bee5-426c-b3c4-23307d1a74b7
+		summarizeBy: none
+		sourceColumn: zav_disposaldate
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_property-9a8d6aeb-2156-48d0-8f14-c4b5e27e168a = m
+		mode: import
+		queryGroup: facts
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="WITH RankedProperties AS (#(lf)    SELECT DISTINCT#(lf)        zav_propertyid,#(lf)        statuscode,#(lf)#(tab)#(tab)new_yearbuilt,#(lf)        zav_acquireddate,#(lf)#(tab)#(tab)zav_disposaldate,#(lf)        zav_confirmeddisposaldate,#(lf)        SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (PARTITION BY zav_propertyid ORDER BY SinkModifiedOn DESC) AS rn#(lf)    FROM#(lf)        [Zavanti].[vw_zav_property]#(lf))#(lf)SELECT#(lf)        zav_propertyid,#(lf)        statuscode,#(lf)#(tab)#(tab)new_yearbuilt,#(lf)        zav_acquireddate,#(lf)#(tab)#(tab)zav_disposaldate,#(lf)        zav_confirmeddisposaldate#(lf)FROM#(lf)    RankedProperties#(lf)WHERE#(lf)    rn = 1#(lf)and zav_propertyid IS NOT NULL"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"zav_acquireddate", type date}, {"zav_confirmeddisposaldate", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

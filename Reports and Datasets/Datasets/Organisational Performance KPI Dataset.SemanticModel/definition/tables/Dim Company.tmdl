@@ -1,0 +1,151 @@
+table 'Dim Company'
+	lineageTag: ee5a8083-e11d-4e98-af91-c9c0772c4913
+
+	column 'Dim Company KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 75cf1078-39ba-4eb2-a327-e0ae355e1d6e
+		summarizeBy: none
+		sourceColumn: Dim Company KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 37d51897-32db-43aa-a719-cd81da25541d
+		summarizeBy: count
+		sourceColumn: Company ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company Name'
+		dataType: string
+		lineageTag: b6f3f317-ab62-40a6-8135-5080f27ce3c0
+		summarizeBy: none
+		sourceColumn: Company Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company Short Code'
+		dataType: string
+		lineageTag: a59593ae-470a-4fed-9943-b99a83c733b5
+		summarizeBy: none
+		sourceColumn: Company Short Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Company Intellihr KEY'
+		dataType: string
+		lineageTag: f48beec1-698f-4328-9953-127c131e55a7
+		summarizeBy: none
+		sourceColumn: Dim Company Intellihr KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Company Datapay KEY'
+		dataType: string
+		lineageTag: 9ea49930-3319-43b7-9672-ed9378692398
+		summarizeBy: none
+		sourceColumn: Dim Company Datapay KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company Datapay Code'
+		dataType: int64
+		formatString: 0
+		lineageTag: 58ef2ea9-d739-447f-8fc6-cf7648ba416e
+		summarizeBy: count
+		sourceColumn: Company Datapay Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company Recordbase ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 39e20945-7f4e-4990-8baf-a257c441a526
+		summarizeBy: count
+		sourceColumn: Company Recordbase ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Batch ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 8118f194-f50c-405a-aaf8-35bc24b0840e
+		summarizeBy: count
+		sourceColumn: DWH Batch ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Effective From'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 30bb0f54-1e43-49bd-b7f8-7214c893b71b
+		summarizeBy: none
+		sourceColumn: DWH Effective From
+
+		variation Variation
+			isDefault
+			relationship: fc966ad4-8736-478b-b21e-138910f7d629
+			defaultHierarchy: LocalDateTable_d358da72-e363-4f92-837c-5a1710571ebf.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Effective To'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 8c871480-a5bb-4317-be40-6bb2ace82cd6
+		summarizeBy: none
+		sourceColumn: DWH Effective To
+
+		variation Variation
+			isDefault
+			relationship: 15ca41ab-f550-4889-bd87-116de027f245
+			defaultHierarchy: LocalDateTable_5253f42e-4835-48d1-b86d-6db8bce82884.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Is Current'
+		dataType: int64
+		formatString: 0
+		lineageTag: 5b089c2b-58e5-4e81-8794-35e586a2b57b
+		summarizeBy: sum
+		sourceColumn: DWH Is Current
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Company' = m
+		mode: import
+		queryGroup: 'EDW Dim Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database),
+				    edw_dim_company = Source{[Schema="edw",Item="vw_dim_company"]}[Data],
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceKaimahi = Text.Replace(columnName, "employee_", "Kaimahi_"),
+				            replaceClient = Text.Replace(replaceKaimahi, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(edw_dim_company, each ApplyNamingConventions(_)),
+				    #"Filtered Rows" = Table.SelectRows(#"Transformed Column Names", each ([DWH Dml Operation] <> "D")),
+				    #"Removed Columns" = Table.RemoveColumns(#"Filtered Rows",{"DWH Source System", "DWH Dml Operation"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+

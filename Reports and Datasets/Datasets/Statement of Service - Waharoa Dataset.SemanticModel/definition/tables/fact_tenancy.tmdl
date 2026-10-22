@@ -1,0 +1,199 @@
+table fact_tenancy
+	lineageTag: 6c1a9620-1ce1-4574-a6c6-0805dd9016b3
+
+	column opportunityid
+		dataType: string
+		isHidden
+		isNullable: false
+		sourceProviderType: nchar
+		lineageTag: 282b3933-30a9-4405-87c1-16e4f8b57c29
+		summarizeBy: none
+		sourceColumn: opportunityid
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_tenancystartdate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: febce337-42e8-4778-ab30-03bd3b14844e
+		summarizeBy: none
+		sourceColumn: zav_tenancystartdate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column zav_vacateddate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 46a538e9-c251-4b3e-b443-d0917fc93ed9
+		summarizeBy: none
+		sourceColumn: zav_vacateddate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Tenancy Length (Days)' =
+			
+			IF(
+			    ISBLANK(
+			        fact_tenancy[zav_vacateddate]),
+			        DATEDIFF(fact_tenancy[zav_tenancystartdate], TODAY(), DAY),
+			        DATEDIFF(fact_tenancy[zav_tenancystartdate], fact_tenancy[zav_vacateddate], DAY)
+			)
+		formatString: 0
+		lineageTag: 65bae975-8239-43e7-8f91-9ae159482494
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_property
+		dataType: string
+		isHidden
+		lineageTag: 5bc7858e-ee9e-4947-b4d7-cac4a30fedf5
+		summarizeBy: none
+		sourceColumn: zav_property
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_propertyname
+		dataType: string
+		isHidden
+		lineageTag: 9a1947f0-a6bc-4a69-91b6-17d46401b93d
+		summarizeBy: none
+		sourceColumn: zav_propertyname
+
+		annotation SummarizationSetBy = Automatic
+
+	column name
+		dataType: string
+		isHidden
+		lineageTag: d084aadd-65c1-429e-b3e4-af62886c337d
+		summarizeBy: none
+		sourceColumn: name
+
+		annotation SummarizationSetBy = Automatic
+
+	column FullAddress = RELATED(dim_property[zav_fulladdress])
+		lineageTag: 0ee47787-92e0-4be6-b920-9dba708cde74
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_subprogram
+		dataType: string
+		isHidden
+		lineageTag: b359ac45-b316-4341-ac37-913e5aa83a67
+		summarizeBy: none
+		sourceColumn: zav_subprogram
+
+		annotation SummarizationSetBy = Automatic
+
+	column region_name
+		dataType: string
+		isHidden
+		lineageTag: 105e1e5a-b9e7-4367-8647-48265326188b
+		summarizeBy: none
+		sourceColumn: region_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column parentcontactid
+		dataType: string
+		isHidden
+		lineageTag: 8883224a-1dcd-4be7-baf6-4274cef1b0e5
+		summarizeBy: none
+		sourceColumn: parentcontactid
+
+		annotation SummarizationSetBy = Automatic
+
+	column fullname
+		dataType: string
+		isHidden
+		lineageTag: 310906e1-6720-45ad-9ba1-4109692c4c1e
+		summarizeBy: none
+		sourceColumn: fullname
+
+		annotation SummarizationSetBy = Automatic
+
+	column new_dateofbirth
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 86e82c51-b85a-45e1-b233-28c47568465f
+		summarizeBy: none
+		sourceColumn: new_dateofbirth
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column zav_ethnicity
+		dataType: string
+		isHidden
+		lineageTag: 13f08aba-4c11-4e77-a21e-c622472060cf
+		summarizeBy: none
+		sourceColumn: zav_ethnicity
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_gender
+		dataType: double
+		isHidden
+		lineageTag: ddcc5b28-4712-4acb-b8a9-2a26102456e7
+		summarizeBy: none
+		sourceColumn: zav_gender
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column zav_leavingreason
+		dataType: string
+		isHidden
+		lineageTag: a9644406-4186-4c03-9ada-044737d63ecc
+		summarizeBy: none
+		sourceColumn: zav_leavingreason
+
+		annotation SummarizationSetBy = Automatic
+
+	column vacated_fy = ```
+			
+			LOOKUPVALUE(
+			    dim_date[financial_year_num], 
+			    dim_date[calendar_date], fact_tenancy[zav_vacateddate]
+			)
+			```
+		formatString: 0
+		lineageTag: 6042ce3c-a0aa-4547-9091-ed01666b452d
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_tenancy-86a0de21-ed98-43c9-bb49-729f3ff2eee1 = m
+		mode: import
+		queryGroup: facts
+		source =
+				let
+				    EDW = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT#(lf)    property_tenancy_id AS opportunityid,#(lf)    property_id AS zav_property,#(lf)    property_tenancy_tenancy_name AS name,#(lf)    property_tenancy_property_name AS zav_propertyname,#(lf)    property_tenancy_tenancy_start_date AS zav_tenancystartdate,#(lf)    property_tenancy_vacated_date AS zav_vacateddate,#(lf)    property_tenancy_leaving_reason AS zav_leavingreason#(lf)FROM [edw].[dim_property_tenancy]#(lf)WHERE DWHIsCurrent = 1#(lf)    AND DWHDMLOperation <> 'D'#(lf)    AND property_tenancy_id IS NOT NULL#(lf)    AND property_tenant_opportunity_status <> 'Cancelled'"]),
+				    #"Changed Type" = Table.TransformColumnTypes(EDW,{{"zav_tenancystartdate", type date}, {"zav_vacateddate", type date}}),
+				    #"Uppercased Keys" = Table.TransformColumns(#"Changed Type", {{"opportunityid", Text.Upper}, {"zav_property", Text.Upper}}),
+				    ODS = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="WITH RecentOpportunities AS (#(lf)    SELECT#(lf)        opportunityid,#(lf)        parentcontactid,#(lf)        zav_subprogram,#(lf)        SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (PARTITION BY opportunityid ORDER BY SinkModifiedOn DESC) AS rn#(lf)    FROM#(lf)        [Zavanti].[vw_opportunity]#(lf))#(lf)SELECT#(lf)    opportunityid,#(lf)    parentcontactid,#(lf)    zav_subprogram#(lf)FROM#(lf)    RecentOpportunities#(lf)WHERE#(lf)    rn = 1"]),
+				    #"ODS Upper" = Table.TransformColumns(ODS, {{"opportunityid", Text.Upper}}),
+				    #"Merged Opportunity" = Table.NestedJoin(#"Uppercased Keys", {"opportunityid"}, #"ODS Upper", {"opportunityid"}, "ods_opp", JoinKind.LeftOuter),
+				    #"Expanded ods_opp" = Table.ExpandTableColumn(#"Merged Opportunity", "ods_opp", {"parentcontactid", "zav_subprogram"}, {"parentcontactid", "zav_subprogram"}),
+				    #"Merged Queries" = Table.NestedJoin(#"Expanded ods_opp", {"zav_property"}, Table.TransformColumns(dim_property, {{"zav_propertyid", Text.Upper}}), {"zav_propertyid"}, "dim_property", JoinKind.LeftOuter),
+				    #"Expanded dim_property" = Table.ExpandTableColumn(#"Merged Queries", "dim_property", {"new_postalregionname"}, {"dim_property.new_postalregionname"}),
+				    #"Renamed Columns1" = Table.RenameColumns(#"Expanded dim_property",{{"dim_property.new_postalregionname", "region_name"}}),
+				    #"Merged Queries1" = Table.NestedJoin(#"Renamed Columns1", {"parentcontactid"}, merged_primary_contact, {"contactid"}, "merged_primary_contact", JoinKind.LeftOuter),
+				    #"Expanded merged_primary_contact" = Table.ExpandTableColumn(#"Merged Queries1", "merged_primary_contact", {"fullname", "new_dateofbirth", "zav_ethnicity", "zav_gender"}, {"fullname", "new_dateofbirth", "zav_ethnicity", "zav_gender"}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Expanded merged_primary_contact",null,"0",Replacer.ReplaceValue,{"zav_ethnicity"}),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value",null,100000001,Replacer.ReplaceValue,{"zav_gender"})
+				in
+				    #"Replaced Value1"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

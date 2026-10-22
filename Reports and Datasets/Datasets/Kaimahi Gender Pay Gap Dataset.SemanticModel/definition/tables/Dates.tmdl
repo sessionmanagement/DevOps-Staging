@@ -1,0 +1,101 @@
+table Dates
+	lineageTag: 63ee8242-14eb-4a98-bfbc-b3006a1babff
+
+	column Date
+		formatString: Short Date
+		lineageTag: 3a9f0b76-9be9-42e2-b02e-0bb1bc31c12e
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Date]
+
+		variation Variation
+			isDefault
+			relationship: 88a6b59e-d2e8-4b8b-aa1a-1c9e2188e9bf
+			defaultHierarchy: LocalDateTable_c7b16e18-6caf-44ea-a88b-ab0df71460e3.'Date Hierarchy'
+
+		changedProperty = FormatString
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column MonthName = FORMAT(DATE(1, Dates[MonthNo], 1), "MMM")
+		dataType: string
+		lineageTag: c384a9b9-b02c-455e-b714-5dada3a90d0b
+		summarizeBy: none
+		sortByColumn: MonthNo
+
+		changedProperty = SortByColumn
+
+		changedProperty = DataType
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+	column YearName = YEAR(Dates[Date])
+		formatString: 0
+		lineageTag: df13cf1e-2d12-4c32-b72f-080c5c2fb758
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthNo =
+			
+			Dates[Date].[MonthNo]
+			--FORMAT(Dates[Date],"MM")
+		lineageTag: 69761a8b-eca7-4c62-a139-7218878f68ad
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column '12 months ago' = DATEADD('Dates'[Date],-12,MONTH)
+		formatString: General Date
+		lineageTag: fd7ce46d-6607-4202-ac95-43dd7cb93784
+		summarizeBy: none
+
+		variation Variation
+			isDefault
+			relationship: b19fb8af-01d5-4d7a-991d-6623bc22faaf
+			defaultHierarchy: LocalDateTable_60874add-6f4e-4ea7-9644-37edf0c90979.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column today = ```
+			
+			 VAR sd = TODAY()
+			Return
+			sd
+			```
+		formatString: General Date
+		lineageTag: 74558974-d534-42d9-bc40-de97d5fd5f15
+		summarizeBy: none
+
+		variation Variation
+			isDefault
+			relationship: 595869a0-67e8-423f-9a24-be3a05f8261c
+			defaultHierarchy: LocalDateTable_3ee3b40f-fead-4077-b16f-724a6eed45e6.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Rolling12MonthFlag = ```
+			
+			VAR lastd = Dates[today]-365
+			RETURN
+			IF(Dates[Date]>=lastd && Dates[Date]<=Dates[today],1,0)  
+			
+			```
+		formatString: 0
+		lineageTag: 3f14015a-5ff7-401b-9272-ff471d2a095a
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dates-6f72cde6-3b92-4696-af81-0d7cee9ba511 = calculated
+		mode: import
+		source = CALENDARAUTO()
+
+	annotation PBI_Id = 9f37dade3d9e49148534a23efde2e2d0
+

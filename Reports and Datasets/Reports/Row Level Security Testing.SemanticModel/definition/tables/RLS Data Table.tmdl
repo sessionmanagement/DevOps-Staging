@@ -1,0 +1,264 @@
+table 'RLS Data Table'
+	lineageTag: fa378118-923b-4e6b-9a41-6eec2c271315
+
+	measure 'Count of Employees' =
+			
+			CALCULATE(
+			DISTINCTCOUNTNOBLANK('RLS Data Table'[mapped_employee_name]),
+			    USERELATIONSHIP(
+			        'RLS Data Table'[email],
+			        'Employee Email'[employee_primary_email_address]
+			    )
+			)
+		formatString: 0
+		lineageTag: 67f8003a-92a1-4b2e-a3e7-43fc9239e5dc
+
+	measure 'Count of Services' =
+			
+			CALCULATE(
+			    DISTINCTCOUNTNOBLANK('RLS Data Table'[service_name]),
+			    USERELATIONSHIP(
+			        'RLS Data Table'[email],
+			        'Employee Email'[employee_primary_email_address]
+			    )
+			)
+		formatString: 0
+		lineageTag: f62e870b-fa41-4a30-9ca9-a70337aa24ab
+
+	measure 'Count of Teams' = ```
+			
+			COALESCE(
+			CALCULATE(
+			    DISTINCTCOUNTNOBLANK('RLS Data Table'[client_team_name]),
+			    USERELATIONSHIP(
+			        'RLS Data Table'[email],
+			        'Employee Email'[employee_primary_email_address]
+			    )
+			),0)
+			
+			```
+		formatString: 0
+		lineageTag: f06a67ce-6fd6-4e23-b508-53411657f5b6
+
+	measure 'Count of Waharoa' = ```
+			
+			COALESCE(
+			CALCULATE(
+			    DISTINCTCOUNTNOBLANK('RLS Data Table'[property_name]),
+			    USERELATIONSHIP(
+			        'RLS Data Table'[email],
+			        'Employee Email'[employee_primary_email_address]
+			    )
+			),0)
+			
+			```
+		formatString: 0
+		lineageTag: 210114ce-754f-4198-ba7f-bb10e0ca4db3
+
+	measure 'Count of Tenancy' = ```
+			
+			COALESCE(
+			CALCULATE(
+			    DISTINCTCOUNTNOBLANK('RLS Data Table'[property_tenancy_tenancy_name]),
+			    USERELATIONSHIP(
+			        'RLS Data Table'[email],
+			        'Employee Email'[employee_primary_email_address]
+			    )
+			),0)
+			
+			```
+		formatString: 0
+		lineageTag: cb3be026-f7f7-4326-a4ec-9d4e512a7b74
+
+	column dim_service_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 7aa5ca8f-a60e-4c17-93af-7ac7ed345ec1
+		summarizeBy: sum
+		sourceColumn: dim_service_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column row_level_security_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 0d3faf3a-856f-46d7-a70e-ece9ccc467c6
+		summarizeBy: sum
+		sourceColumn: row_level_security_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column RLS_type
+		dataType: string
+		lineageTag: fb6d14fc-fb29-4633-8ce5-0437ea74f0c7
+		summarizeBy: none
+		sourceColumn: RLS_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_employee_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 77001eda-3b2a-4076-b7aa-d71da0ba3c12
+		summarizeBy: sum
+		sourceColumn: dim_employee_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column employee_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 0469c3c3-089d-4178-b763-e1b268a0af16
+		summarizeBy: sum
+		sourceColumn: employee_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column email
+		dataType: string
+		lineageTag: 6ade4bce-712a-4391-bd8e-f1b53d0b5990
+		summarizeBy: none
+		sourceColumn: email
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_company_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 72a93b02-0ee3-42dc-9895-ae50299aabed
+		summarizeBy: sum
+		sourceColumn: dim_company_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column service_id
+		dataType: int64
+		formatString: 0
+		lineageTag: ccc3e67f-2270-4698-90ff-5e4e19a64951
+		summarizeBy: sum
+		sourceColumn: service_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_property_key
+		dataType: int64
+		formatString: 0
+		lineageTag: f67fca7e-0ee7-4cea-8c5a-1e1bc4c5e401
+		summarizeBy: sum
+		sourceColumn: dim_property_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column property_id
+		dataType: string
+		lineageTag: bca57897-513b-468c-9649-9e0a70d20dfe
+		summarizeBy: none
+		sourceColumn: property_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_property_tenancy_key
+		dataType: int64
+		formatString: 0
+		lineageTag: c50a1529-f885-4046-a259-7aa27daa6517
+		summarizeBy: sum
+		sourceColumn: dim_property_tenancy_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column property_tenancy_id
+		dataType: string
+		lineageTag: 47b9aecc-ea95-4926-92a2-66883684a0f2
+		summarizeBy: none
+		sourceColumn: property_tenancy_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_client_team_key
+		dataType: int64
+		formatString: 0
+		lineageTag: da048b16-a24f-460c-bad7-62271bd903cf
+		summarizeBy: sum
+		sourceColumn: dim_client_team_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column client_team_id
+		dataType: int64
+		formatString: 0
+		lineageTag: b6fd5754-c634-499b-b442-5efd4221bc9f
+		summarizeBy: sum
+		sourceColumn: client_team_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column employee_level_for_exclusion
+		dataType: int64
+		formatString: 0
+		lineageTag: 252a1815-ced7-4905-a237-83755cd53f4c
+		summarizeBy: sum
+		sourceColumn: employee_level_for_exclusion
+
+		annotation SummarizationSetBy = Automatic
+
+	column employee_name
+		dataType: string
+		lineageTag: a895ff2c-c62c-4022-a3dc-d0af05d9e032
+		summarizeBy: none
+		sourceColumn: employee_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column client_team_name
+		dataType: string
+		lineageTag: 4e5a8d12-b7d3-4592-be81-427f9d7973dc
+		summarizeBy: none
+		sourceColumn: client_team_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column service_name
+		dataType: string
+		lineageTag: c5f4b128-35b6-4f8f-b6fc-f868cea6e0fd
+		summarizeBy: none
+		sourceColumn: service_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column property_name
+		dataType: string
+		lineageTag: e734194e-0c2e-4d75-9906-4fd22bcf7475
+		summarizeBy: none
+		sourceColumn: property_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column property_tenancy_tenancy_name
+		dataType: string
+		lineageTag: aadb3d98-48f9-47da-b163-35c0f0749ab8
+		summarizeBy: none
+		sourceColumn: property_tenancy_tenancy_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column mapped_employee_name
+		dataType: string
+		lineageTag: 8a87ecc3-6719-4d04-9500-b0b75f437d7f
+		summarizeBy: none
+		sourceColumn: mapped_employee_name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'RLS Data Table' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT #(lf)       rls.row_level_security_id#(lf)      ,rls.[RLS_type]#(lf)      ,rls.[dim_employee_key]#(lf)      ,rls.[employee_id]#(lf)      ,rls.[email]#(lf)      ,rls.[dim_company_key]#(lf)      ,rls.[dim_service_key]#(lf)      ,rls.[service_id]#(lf)      ,rls.[dim_property_key]#(lf)      ,rls.[property_id]#(lf)      ,rls.[dim_property_tenancy_key]#(lf)      ,rls.[property_tenancy_id]#(lf)      ,rls.[dim_client_team_key]#(lf)      ,rls.[client_team_id]#(lf)      ,rls.[employee_level_for_exclusion]#(lf)      ,rls.mapped_employee_name#(lf)      ,dim_employee.employee_name#(lf)      ,dim_client_team.client_team_name#(lf)      ,dim_service.service_name#(lf)      ,dim_property.property_name #(lf)      ,dim_property_tenancy.property_tenancy_tenancy_name#(lf)#(lf)   #(lf)  FROM [edw].[row_level_security_general] as rls#(lf)#(lf)  left join edw.dim_employee on rls.dim_employee_key = dim_employee.dim_employee_key#(lf)  left join edw.dim_client_team on rls.dim_client_team_key = dim_client_team.dim_client_team_key#(lf)  left join edw.dim_service on rls.dim_service_key = dim_service.dim_service_key#(lf)  left join edw.dim_property on rls.dim_property_key = dim_property.dim_property_key#(lf)  left join edw.dim_property_tenancy on rls.dim_property_tenancy_key = dim_property_tenancy.dim_property_tenancy_key#(lf)"]),
+				    #"Lowercased Text" = Table.TransformColumns(Source,{{"email", Text.Lower, type text}})
+				in
+				    #"Lowercased Text"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

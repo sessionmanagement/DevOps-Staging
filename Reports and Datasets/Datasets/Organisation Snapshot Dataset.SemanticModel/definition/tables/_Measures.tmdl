@@ -1,0 +1,1508 @@
+table _Measures
+	lineageTag: dad5bd20-5d75-4f4e-987c-043cc3c9c5e5
+
+	measure 'Unique Referrals' = ```
+			
+			VAR TotalTW = 
+			    CALCULATE(
+			        DISTINCTCOUNT('Fact Referrals'[Unique Referral ID])
+			        ,'Fact Referrals'[Was Accepted] = 1
+			        , 'Dim Team'[Exclude From Reporting] = "No"
+			        
+			    )
+			RETURN 
+			    IF(ISBLANK(TotalTW), 0, TotalTW)
+			```
+		formatString: #,0
+		displayFolder: Referrals
+		lineageTag: 2cf8e217-1caa-457d-a428-604b3da015ea
+
+	measure 'Number of Referrals as at June' = ```
+			
+			VAR CurrentFY = MAX('Dim Date'[Financial Year Num])
+			VAR JuneDateInCurrentFY = 
+			    CALCULATE(
+			        MAX('Dim Date'[Calendar Date]),
+			        ALL('Dim Date'),
+			        'Dim Date'[Financial Year Num] = CurrentFY,
+			        'Dim Date'[Financial Month Num] = 12
+			    )
+			RETURN
+			CALCULATE(
+			    [Unique Referrals],
+			    ALL('Dim Date'),
+			    'Fact Referrals'[Referral Accepted Date] <= JuneDateInCurrentFY,
+			    'Fact Referrals'[Referral Ended Date] >= JuneDateInCurrentFY 
+			        || ISBLANK('Fact Referrals'[Referral Ended Date])
+			)
+			```
+		formatString: #,0
+		displayFolder: Referrals
+		lineageTag: 00b1c315-2ae6-49bb-894b-2ca055fda73f
+
+	measure 'Number of Referrals (Average Monthly)' = ```
+			
+			VAR SelectedFY = SELECTEDVALUE('Dim Date'[Financial Year Desc])
+			VAR MonthEndDates = 
+			    CALCULATETABLE(
+			        VALUES('Dim Date'[Calendar Date]),
+			        ALL('Dim Date'),
+			        'Dim Date'[Financial Year Desc] = SelectedFY,
+			        'Dim Date'[Calendar Date] = EOMONTH('Dim Date'[Calendar Date], 0)  // Only month-ends
+			    )
+			VAR MonthlyCountsTable = 
+			    ADDCOLUMNS(
+			        MonthEndDates,
+			        "@Count",
+			        VAR CurrentDate = 'Dim Date'[Calendar Date]
+			        RETURN
+			        CALCULATE(
+			            [Unique Referrals],
+			            'Dim Date'[Calendar Date] = CurrentDate,
+			            'Fact Referrals'[Referral Ended Date] >= CurrentDate 
+			                || ISBLANK('Fact Referrals'[Referral Ended Date])
+			        )
+			    )
+			VAR MonthlyAverage = AVERAGEX(MonthlyCountsTable, [@Count])
+			RETURN 
+			    IF(ISBLANK(MonthlyAverage), 0, MonthlyAverage)
+			```
+		formatString: 0
+		displayFolder: Referrals
+		lineageTag: bd3f5697-87c7-4ef1-affd-4643d30be5db
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Number of Referrals as at June SPLY' =
+			
+			CALCULATE(
+			    [Number of Referrals as at June],
+			    SAMEPERIODLASTYEAR('Dim Date'[Calendar Date])
+			)
+		formatString: #,0
+		displayFolder: Referrals
+		lineageTag: 4049ef1f-7858-4d69-9426-ba8bab7d4486
+
+	measure 'Footer disclaimer' = ```
+			
+			VAR KaimahiCount = FORMAT(ROUND([Number of Kaimahi (Average Daily)], 0), "#,##0")
+			VAR ReferralCount = FORMAT(ROUND([Number of Referrals (Average Daily)], 0), "#,##0")
+			VAR Disclaimer = 
+			    "Asterisked* figures represent average daily counts (" & 
+			    KaimahiCount & " kaimahi and " & 
+			    ReferralCount & " referrals) adjusted for the actual duration that staff were employed or referrals were active during the financial year."
+			RETURN 
+			    Disclaimer
+			```
+		displayFolder: Titles
+		lineageTag: d7907863-52af-4d4d-8733-8a5145aeaafa
+
+	measure 'Unique Tangata Whaiora' = ```
+			
+			VAR TotalTW = 
+			    CALCULATE(
+			        DISTINCTCOUNT('Fact Referrals'[Unique Tangata Whaiora ID])
+			        ,'Fact Referrals'[Was Accepted] = 1
+			        , 'Dim Team'[Exclude From Reporting] = "No"
+			        
+			    )
+			RETURN 
+			    IF(ISBLANK(TotalTW), 0, TotalTW)
+			```
+		formatString: #,0
+		displayFolder: Clients
+		lineageTag: 8417c5ba-93ac-4d88-907d-195b132c25d3
+
+	measure 'Ignite (Active Users)' =
+			CALCULATE(
+			    SUM('Fact Extras'[Value]),
+			    'Fact Extras'[Measure] = "Active Users",
+			    'Fact Extras'[Source] = "Ignite"
+			)
+		formatString: #,0
+		displayFolder: Extras
+		lineageTag: cdba38d9-5bde-4f8b-840b-b65f90f311d3
+
+	measure '1737 (Unique Callers - for Peers)' = ```
+			
+			VAR TotalUniqueCalls = CALCULATE(
+			    SUM('Fact Extras'[Value]),
+			    'Fact Extras'[Measure] = "Unique Calls",
+			    'Fact Extras'[Source] = "1737"
+			)
+			VAR IsServiceFiltered = 
+			    ISCROSSFILTERED('Dim Service') ||
+			    ISFILTERED('Dim Ethnicity'[Ethnicity Group]) ||
+			    ISFILTERED('Dim Age'[Age Group Impact]) ||
+			    ISFILTERED('Dim Gender'[Gender Name])
+			RETURN 
+			    IF(IsServiceFiltered, "", TotalUniqueCalls)
+			```
+		formatString: #,0
+		displayFolder: Extras
+		lineageTag: 7896644b-c10d-4588-bb47-2ccee7aadabb
+
+	measure 'Number of Social Housing Offerings' = ```
+			
+			VAR CurrentFY = MAX('Dim Date'[Financial Year Num])
+			VAR CurrentFYEndDate = 
+			    CALCULATE(
+			        MAX('Dim Date'[Calendar Date]),
+			        ALL('Dim Date'),
+			        'Dim Date'[Financial Year Num] = CurrentFY,
+			        'Dim Date'[Financial Month Num] = 12
+			    )
+			VAR CurrentFYStartDate = 
+			    CALCULATE(
+			        MIN('Dim Date'[Calendar Date]),
+			        ALL('Dim Date'),
+			        'Dim Date'[Financial Year Num] = CurrentFY,
+			        'Dim Date'[Financial Month Num] = 1
+			    )
+			VAR PropertyCount = 
+			    CALCULATE(
+			        DISTINCTCOUNT('Dim Property'[Property ID]),
+			        FILTER(
+			            'Dim Property',
+			            AND(
+			                'Dim Property'[Property Acquired Date] <= CurrentFYEndDate,
+			                AND(
+			                    'Dim Property'[Property Confirmed Disposal Date] <> 'Dim Property'[Property Acquired Date],
+			                    OR(
+			                        ISBLANK('Dim Property'[Property Confirmed Disposal Date]),
+			                        'Dim Property'[Property Confirmed Disposal Date] > CurrentFYEndDate
+			                    )
+			                )
+			            )
+			        )
+			    )
+			RETURN 
+			    IF([Is Filtered], BLANK(), PropertyCount)
+			```
+		formatString: 0
+		displayFolder: Social Homes
+		lineageTag: f285e076-4ac2-4bec-b98a-8dd446aafd98
+
+	measure 'Overall Comparison Description' = "Below graphs comparing Kaimahi (green) serving Recordbase Referrals (black) based on daily average *"
+		displayFolder: Titles
+		lineageTag: f09eb065-f8a3-48fc-910f-8dea9f67544b
+
+	measure 'Unique Kaimahi' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT('Fact Kaimahi'[Fact Employee Remuneration Employee Number]),
+			    'Fact Kaimahi'[DWHiscurrent] = 1,
+			    'Fact Kaimahi'[Employee Name] <> "Test Employee",
+			    'Fact Kaimahi'[Fact Employee Remuneration Work Type] <> "Unpaid"
+			)
+		formatString: 0
+		displayFolder: Kaimahi
+		lineageTag: 5775e657-b915-4802-bc69-e850017e48e7
+
+	measure 'Number of Kaimahi as at June' = ```
+			
+			VAR CurrentFY = MAX('Dim Date'[Financial Year Num])
+			VAR JuneDateInCurrentFY = 
+			    CALCULATE(
+			        MAX('Dim Date'[Calendar Date]),
+			        ALL('Dim Date'),
+			        'Dim Date'[Financial Year Num] = CurrentFY,
+			        'Dim Date'[Financial Month Num] = 12
+			    )
+			RETURN
+			CALCULATE(
+			    [Unique Kaimahi],
+			    ALL('Dim Date'),
+			    'Fact Kaimahi'[Company Start Date] <= JuneDateInCurrentFY,
+			    'Fact Kaimahi'[Company End Date] >= JuneDateInCurrentFY 
+			        || ISBLANK('Fact Kaimahi'[Company End Date])
+			)
+			```
+		formatString: #,0
+		displayFolder: Kaimahi
+		lineageTag: e4fc3dc1-21be-4346-b8cf-50eb3ecb13ca
+
+	measure 'Ignite (Total Users)' = ```
+			
+			VAR IgniteTotalUsers = CALCULATE(
+			    SUM('Fact Extras'[Value]),
+			    'Fact Extras'[Measure] = "Total Users",
+			    'Fact Extras'[Source] = "Ignite"
+			)
+			VAR IsServiceFiltered = 
+			    ISCROSSFILTERED('Dim Service') ||
+			    ISFILTERED('Dim Ethnicity'[Ethnicity Group]) ||
+			    ISFILTERED('Dim Age'[Age Group Impact]) ||
+			    ISFILTERED('Dim Gender'[Gender Name])
+			RETURN 
+			    IF(IsServiceFiltered, "", IgniteTotalUsers)
+			```
+		formatString: #,0
+		displayFolder: Extras
+		lineageTag: 484ab6dc-1f06-4f5c-9a92-3fafcd97817a
+
+	measure 'Pasifika Sentence' = ```
+			
+			-- Calculate org-wide Pasifika percentage, ignoring current filters
+			VAR PasifikaCount = 
+			    CALCULATE(
+			        [Number of Kaimahi (Average Daily)],
+			        ALL('Fact Kaimahi'),  -- Clear all fact table filters
+			        'Fact Kaimahi'[Original Ethnicity] = "Pacific Peoples",
+			        VALUES('Dim Date'[Financial Year Desc])  -- Keep FY filter
+			    )
+			
+			VAR TotalCount = 
+			    CALCULATE(
+			        [Number of Kaimahi (Average Daily)], 
+			        ALL('Fact Kaimahi'),  -- Clear all fact table filters
+			        VALUES('Dim Date'[Financial Year Desc])  -- Keep FY filter
+			    )
+			
+			VAR Percentage = DIVIDE(PasifikaCount, TotalCount)
+			
+			RETURN
+			IF(
+			    ISBLANK(PasifikaCount) || PasifikaCount = 0,
+			    "There are no Pasifika Kaimahi in this selection",
+			    "Of the " & 
+			        FORMAT(Percentage, "0.0%") & " (" & FORMAT(PasifikaCount, "0") & ") " &
+			        " Pasifika Kaimahi we employ: *"
+			)
+			```
+		displayFolder: Titles
+		lineageTag: e4841bf3-ec8c-4209-b792-ee03a7ca3a5a
+
+	measure 'Maori Sentence' = ```
+			
+			-- Calculate org-wide Maori percentage, ignoring current filters
+			VAR MaoriCount = 
+			    CALCULATE(
+			        [Number of Kaimahi (Average Daily)],
+			        ALL('Fact Kaimahi'),
+			        'Fact Kaimahi'[Original Ethnicity] = "Maori",
+			        VALUES('Dim Date'[Financial Year Desc])
+			    )
+			VAR TotalCount = 
+			    CALCULATE(
+			        [Number of Kaimahi (Average Daily)], 
+			        ALL('Fact Kaimahi'),  -- Clear all fact table filters
+			        VALUES('Dim Date'[Financial Year Desc])  -- Keep FY filter
+			    )
+			
+			VAR Percentage = DIVIDE(MaoriCount, TotalCount)
+			
+			RETURN
+			IF(
+			    ISBLANK(MaoriCount) || MaoriCount = 0,
+			    "There are no Māori Kaimahi in this selection",
+			    "Of the " & 
+			        FORMAT(Percentage, "0.0%") & " (" & FORMAT(MaoriCount, "0") & ") " &
+			        " Māori Kaimahi we employ: (Top 5 Iwi) *"
+			)
+			```
+		displayFolder: Titles
+		lineageTag: 316973f6-80bc-4e5c-ac53-a07e149a15be
+
+	measure 'Average Daily Kaimahi to Referrals Ratio' =
+			
+			VAR KaimahiCount = [Number of Kaimahi (Average Daily)]
+			VAR ReferralCount = [Number of Referrals (Average Daily)]
+			VAR Ratio = DIVIDE(ReferralCount, KaimahiCount, BLANK())  -- Returns BLANK if division by zero
+			RETURN
+			    IF(
+			        NOT ISBLANK(Ratio),
+			        ROUND(Ratio, 1),
+			        BLANK()
+			    )
+		formatString: 0.0
+		displayFolder: Ratios
+		lineageTag: fb8efc3e-33e0-4a26-a13d-716b429bd5ed
+
+	measure 'Average Daily Kaimahi to Referrals Ratio Tooltip' =
+			
+			VAR RoundedRatio = [Average Daily Kaimahi to Referrals Ratio]
+			RETURN
+			IF(
+			   NOT ISBLANK(RoundedRatio),
+			   "There are " & RoundedRatio & " Tāngata Whaiora for every 1 Kaimahi in this group.",
+			    BLANK()
+			)
+		displayFolder: Ratios
+		lineageTag: ff725391-c77a-49c4-8bf7-cb42153dbf05
+
+	measure 'Number of Referrals (Average Daily)' = ```
+			
+			VAR SelectedFY = SELECTEDVALUE('Dim Date'[Financial Year Desc])
+			VAR TotalReferralDays = 
+			    CALCULATE(
+			        SUM('Fact Referrals'[Days Active In Month]),
+			        REMOVEFILTERS('Dim Date'),
+			        'Fact Referrals'[Financial Year Desc] = SelectedFY,
+			        'Fact Referrals'[Was Accepted] = 1,
+			        'Dim Team'[Exclude From Reporting] = "No"
+			    )
+			VAR TotalDaysInFY = 
+			    CALCULATE(
+			        COUNTROWS(VALUES('Dim Date'[Calendar Date])),
+			        REMOVEFILTERS('Dim Date'),
+			        'Dim Date'[Financial Year Desc] = SelectedFY
+			    )
+			VAR AverageReferrals = DIVIDE(TotalReferralDays, TotalDaysInFY, 0)
+			RETURN IF(ISBLANK(AverageReferrals),0,AverageReferrals)
+			```
+		formatString: #,0
+		displayFolder: Referrals
+		lineageTag: 7bb12f68-e862-49d3-a634-17b4e6afa702
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Number of Kaimahi (Average Daily)' = ```
+			
+			VAR SelectedFY = SELECTEDVALUE('Dim Date'[Financial Year Desc])
+			VAR TotalKaimahiDays = 
+			    CALCULATE(
+			        SUM('Fact Kaimahi'[Days Active In Month]),
+			        REMOVEFILTERS('Dim Date'),
+			        'Fact Kaimahi'[Financial Year Desc] = SelectedFY,
+			        'Fact Kaimahi'[DWHiscurrent] = 1,
+			        'Fact Kaimahi'[Employee Name] <> "Test Employee",
+			        'Fact Kaimahi'[Fact Employee Remuneration Work Type] <> "Unpaid"
+			    )
+			VAR TotalDaysInFY = 
+			    CALCULATE(
+			        COUNTROWS('Dim Date'),
+			        REMOVEFILTERS('Dim Date'),
+			        'Dim Date'[Financial Year Desc] = SelectedFY,
+			        'Dim Date'[Calendar Date] <= TODAY()  -- Only count days up to today for current FY
+			    )
+			VAR AvgDailyKaimahi = DIVIDE(TotalKaimahiDays, TotalDaysInFY, 0)
+			RETURN IF(ISBLANK(AvgDailyKaimahi),0,AvgDailyKaimahi)
+			```
+		formatString: #,0
+		displayFolder: Kaimahi
+		lineageTag: a68bfa32-f136-496b-a97f-f45d1891935c
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Financial Year Title' = SELECTEDVALUE('Dim Date'[Financial Year Desc])
+		displayFolder: Titles
+		lineageTag: 476fe34f-128f-4c98-98f1-e4b7a895654c
+
+	measure 'Primary Housed Whānau' =
+			
+			DISTINCTCOUNT( 'Fact Whanau'[Primarypersonid])
+		formatString: #,0
+		displayFolder: Whanau
+		lineageTag: a8605f5e-781b-4e9a-9c86-b0414106fc9f
+
+	measure 'Secondary Housed Whānau' =
+			
+			CALCULATE(
+			    COUNTROWS(
+			        SUMMARIZE(
+			            'Fact Whanau',
+			            'Fact Whanau'[primarypersonid],
+			            'Fact Whanau'[linkedpersonid],
+			            'Fact Whanau'[lookuptext],
+			            'Fact Whanau'[personlinkrelationshipstartdatenew],
+			            'Fact Whanau'[personlinkrelationshipenddatenew]
+			        )
+			    ),
+			    'Fact Whanau'[personstatus] = "Secondary"
+			)
+		formatString: #,0
+		displayFolder: Whanau
+		lineageTag: 38bd36c0-e542-417b-86fe-02c5a9c3ac68
+
+	measure 'Total Housed Whānau' = ```
+			
+			VAR TotalHousedWhanau = [Primary Housed Whānau] + [Secondary Housed Whānau] + [EH Whānau] + [SH Whānau] + [Affordable Rental Whānau]
+			RETURN 
+			    IF([Is Filtered], BLANK(), TotalHousedWhanau)
+			
+			```
+		formatString: #,0
+		displayFolder: Whanau
+		lineageTag: dcc12720-1a1a-47bf-be3f-a12f4c62d245
+
+	measure 'Total Whanau provided support' = ```
+			
+			VAR TotalSupported = [Unique Referrals] + [Ignite (Total Users)] + [1737 (Unique Callers - for Peers)]
+			RETURN 
+			    IF([Is Filtered], BLANK(), TotalSupported)
+			```
+		formatString: #,0
+		lineageTag: e7c5c025-2040-42d9-bc5c-49146809a033
+
+	measure 'Number of Services as at June' = ```
+			
+			VAR TotalServices = CALCULATE(
+			    SUM('Fact Extras'[Value]),
+			    'Fact Extras'[Measure] = "Total Services",
+			    'Fact Extras'[Source] = "BC"
+			)
+			RETURN 
+			    IF([Is Filtered], BLANK(), TotalServices)
+			```
+		formatString: #,0
+		displayFolder: Services
+		lineageTag: 79f361c7-cc76-4f55-9c5b-7d19769a39b5
+
+	measure 'Total Whanau provided support LY' =
+			
+			CALCULATE(
+			    [Total Whanau provided support],
+			    SAMEPERIODLASTYEAR('Dim Date'[Calendar Date])
+			)
+		formatString: #,0
+		lineageTag: 2c26726b-ea0b-49d3-a388-8ecddafcf819
+
+	measure RefreshedAt_forDisplay = "Data Last Refreshed: " & FORMAT( LASTDATE( 'Last Refreshed Date'[Date Last Refreshed] ), "dd/MM/YYYY" )
+		displayFolder: Titles
+		lineageTag: 462522f5-1286-4ea4-955a-fce377984328
+
+	measure 'Number of Kaimahi as at June SPLY' =
+			
+			CALCULATE(
+			    [Number of Kaimahi as at June],
+			    SAMEPERIODLASTYEAR('Dim Date'[Calendar Date])
+			)
+		formatString: #,0
+		displayFolder: Kaimahi
+		lineageTag: c57127dc-e182-44a7-b88c-e1ea0bc27813
+
+	measure 'Referrals as at June SPLY' = ```
+			
+			VAR SelectedFY = SELECTEDVALUE('Dim Date'[Financial Year Num])
+			VAR PriorFY = SelectedFY - 1
+			VAR LastDayOfJuneInPriorFY = 
+			    CALCULATE(
+			        MAX('Dim Date'[Calendar Date]),
+			        'Dim Date'[Financial Year Num] = PriorFY,
+			        'Dim Date'[Financial Month Num] = 12
+			    )
+			RETURN
+			IF(
+			    NOT ISBLANK(LastDayOfJuneInPriorFY),
+			    CALCULATE(
+			        DISTINCTCOUNT('Fact Referrals'[Unique Referral ID]),
+			        ALL('Dim Date'),
+			        'Fact Referrals'[Was Accepted] = 1,
+			        'Dim Team'[Exclude From Reporting] = "No",
+			        'Fact Referrals'[Referral Accepted Date] <= LastDayOfJuneInPriorFY,
+			        'Fact Referrals'[Referral Ended Date] > LastDayOfJuneInPriorFY 
+			            || ISBLANK('Fact Referrals'[Referral Ended Date])
+			    ),
+			    0
+			)
+			```
+		formatString: #,0
+		displayFolder: Referrals
+		lineageTag: a503e935-5e38-4bef-a468-f270f75a8ece
+
+	measure 'Referrals as at June Title' = "Referrals as at June " & [FYLabel]
+		displayFolder: Titles
+		lineageTag: be885e05-3104-4f14-af77-ae149cf23670
+
+	measure FYLabel = "FY" & RIGHT([Financial Year Title], 2)
+		displayFolder: Titles
+		lineageTag: 474612c4-3996-41cf-89e6-009358d4d320
+
+	measure 'Kaimahi as at June Title' = "Kaimahi as at June " & [FYLabel]
+		displayFolder: Titles
+		lineageTag: 46e4311b-c1a2-414f-87df-05d5c25601e2
+
+	measure 'Filters Applied' = ```
+			
+			//----------------------------------------------
+			// Financial Year
+			//----------------------------------------------
+			VAR __FYLabels =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            FILTER (
+			                VALUES ( 'Dim Date'[Financial Year Desc] ),
+			                NOT ( ISBLANK ( 'Dim Date'[Financial Year Desc] ) )
+			            ),
+			            'Dim Date'[Financial Year Desc], ASC
+			        ),
+			        "FYDesc_display", 'Dim Date'[Financial Year Desc]
+			    )
+			VAR __FYLabelsCount =
+			    IF (
+			        ISFILTERED ( 'Dim Date'[FY Label] ),
+			        COUNTROWS ( VALUES ( 'Dim Date'[FY Label] ) ),
+			        0
+			    )
+			VAR __MoreFYLabels =
+			    IF ( __FYLabelsCount > 5, " and " & ( __FYLabelsCount - 5 ) & " more ", "" )
+			VAR _FC_FYLabels =
+			    IF (
+			        __FYLabelsCount > 0,
+			        "| Financial Year: " & CONCATENATEX ( __FYLabels, [FYDesc_display], ", " ) & __MoreFYLabels,
+			        BLANK ()
+			    )
+			//----------------------------------------------
+			// Service Region
+			//----------------------------------------------
+			VAR __Regions =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Region Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[Region Name] ) )
+			            ),
+			            'Dim Service'[Region Name], ASC
+			        ),
+			        "Region_display", 'Dim Service'[Region Name]
+			    )
+			VAR __RegionsCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Region Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Region Name] ) ),
+			        0
+			    )
+			VAR __MoreRegions =
+			    IF ( __RegionsCount > 5, " and " & ( __RegionsCount - 5 ) & " more ", "" )
+			VAR _FC_Regions =
+			    IF (
+			        __RegionsCount > 0,
+			        "| Region: " & CONCATENATEX ( __Regions, [Region_display], ", " ) & __MoreRegions,
+			        BLANK ()
+			    ) 
+			
+			//----------------------------------------------
+			// Service District
+			//----------------------------------------------
+			VAR __Districts =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            FILTER (
+			                VALUES ( 'Dim Service'[District Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[District Name] ) )
+			            ),
+			            'Dim Service'[District Name], ASC
+			        ),
+			        "District_display", 'Dim Service'[District Name]
+			    )
+			VAR __DistrictCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[District Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[District Name] ) ),
+			        0
+			    )
+			VAR __MoreDistricts =
+			    IF ( __DistrictCount > 5, " and " & ( __DistrictCount - 5 ) & " more ", "" )
+			VAR _FC_Districts =
+			    IF (
+			        __DistrictCount > 0,
+			        "| District: " & CONCATENATEX ( __Districts, [District_display], ", " ) & __MoreDistricts,
+			        BLANK ()
+			    )
+			
+			//----------------------------------------------
+			// Service Name
+			//----------------------------------------------
+			VAR __Services =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Service Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[Service Name] ) )
+			            ),
+			            'Dim Service'[Service Name], ASC
+			        ),
+			        "ServiceName_display", 'Dim Service'[Service Name]
+			    )
+			VAR __ServicesCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Service Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Service Name] ) ),
+			        0
+			    )
+			VAR __MoreServices =
+			    IF ( __ServicesCount > 5, " and " & ( __ServicesCount - 5 ) & " more ", "" )
+			VAR _FC_Services =
+			    IF (
+			        __ServicesCount > 0,
+			        "| Service: " & CONCATENATEX ( __Services, [ServiceName_display], ", " ) & __MoreServices,
+			        BLANK ()
+			    )
+			
+			//----------------------------------------------
+			// Service Type
+			//----------------------------------------------
+			VAR __ServiceType =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Service Type Name]),
+			                NOT ( ISBLANK ( 'Dim Service'[Service Type Name]) )
+			            ),
+			            'Dim Service'[Service Type Name], ASC
+			        ),
+			        "ServiceType_display", 'Dim Service'[Service Type Name]
+			    )
+			VAR __ServiceTypeCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Service Type Name] ),
+			        COUNTROWS ( VALUES ('Dim Service'[Service Type Name] ) ),
+			        0
+			    )
+			VAR __MoreServiceTypes =
+			    IF (
+			        __ServiceTypeCount > 5,
+			        " and " & ( __ServiceTypeCount - 5 ) & " more ",
+			        ""
+			    )
+			VAR _FC_ServiceTypes =
+			    IF (
+			        __ServiceTypeCount > 0,
+			        "| Service Type(s): "
+			            & CONCATENATEX ( __ServiceType, [ServiceType_display], ", " ) & __MoreServiceTypes,
+			        BLANK ()
+			    )
+			
+			//----------------------------------------------
+			// Service Type Group
+			//----------------------------------------------
+			VAR __ServiceTypeGroup =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Service Type Group Name]),
+			                NOT ( ISBLANK ( 'Dim Service'[Service Type Group Name]) )
+			            ),
+			            'Dim Service'[Service Type Group Name], ASC
+			        ),
+			        "ServiceTypeGroupName_display", 'Dim Service'[Service Type Group Name]
+			    )
+			VAR __ServiceTypeGroupCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Service Type Group Name] ),
+			        COUNTROWS ( VALUES ('Dim Service'[Service Type Group Name] ) ),
+			        0
+			    )
+			VAR __MoreServiceTypeGroups =
+			    IF (
+			        __ServiceTypeGroupCount > 5,
+			        " and " & ( __ServiceTypeGroupCount - 5 ) & " more ",
+			        ""
+			    )
+			VAR _FC_ServiceTypeGroups =
+			    IF (
+			        __ServiceTypeGroupCount > 0,
+			        "| Service Type(s): "
+			            & CONCATENATEX ( __ServiceTypeGroup, [ServiceTypeGroupName_display], ", " ) & __MoreServiceTypeGroups,
+			        BLANK ()
+			    )
+			
+			//----------------------------------------------
+			// Ethnicity Group
+			//----------------------------------------------
+			VAR __EthnicityGroup =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            FILTER (
+			                VALUES ( 'Dim Ethnicity'[Ethnicity Group]),
+			                NOT ( ISBLANK ( 'Dim Ethnicity'[Ethnicity Group]) )
+			            ),
+			            'Dim Ethnicity'[Ethnicity Group], ASC
+			        ),
+			        "EthnicityGroup_display", 'Dim Ethnicity'[Ethnicity Group]
+			    )
+			VAR __EthnicityGroupCount =
+			    IF (
+			        ISFILTERED ( 'Dim Ethnicity'[Ethnicity Group]),
+			        COUNTROWS ( VALUES ( 'Dim Ethnicity'[Ethnicity Group] ) ),
+			        0
+			    )
+			VAR __MoreEthnicityGroups =
+			    IF (
+			        __EthnicityGroupCount > 5,
+			        " and " & ( __EthnicityGroupCount - 5 ) & " more ",
+			        ""
+			    )
+			VAR _FC_EthnicityGroups =
+			    IF (
+			        __EthnicityGroupCount > 0,
+			        " | Ethnicity Group(s): "
+			            & CONCATENATEX ( __EthnicityGroup, [EthnicityGroup_display], ", " ) & __MoreEthnicityGroups,
+			        BLANK ()
+			    )
+			
+			//----------------------------------------------
+			// Gender
+			//----------------------------------------------
+			VAR __Gender =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            FILTER (
+			                VALUES ( 'Dim Gender'[Gender Name]),
+			                NOT ( ISBLANK ( 'Dim Gender'[Gender Name]) )
+			            ),
+			            'Dim Gender'[Gender Name], ASC
+			        ),
+			        "Gender_display", 'Dim Gender'[Gender Name]
+			    )
+			VAR __GenderCount =
+			    IF (
+			        ISFILTERED ('Dim Gender'[Gender Name]),
+			        COUNTROWS ( VALUES ( 'Dim Gender'[Gender Name]) ),
+			        0
+			    )
+			VAR __MoreGenders =
+			    IF (
+			        __GenderCount > 5,
+			        " and " & ( __GenderCount - 5 ) & " more ",
+			        ""
+			    )
+			VAR _FC_Genders =
+			    IF (
+			        __GenderCount > 0,
+			        " | Gender(s): "
+			            & CONCATENATEX ( __Gender, [Gender_display], ", " ) & __MoreGenders,
+			        BLANK ()
+			    )
+			
+			//----------------------------------------------
+			// Age Groups
+			//----------------------------------------------
+			VAR __AgeGroups =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            FILTER (
+			                VALUES ( 'Dim Age'[Age Group Impact]),
+			                NOT ( ISBLANK ( 'Dim Age'[Age Group Impact]) )
+			            ),
+			            'Dim Age'[Age Group Impact], ASC
+			        ),
+			        "AgeGroup_display", 'Dim Age'[Age Group Impact]
+			    )
+			VAR __AgeGroupCount =
+			    IF (
+			        ISFILTERED ('Dim Age'[Age Group Impact]),
+			        COUNTROWS ( VALUES ('Dim Age'[Age Group Impact]) ),
+			        0
+			    )
+			VAR __MoreAgeGroups =
+			    IF (
+			        __AgeGroupCount > 5,
+			        " and " & ( __AgeGroupCount - 5 ) & " more ",
+			        ""
+			    )
+			VAR _FC_AgeGroups =
+			    IF (
+			        __AgeGroupCount > 0,
+			        " | Age Group(s): "
+			            & CONCATENATEX ( __AgeGroups, [AgeGroup_display], ", " ) & __MoreAgeGroups,
+			        BLANK ()
+			    )
+			
+			
+			//----------------------------------------------
+			// Combine All Filters
+			//----------------------------------------------
+			VAR __AllFilters =
+			          _FC_FYLabels
+			        & _FC_Regions
+			        & _FC_Districts
+			        & _FC_Services
+			        & _FC_ServiceTypes
+			        & _FC_ServiceTypeGroups
+			        & _FC_EthnicityGroups
+			        & _FC_Genders
+			        & _FC_AgeGroups
+			
+			VAR __HasFilters =
+			    NOT ( ISBLANK ( __AllFilters ) )
+			VAR __CleanedFilters =
+			    IF (
+			        __HasFilters,
+			        IF (
+			            LEFT ( __AllFilters, 3 ) = " | ",
+			            MID ( __AllFilters, 4, LEN ( __AllFilters ) - 3 ),
+			            __AllFilters
+			        ),
+			        BLANK ()
+			    )
+			RETURN
+			    IF (
+			        __HasFilters,
+			        "Filters Applied: " & __CleanedFilters,
+			        "No filters applied"
+			    )
+			```
+		displayFolder: Titles
+		lineageTag: 57c6bb72-2fc0-4de8-adc9-73b483eba54b
+
+	measure 'EH Whānau' =
+			CALCULATE(
+			    SUM('Fact Extras'[Value]),
+			    'Fact Extras'[Measure] = "EH Whanau",
+			    'Fact Extras'[Source] = "SOS"
+			)
+		formatString: 0
+		displayFolder: Whanau
+		lineageTag: e1840e7b-684e-4fef-a16c-6c39ef3d3444
+
+	measure 'SH Whānau' =
+			CALCULATE(
+			    SUM('Fact Extras'[Value]),
+			    'Fact Extras'[Measure] = "SH Whanau",
+			    'Fact Extras'[Source] = "SOS"
+			)
+		formatString: 0
+		displayFolder: Whanau
+		lineageTag: 9d4ab477-c626-4e42-97d2-30afaba27239
+
+	measure 'Affordable Rental Whānau' =
+			CALCULATE(
+			    SUM('Fact Extras'[Value]),
+			    'Fact Extras'[Measure] = "Affordable Rental Whanau",
+			    'Fact Extras'[Source] = "SOS"
+			)
+		formatString: 0
+		displayFolder: Whanau
+		lineageTag: 786113fe-91ae-44ed-a7c7-fd3e27d27dbb
+
+	measure 'Total Whānau SPLY' =
+			CALCULATE(
+			    [Total Housed Whānau],
+			    SAMEPERIODLASTYEAR('Dim Date'[Calendar Date])
+			)
+		formatString: #,0
+		displayFolder: Whanau
+		lineageTag: 982a7e60-fae7-44eb-95ca-809f7c2823a9
+
+	measure 'Whānau as at June Title' = ```
+			
+			VAR IsServiceFiltered = 
+			    ISCROSSFILTERED('Dim Service') ||
+			    ISFILTERED('Dim Ethnicity'[Ethnicity Group]) ||
+			    ISFILTERED('Dim Age'[Age Group Impact]) ||
+			    ISFILTERED('Dim Gender'[Gender Name])
+			RETURN
+			    IF(
+			        IsServiceFiltered, 
+			        "Housed Whānau - Unavailable with applied filters",
+			        "Housed Whānau as at June " & [FYLabel]
+			    )
+			```
+		displayFolder: Titles
+		lineageTag: 703495aa-d182-4053-b6ff-14765a02f436
+
+	measure 'Total Supported as at June Title' = ```
+			
+			VAR IsServiceFiltered = 
+			    ISCROSSFILTERED('Dim Service') ||
+			    ISFILTERED('Dim Ethnicity'[Ethnicity Group]) ||
+			    ISFILTERED('Dim Age'[Age Group Impact]) ||
+			    ISFILTERED('Dim Gender'[Gender Name])
+			RETURN
+			    IF(
+			        IsServiceFiltered, 
+			        "Total Supported - Unavailable with applied filters",
+			        "Total Supported as at June " & [FYLabel]
+			    )
+			```
+		displayFolder: Titles
+		lineageTag: f6a05da4-21c5-4580-9df6-1917bb8547d9
+
+	measure 'Number of Services as at June SPLY' = CALCULATE([Number of Services as at June], SAMEPERIODLASTYEAR('Dim Date'[Calendar Date]))
+		formatString: 0
+		displayFolder: Services
+		lineageTag: b68ae107-4e81-433f-a5e8-74c3471ea55f
+
+	measure 'Services as at June Title' = ```
+			
+			VAR IsServiceFiltered = 
+			    ISCROSSFILTERED('Dim Service') ||
+			    ISFILTERED('Dim Ethnicity'[Ethnicity Group]) ||
+			    ISFILTERED('Dim Age'[Age Group Impact]) ||
+			    ISFILTERED('Dim Gender'[Gender Name])
+			RETURN
+			    IF(
+			        IsServiceFiltered, 
+			        "Services Provided - Unavailable with applied filters",
+			        "Services Provided as at June " & [FYLabel]
+			    )
+			```
+		displayFolder: Titles
+		lineageTag: 82d73071-cbc7-48e6-98b5-0e9cbde72a4e
+
+	measure 'Social Housing at June Title' = ```
+			
+			VAR IsServiceFiltered = 
+			    ISCROSSFILTERED('Dim Service') ||
+			    ISFILTERED('Dim Ethnicity'[Ethnicity Group]) ||
+			    ISFILTERED('Dim Age'[Age Group Impact]) ||
+			    ISFILTERED('Dim Gender'[Gender Name])
+			RETURN
+			    IF(
+			        IsServiceFiltered, 
+			        "Social Homes - Unavailable with applied filters",
+			        "Social Homes as at June " & [FYLabel]
+			    )
+			```
+		displayFolder: Titles
+		lineageTag: e0fbc007-26fc-4d07-9ae4-d83b6be95a0a
+
+	measure 'Social Housing as at June SPLY' = ```
+			
+			CALCULATE (
+			    [Number of Social Housing Offerings],
+			    SAMEPERIODLASTYEAR ( 'Dim Date'[Calendar Date] )
+			)
+			
+			```
+		formatString: 0
+		displayFolder: Social Homes
+		lineageTag: 6ee5eb42-1cd6-45f4-8785-79c6432357d3
+
+	measure Blank = ""
+		displayFolder: Titles
+		lineageTag: e4ca652e-2874-4f2d-883c-5eb277cd825f
+
+	measure 'Hover Area' = 1
+		formatString: 0
+		displayFolder: Titles
+		lineageTag: f6b32443-49b8-4a9c-b643-12915acba67b
+
+	measure 'Exclusions Summary' = ```
+			
+			VAR ExcludedFunctions = 
+			    CALCULATETABLE(
+			        VALUES('Dim Team'[Tangata Whaiora Team Function]),
+			        'Dim Team'[Exclude From Reporting] = "Yes",
+			        ALLSELECTED('Dim Team')
+			    )
+			VAR FunctionList = 
+			    CONCATENATEX(
+			        ExcludedFunctions,
+			        'Dim Team'[Tangata Whaiora Team Function],
+			        ", ",
+			        'Dim Team'[Tangata Whaiora Team Function], ASC
+			    )
+			VAR ExcludedTeams = 
+			    CALCULATETABLE(
+			        VALUES('Dim Team'[Tangata Whaiora Team Name]),
+			        'Dim Team'[Exclude From Reporting] = "Yes",
+			        ALLSELECTED('Dim Team')
+			    )
+			VAR TeamList = 
+			    CONCATENATEX(
+			        ExcludedTeams,
+			        'Dim Team'[Tangata Whaiora Team Name],
+			        ", ",
+			        'Dim Team'[Tangata Whaiora Team Name], ASC
+			    )
+			VAR TeamCount = COUNTROWS(ExcludedTeams)
+			VAR FunctionCount = COUNTROWS(ExcludedFunctions)
+			RETURN
+			"EXCLUDED TEAM FUNCTIONS (" & FunctionCount & "):" & 
+			UNICHAR(10) & FunctionList & 
+			UNICHAR(10) & "─────────────────────────" & UNICHAR(10) &
+			"EXCLUDED TEAMS (" & TeamCount & "):" & 
+			UNICHAR(10) & TeamList
+			```
+		displayFolder: Titles
+		lineageTag: ef2b9044-fbce-4fc2-8248-02166eacad9e
+
+	measure 'Kaimahi YOY Change %' = ```
+			
+			VAR CurrentValue = [Number of Kaimahi (Average Daily)]
+			
+			-- Use whatever column you have in your table (replace if needed)
+			VAR CurrentFY = SELECTEDVALUE('Dim Date'[FY Label])
+			
+			VAR PriorFY = "FY" & FORMAT(VALUE(RIGHT(CurrentFY, 2)) - 1, "00")
+			
+			VAR PriorYearValue = 
+			    CALCULATE(
+			        [Number of Kaimahi (Average Daily)],
+			        ALL('Dim Date'[FY Label]),
+			        'Dim Date'[FY Label] = PriorFY
+			    )
+			
+			RETURN DIVIDE(CurrentValue - PriorYearValue, PriorYearValue, BLANK())
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Kaimahi
+		lineageTag: 1642a78e-b83b-4974-9510-6f8b1b0f1c1c
+
+	measure 'Referrals YOY Change %' = ```
+			
+			VAR CurrentValue = [Number of Referrals (Average Daily)]
+			
+			-- Use whatever column you have in your table (replace if needed)
+			VAR CurrentFY = SELECTEDVALUE('Dim Date'[FY Label])
+			
+			VAR PriorFY = "FY" & FORMAT(VALUE(RIGHT(CurrentFY, 2)) - 1, "00")
+			
+			VAR PriorYearValue = 
+			    CALCULATE(
+			        [Number of Referrals (Average Daily)],
+			        ALL('Dim Date'[FY Label]),
+			        'Dim Date'[FY Label] = PriorFY
+			    )
+			
+			RETURN DIVIDE(CurrentValue - PriorYearValue, PriorYearValue, BLANK())
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Referrals
+		lineageTag: cd713fd5-0e5c-42d9-ab40-30b79cf0bbfc
+
+	measure 'Service Description Tooltip' =
+			
+			VAR ServiceName = SELECTEDVALUE('Dim Service'[Service Name], "No service selected")
+			VAR ServiceType = SELECTEDVALUE('Dim Service'[Service Type Name], "")
+			VAR ServiceDesc = SELECTEDVALUE('Dim Service'[Description], "")
+			VAR HasDescription = ServiceDesc <> ""
+			VAR HasServiceType = ServiceType <> ""
+			VAR NL = UNICHAR(10)
+			VAR KaimahiCount = [Number of Kaimahi (Current)]
+			VAR ReferralCount = [Number of Referrals (Current)]
+			
+			RETURN
+			    IF(
+			        ServiceName = "No service selected",
+			        "No service selected",
+			        "📋 " & ServiceName
+			            & IF(HasServiceType, NL & NL & "🏷️ " & ServiceType, "")
+			            & NL & NL
+			            & IF(
+			                HasDescription,
+			                ServiceDesc,
+			                "(No description available)"
+			              )
+			            & NL & NL
+			            & "──────────────────"
+			            & NL & NL
+			            & "👤 Kaimahi:     " & KaimahiCount
+			            & NL & NL
+			            & "📥 Referrals:   " & ReferralCount
+			    )
+		displayFolder: Titles
+		lineageTag: 131618e3-cf49-48ee-b951-f5fd41436ade
+
+	measure 'Service Instances' =
+			
+			CALCULATE(
+			    COUNTROWS('Dim Service')
+			)
+		formatString: 0
+		displayFolder: Services
+		lineageTag: c67b9dcd-5574-40c7-95ec-3ae2eca28453
+
+	measure 'Ratio YOY Change %' = ```
+			
+			VAR CurrentValue = [Average Daily Kaimahi to Referrals Ratio]
+			
+			-- Use whatever column you have in your table (replace if needed)
+			VAR CurrentFY = SELECTEDVALUE('Dim Date'[FY Label])
+			
+			VAR PriorFY = "FY" & FORMAT(VALUE(RIGHT(CurrentFY, 2)) - 1, "00")
+			
+			VAR PriorYearValue = 
+			    CALCULATE(
+			        [Average Daily Kaimahi to Referrals Ratio],
+			        ALL('Dim Date'[FY Label]),
+			        'Dim Date'[FY Label] = PriorFY
+			    )
+			
+			RETURN DIVIDE(CurrentValue - PriorYearValue, PriorYearValue, BLANK())
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Ratios
+		lineageTag: 21628c54-1a28-4cd9-9e8d-2bdd24b1d404
+
+	measure 'Is Filtered Button Text' = ```
+			
+			IF(
+			    [Is Filtered] > 0, 
+			    "Filters (ON)" & UNICHAR(160) & UNICHAR(160),
+			    "Filters" & UNICHAR(160) & UNICHAR(160)
+			)
+			```
+		displayFolder: Titles
+		lineageTag: d453e8ba-417b-4b47-a871-c74b050d693b
+
+	measure 'Is Filtered' = ```
+			
+			VAR _IsFiltered = 
+			    ISCROSSFILTERED('Dim Service') ||
+			    ISFILTERED('Dim Ethnicity'[Ethnicity Group]) ||
+			    ISFILTERED('Dim Age'[Age Group Impact]) ||
+			    ISFILTERED('Dim Gender'[Gender Name])
+			RETURN 
+			    IF(_IsFiltered, 1, 0)
+			```
+		formatString: 0
+		displayFolder: Titles
+		lineageTag: daeb8304-2ba2-4a7e-9f8f-ca36142807c9
+
+	measure 'Number of Kaimahi (Current)' = ```
+			
+			VAR TodaysDate = TODAY()
+			VAR CurrentKaimahi  = CALCULATE(
+			    [Unique Kaimahi],
+			    ALL('Dim Date'),
+			    'Fact Kaimahi'[Company Start Date] <= TodaysDate,
+			    'Fact Kaimahi'[Company End Date] >= TodaysDate 
+			        || ISBLANK('Fact Kaimahi'[Company End Date])
+			)
+			RETURN IF(ISBLANK(CurrentKaimahi),0,CurrentKaimahi)
+			```
+		formatString: #,0
+		displayFolder: Kaimahi
+		lineageTag: 89e5c8e2-f890-43ff-9920-99190ed2dbc2
+
+	measure 'Number of Referrals (Current)' = ```
+			
+			VAR TodaysDate = TODAY()
+			RETURN
+			CALCULATE(
+			    [Unique Referrals],
+			    ALL('Dim Date'),
+			    'Fact Referrals'[Referral Accepted Date] <= TodaysDate,
+			    'Fact Referrals'[Referral Ended Date] >= TodaysDate 
+			        || ISBLANK('Fact Referrals'[Referral Ended Date])
+			)
+			```
+		formatString: #,0
+		displayFolder: Referrals
+		lineageTag: cf3029dd-c98c-43a3-a5d5-0748530fe79a
+
+	measure 'Current Kaimahi to Referrals Ratio' =
+			
+			VAR KaimahiCount = [Number of Kaimahi (Current)]
+			VAR ReferralCount = [Number of Referrals (Current)]
+			VAR Ratio = DIVIDE(ReferralCount, KaimahiCount, BLANK())  -- Returns BLANK if division by zero
+			RETURN
+			    IF(
+			        NOT ISBLANK(Ratio),
+			        ROUND(Ratio, 1),
+			        BLANK()
+			    )
+		displayFolder: Ratios
+		lineageTag: aa7a5a03-73e1-4404-948d-a01c03cc659b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Current Kaimahi to Referrals Ratio Tooltip' =
+			
+			VAR RoundedRatio = [Current Kaimahi to Referrals Ratio]
+			RETURN
+			IF(
+			   NOT ISBLANK(RoundedRatio),
+			   "There are " & RoundedRatio & " Tāngata Whaiora for every 1 Kaimahi in this group.",
+			    BLANK()
+			)
+		displayFolder: Ratios
+		lineageTag: 6b9e5fb7-cd3e-4544-920f-7f6b29fed497
+
+	measure 'Current Maori Sentence' = ```
+			
+			-- Calculate org-wide Maori percentage, ignoring current filters
+			VAR MaoriCount = 
+			    CALCULATE(
+			        [Number of Kaimahi (Current)],
+			        ALL('Fact Kaimahi'),  -- Clear all fact table filters
+			        'Fact Kaimahi'[Original Ethnicity] = "Maori",
+			        VALUES('Dim Date'[Financial Year Desc])  -- Keep FY filter
+			    )
+			
+			VAR TotalCount = 
+			    CALCULATE(
+			        [Number of Kaimahi (Current)], 
+			        ALL('Fact Kaimahi'),  -- Clear all fact table filters
+			        VALUES('Dim Date'[Financial Year Desc])  -- Keep FY filter
+			    )
+			
+			VAR Percentage = DIVIDE(MaoriCount, TotalCount)
+			
+			RETURN
+			IF(
+			    ISBLANK(MaoriCount) || MaoriCount = 0,
+			    "There are no Māori Kaimahi in this selection",
+			    "Of the " &
+			        FORMAT(Percentage, "0.0%") & " (" & MaoriCount & ") " &
+			        " Māori Kaimahi we employ: (Top 5 Iwi)"
+			)
+			```
+		displayFolder: Titles
+		lineageTag: ffd94bff-8b53-44bb-9320-007495ae4be1
+
+	measure 'Current Pasifika Sentence' = ```
+			
+			-- Calculate org-wide Pasifika percentage, ignoring current filters
+			VAR PasifikaCount = 
+			    CALCULATE(
+			        [Number of Kaimahi (Current)],
+			        ALL('Fact Kaimahi'),  -- Clear all fact table filters
+			        'Fact Kaimahi'[Original Ethnicity] = "Pacific Peoples",
+			        VALUES('Dim Date'[Financial Year Desc])  -- Keep FY filter
+			    )
+			
+			VAR TotalCount = 
+			    CALCULATE(
+			        [Number of Kaimahi (Current)], 
+			        ALL('Fact Kaimahi'),  -- Clear all fact table filters
+			        VALUES('Dim Date'[Financial Year Desc])  -- Keep FY filter
+			    )
+			
+			VAR Percentage = DIVIDE(PasifikaCount, TotalCount)
+			
+			RETURN
+			IF(
+			    ISBLANK(PasifikaCount) || PasifikaCount = 0,
+			    "There are no Pasifika Kaimahi in this selection",
+			    "Of the " & 
+			        FORMAT(Percentage, "0.0%") & " (" & PasifikaCount & ") " &
+			        " Pasifika Kaimahi we employ:"
+			)
+			```
+		displayFolder: Titles
+		lineageTag: c03bee70-d947-4c73-8d11-ad2bd3ba792d
+
+	measure 'Active Business Units at Period End' = ```
+			
+			VAR LatestSnapshot = MAX('Fact Kaimahi'[Snapshot Date])
+			RETURN
+			CALCULATE(
+			    DISTINCTCOUNT('Dim Service'[Service Name]),
+			    CROSSFILTER('Dim Service'[Company Intelli BU], 'Fact Kaimahi'[Company Intelli BU], Both),
+			    'Fact Kaimahi'[Snapshot Date] = LatestSnapshot,
+			    'Fact Kaimahi'[Company Start Date] <= LatestSnapshot,
+			    'Fact Kaimahi'[Company End Date] >= LatestSnapshot 
+			        || ISBLANK('Fact Kaimahi'[Company End Date])
+			)
+			```
+		formatString: #,0
+		displayFolder: Business Units
+		lineageTag: 90981820-d874-4266-8960-c34cf94be484
+
+	measure 'Active Business Units SPLY' = ```
+			
+			VAR OneYearAgo = EDATE(TODAY(), -12)
+			RETURN
+			CALCULATE(
+			    DISTINCTCOUNT('Dim Service'[Service Name]),
+			    CROSSFILTER('Dim Service'[Company Intelli BU], 'Fact Kaimahi'[Company Intelli BU], Both),
+			    ALL('Dim Date'),
+			    'Fact Kaimahi'[Company Start Date] <= OneYearAgo,
+			    'Fact Kaimahi'[Company End Date] >= OneYearAgo 
+			        || ISBLANK('Fact Kaimahi'[Company End Date])
+			)
+			```
+		formatString: 0
+		displayFolder: Business Units
+		lineageTag: 7d144d8f-a84b-4b63-847b-ee63e950ee8f
+
+	measure 'Active Business Units' = ```
+			
+			VAR TodaysDate = TODAY()
+			RETURN
+			CALCULATE(
+			    DISTINCTCOUNT('Dim Service'[Service Name]),
+			    CROSSFILTER('Dim Service'[Company Intelli BU], 'Fact Kaimahi'[Company Intelli BU], Both),
+			    ALL('Dim Date'),
+			    'Fact Kaimahi'[Company Start Date] <= TodaysDate,
+			    'Fact Kaimahi'[Company End Date] >= TodaysDate 
+			        || ISBLANK('Fact Kaimahi'[Company End Date])
+			)
+			```
+		formatString: #,0
+		displayFolder: Business Units
+		lineageTag: 7e480439-03dd-487e-8139-7a26a744bab9
+
+	measure 'Total Whanāu YoY %' =
+			
+			DIVIDE(
+			    [Total Whanau provided support] - [Total Whanau provided support LY],
+			    [Total Whanau provided support LY]
+			)
+		displayFolder: Whanau
+		lineageTag: 81b56ee8-6650-41a9-b870-1314bdcf1396
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Social Homes YoY %' =
+			
+			DIVIDE(
+			    [Number of Social Housing Offerings] - [Social Housing as at June SPLY],
+			    [Social Housing as at June SPLY]
+			)
+		displayFolder: Social Homes
+		lineageTag: 59adc7db-4472-4176-9caa-4b783e180be7
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Referrals YoY %' =
+			
+			DIVIDE(
+			    [Number of Referrals as at June] - [Number of Referrals as at June SPLY],
+			    [Number of Referrals as at June SPLY]
+			)
+		displayFolder: Referrals
+		lineageTag: edf3e848-3db3-4579-a9bb-dbadd5946800
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Housed Whanau YOY' = ```
+			
+			DIVIDE (
+			    [Total Housed Whānau] - [Total Whānau SPLY],
+			    [Total Whānau SPLY]
+			)
+			
+			```
+		displayFolder: Whanau
+		lineageTag: 938d18d8-0621-42cf-a90d-fd2af411d324
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Kaimahi as at June YOY %' =
+			
+			DIVIDE(
+			    [Number of Kaimahi as at June] - [Number of Kaimahi as at June SPLY],
+			    [Number of Kaimahi as at June SPLY]
+			)
+		displayFolder: Kaimahi
+		lineageTag: 24c07709-a667-42b8-a7ae-2399f502fdc6
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Number of Services YOY %' =
+			
+			DIVIDE(
+			    [Number of Services as at June]  - [Number of Services as at June SPLY],
+			    [Number of Services as at June SPLY]
+			)
+		displayFolder: Services
+		lineageTag: a13c06e8-df44-496d-b4ca-bb0333a1f773
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% of Referrals (Average Daily)' = ```
+			
+			VAR ThisValue = [Number of Referrals (Average Daily)]
+			VAR TotalAll = 
+			    CALCULATE(
+			        [Number of Referrals (Average Daily)],
+			        ALL('Dim Age'),
+			        ALL('Dim Ethnicity'),
+			        ALL('Dim Gender')
+			    )
+			RETURN DIVIDE(ThisValue, TotalAll, 0)
+			```
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Referrals
+		lineageTag: a8b352cb-fa38-4120-a10b-f692bc3a912d
+
+	measure '% of Kaimahi (Average Daily)' = ```
+			
+			VAR ThisValue = [Number of Kaimahi (Average Daily)]
+			VAR TotalAll = 
+			    CALCULATE(
+			        [Number of Kaimahi (Average Daily)],
+			        ALL('Dim Age'),
+			        ALL('Dim Ethnicity'),
+			        ALL('Dim Gender')
+			    )
+			RETURN DIVIDE(ThisValue, TotalAll, 0)
+			```
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Kaimahi
+		lineageTag: 368a8533-f763-4239-895b-aa36d969ec30
+
+	measure 'Current Kaimahi YoY %' =
+			
+			DIVIDE(
+			    [Number of Kaimahi (Current)] - [Number of Kaimahi (Current SPLY)],
+			    [Number of Kaimahi (Current SPLY)]
+			)
+		displayFolder: Kaimahi
+		lineageTag: ae2966c3-28bf-4678-aca2-b1ad38cfd25f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Number of Kaimahi (Current SPLY)' = ```
+			
+			VAR OneYearAgo = EDATE(TODAY(), -12)
+			VAR SPLYKaimahi = CALCULATE(
+			    [Unique Kaimahi],
+			    ALL('Dim Date'),
+			    'Fact Kaimahi'[Company Start Date] <= OneYearAgo,
+			    'Fact Kaimahi'[Company End Date] >= OneYearAgo 
+			        || ISBLANK('Fact Kaimahi'[Company End Date])
+			)
+			RETURN IF(ISBLANK(SPLYKaimahi), 0, SPLYKaimahi)
+			```
+		formatString: 0
+		displayFolder: Kaimahi
+		lineageTag: 9ec6df3c-2f7c-4c4b-b8b3-ac4e7d9846d8
+
+	measure 'Number of Referrals (Current SPLY)' =
+			
+			VAR OneYearAgo = EDATE(TODAY(), -12)
+			VAR SPLYReferrals =
+			    CALCULATE(
+			        [Unique Referrals],
+			        ALL('Dim Date'),
+			        'Fact Referrals'[Referral Accepted Date] <= OneYearAgo,
+			        'Fact Referrals'[Referral Ended Date] >= OneYearAgo
+			            || ISBLANK('Fact Referrals'[Referral Ended Date])
+			    )
+			RETURN IF(ISBLANK(SPLYReferrals), 0, SPLYReferrals)
+		formatString: #,0
+		displayFolder: Referrals
+		lineageTag: 3f8ce57f-9344-4f10-8fb3-2d0f2c2814aa
+
+	measure 'Current Referrals YOY %' =
+			
+			DIVIDE(
+			    [Number of Referrals (Current)] - [Number of Referrals (Current SPLY)],
+			    [Number of Referrals (Current SPLY)]
+			)
+		displayFolder: Referrals
+		lineageTag: f91f383a-97dd-4b0f-8ef7-ef29c5dffbd2
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Active Business Units YOY %' =
+			
+			DIVIDE(
+			    [Active Business Units] - [Active Business Units SPLY],
+			    [Active Business Units SPLY]
+			)
+		displayFolder: Business Units
+		lineageTag: cc6ae234-03ce-4ca9-aea0-c641a54ca18f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition _Measures = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

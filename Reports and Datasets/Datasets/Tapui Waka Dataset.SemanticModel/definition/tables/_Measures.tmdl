@@ -1,0 +1,494 @@
+table _Measures
+	lineageTag: ed0c1696-2b27-484e-aa11-546df4b7b894
+
+	measure BlankValue =
+			
+			BLANK()
+		formatString: 0
+		lineageTag: b351ba0c-66cf-4242-ac6f-5db4ad9883ff
+
+	measure RefreshedAt_forDisplay = "Data last refreshed: " & FORMAT(LASTDATE(LastRefreshed[Date Last Refreshed]), "dd/MM/YYYY - hh:mm AM/PM")
+		lineageTag: 248b571d-3bcd-456e-b75b-d38ee1c280ec
+
+	measure 'Sum of Kilometers' = (SUM(fact_asset_utilisation[offroad_meters]) + SUM(fact_asset_utilisation[onroad_meters]))/1000
+		lineageTag: cab3e909-8eba-47bf-b54b-a4218aa4f015
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Fuel Spend per 100km' =
+			
+			VAR TotalAmount = [Fuel Spend Between Fills]
+			VAR TotalKilometers = [Fuel Kilometers Between Fills]
+			RETURN
+			    IF(TotalKilometers > 0, DIVIDE(TotalAmount, TotalKilometers) * 100, 0)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: dc84a2e1-0414-4081-8108-7f9250851795
+
+	measure 'Related services spend per 100km' =
+			
+			VAR TotalAmount = CALCULATE(SUM(fact_fuelcard_expenditure[Amount Incl GST]), fact_fuelcard_expenditure[Invoice Description] = "Related services")
+			VAR TotalKilometers = [Sum of Kilometers]
+			RETURN
+			    IF(
+			        TotalKilometers > 0,
+			        DIVIDE(TotalAmount, TotalKilometers) * 100,
+			        BLANK()
+			    )
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: b0cb1dc7-ae44-4e0b-853d-e97c78b859bf
+
+	measure 'Total related services spend' =
+			
+			CALCULATE(SUM(fact_fuelcard_expenditure[Amount Incl GST]), fact_fuelcard_expenditure[Invoice Description] = "Related services")
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: e65ae84d-2abe-4221-b57f-4cc0e9930be8
+
+	measure 'Total fuel spend' =
+			
+			CALCULATE(SUM(fact_fuelcard_expenditure[Amount Incl GST]), fact_fuelcard_expenditure[Invoice Description] = "Fuel")
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 0dd41ddb-2857-4c91-a735-b901320d4124
+
+	measure 'Average Trip Length (Minutes)' =
+			
+			AVERAGE(fact_trip_summary[trip_length_minutes])
+		lineageTag: 49461fe9-20bb-45c2-9c3c-6f46d7a36f1e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Sum of Hours' = SUM(fact_trip_summary[trip_length_hours])
+		formatString: 0
+		lineageTag: cfcc5c01-286e-42e0-9130-f8ce5328cc41
+
+	measure 'Sum of Meters' = SUM(fact_asset_utilisation[total_meters])
+		lineageTag: 52b5c8ee-14c3-4ffb-9933-e5511e9ae2a8
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Distinct Count of Trips' = DISTINCTCOUNT(fact_trip_summary[id])
+		formatString: #,0
+		lineageTag: e3df74d1-84d9-4c9d-a1af-732762bfe97f
+
+	measure 'Sum of Seconds' = SUM(fact_trip_summary[trip_length_seconds])
+		formatString: 0
+		lineageTag: 483416e7-eb5b-41c4-ad05-f6db974e4174
+
+	measure 'Booked Trip Count' =
+			
+			CALCULATE(COUNT(fact_trip_summary[dim_driver_key]),fact_trip_summary[dim_driver_key] <> 0)
+		formatString: #,0
+		lineageTag: 25c12f0f-6ea7-4daa-9a90-d049337ab9d5
+
+	measure 'Unbooked Trip Count' = CALCULATE(COUNT(fact_trip_summary[dim_driver_key]),fact_trip_summary[dim_driver_key] = 0)
+		formatString: #,0
+		lineageTag: 1d74ce48-8972-4fd0-817d-c21ece7f65b3
+
+	measure 'Percentage of Booked Trips' = DIVIDE([Booked Trip Count], [Distinct Count of Trips],0)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: caf4f197-5047-4cb9-989b-3187137ac4d4
+
+	measure 'Asset Name Title' =
+			
+			IFERROR(SELECTEDVALUE(dim_team_asset[asset_name]),"")
+		lineageTag: b6131326-168a-4c32-9398-9c41b8bfaca4
+
+	measure 'Filters Applied' =
+			
+			VAR FC_dim_date_Date = IF(ISFILTERED('dim_date'[Date]), "DATE RANGE CHOSEN: " & FORMAT(MIN('dim_date'[Date]), "dd/MM/yyyy") & " - " & FORMAT(MAX('dim_date'[Date]), "dd/MM/yyyy"), BLANK())
+			
+			VAR dim_team_asset_asset_name = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_team_asset'[asset_name]), NOT(ISBLANK('dim_team_asset'[asset_name]))), 'dim_team_asset'[asset_name], ASC),
+			    "asset_name_display", 'dim_team_asset'[asset_name]
+			)
+			VAR dim_team_asset_asset_nameCount = IF(ISFILTERED('dim_team_asset'[asset_name]), COUNTROWS(VALUES('dim_team_asset'[asset_name])), 0)
+			VAR More_dim_team_asset_asset_name = IF(dim_team_asset_asset_nameCount > 5, " and " & (dim_team_asset_asset_nameCount - 5) & " more", "")
+			VAR FC_dim_team_asset_asset_name = IF(dim_team_asset_asset_nameCount > 0, "ASSETS CHOSEN: " & CONCATENATEX(dim_team_asset_asset_name, [asset_name_display], ", "), BLANK()) & More_dim_team_asset_asset_name
+			
+			VAR dim_team_asset_team_name = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_team_asset'[team_name]), NOT(ISBLANK('dim_team_asset'[team_name]))), 'dim_team_asset'[team_name], ASC),
+			    "team_name_display", 'dim_team_asset'[team_name]
+			)
+			VAR dim_team_asset_team_nameCount = IF(ISFILTERED('dim_team_asset'[team_name]), COUNTROWS(VALUES('dim_team_asset'[team_name])), 0)
+			VAR More_dim_team_asset_team_name = IF(dim_team_asset_team_nameCount > 5, " and " & (dim_team_asset_team_nameCount - 5) & " more", "")
+			VAR FC_dim_team_asset_team_name = IF(dim_team_asset_team_nameCount > 0, "TEAMS CHOSEN: " & CONCATENATEX(dim_team_asset_team_name, [team_name_display], ", "), BLANK()) & More_dim_team_asset_team_name
+			
+			VAR fact_trip_summary_start_address = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('fact_trip_summary'[start_address]), NOT(ISBLANK('fact_trip_summary'[start_address]))), 'fact_trip_summary'[start_address], ASC),
+			    "start_address_display", 'fact_trip_summary'[start_address]
+			)
+			VAR fact_trip_summary_start_addressCount = IF(ISFILTERED('fact_trip_summary'[start_address]), COUNTROWS(VALUES('fact_trip_summary'[start_address])), 0)
+			VAR More_fact_trip_summary_start_address = IF(fact_trip_summary_start_addressCount > 5, " and " & (fact_trip_summary_start_addressCount - 5) & " more", "")
+			VAR FC_fact_trip_summary_start_address = IF(fact_trip_summary_start_addressCount > 0, "START ADDRESS(ES) CHOSEN: " & CONCATENATEX(fact_trip_summary_start_address, [start_address_display], ", "), BLANK()) & More_fact_trip_summary_start_address
+			
+			VAR fact_trip_summary_end_address = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('fact_trip_summary'[end_address]), NOT(ISBLANK('fact_trip_summary'[end_address]))), 'fact_trip_summary'[end_address], ASC),
+			    "end_address_display", 'fact_trip_summary'[end_address]
+			)
+			VAR fact_trip_summary_end_addressCount = IF(ISFILTERED('fact_trip_summary'[end_address]), COUNTROWS(VALUES('fact_trip_summary'[end_address])), 0)
+			VAR More_fact_trip_summary_end_address = IF(fact_trip_summary_end_addressCount > 5, " and " & (fact_trip_summary_end_addressCount - 5) & " more", "")
+			VAR FC_fact_trip_summary_end_address = IF(fact_trip_summary_end_addressCount > 0, "END ADDRESS(ES) CHOSEN: " & CONCATENATEX(fact_trip_summary_end_address, [end_address_display], ", "), BLANK()) & More_fact_trip_summary_end_address
+			
+			VAR dim_driver_driver_name = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_driver'[driver_name]), NOT(ISBLANK('dim_driver'[driver_name]))), 'dim_driver'[driver_name], ASC),
+			    "driver_name_display", 'dim_driver'[driver_name]
+			)
+			VAR dim_driver_driver_nameCount = IF(ISFILTERED('dim_driver'[driver_name]), COUNTROWS(VALUES('dim_driver'[driver_name])), 0)
+			VAR More_dim_driver_driver_name = IF(dim_driver_driver_nameCount > 5, " and " & (dim_driver_driver_nameCount - 5) & " more", "")
+			VAR FC_dim_driver_driver_name = IF(dim_driver_driver_nameCount > 0, "DRIVERS CHOSEN: " & CONCATENATEX(dim_driver_driver_name, [driver_name_display], ", "), BLANK()) & More_dim_driver_driver_name
+			
+			RETURN
+			IF(
+			    (ISBLANK(FC_dim_date_Date) || FC_dim_date_Date = "") && (ISBLANK(FC_dim_team_asset_asset_name) || FC_dim_team_asset_asset_name = "") && (ISBLANK(FC_dim_team_asset_team_name) || FC_dim_team_asset_team_name = "") && (ISBLANK(FC_fact_trip_summary_start_address) || FC_fact_trip_summary_start_address = "") && (ISBLANK(FC_fact_trip_summary_end_address) || FC_fact_trip_summary_end_address = "") && (ISBLANK(FC_dim_driver_driver_name) || FC_dim_driver_driver_name = ""),
+			    "No filters are currently applied to this page.",
+			    "Please note that the following filters are currently applied to this page: " &
+			    CONCATENATEX(FILTER({ FC_dim_date_Date, FC_dim_team_asset_asset_name, FC_dim_team_asset_team_name, FC_fact_trip_summary_start_address, FC_fact_trip_summary_end_address, FC_dim_driver_driver_name }, [Value] <> BLANK()), [Value], " | ")
+			)
+		lineageTag: 0f3ac485-b9a1-42b0-a5d0-1494204da028
+
+	measure User = USERPRINCIPALNAME()
+		lineageTag: 30b55fcd-9733-40ca-b5e9-574212d35cb2
+
+	measure 'KM Over 10 km/h' = ```
+			
+			    SUM(fact_trip_summary[on_road_over_speed_limit_band2]) +
+			    SUM(fact_trip_summary[on_road_over_speed_limit_band3]) +
+			    SUM(fact_trip_summary[on_road_over_speed_limit_band4]) +
+			    SUM(fact_trip_summary[on_road_over_speed_limit_band5])
+			```
+		lineageTag: 84c2d1d6-4fe3-4d89-a07d-f8ae3356941f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Proportion Over 10 km/h' =
+			
+			DIVIDE(
+			    [KM Over 10 km/h],
+			    SUM(fact_trip_summary[total_trip_distance_meters]) / 1000,
+			    0
+			)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 0e8d9a63-b5d5-4eb4-9ee4-a4ed89920a1d
+
+	measure Measure =
+			COUNTROWS(
+			FILTER(rls_employee_emails,
+			rls_employee_emails[leader_email] = USERPRINCIPALNAME()
+			)
+			)
+		formatString: 0
+		lineageTag: 742aa259-0caa-4930-a42d-6de80a2d0cb6
+
+	measure 'Speeding 10km Over Instances' =
+			
+			SUM(fact_trip_summary[speeding_10km_over_trip])
+		formatString: #,0
+		lineageTag: 8b9e854e-8036-4c9a-ab3d-1334d54c0ec1
+
+	measure 'Speeding 10km Over Trip Rate' =
+			
+			DIVIDE([Speeding 10km Over Instances], [Distinct Count of Trips], 0)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: a41fcb03-df85-4a28-bf44-0dc8bdf6b205
+
+	measure 'Clean Trip Count' =
+			
+			MAX([Distinct Count of Trips] - [Speeding 10km Over Instances], 0)
+		formatString: #,0
+		lineageTag: 125f7d3c-5f20-4224-a2a0-7a0f999f8dca
+
+	measure 'Trip Compliance Rate' =
+			
+			DIVIDE([Clean Trip Count], [Distinct Count of Trips], 0)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: d9f2ffcf-a795-4be5-a7ca-2f7c5791e80f
+
+	measure 'Proportion Driving Safely' =
+			
+			MAX(1 - [Proportion Over 10 km/h], 0)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 69869332-5a04-4e30-b7ae-7f9f5c66fd2f
+
+	measure 'Driver Safety Score' =
+			
+			([Trip Compliance Rate] * 70) +
+			([Proportion Driving Safely] * 30)
+		formatString: 0.0
+		lineageTag: 878141c1-c07a-4e20-98f3-bd370e5bc9e1
+
+	measure 'Driver Safety Ranking' =
+			
+			VAR Drivers =
+			    FILTER(
+			        ALL(dim_driver[driver_name]),
+			        NOT ISBLANK(dim_driver[driver_name]) &&
+			        CALCULATE([Distinct Count of Trips]) > 0
+			    )
+			RETURN
+			    IF(
+			        ISINSCOPE(dim_driver[driver_name]),
+			        RANKX(Drivers, [Driver Safety Score], , DESC, DENSE)
+			    )
+		formatString: 0
+		lineageTag: 287ed24f-79c4-44de-8e41-f3ca403520e1
+
+	measure 'Driver Safety Tier' =
+			
+			VAR Drivers =
+			    FILTER(
+			        ALL(dim_driver[driver_name]),
+			        NOT ISBLANK(dim_driver[driver_name]) &&
+			        CALCULATE([Distinct Count of Trips]) > 0
+			    )
+			VAR DriverCount = COUNTROWS(Drivers)
+			VAR Ranking = [Driver Safety Ranking]
+			VAR Percentile = DIVIDE(Ranking, DriverCount, 1)
+			RETURN
+			    IF(
+			        ISINSCOPE(dim_driver[driver_name]),
+			        SWITCH(
+			            TRUE(),
+			            Percentile <= 0.2, "Safe Driver",
+			            Percentile <= 0.8, "Developing",
+			            "Needs Support"
+			        )
+			    )
+		lineageTag: 3d2d8204-208a-46ea-99c3-1c379554c245
+
+	measure 'Average Driver Safety Score' =
+			
+			AVERAGEX(
+			    FILTER(
+			        VALUES(dim_driver[driver_name]),
+			        CALCULATE([Distinct Count of Trips]) > 0
+			    ),
+			    [Driver Safety Score]
+			)
+		formatString: 0.0
+		lineageTag: 94cf1d74-ef4b-4be8-a204-3af4be4b4033
+
+	measure 'Average Trip Compliance Rate' =
+			
+			AVERAGEX(
+			    FILTER(
+			        VALUES(dim_driver[driver_name]),
+			        CALCULATE([Distinct Count of Trips]) > 0
+			    ),
+			    [Trip Compliance Rate]
+			)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 81cce298-d89a-4ce2-8b45-f9e00d0b56b5
+
+	measure 'Safe Driver Count' =
+			
+			COUNTROWS(
+			    FILTER(
+			        VALUES(dim_driver[driver_name]),
+			        CALCULATE([Distinct Count of Trips]) > 0 &&
+			        [Driver Safety Tier] = "Safe Driver"
+			    )
+			)
+		formatString: #,0
+		lineageTag: 9ef6b5f4-53d5-4ff2-b1ab-d7fba7fe794e
+
+	measure 'Developing Driver Count' =
+			
+			COUNTROWS(
+			    FILTER(
+			        VALUES(dim_driver[driver_name]),
+			        CALCULATE([Distinct Count of Trips]) > 0 &&
+			        [Driver Safety Tier] = "Developing"
+			    )
+			)
+		formatString: #,0
+		lineageTag: 46db0d64-839d-42c2-bfc4-73318c896b18
+
+	measure 'Needs Support Driver Count' =
+			
+			COUNTROWS(
+			    FILTER(
+			        VALUES(dim_driver[driver_name]),
+			        CALCULATE([Distinct Count of Trips]) > 0 &&
+			        [Driver Safety Tier] = "Needs Support"
+			    )
+			)
+		formatString: #,0
+		lineageTag: 6ccb11f2-75e1-4bf5-b2f8-80dfd4321a17
+
+	measure 'Trip Compliance Rate Bar Status' =
+			
+			IF(
+			    [Distinct Count of Trips] > 0,
+			    INT([Trip Compliance Rate] >= 1),
+			    BLANK()
+			)
+		formatString: 0
+		isHidden
+		lineageTag: 2e823b42-e2cf-468c-bbc5-76ff3eb8d9a4
+
+	measure 'Driver Safety Score Bar Status' =
+			
+			IF(
+			    [Distinct Count of Trips] > 0,
+			    INT([Driver Safety Score] >= 100),
+			    BLANK()
+			)
+		formatString: 0
+		isHidden
+		lineageTag: 8a18ddb4-e191-4514-aee9-4b8af2f4c6d0
+
+	measure 'Fuel Kilometers Between Fills' =
+			
+			SUM(fact_fuelcard_expenditure[Distance Since Previous Fill Km])
+		formatString: 0.00
+		lineageTag: 578746d1-f2f5-4aac-8597-615e75c20165
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Fuel Quantity Between Fills' =
+			
+			SUM(fact_fuelcard_expenditure[Fuel Quantity for Interval])
+		formatString: 0.00
+		lineageTag: aa780118-0da1-4c01-ac8f-e5d3b155399f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Fuel Spend Between Fills' =
+			
+			SUM(fact_fuelcard_expenditure[Fuel Spend for Interval])
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 01127ddc-a447-4748-908e-b14f47f928cc
+
+	measure 'Average Proportion Driving Safely' =
+			
+			AVERAGEX(
+			    FILTER(
+			        VALUES(dim_driver[driver_name]),
+			        CALCULATE([Distinct Count of Trips]) > 0
+			    ),
+			    [Proportion Driving Safely]
+			)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 41922f3c-1dbf-4fd8-9fef-238c1b6c0470
+
+	measure 'Primary Focus Region' =
+			
+			VAR Regions =
+			    FILTER(
+			        ALLSELECTED(dim_service[region_name]),
+			        NOT ISBLANK(dim_service[region_name]) &&
+			        CALCULATE([Distinct Count of Trips]) > 0
+			    )
+			VAR RegionScores =
+			    ADDCOLUMNS(
+			        Regions,
+			        "__Score", CALCULATE([Average Driver Safety Score])
+			    )
+			VAR SelectedRegion =
+			    TOPN(
+			        1,
+			        RegionScores,
+			        [__Score], ASC,
+			        dim_service[region_name], ASC
+			    )
+			VAR RegionName = MAXX(SelectedRegion, dim_service[region_name])
+			VAR RegionScore = MAXX(SelectedRegion, [__Score])
+			RETURN
+			    IF(
+			        NOT ISBLANK(RegionName),
+			        RegionName & " | " & FORMAT(RegionScore, "0.0")
+			    )
+		lineageTag: 38512a2a-3c09-48fe-8f86-3cfd1cec5904
+
+	measure 'Second Focus Region' =
+			
+			VAR Regions =
+			    FILTER(
+			        ALLSELECTED(dim_service[region_name]),
+			        NOT ISBLANK(dim_service[region_name]) &&
+			        CALCULATE([Distinct Count of Trips]) > 0
+			    )
+			VAR RegionScores =
+			    ADDCOLUMNS(
+			        Regions,
+			        "__Score", CALCULATE([Average Driver Safety Score])
+			    )
+			VAR FirstRegion =
+			    TOPN(
+			        1,
+			        RegionScores,
+			        [__Score], ASC,
+			        dim_service[region_name], ASC
+			    )
+			VAR SelectedRegion =
+			    EXCEPT(
+			        TOPN(
+			            2,
+			            RegionScores,
+			            [__Score], ASC,
+			            dim_service[region_name], ASC
+			        ),
+			        FirstRegion
+			    )
+			VAR RegionName = MAXX(SelectedRegion, dim_service[region_name])
+			VAR RegionScore = MAXX(SelectedRegion, [__Score])
+			RETURN
+			    IF(
+			        NOT ISBLANK(RegionName),
+			        RegionName & " | " & FORMAT(RegionScore, "0.0")
+			    )
+		lineageTag: c2033121-a16b-4db4-9cd0-e8f6af2920be
+
+	measure 'Third Focus Region' =
+			
+			VAR Regions =
+			    FILTER(
+			        ALLSELECTED(dim_service[region_name]),
+			        NOT ISBLANK(dim_service[region_name]) &&
+			        CALCULATE([Distinct Count of Trips]) > 0
+			    )
+			VAR RegionScores =
+			    ADDCOLUMNS(
+			        Regions,
+			        "__Score", CALCULATE([Average Driver Safety Score])
+			    )
+			VAR FirstTwoRegions =
+			    TOPN(
+			        2,
+			        RegionScores,
+			        [__Score], ASC,
+			        dim_service[region_name], ASC
+			    )
+			VAR SelectedRegion =
+			    EXCEPT(
+			        TOPN(
+			            3,
+			            RegionScores,
+			            [__Score], ASC,
+			            dim_service[region_name], ASC
+			        ),
+			        FirstTwoRegions
+			    )
+			VAR RegionName = MAXX(SelectedRegion, dim_service[region_name])
+			VAR RegionScore = MAXX(SelectedRegion, [__Score])
+			RETURN
+			    IF(
+			        NOT ISBLANK(RegionName),
+			        RegionName & " | " & FORMAT(RegionScore, "0.0")
+			    )
+		lineageTag: 4489d67f-c6e3-42d0-9cb2-d8530368609f
+
+	partition _Measures-0ee86b1b-a58d-4d7a-aaf2-e12618900831 = m
+		mode: import
+		queryGroup: 'Common Components'
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

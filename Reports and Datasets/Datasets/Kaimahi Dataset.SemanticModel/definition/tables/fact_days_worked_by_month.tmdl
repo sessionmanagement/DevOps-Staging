@@ -1,0 +1,80 @@
+table fact_days_worked_by_month
+	lineageTag: a7fb9e73-c7f1-4efd-a3f6-1cba280f2cea
+
+	column 'Kaimahi ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: dfc01cb4-ea47-4e0c-8ae0-063f0461100f
+		summarizeBy: none
+		sourceColumn: Kaimahi ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Month Start Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 2ca5d991-0e8d-4faf-80d5-2e96a996976e
+		summarizeBy: none
+		sourceColumn: Month Start Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column Day
+		dataType: int64
+		formatString: 0
+		lineageTag: e191623c-6a6b-426f-a682-af81ec39aae6
+		summarizeBy: sum
+		sourceColumn: Day
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Work Type ID'
+		dataType: string
+		lineageTag: 45577c21-fdec-4eb0-962b-8c81739e71da
+		summarizeBy: none
+		sourceColumn: Work Type ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Days Worked On Day Of Week'
+		dataType: int64
+		formatString: 0
+		lineageTag: 2b1fa659-150d-4e03-89c8-99a613ca1787
+		summarizeBy: sum
+		sourceColumn: Days Worked On Day Of Week
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_days_worked_by_month = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="-- Days of week worked in month by employee#(lf)WITH fact_candidates AS#(lf)(#(lf)    SELECT#(lf)        eh.time_sheet_entry_id,#(lf)#(lf)        -- Closest available EDW employee identifier.#(lf)        eh.fact_hours_worked_employee_number AS employee_id,#(lf)#(lf)        -- Closest available substitute for EmpLive work_type_id.#(lf)        eh.fact_hours_worked_payroll_category_id AS work_type_id,#(lf)#(lf)        shift_date.calendar_date AS start_date,#(lf)#(lf)        -- One timesheet can have multiple EDW pay-category rows.#(lf)        ROW_NUMBER() OVER#(lf)        (#(lf)            PARTITION BY eh.time_sheet_entry_id#(lf)            ORDER BY#(lf)                eh.fact_hours_worked_total_duration DESC,#(lf)                eh.fact_employee_hours_worked_key#(lf)        ) AS category_rank#(lf)    FROM [edw].[fact_employee_hours_worked] AS eh#(lf)    LEFT JOIN [edw].[dim_date] AS shift_date#(lf)        ON shift_date.dim_date_key =#(lf)           eh.dim_shift_start_date_key#(lf)    WHERE eh.DWHIsCurrent = 1#(lf)      AND eh.DWHDMLOperation <> 'D'#(lf)      AND eh.fact_hours_worked_approval_status = 'APPROVED'#(lf)),#(lf)t1 AS#(lf)(#(lf)    SELECT DISTINCT#(lf)        employee_id,#(lf)        start_date,#(lf)        DATEPART(WEEKDAY, start_date) AS [day],#(lf)#(lf)        CAST(#(lf)            DATEADD(#(lf)                MONTH,#(lf)                DATEDIFF(MONTH, 0, start_date),#(lf)                0#(lf)            ) AS DATETIME#(lf)        ) AS month_start_date,#(lf)#(lf)        work_type_id,#(lf)        1 AS [count]#(lf)    FROM fact_candidates#(lf)    WHERE category_rank = 1#(lf))#(lf)SELECT#(lf)    t1.employee_id,#(lf)    t1.month_start_date,#(lf)    t1.[day],#(lf)    t1.work_type_id,#(lf)    SUM(t1.[count]) AS days_worked_on_day_of_week#(lf)FROM t1#(lf)GROUP BY#(lf)    t1.employee_id,#(lf)    t1.month_start_date,#(lf)    t1.[day],#(lf)    t1.work_type_id#(lf)ORDER BY#(lf)    t1.employee_id,#(lf)    t1.month_start_date,#(lf)    t1.[day],#(lf)    t1.work_type_id;"])
+				, ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceKaimahi = Text.Replace(columnName, "employee_", "Kaimahi_"),
+				            replaceClient = Text.Replace(replaceKaimahi, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHisCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, " Id", " ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Transformed Column Names",{{"Kaimahi ID", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

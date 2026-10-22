@@ -1,0 +1,158 @@
+table 'Dim Employee Hierarchy'
+	lineageTag: 86bdcb81-1628-4152-a8a3-0d35ca5de331
+
+	column 'Dim Employee KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 23a5561d-122d-4267-8383-a5693f2a36d8
+		summarizeBy: none
+		sourceColumn: Dim Employee KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee People Leader Person Display Name Level 1'
+		dataType: string
+		lineageTag: eee35f78-1ed8-46a9-b82c-71d590e3d1ee
+		summarizeBy: none
+		sourceColumn: Employee People Leader Person Display Name Level 1
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee People Leader Person Display Name Level 2'
+		dataType: string
+		lineageTag: 0f642d78-839d-42d5-b211-e3002df8fb4b
+		summarizeBy: none
+		sourceColumn: Employee People Leader Person Display Name Level 2
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee People Leader Person Display Name Level 3'
+		dataType: string
+		lineageTag: 1803c7b5-ff29-4459-97e4-f9ffa8fea9a1
+		summarizeBy: none
+		sourceColumn: Employee People Leader Person Display Name Level 3
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee People Leader Person Display Name Level 4'
+		dataType: string
+		lineageTag: 4ea6b116-4335-4b1d-9cc1-abf1c956fc5b
+		summarizeBy: none
+		sourceColumn: Employee People Leader Person Display Name Level 4
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee People Leader Person Display Name Level 5'
+		dataType: string
+		lineageTag: 19d6dcb7-d967-46b9-ac01-2d094c332986
+		summarizeBy: none
+		sourceColumn: Employee People Leader Person Display Name Level 5
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee People Leader Person Display Name Level 6'
+		dataType: string
+		lineageTag: ce0d6690-4bba-4861-91f1-f18d97688fdd
+		summarizeBy: none
+		sourceColumn: Employee People Leader Person Display Name Level 6
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee People Leader Person Display Name Level 7'
+		dataType: string
+		lineageTag: 8da6fe3b-668f-41d4-8ca2-981527d54eaf
+		summarizeBy: none
+		sourceColumn: Employee People Leader Person Display Name Level 7
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee People Leader Person Display Name Level 8'
+		dataType: string
+		lineageTag: 02b87f28-5c8a-43f2-b790-ff377cf5b3ae
+		summarizeBy: none
+		sourceColumn: Employee People Leader Person Display Name Level 8
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee People Leader Person Display Name Level 9'
+		dataType: string
+		lineageTag: c1289b1c-02f8-46e5-91c2-d3d9c92c650a
+		summarizeBy: none
+		sourceColumn: Employee People Leader Person Display Name Level 9
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'Supervisor Hierarchy'
+		lineageTag: e8d73fc2-7bdc-497b-b459-48ac89288efe
+
+		level 'Employee People Leader Person Display Name Level 1'
+			lineageTag: 6f24cba0-7560-4540-8014-1e55963ba05f
+			column: 'Employee People Leader Person Display Name Level 1'
+
+		level 'Employee People Leader Person Display Name Level 2'
+			lineageTag: 320bd564-881c-45b6-bcdf-df4359fe7bb1
+			column: 'Employee People Leader Person Display Name Level 2'
+
+		level 'Employee People Leader Person Display Name Level 3'
+			lineageTag: b653bd14-3239-4ada-86e5-a3cc5b15103c
+			column: 'Employee People Leader Person Display Name Level 3'
+
+		level 'Employee People Leader Person Display Name Level 4'
+			lineageTag: 6d30596d-1a14-4766-aa8c-c654a82b57be
+			column: 'Employee People Leader Person Display Name Level 4'
+
+		level 'Employee People Leader Person Display Name Level 5'
+			lineageTag: fb622be9-2c30-4130-a478-4a2772cea117
+			column: 'Employee People Leader Person Display Name Level 5'
+
+		level 'Employee People Leader Person Display Name Level 6'
+			lineageTag: a2e16e87-a597-4d93-a556-780dad3510e7
+			column: 'Employee People Leader Person Display Name Level 6'
+
+		level 'Employee People Leader Person Display Name Level 7'
+			lineageTag: 95ebe22e-5f95-46d4-91c4-57433483fda4
+			column: 'Employee People Leader Person Display Name Level 7'
+
+		level 'Employee People Leader Person Display Name Level 8'
+			lineageTag: c23bf19b-bd26-479c-8c64-e108b8e8b13d
+			column: 'Employee People Leader Person Display Name Level 8'
+
+		level 'Employee People Leader Person Display Name Level 9'
+			lineageTag: 239f19e8-93f2-4152-bcd2-78c93a15903b
+			column: 'Employee People Leader Person Display Name Level 9'
+
+	partition 'Dim Employee Hierarchy' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)    [dim_employee_key],#(lf)    [employee_people_leader_person_display_name_level_1],#(lf)    [employee_people_leader_person_display_name_level_2],#(lf)    [employee_people_leader_person_display_name_level_3],#(lf)    [employee_people_leader_person_display_name_level_4],#(lf)    [employee_people_leader_person_display_name_level_5],#(lf)    [employee_people_leader_person_display_name_level_6],#(lf)    [employee_people_leader_person_display_name_level_7],#(lf)    [employee_people_leader_person_display_name_level_8],#(lf)    [employee_people_leader_person_display_name_level_9]#(lf)FROM [edw].[vw_dim_employee_hierarchy]#(lf)WHERE DWHIsCurrent = 1 #(lf)AND dim_employee_key is not null;"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_))
+				in
+				    #"Transformed Column Names"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

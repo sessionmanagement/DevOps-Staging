@@ -1,0 +1,40 @@
+table Work_First_FTF_Activity_Contact
+	lineageTag: e411fe7f-01c9-45a2-8485-67b9b6640bdc
+
+	column 'Dim Tangata Whaiora Referral KEY'
+		formatString: 0
+		lineageTag: 07d891c9-b837-4a1d-b528-a71739ce2880
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Fact Tangata Whaiora Activity Breakdown[Dim Tangata Whaiora Referral KEY]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'First FTF Activity Date for Referral Date'
+		formatString: Short Date
+		lineageTag: 31719e14-fd6b-41bd-83f7-482c20dcdca9
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [First FTF Activity Date for Referral Date]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Work_First_FTF_Activity_Contact = calculated
+		mode: import
+		source =
+				
+				SUMMARIZE(
+				    'Fact Tangata Whaiora Activity Breakdown',
+				    'Fact Tangata Whaiora Activity Breakdown'[Dim Tangata Whaiora Referral KEY],
+				    "First FTF Activity Date for Referral Date",
+				    MINX(
+				        FILTER(
+				            'Fact Tangata Whaiora Activity Breakdown',
+				            RELATED('Dim Tangata Whaiora Activity Breakdown Type'[Tangata Whaiora Activity Breakdown Type Code]) = "FTF"
+				        ),
+				        RELATED('Dim TW Activity Start Date'[Activity Start Calendar Date])
+				    )
+				)
+
+	annotation PBI_Id = 77327d1e0b204f369e2dedc439e1ec31
+

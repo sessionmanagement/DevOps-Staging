@@ -1,0 +1,52 @@
+table mdl_facetoface_sessions
+	lineageTag: dfb1b767-2fd2-4544-b39c-7cb0defe03be
+
+	column id
+		dataType: int64
+		formatString: 0
+		lineageTag: 93723789-883f-4b8d-890f-8c6d0952bb21
+		summarizeBy: none
+		sourceColumn: id
+
+		annotation SummarizationSetBy = Automatic
+
+	column facetoface
+		dataType: int64
+		formatString: 0
+		lineageTag: 5a5ac1c7-0292-42ad-b237-fa4109d4160a
+		summarizeBy: none
+		sourceColumn: facetoface
+
+		annotation SummarizationSetBy = Automatic
+
+	partition mdl_facetoface_sessions-7ae20316-53b7-4db4-849a-5e5a52bca8ff = m
+		mode: import
+		queryGroup: Akoranga
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT [id] AS [id]#(lf)      ,[face_to_face] AS [facetoface]#(lf)      ,[capacity] AS [capacity]#(lf)      ,[allow_over_book] AS [allowoverbook]#(lf)      ,[wait_list_everyone] AS [waitlisteveryone]#(lf)      ,[details] AS [details]#(lf)      ,[normal_cost] AS [normalcost]#(lf)      ,[discount_cost] AS [discountcost]#(lf)      ,[allow_cancellations] AS [allowcancellations]#(lf)      ,[cancellation_cut_off] AS [cancellationcutoff]#(lf)      ,[time_created] AS [timecreated]#(lf)      ,[time_modified] AS [timemodified]#(lf)      ,[user_modified] AS [usermodified]#(lf)      ,[self_approval] AS [selfapproval]#(lf)      ,[min_capacity] AS [mincapacity]#(lf)      ,[cut_off] AS [cutoff]#(lf)      ,[send_capacity_email] AS [sendcapacityemail]#(lf)      ,[registration_time_start] AS [registrationtimestart]#(lf)      ,[registration_time_finish] AS [registrationtimefinish]#(lf)      ,[cancelled_status] AS [cancelledstatus]#(lf)      ,[ODSIsCurrent] AS [ODSIsCurrent]#(lf)      ,[ODSEffectiveFrom] AS [ODSEffectiveFrom]#(lf)      ,[ODSEffectiveTo] AS [ODSEffectiveTo]#(lf)      ,[ODSDMLOperation] AS [ODSDMLOperation]#(lf)      ,[ODSBatchId] AS [ODSBatchId]#(lf)      ,[ODSSourceSystem] AS [ODSSourceSystem]#(lf)  FROM [Akoranga].[mdl_facetoface_sessions]#(lf)  WHERE [ODSIsCurrent] = 1#(lf)  AND [ODSDMLOperation] <> 'D'#(lf)"]),
+				    // Selecting specific columns
+				    #"Removed Other Columns" = Table.SelectColumns(Source,{"id", "facetoface"}),
+				
+				    // Sorting rows by ID
+				    #"Sorted Rows" = Table.Sort(#"Removed Other Columns",{{"id", Order.Ascending}}),
+				
+				    // Removing duplicates
+				    #"Removed Duplicates" = Table.Distinct(#"Sorted Rows")
+				in
+				    #"Removed Duplicates"
+				
+				/*
+				let
+				    Source = PowerBI.Dataflows(null),
+				    #"3c01db72-9e98-4fb4-aa15-55049acf117e" = Source{[workspaceId="3c01db72-9e98-4fb4-aa15-55049acf117e"]}[Data],
+				    #"85c6f243-1766-4790-8734-9df2391a34dd" = #"3c01db72-9e98-4fb4-aa15-55049acf117e"{[dataflowId="85c6f243-1766-4790-8734-9df2391a34dd"]}[Data],
+				    #"totaraem_prod-totara mdl_facetoface_sessions1" = #"85c6f243-1766-4790-8734-9df2391a34dd"{[entity="totaraem_prod-totara mdl_facetoface_sessions"]}[Data]
+				in
+				    #"totaraem_prod-totara mdl_facetoface_sessions1"
+				*/
+
+	annotation PBI_QueryRelationships = {"columnCount":2,"keyColumnNames":[],"queryRelationships":[],"columnIdentities":["Section1/mdl_facetoface_sessions/totaraem_prod-totara mdl_facetoface_sessions1.{id,0}","Section1/mdl_facetoface_sessions/totaraem_prod-totara mdl_facetoface_sessions1.{facetoface,1}"],"ColumnCount":2,"KeyColumnNames":[],"ColumnIdentities":["Section1/mdl_facetoface_sessions/totaraem_prod-totara mdl_facetoface_sessions1.{id,0}","Section1/mdl_facetoface_sessions/totaraem_prod-totara mdl_facetoface_sessions1.{facetoface,1}"],"RelationshipInfo":[]}
+
+	annotation PBI_ResultType = Table
+

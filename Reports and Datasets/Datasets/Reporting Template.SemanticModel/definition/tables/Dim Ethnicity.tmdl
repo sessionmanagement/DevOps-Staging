@@ -1,0 +1,31 @@
+table 'Dim Ethnicity'
+	lineageTag: 9d605886-6faf-4fdb-879e-0c0f30d57744
+
+	column 'Ethnicity Group'
+		dataType: string
+		lineageTag: 3826b8b9-1cd1-43be-83e2-aece740c3ddf
+		summarizeBy: none
+		sourceColumn: Ethnicity Group
+
+		annotation SummarizationSetBy = Automatic
+
+	column Total
+		dataType: int64
+		formatString: 0
+		lineageTag: f062a997-2160-4f63-89cf-19a56dcc0a07
+		summarizeBy: sum
+		sourceColumn: Total
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Ethnicity' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WcizOTMxT0lEyMjZQitWJVnItLcovSAULmZhChHyPNOYXZQIFDI2gAq4+jo4gvpkpmO9fkpFapOBakpGXmZxZUgmSMTQEywQkJmemZSYrBKTmF+SkFgNlLMzAEqF5xQWpILnUFIX8IoXQvOy8/HKQpaYmSrGxAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Ethnicity Group" = _t, Total = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Ethnicity Group", type text}, {"Total", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,82 @@
+table 'Feedback Measures Table'
+	lineageTag: b2aad784-ccfb-4386-88fb-224813aecdbc
+
+	measure 'Total Feedback' = COUNTROWS('Feedback Register')
+		formatString: 0
+		lineageTag: 3b05b742-2514-4b6e-ab29-c27386361e3f
+
+	measure Complaints = CALCULATE([Total Feedback], 'Feedback Register'[Feedback Type]="Complaint")
+		formatString: 0
+		lineageTag: 79a459ed-373d-4053-8e3e-00be0b9bf1f4
+
+	measure Compliments = CALCULATE([Total Feedback], 'Feedback Register'[Feedback Type]="Compliment")
+		formatString: 0
+		lineageTag: fdb33968-caa9-4dc4-a983-87b3a06086f2
+
+	measure 'Other Feedback' = CALCULATE([Total Feedback], 'Feedback Register'[Feedback Type]="Other Feedback")
+		formatString: 0
+		lineageTag: 45b2b091-55b7-4cd8-8851-e9ab2c987d5a
+
+	measure 'Feedback Count LY' =
+			
+			CALCULATE(
+			    [Total Feedback],
+			    SAMEPERIODLASTYEAR('Dim Date'[Calendar Date])
+			)
+		formatString: 0
+		lineageTag: a65403d0-aef9-423f-a04d-5ef22e424af3
+
+	measure 'Feedback Count LM' =
+			
+			CALCULATE(
+			    [Total Feedback],
+			    PREVIOUSMONTH('Dim Date'[Calendar Date])
+			)
+		formatString: 0
+		lineageTag: c8c5a77e-5a1d-435c-867f-e277cd2326a8
+
+	measure 'Reporting Month' = MIN('Dim Date'[Calendar Date])
+		formatString: mmmm yyyy
+		lineageTag: 170669d9-0eef-4806-8c26-3b7e7b282ccd
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	measure DisplayMonthsInLineGraph =
+			
+			
+			VAR Offset = MAX('Dim Date'[Current Date Rolling Month Offset])
+			RETURN
+			    IF (
+			        Offset IN { -1, -2, -13 },
+			        1,
+			        0
+			    )
+		formatString: 0
+		lineageTag: e971a0b3-58a2-41ce-bd01-add14bd96e5e
+
+	measure 'Total Feedback - Label' =
+			
+			VAR Offset = SELECTEDVALUE('Dim Date'[Current Date Rolling Month Offset], BLANK())
+			RETURN
+			    IF (
+			        NOT ISBLANK(Offset) && Offset IN { -1, -2, -13 },
+			        [Total Feedback],
+			        BLANK()
+			    )
+		formatString: 0
+		lineageTag: eb0ad163-d35f-4b2d-b505-e3337abe095f
+
+	partition 'Feedback Measures Table' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

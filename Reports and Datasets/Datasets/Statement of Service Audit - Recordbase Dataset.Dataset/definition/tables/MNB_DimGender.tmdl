@@ -1,0 +1,65 @@
+table MNB_DimGender
+	lineageTag: 19b7322e-19f4-4d54-94eb-eea2fc358a4e
+
+	column CompanyIdentifier
+		dataType: string
+		lineageTag: 80d70bd0-31a0-401b-8bfd-8ad45dc66199
+		summarizeBy: none
+		sourceColumn: CompanyIdentifier
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderID
+		dataType: string
+		lineageTag: 185f8d37-5a34-4551-b694-b04aafc79378
+		summarizeBy: none
+		sourceColumn: GenderID
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderValue
+		dataType: string
+		lineageTag: f2e63f78-9ebf-4fa9-8d9b-5366eb2f64d2
+		summarizeBy: none
+		sourceColumn: GenderValue
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderText
+		dataType: string
+		lineageTag: da204ba4-b907-4864-8837-71d827446e98
+		summarizeBy: none
+		sourceColumn: GenderText
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderParentID
+		dataType: string
+		lineageTag: 3d1c2794-48d1-441d-a383-9fd9857f9b5a
+		summarizeBy: none
+		sourceColumn: GenderParentID
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderIsActive
+		dataType: int64
+		formatString: 0
+		lineageTag: 92fff636-aa5d-4417-bd4d-e6de73bfedd7
+		summarizeBy: sum
+		sourceColumn: GenderIsActive
+
+		annotation SummarizationSetBy = Automatic
+
+	partition MNB_DimGender-24af80bf-cc4a-4cfb-afd4-1617dfb363b8 = m
+		mode: import
+		queryGroup: MNB
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)'MNB' AS CompanyIdentifier,#(lf)CASE WHEN GenderID IS NOT NULL THEN CONCAT('M',GenderID) ELSE NULL END AS GenderID,#(lf)GenderValue,#(lf)GenderText,#(lf)CASE WHEN GenderParentID IS NOT NULL THEN CONCAT('M',GenderParentID) ELSE NULL END AS GenderParentID,#(lf)GenderIsActive#(lf)FROM RBMNB.[dlDimGender]"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

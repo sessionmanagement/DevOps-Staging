@@ -1,0 +1,257 @@
+table fact_pay_slips
+	lineageTag: c180c851-55f0-496b-b560-efafacd6e838
+
+	column pay_packet_row_id
+		dataType: string
+		lineageTag: b3c91b9f-d214-4803-85cb-bf20b15e0e7b
+		summarizeBy: none
+		sourceColumn: pay_packet_row_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column pay_packet_id
+		dataType: int64
+		formatString: 0
+		lineageTag: b2d7bc86-9f01-4d05-a800-1836cf77beb8
+		summarizeBy: sum
+		sourceColumn: pay_packet_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column employee_id
+		dataType: string
+		lineageTag: 6549ac5b-f4c0-4a9e-bf19-885bee5323cb
+		summarizeBy: none
+		sourceColumn: employee_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column employee_code
+		dataType: int64
+		formatString: 0
+		lineageTag: f99d580f-6da6-4664-a26e-fb0625172cac
+		summarizeBy: none
+		sourceColumn: employee_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column company_id
+		dataType: string
+		lineageTag: da63f8b2-f7ea-4461-b701-7cd6b0f317d8
+		summarizeBy: none
+		sourceColumn: company_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column jobs_id
+		dataType: string
+		lineageTag: 5d9988ef-13c6-4813-a675-670292838b7c
+		summarizeBy: none
+		sourceColumn: jobs_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column businessUnit_name
+		dataType: string
+		lineageTag: efa050bf-b1a7-4873-ba1b-9e7bbc0cc880
+		summarizeBy: none
+		sourceColumn: businessUnit_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column gross_name
+		dataType: string
+		lineageTag: d5d4b680-98e2-4f0e-b074-abf5333dbf9f
+		summarizeBy: none
+		sourceColumn: gross_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column gross_summary
+		dataType: string
+		lineageTag: 5aeaa3a3-5ec3-4a36-a22b-73a0c0ee1043
+		summarizeBy: none
+		sourceColumn: gross_summary
+
+		annotation SummarizationSetBy = Automatic
+
+	column Total_Hours
+		dataType: double
+		lineageTag: b50c5025-db2f-45f3-81fd-d30b68712a69
+		summarizeBy: sum
+		sourceColumn: Total_Hours
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column allocated_hours
+		dataType: double
+		lineageTag: be6e20d9-fd37-4b04-8276-c8e6d23e0313
+		summarizeBy: sum
+		sourceColumn: allocated_hours
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column pay_period_start_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: b6769627-c2f5-45b6-9f31-30abccfd249e
+		summarizeBy: none
+		sourceColumn: pay_period_start_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column pay_period_end_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: b4fe6a1e-bc19-46aa-9b43-ba8119f40855
+		summarizeBy: none
+		sourceColumn: pay_period_end_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column allocation_count
+		dataType: int64
+		formatString: 0
+		lineageTag: 78c536ec-734e-4d64-97dd-b1630871bc0d
+		summarizeBy: sum
+		sourceColumn: allocation_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column rn
+		dataType: int64
+		formatString: 0
+		lineageTag: 0cdb6f35-bc94-416f-b1ac-222cce4bc07d
+		summarizeBy: sum
+		sourceColumn: rn
+
+		annotation SummarizationSetBy = Automatic
+
+	column pay_packet_type
+		dataType: string
+		lineageTag: 996e8cac-1759-488e-9497-d9773902dfb6
+		summarizeBy: none
+		sourceColumn: pay_packet_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column OLD_home_costing_percentage
+		dataType: double
+		lineageTag: c9fe2c4d-3624-44c2-968c-639f89522dae
+		summarizeBy: sum
+		sourceColumn: OLD_home_costing_percentage
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column NEW_home_costing_percentage
+		dataType: double
+		lineageTag: 6c17cc77-4078-4a29-abe9-29aecafbab1c
+		summarizeBy: sum
+		sourceColumn: NEW_home_costing_percentage
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column deductions_name
+		dataType: string
+		lineageTag: 411a5382-d1eb-447c-8aed-dc9025be4199
+		summarizeBy: none
+		sourceColumn: deductions_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month = ```
+			
+			VAR Month1 = MONTH('fact_pay_slips'[pay_period_start_date])
+			
+			VAR Month2 = MONTH('fact_pay_slips'[pay_period_end_date])
+			
+			VAR EndMonth1 = EOMONTH('fact_pay_slips'[pay_period_start_date], 0)
+			VAR Month1Days = IF(Month1 <> Month2, DATEDIFF('fact_pay_slips'[pay_period_start_date], EndMonth1, DAY), 
+			                        DATEDIFF('fact_pay_slips'[pay_period_start_date], 'fact_pay_slips'[pay_period_end_date], DAY))
+			
+			VAR Month2Days = DAY('fact_pay_slips'[pay_period_end_date])
+			
+			RETURN
+			
+			IF(Month1 = Month2, FORMAT(DATE(1,Month1, 1), "MMMM"),
+			    IF(Month1Days >= Month2Days, 
+			            FORMAT(DATE(1, Month1, 1), "MMMM"), FORMAT(DATE(1,Month2, 1), "MMMM")) )
+			```
+		dataType: string
+		lineageTag: da2a410d-6e4e-4c8e-8273-faa203b21719
+		summarizeBy: none
+		sortByColumn: Month_No
+
+		changedProperty = DataType
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month_No = ```
+			
+			VAR Month1 = MONTH('fact_pay_slips'[pay_period_start_date])
+			
+			VAR Month2 = MONTH('fact_pay_slips'[pay_period_end_date])
+			
+			VAR EndMonth1 = EOMONTH('fact_pay_slips'[pay_period_start_date], 0)
+			VAR Month1Days = IF(Month1 <> Month2, DATEDIFF('fact_pay_slips'[pay_period_start_date], EndMonth1, DAY), 
+			                        DATEDIFF('fact_pay_slips'[pay_period_start_date], 'fact_pay_slips'[pay_period_end_date], DAY))
+			
+			VAR Month2Days = DAY('fact_pay_slips'[pay_period_end_date])
+			
+			RETURN
+			
+			IF(Month1 = Month2, Month1,
+			    IF(Month1Days >= Month2Days, 
+			            Month1,Month2 ) )
+			```
+		formatString: 0
+		lineageTag: 7074c0a5-0dca-4f48-948c-89d98a3354b5
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column FTE =
+			
+			DIVIDE('fact_pay_slips'[allocated_hours], 80)
+		lineageTag: 1b3915d1-0249-46a9-a90f-a6ae6d432118
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column IntellihrServiceID
+		dataType: string
+		lineageTag: 25b22a8c-6e4f-44f6-8212-9d32bed61812
+		summarizeBy: none
+		sourceColumn: IntellihrServiceID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_pay_slips = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="WITH JobsData AS (#(lf)SELECT e.id AS employee_id,#(lf)#(tab)#(tab)e.code AS employee_code,#(lf)#(tab)#(tab)e.company_id,#(lf)#(tab)#(tab)i.businessUnit_name,#(lf)#(tab)#(tab)i.businessUnit_id AS IntellihrServiceID,#(lf)#(tab)#(tab)i.jobs_id,#(lf)#(tab)#(tab)i.positionStartDate,#(lf)#(tab)#(tab)ROW_NUMBER() OVER(PARTITION BY e.id ORDER BY i.positionStartDate) AS JobNo#(lf)#(tab)FROM [DataPay].[employees] e#(lf)#(tab)LEFT JOIN [IntelliHR].[jobs] i ON e.code = i.person_employeeNumber#(lf)#(tab)WHERE #(lf)#(tab)e.ODSIsCurrent = 1 #(lf)#(tab)#(tab)GROUP BY e.id ,#(lf)#(tab)#(tab)e.code ,#(lf)#(tab)#(tab)e.company_id,#(lf)#(tab)#(tab)i.businessUnit_name,#(lf)#(tab)#(tab)i.businessUnit_id, #(lf)#(tab)#(tab)i.jobs_id,#(lf)#(tab)#(tab)i.positionStartDate#(lf)#(tab)#(tab)),#(lf)EmployeeData#(lf)AS (#(lf)SELECT #(lf)    employee_id,#(lf)    employee_code,#(lf)    company_id,#(lf)    businessUnit_name,#(lf)#(tab)IntellihrServiceID,#(lf)    jobs_id,#(lf)    CAST(positionStartDate AS DATE) AS PositionStartDate,#(lf)    JobNo,#(lf)#(tab)COALESCE(#(lf)        CAST(LEAD(positionStartDate) OVER (PARTITION BY employee_id ORDER BY JobNo) AS DATE),#(lf)        CAST(GETDATE() as DATE)#(lf)    ) AS PositionEndDate#(lf) #(lf)FROM #(lf)    JobsData#(lf)#(tab)),#(lf)#(lf)PaySlipData#(lf)AS (#(lf)#(tab)SELECT ps.pay_packet_id,#(lf)#(tab)#(tab)ps.employee_id,#(lf)#(tab)#(tab)ps.pay_period_start_date,#(lf)#(tab)#(tab)ps.pay_period_end_date,#(lf)#(tab)#(tab)ps.pay_packet_type#(lf)#(tab)FROM Datapay.pay_slips ps#(lf)#(tab)WHERE --ps.ODSIsCurrent = 1 AND#(lf)#(tab)#(tab) ps.pay_packet_type IN (#(lf)#(tab)#(tab)#(tab)'main',#(lf)#(tab)#(tab)#(tab)'manual'#(lf)#(tab)#(tab)#(tab))#(lf)#(tab)),#(lf)#(tab)GrossData#(tab)#(lf)AS (#(lf)SELECT DISTINCT psg.pay_packet_row_id,#(lf)#(tab)#(tab)psg.pay_packet_id,#(lf)#(tab)#(tab)psg.employee_id,#(lf)#(tab)#(tab)e.employee_code,#(lf)#(tab)#(tab)e.company_id,#(lf)#(tab)#(tab)e.jobs_id,#(lf)#(tab)#(tab)e.businessUnit_name,#(lf)#(tab)#(tab)e.IntellihrServiceID,#(lf)#(tab)#(tab)CASE #(lf)#(tab)#(tab)#(tab)WHEN psg.gross_name LIKE '%addtional%'#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'Additional Hours'#(lf)#(tab)#(tab)#(tab)ELSE psg.gross_name#(lf)#(tab)#(tab)#(tab)END AS gross_name,#(lf)#(tab)#(tab)ps.pay_period_start_date,#(lf)#(tab)#(tab)ps.pay_period_end_date,#(lf)#(tab)#(tab)ps.pay_packet_type,#(lf)#(tab)#(tab)#(tab)#(tab)psg.gross_summary,#(lf)#(tab)#(tab)TRY_CAST(LEFT(psg.gross_summary, CHARINDEX(' ', psg.gross_summary) - 1) AS DECIMAL(18, 8)) AS numeric_value,#(lf)#(tab)#(tab)CASE #(lf)#(tab)#(tab)#(tab)WHEN psg.gross_summary LIKE '%hours%'#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'hours'#(lf)#(tab)#(tab)#(tab)WHEN psg.gross_summary LIKE '%day%'#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'days'#(lf)#(tab)#(tab)#(tab)WHEN psg.gross_summary LIKE '%weeks%'#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'weeks'#(lf)#(tab)#(tab)#(tab)ELSE 'other'#(lf)#(tab)#(tab)#(tab)END AS unit_type,#(lf)#(tab)#(tab)ROW_NUMBER() OVER (#(lf)#(tab)#(tab)PARTITION BY psg.pay_packet_row_id ORDER BY psg.ODSEffectiveFrom desc#(lf)#(tab)#(tab)) AS duplicateRowID#(lf)#(tab)FROM Datapay.pay_slips_gross psg#(lf)#(tab)JOIN PaySlipData ps ON psg.pay_packet_id = ps.pay_packet_id#(lf)#(tab)JOIN EmployeeData e ON ps.employee_id = e.employee_id#(lf)#(tab)AND ps.pay_period_start_date <= e.PositionENDDate#(lf)#(tab)AND#(tab)ps.pay_period_end_date  >= e.PositionStartDate#(lf)#(tab)WHERE #(lf)#(tab)#(tab) psg.gross_name IN (#(lf)#(tab)#(tab)#(tab)'Addtional Hours',#(lf)#(tab)#(tab)#(tab)'Alternative Holiday Payment',#(lf)#(tab)#(tab)#(tab)'Annual Leave Payment',#(lf)#(tab)#(tab)#(tab)'Annual Leave Payment - Parental Rate',#(lf)#(tab)#(tab)#(tab)'Bereavement Leave Payment',#(lf)#(tab)#(tab)#(tab)'Birthday Leave Payment',#(lf)#(tab)#(tab)#(tab)'COVID-19 Leave Payment',#(lf)#(tab)#(tab)#(tab)'Cultural Contribution Payment',#(lf)#(tab)#(tab)#(tab)'Discretionary Leave Payment',#(lf)#(tab)#(tab)#(tab)'Discretionary Payment',#(lf)#(tab)#(tab)#(tab)'Disturbed Hours',#(lf)#(tab)#(tab)#(tab)'Domestic Violence Leave Payment',#(lf)#(tab)#(tab)#(tab)'In Lieu Of Notice - Extra Pay',#(lf)#(tab)#(tab)#(tab)'Long Service Leave Payment',#(lf)#(tab)#(tab)#(tab)'Meeting Hours',#(lf)#(tab)#(tab)#(tab)'Ordinary Pay',#(lf)#(tab)#(tab)#(tab)'Overtime x0.5',#(lf)#(tab)#(tab)#(tab)'Public Holiday Payment',#(lf)#(tab)#(tab)#(tab)'Sick Leave Payment',#(lf)#(tab)#(tab)#(tab)'Study Leave Payment',#(lf)#(tab)#(tab)#(tab)'Union Leave Payment',#(lf)#(tab)#(tab)#(tab)'Well Being Leave Payment'#(lf)#(tab)#(tab)#(tab)) #(lf)#(tab)#(tab)#(tab)),#(lf)GrossPayData#(lf)AS (#(lf)#(tab)SELECT  #(lf)#(tab)pay_packet_row_id,#(lf)#(tab)#(tab)pay_packet_id,#(lf)#(tab)#(tab)employee_id,#(lf)#(tab)#(tab)employee_code,#(lf)#(tab)#(tab)company_id,#(lf)#(tab)#(tab)jobs_id,#(lf)#(tab)#(tab)businessUnit_name,#(lf)#(tab)#(tab)IntellihrServiceID,#(lf)#(tab)#(tab)gross_name,#(lf)#(tab)#(tab)gross_summary,#(lf)#(tab)#(tab)numeric_value,#(lf)#(tab)#(tab)unit_type,#(lf)#(tab)#(tab)pay_period_start_date,#(lf)#(tab)#(tab)pay_period_end_date,#(lf)#(tab)#(tab)pay_packet_type,#(lf)#(tab)#(tab)NULL AS home_costing_percentage,#(lf)#(tab)#(tab) 'Primary Cost Center' AS allocation_type#(lf)#(tab)FROM GrossData gd#(lf)#(tab) WHERE duplicateRowID = 1#(lf)#(tab)),#(lf)PaySlipAllocations#(lf)AS (#(lf)#(tab)SELECT #(lf)#(tab)psg.pay_packet_row_id,#(lf)#(tab)#(tab)ps.pay_packet_id,#(lf)#(tab)#(tab)e.id AS employee_id,#(lf)#(tab)#(tab)e.code AS employee_code,#(lf)#(tab)#(tab)ca.home_cost_box_division AS company_id,#(lf)#(tab)#(tab)ca.home_cost_box_sub_department_code AS jobs_id,#(lf)#(tab)#(tab)ib.name AS businessUnit_name,#(lf)#(tab)#(tab)ib.business_unit_id AS IntellihrServiceID,#(lf)#(tab)#(tab)psg.gross_name,#(lf)#(tab)#(tab)psg.gross_summary,#(lf)#(tab)#(tab)TRY_CAST(LEFT(psg.gross_summary, CHARINDEX(' ', psg.gross_summary) - 1) AS DECIMAL(18, 8)) AS numeric_value,#(lf)#(tab)#(tab)CASE #(lf)#(tab)#(tab)#(tab)WHEN psg.gross_summary LIKE '%hours%'#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'hours'#(lf)#(tab)#(tab)#(tab)WHEN psg.gross_summary LIKE '%day%'#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'days'#(lf)#(tab)#(tab)#(tab)WHEN psg.gross_summary LIKE '%weeks%'#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'weeks'#(lf)#(tab)#(tab)#(tab)ELSE 'other'#(lf)#(tab)#(tab)#(tab)END AS unit_type,#(lf)#(tab)#(tab)ps.pay_period_start_date,#(lf)#(tab)#(tab)ps.pay_period_end_date,#(lf)#(tab)    ps.pay_packet_type,#(lf)#(tab)#(tab)ca.home_costing_percentage,#(lf)#(tab)#(tab) 'Allocated Cost Center' AS allocation_type#(lf)#(tab)FROM Datapay.employees e#(lf)#(tab)JOIN Datapay.pay_slips ps ON e.id = ps.employee_id#(lf)#(tab)JOIN Datapay.pay_slips_gross psg ON ps.pay_packet_id = psg.pay_packet_id#(lf)#(tab)RIGHT JOIN [Datapay].[cost_allocations] ca ON e.code = ca.employee_code#(lf)#(tab)AND ps.pay_period_start_date <= ca.ODSEffectiveTo#(lf)#(tab)AND ps.pay_period_end_date >= ca.ODSEffectiveFrom#(lf)#(tab)LEFT JOIN  [IntelliHR].[business_unit] ib ON ca.net_home_cost_box_sub_department_code = ib.code#(lf)#(tab)WHERE e.ODSIsCurrent = 1#(lf)#(tab)#(tab)--AND ps.ODSIsCurrent = 1#(lf)#(tab)#(tab)AND ps.pay_packet_type = 'Main'#(lf)#(tab)#(tab)--AND psg.ODSIsCurrent = 1#(lf)#(tab)#(tab)AND psg.gross_name IN (#(lf)#(tab)#(tab)#(tab)'Addtional Hours',#(lf)#(tab)#(tab)#(tab)'Alternative Holiday Payment',#(lf)#(tab)#(tab)#(tab)'Annual Leave Payment',#(lf)#(tab)#(tab)#(tab)'Annual Leave Payment - Parental Rate',#(lf)#(tab)#(tab)#(tab)'Bereavement Leave Payment',#(lf)#(tab)#(tab)#(tab)'Birthday Leave Payment',#(lf)#(tab)#(tab)#(tab)'COVID-19 Leave Payment',#(lf)#(tab)#(tab)#(tab)'Cultural Contribution Payment',#(lf)#(tab)#(tab)#(tab)'Discretionary Leave Payment',#(lf)#(tab)#(tab)#(tab)'Discretionary Payment',#(lf)#(tab)#(tab)#(tab)'Disturbed Hours',#(lf)#(tab)#(tab)#(tab)'Domestic Violence Leave Payment',#(lf)#(tab)#(tab)#(tab)'In Lieu Of Notice - Extra Pay',#(lf)#(tab)#(tab)#(tab)'Long Service Leave Payment',#(lf)#(tab)#(tab)#(tab)'Meeting Hours',#(lf)#(tab)#(tab)#(tab)'Ordinary Pay',#(lf)#(tab)#(tab)#(tab)'Overtime x0.5',#(lf)#(tab)#(tab)#(tab)'Public Holiday Payment',#(lf)#(tab)#(tab)#(tab)'Sick Leave Payment',#(lf)#(tab)#(tab)#(tab)'Study Leave Payment',#(lf)#(tab)#(tab)#(tab)'Union Leave Payment',#(lf)#(tab)#(tab)#(tab)'Well Being Leave Payment'#(lf)#(tab)#(tab)#(tab))#(lf)),#(lf)JOINED #(lf)AS (#(lf)#(tab)SELECT * FROM GrossPayData #(lf)#(tab)UNION#(lf)#(tab)SELECT * FROM PaySlipAllocations  #(lf)#(tab)#(lf)#(tab)),#(lf)HoursConversion#(lf)AS (#(lf)#(tab)SELECT #(lf)#(tab)#(tab)jd.pay_packet_row_id,#(lf)#(tab)#(tab)jd.pay_packet_id,#(lf)#(tab)#(tab)jd.employee_id,#(lf)#(tab)#(tab)jd.employee_code,#(lf)#(tab)#(tab)jd.company_id,#(lf)#(tab)#(tab)jd.jobs_id,#(lf)#(tab)#(tab)jd.businessUnit_name,#(lf)#(tab)#(tab)jd.IntellihrServiceID,#(lf)#(tab)#(tab)jd.gross_name,#(lf)#(tab)#(tab)jd.gross_summary,#(lf)#(tab)#(tab)CASE #(lf)#(tab)#(tab)#(tab)WHEN jd.unit_type = 'hours'#(lf)#(tab)#(tab)#(tab)#(tab)THEN jd.numeric_value#(lf)#(tab)#(tab)#(tab)WHEN jd.unit_type = 'days'#(lf)#(tab)#(tab)#(tab)#(tab)THEN jd.numeric_value * 8#(lf)#(tab)#(tab)#(tab)WHEN jd.unit_type = 'weeks'#(lf)#(tab)#(tab)#(tab)#(tab)THEN jd.numeric_value * 40#(lf)#(tab)#(tab)#(tab)ELSE 0#(lf)#(tab)#(tab)#(tab)END AS Total_Hours,#(lf)#(tab)#(tab)jd.pay_period_start_date,#(lf)#(tab)#(tab)jd.pay_period_end_date,#(lf)#(tab)#(tab)COUNT(*) OVER (PARTITION BY jd.pay_packet_row_id) AS allocation_count,#(lf)#(tab)#(tab)ROW_NUMBER() OVER (#(lf)#(tab)#(tab)PARTITION BY jd.pay_packet_row_id ORDER BY jd.home_costing_percentage#(lf)#(tab)#(tab)) AS rn,#(lf)#(tab)#(tab)jd.pay_packet_type,#(lf)#(tab)#(tab)jd.home_costing_percentage AS OLD_home_costing_percentage,#(lf)#(tab)#(tab)CASE #(lf)#(tab)#(tab)#(tab)WHEN jd.home_costing_percentage is null #(lf)#(tab)#(tab)#(tab)#(tab)THEN 1 - SUM (home_costing_percentage) OVER (PARTITION BY jd.pay_packet_row_id)#(lf)#(tab)#(tab)#(tab)ELSE jd.home_costing_percentage#(lf)#(tab)#(tab)#(tab)END AS NEW_home_costing_percentage,#(lf)#(tab)#(tab)'PAYE' AS deductions_name,#(lf)#(tab)#(tab)jd.allocation_type#(lf)#(tab)FROM Joined jd#(lf)#(tab))#(lf)#(lf)SELECT #(lf)#(tab)pay_packet_row_id,#(lf)#(tab)pay_packet_id,#(lf)#(tab)employee_id,#(lf)#(tab)employee_code,#(lf)#(tab)company_id,#(lf)#(tab)jobs_id,#(lf)#(tab)businessUnit_name,#(lf)#(tab)IntellihrServiceID,#(lf)#(tab)gross_name,#(lf)#(tab)gross_summary,#(lf)#(tab)Total_Hours,#(lf)#(tab)COALESCE(Total_Hours * NEW_home_costing_percentage, CASE #(lf)#(tab)#(tab)#(tab)WHEN rn = 1#(lf)#(tab)#(tab)#(tab)#(tab)THEN Total_Hours#(lf)#(tab)#(tab)#(tab)ELSE 0#(lf)#(tab)#(tab)#(tab)END) AS allocated_hours,#(lf)#(tab)#(lf)#(tab)pay_period_start_date,#(lf)#(tab)pay_period_end_date,#(lf)#(tab)allocation_count,#(lf)#(tab)rn,#(lf)#(tab)pay_packet_type,#(lf)#(tab)OLD_home_costing_percentage,#(lf)#(tab)NEW_home_costing_percentage,#(lf)#(tab)deductions_name#(lf)FROM HoursConversion#(lf)#(lf);"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{ {"pay_period_start_date", type date}, {"pay_period_end_date", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

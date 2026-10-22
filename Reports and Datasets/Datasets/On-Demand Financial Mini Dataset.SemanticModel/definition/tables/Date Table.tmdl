@@ -1,0 +1,92 @@
+/// Overarching Date Dimension table
+table 'Date Table'
+	lineageTag: 2da1d5fb-615f-4520-8c14-7d24716a7103
+	dataCategory: Time
+
+	column 'Dim Date KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 2145819e-9d03-4dee-a553-d9030c0517e8
+		summarizeBy: none
+		sourceColumn: Dim Date KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Date'
+		dataType: dateTime
+		isKey
+		formatString: dd/mm/yyyy
+		lineageTag: a3cdb546-34e7-44a0-ac08-9bd008adc48a
+		summarizeBy: none
+		sourceColumn: Calendar Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column 'Calendar Year Month'
+		dataType: string
+		lineageTag: 7353c603-95d1-41d9-8988-abf860658ea1
+		summarizeBy: none
+		sourceColumn: Calendar Year Month
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Year'
+		dataType: int64
+		formatString: 0
+		lineageTag: cf4d4e43-3809-4783-9452-f0533cb217ad
+		summarizeBy: none
+		sourceColumn: Calendar Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Financial Year'
+		dataType: string
+		lineageTag: 9e8d99b0-4f4b-4ff1-a36b-a081a67a09fe
+		summarizeBy: none
+		sourceColumn: Financial Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Financial Year Period'
+		dataType: string
+		lineageTag: bf8b10d3-3251-4103-8112-a8b94af14c87
+		summarizeBy: none
+		sourceColumn: Financial Year Period
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Date Table' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(Server, Database),
+				    edw_dim_date = Source{[Schema="edw",Item="vw_dim_date"]}[Data],
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            capitaliseWords = Text.Proper(replaceUnderscore),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY")
+				        in
+				            capitaliseKEY,
+				    #"Transformed Column Names" = Table.TransformColumnNames(edw_dim_date, each ApplyNamingConventions(_)),
+				    #"Removed Columns" = Table.RemoveColumns(#"Transformed Column Names",{"Dwhsourcesystem", "Dwhcreatedat", "Dwhbatchid"}),
+				    #"Add Offset column" = Table.AddColumn(#"Removed Columns", "Offset Date", each if[Calendar Date] <= Date.From(DateTime.LocalNow()) then 1 else 0),
+				    #"Removed Other Columns" = Table.SelectColumns(#"Add Offset column",{"Dim Date KEY", "Calendar Date", "Calendar Year Month", "Calendar Year", "Financial Year Num", "Financial Year Month"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Other Columns",{{"Financial Year Num", "Financial Year"}, {"Financial Year Month", "Financial Year Period"}}),
+				    #"Filtered Rows" = Table.SelectRows(#"Renamed Columns", each ([Dim Date KEY] <> 19000101))
+				in
+				    #"Filtered Rows"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

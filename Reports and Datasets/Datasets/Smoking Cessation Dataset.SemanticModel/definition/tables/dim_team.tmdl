@@ -1,0 +1,100 @@
+table dim_team
+	lineageTag: eb035453-44b4-4f45-bd59-da8b9d1fa2d3
+
+	column Company
+		dataType: string
+		lineageTag: 50e9d7e1-9d63-4727-931d-dd2882fe761a
+		summarizeBy: none
+		sourceColumn: Company
+
+		annotation SummarizationSetBy = Automatic
+
+	column AreaName
+		dataType: string
+		lineageTag: 777bac06-dcfc-4125-a2a0-66b73a2206b9
+		summarizeBy: none
+		sourceColumn: AreaName
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamName
+		dataType: string
+		lineageTag: 882be430-ee63-4dd4-8cd0-88ddf1ce16aa
+		summarizeBy: none
+		sourceColumn: TeamName
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamKey
+		dataType: string
+		lineageTag: 4ba3e6fd-fddc-4ed1-828c-5b4c1723f0df
+		summarizeBy: none
+		sourceColumn: TeamKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamID
+		dataType: int64
+		formatString: 0
+		lineageTag: 9962862a-c449-448a-bc2d-8651c3bf75ec
+		summarizeBy: count
+		sourceColumn: TeamID
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamStatus
+		dataType: string
+		lineageTag: b5457078-5513-4255-8626-5d2e177ea25b
+		summarizeBy: none
+		sourceColumn: TeamStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionName
+		dataType: string
+		lineageTag: 88c24a8e-b48d-49f7-a0c8-c60ad77cfcb5
+		summarizeBy: none
+		sourceColumn: TeamFunctionName
+
+		annotation SummarizationSetBy = Automatic
+
+	column AreaParentName
+		dataType: string
+		lineageTag: a3ee19d1-a4a4-450f-b71b-595bfcd4cfc2
+		summarizeBy: none
+		sourceColumn: AreaParentName
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'Company Hierarchy'
+		lineageTag: 8cb81790-cf7c-4d28-bbd6-293e283b2e9a
+
+		level 'Team Status'
+			lineageTag: 17f62b07-7b47-45bb-a9ad-a39fc81024b1
+			column: TeamStatus
+
+		level Company
+			lineageTag: bd934ed9-46e9-4b1e-a902-902ab8c0db40
+			column: Company
+
+		level 'Area Name'
+			lineageTag: b6775ea2-3df4-4e42-92bc-564eabbd30f1
+			column: AreaName
+
+		level 'Team Name'
+			lineageTag: 86e83c5f-36c9-4637-b5b5-375494a08d00
+			column: TeamName
+
+	partition dim_team-755c0a9d-cd1b-42c8-bedb-4b793bd3bf9c = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="-- ============================================================#(lf)-- Model:  Smoking Cessation Dataset#(lf)-- Table:  dim_team#(lf)-- Source: native query (complex CTE/window) - emitted in full#(lf)-- Used columns: 5 (mapped 5, unmapped 0)  [full query, not trimmed]#(lf)-- Auto-generated from pbi_complete_dump.csv + model M + EDW/ODS schema.#(lf)-- Review before use; verify joins/filters against the model.#(lf)-- ============================================================#(lf)-- USED model columns: AreaName; Company; TeamKey; TeamName; TeamStatus#(lf)#(lf)SELECT 'EAL' AS Company,#(lf)#(tab)dtf.TeamFunctionName,#(lf)#(tab)Parent.AreaParentName,#(lf)#(tab)Area.AreaName,#(lf)#(tab)TeamName,#(lf)#(tab)'E' + CAST(TeamID AS VARCHAR(10)) AS TeamKey,#(lf)#(tab)TeamID,#(lf)#(tab)CASE WHEN TeamEndDate IS NOT NULL THEN 'Closed' ELSE 'Open' END AS TeamStatus#(lf)FROM RBEAL.dlDimTeam dt#(lf)INNER JOIN [RBEAL].[dlDimTeamFunction] dtf#(lf)#(tab)ON dt.TeamFunctionID = dtf.TeamFunctionID#(lf)LEFT OUTER JOIN (#(lf)#(tab)SELECT AreaID,#(lf)#(tab)#(tab)AreaParentID,#(lf)#(tab)#(tab)AreaName#(lf)#(tab)FROM RBEAL.dlDimArea#(lf)#(tab)) AS Area#(lf)#(tab)ON Area.AreaID = dt.AreaID#(lf)LEFT OUTER JOIN (#(lf)#(tab)SELECT 0 AS AreaID,#(lf)#(tab)#(tab)'N/A' AS AreaParentName#(lf)#(tab)#(lf)#(tab)UNION#(lf)#(tab)#(lf)#(tab)SELECT AreaID,#(lf)#(tab)#(tab)AreaName#(lf)#(tab)FROM RBEAL.dlDimArea da#(lf)#(tab)WHERE AreaID IN (#(lf)#(tab)#(tab)#(tab)SELECT DISTINCT AreaParentID#(lf)#(tab)#(tab)#(tab)FROM RBEAL.dlDimArea#(lf)#(tab)#(tab)#(tab))#(lf)#(tab)) AS Parent#(lf)#(tab)ON Parent.AreaID = Area.AreaParentID#(lf)#(lf)UNION ALL#(lf)#(lf)SELECT 'MNB' AS Company,#(lf)#(tab)dtf.TeamFunctionName,#(lf)#(tab)Parent.AreaParentName,#(lf)#(tab)Area.AreaName,#(lf)#(tab)TeamName,#(lf)#(tab)'M' + CAST(TeamID AS VARCHAR(10)) AS TeamKey,#(lf)#(tab)TeamID,#(lf)#(tab)CASE WHEN TeamEndDate IS NOT NULL THEN 'Closed' ELSE 'Open' END AS TeamStatus#(lf)FROM RBMNB.dlDimTeam dt#(lf)INNER JOIN [RBMNB].[dlDimTeamFunction] dtf#(lf)#(tab)ON dt.TeamFunctionID = dtf.TeamFunctionID#(lf)LEFT OUTER JOIN (#(lf)#(tab)SELECT AreaID,#(lf)#(tab)#(tab)AreaParentID,#(lf)#(tab)#(tab)AreaName#(lf)#(tab)FROM RBMNB.dlDimArea#(lf)#(tab)) AS Area#(lf)#(tab)ON Area.AreaID = dt.AreaID#(lf)LEFT OUTER JOIN (#(lf)#(tab)SELECT 0 AS AreaID,#(lf)#(tab)#(tab)'MNB' AS AreaParentName#(lf)#(tab)#(lf)#(tab)UNION#(lf)#(tab)#(lf)#(tab)SELECT AreaID,#(lf)#(tab)#(tab)AreaName#(lf)#(tab)FROM RBMNB.dlDimArea da#(lf)#(tab)WHERE AreaID IN (#(lf)#(tab)#(tab)#(tab)SELECT DISTINCT AreaParentID#(lf)#(tab)#(tab)#(tab)FROM RBMNB.dlDimArea#(lf)#(tab)#(tab)#(tab))#(lf)#(tab)) AS Parent#(lf)#(tab)ON Parent.AreaID = Area.AreaParentID#(lf)#(lf)UNION#(lf)#(lf)SELECT 'Unknown',#(lf)#(tab)'Unknown',#(lf)#(tab)'Unknown',#(lf)#(tab)'Unknown',#(lf)#(tab)'Unknown',#(lf)#(tab)'0',#(lf)#(tab)-1,#(lf)#(tab)'Open'#(lf)ORDER BY 1,#(lf)#(tab)2,#(lf)#(tab)3,#(lf)#(tab)4;#(lf)"]),
+				    #"Sorted Rows" = Table.Sort(Source,{{"TeamKey", Order.Ascending}})
+				in
+				    #"Sorted Rows"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

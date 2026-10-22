@@ -1,0 +1,74 @@
+table fact_distance_by_driver
+	lineageTag: 89482fa5-8c97-4029-934b-46939f39bab8
+
+	column dim_driver_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 2ac783e1-424a-4440-82d5-6b9e6250708c
+		summarizeBy: none
+		sourceColumn: dim_driver_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column start_date
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 1ac043de-6d78-4e1b-aa76-6cbb360b9c3b
+		summarizeBy: none
+		sourceColumn: start_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column offroad_meters
+		dataType: double
+		lineageTag: ec1b0acd-1eae-4792-867f-2c97efd63047
+		summarizeBy: sum
+		sourceColumn: offroad_meters
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column onroad_meters
+		dataType: double
+		lineageTag: 2fc5afa0-6a3a-446e-b2c8-66675a41ad85
+		summarizeBy: sum
+		sourceColumn: onroad_meters
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column total_meters = fact_distance_by_driver[offroad_meters] + fact_distance_by_driver[onroad_meters]
+		lineageTag: 3f6ad9ca-1c49-4f61-ad0c-5427ef21a04d
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column total_kilometers = (fact_distance_by_driver[offroad_meters] + fact_distance_by_driver[onroad_meters])/1000
+		lineageTag: c0c23c26-d096-4c3b-b706-336555dabd1d
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition fact_distance_by_driver = m
+		mode: import
+		queryGroup: Facts
+		source =
+				let
+				    Source = fact_trip_summary,
+				    #"Removed Other Columns" = Table.SelectColumns(Source,{"dim_driver_key", "start_date", "distance_meters_offroad", "distance_meters"}),
+				    #"Grouped Rows" = Table.Group(#"Removed Other Columns", {"dim_driver_key", "start_date"}, {{"offroad_meters", each List.Sum([distance_meters_offroad]), type nullable number}, {"onroad_meters", each List.Sum([distance_meters]), type nullable number}})
+				in
+				    #"Grouped Rows"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

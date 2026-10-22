@@ -1,0 +1,62 @@
+table dim_gender
+	lineageTag: acdc2695-f943-45ff-9777-7a337b849ce5
+
+	column CompanyIdentifier
+		dataType: string
+		lineageTag: 658e17c7-bfd1-40eb-9607-ce1184afd5d8
+		summarizeBy: none
+		sourceColumn: CompanyIdentifier
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderID
+		dataType: string
+		lineageTag: 17dd5243-62a3-4d01-8118-b65d15eaff1f
+		summarizeBy: none
+		sourceColumn: GenderID
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderValue
+		dataType: string
+		lineageTag: f89fa621-238a-4a3e-9ce6-ab39f0dcb354
+		summarizeBy: none
+		sourceColumn: GenderValue
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderText
+		dataType: string
+		lineageTag: d5067085-02d0-4f40-ab17-a299a7809f93
+		summarizeBy: none
+		sourceColumn: GenderText
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderParentID
+		dataType: string
+		lineageTag: 1552ead2-94f2-4a22-9ff0-3be9a454fb92
+		summarizeBy: none
+		sourceColumn: GenderParentID
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderIsActive
+		dataType: int64
+		formatString: 0
+		lineageTag: 1ff7b50a-25da-4462-92ef-75310505323a
+		summarizeBy: sum
+		sourceColumn: GenderIsActive
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_gender-09c02345-6e8a-4608-9dd5-3c6ac28633a5 = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT#(lf)'MNB' AS CompanyIdentifier,#(lf)CASE WHEN GenderID IS NOT NULL THEN CONCAT('M',GenderID) ELSE NULL END AS GenderID,#(lf)GenderValue,#(lf)GenderText,#(lf)CASE WHEN GenderParentID IS NOT NULL THEN CONCAT('M',GenderParentID) ELSE NULL END AS GenderParentID,#(lf)GenderIsActive#(lf)FROM [RBMNB].[dlDimGender]#(lf)#(lf)UNION ALL#(lf)#(lf)SELECT#(lf)'EAL' AS CompanyIdentifier,#(lf)CASE WHEN GenderID IS NOT NULL THEN CONCAT('E',GenderID) ELSE NULL END AS GenderID,#(lf)GenderValue,#(lf)GenderText,#(lf)CASE WHEN GenderParentID IS NOT NULL THEN CONCAT('E',GenderParentID) ELSE NULL END AS GenderParentID,#(lf)GenderIsActive#(lf)FROM [RBEAL].[dlDimGender]"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+

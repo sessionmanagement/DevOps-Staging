@@ -1,0 +1,145 @@
+table 'Speed and Trip Sample (Trip Summaries)'
+	lineageTag: 9230dd54-c712-4b79-b881-15df248d1984
+
+	column 'Asset Name'
+		dataType: string
+		lineageTag: 887902ea-b1b4-412f-92f1-b1da14968c89
+		summarizeBy: none
+		sourceColumn: Asset Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Trip Start Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 24deb605-933c-4672-93e2-b460c52f2150
+		summarizeBy: none
+		sourceColumn: Trip Start Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Start Time'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 2bcdf9c7-f7f9-4a99-96ff-b1a7ddacaaef
+		summarizeBy: none
+		sourceColumn: Start Time
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Trip End Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: b36f2800-bd42-487f-beda-745071627f0d
+		summarizeBy: none
+		sourceColumn: Trip End Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'End Time'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 10ab559f-5c8e-4414-9dbe-4267b8e4f9f7
+		summarizeBy: none
+		sourceColumn: End Time
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'KM Within Tolerance'
+		dataType: double
+		lineageTag: 74624bf0-b1ab-4bec-ae8e-38a8e3154e2e
+		summarizeBy: sum
+		sourceColumn: KM Within Tolerance
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column '1km/h - 9km/h Over'
+		dataType: double
+		lineageTag: 43ada690-3ddb-4d5d-846b-2fa83b9f2793
+		summarizeBy: sum
+		sourceColumn: 1km/h - 9km/h Over
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column '10km/h - 19km/h Over'
+		dataType: double
+		lineageTag: 5b740455-d87e-4957-ba0a-5d582bd808b9
+		summarizeBy: sum
+		sourceColumn: 10km/h - 19km/h Over
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column '20km/h - 29km/h Over'
+		dataType: double
+		lineageTag: 1a36e6d1-e226-4a7c-ab64-3f09bca4cf3b
+		summarizeBy: sum
+		sourceColumn: 20km/h - 29km/h Over
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column '30km/h - 34km/h Over'
+		dataType: int64
+		formatString: 0
+		lineageTag: 646ba770-906c-456e-b593-1a2bb90f1609
+		summarizeBy: sum
+		sourceColumn: 30km/h - 34km/h Over
+
+		annotation SummarizationSetBy = Automatic
+
+	column '35km/h - 40km/h Over'
+		dataType: int64
+		formatString: 0
+		lineageTag: 4dd597f4-fbd0-428e-b159-a27f49b46f8a
+		summarizeBy: sum
+		sourceColumn: 35km/h - 40km/h Over
+
+		annotation SummarizationSetBy = Automatic
+
+	column '41km/h+ Over'
+		dataType: int64
+		formatString: 0
+		lineageTag: 3098895b-d08c-4637-919f-4db801d45add
+		summarizeBy: sum
+		sourceColumn: 41km/h+ Over
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Total (km)'
+		dataType: double
+		lineageTag: 51db80c8-9f87-4fe1-9aa6-0a0e3b649bd3
+		summarizeBy: sum
+		sourceColumn: Total (km)
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Speed and Trip Sample (Trip Summaries)' = m
+		mode: import
+		queryGroup: 'Excel Spreadsheets'
+		source =
+				let
+				    Source = SharePoint.Files("https://emergeaotearoaltd.sharepoint.com/sites/DRCollaboration/", [ApiVersion = 15]),
+				    #"Filtered Rows" = Table.SelectRows(Source, each Text.Contains([Name], "20240710") or Text.Contains([Name], "20240730")),
+				    #"Filtered Rows1" = Table.SelectRows(#"Filtered Rows", each ([Name] = "Speed and Trip Sample 20240710.xlsx")),
+				    #"Speed and Trip Sample 20240710 xlsx_https://emergeaotearoaltd sharepoint com/sites/DRCollaboration/Shared Documents/General/Power BI Report/Tapui Waka/Sample Data/" = #"Filtered Rows1"{[Name="Speed and Trip Sample 20240710.xlsx",#"Folder Path"="https://emergeaotearoaltd.sharepoint.com/sites/DRCollaboration/Shared Documents/General/Power BI Report/Tapui Waka/Sample Data/"]}[Content],
+				    #"Imported Excel Workbook" = Excel.Workbook(#"Speed and Trip Sample 20240710 xlsx_https://emergeaotearoaltd sharepoint com/sites/DRCollaboration/Shared Documents/General/Power BI Report/Tapui Waka/Sample Data/"),
+				    #"Trip Summaries_Sheet" = #"Imported Excel Workbook"{[Item="Trip Summaries",Kind="Sheet"]}[Data],
+				    #"Removed Top Rows" = Table.Skip(#"Trip Summaries_Sheet",1),
+				    #"Promoted Headers" = Table.PromoteHeaders(#"Removed Top Rows", [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"Asset Name", type text}, {"Trip Start Date", type datetime}, {"Start Time", type datetime}, {"Trip End Date", type datetime}, {"End Time", type datetime}, {"KM Within Tolerance", type number}, {"1km/h - 9km/h Over", type number}, {"10km/h - 19km/h Over", type number}, {"20km/h - 29km/h Over", type number}, {"30km/h - 34km/h Over", Int64.Type}, {"35km/h - 40km/h Over", Int64.Type}, {"41km/h+ Over", Int64.Type}, {"Total (km)", type number}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

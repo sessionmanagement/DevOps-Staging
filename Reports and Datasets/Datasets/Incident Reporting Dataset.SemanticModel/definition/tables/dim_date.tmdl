@@ -1,0 +1,857 @@
+table dim_date
+	lineageTag: 93785878-4e2b-4067-9dd1-b4c51db1a0d0
+
+	measure 'Tenancy Length'
+		lineageTag: 1ed4f938-4bb0-40e5-9e82-b41dfd91b58c
+
+	column calendar_date
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 4bc8699d-b051-4211-b64e-627a23a466aa
+		summarizeBy: none
+		sourceColumn: calendar_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column calendar_day_in_week_num
+		dataType: int64
+		formatString: 0
+		lineageTag: 13c2cd9d-1d3b-4fcd-b01f-027aa170f224
+		summarizeBy: none
+		sourceColumn: calendar_day_in_week_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_first_day_of_week_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 27ade6f1-e981-4bf5-99a9-6aa5e260f5af
+		summarizeBy: none
+		sourceColumn: calendar_first_day_of_week_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_month_num
+		dataType: int64
+		formatString: 0
+		lineageTag: 029c9c98-fb6d-45f4-943f-4fd6aff99ac6
+		summarizeBy: none
+		sourceColumn: calendar_month_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_month_name_long
+		dataType: string
+		lineageTag: 82d0c3a8-d210-4beb-aff5-b49a6d3d31da
+		summarizeBy: none
+		sourceColumn: calendar_month_name_long
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_month_name_short
+		dataType: string
+		lineageTag: 8a32d523-fa3a-4db6-b0d2-3d3899632f28
+		summarizeBy: none
+		sourceColumn: calendar_month_name_short
+		sortByColumn: calendar_month_num
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_year_month
+		dataType: string
+		lineageTag: aac967e2-e427-4577-a5cd-1d1fe98a30b2
+		summarizeBy: none
+		sourceColumn: calendar_year_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_first_day_of_month_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: eb37ed1a-fdec-47cd-a086-875a86ff01fe
+		summarizeBy: none
+		sourceColumn: calendar_first_day_of_month_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_last_day_of_month_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 1da70633-c3ea-4ac9-b8bd-4e29ea02957e
+		summarizeBy: none
+		sourceColumn: calendar_last_day_of_month_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_quarter_full
+		dataType: string
+		lineageTag: 4c80c411-4764-402a-a637-c5b2be296ad7
+		summarizeBy: none
+		sourceColumn: calendar_quarter_full
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_year
+		dataType: int64
+		formatString: 0
+		lineageTag: 0077d0ad-9576-43d8-bf3b-d5eceaa1b39d
+		summarizeBy: none
+		sourceColumn: calendar_year
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_first_day_of_year_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 43807659-2958-4fb0-bbdd-dc92fa447ce1
+		summarizeBy: none
+		sourceColumn: financial_first_day_of_year_date
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column financial_last_day_of_year_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 931fef65-d68e-42c0-b31f-9c6cc5b9ff08
+		summarizeBy: none
+		sourceColumn: financial_last_day_of_year_date
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column financial_month_num
+		dataType: int64
+		formatString: 0
+		lineageTag: f86f6b31-691e-4269-bb8b-8876e31983f3
+		summarizeBy: none
+		sourceColumn: financial_month_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_year_num
+		dataType: int64
+		formatString: 0
+		lineageTag: 4a9f2436-0071-404a-bac6-9bf8e14a9f43
+		summarizeBy: none
+		sourceColumn: financial_year_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_year_offset =
+			
+			VAR _currentYear = YEAR(TODAY())
+			VAR _selectedYear = dim_date[financial_year_num]
+			RETURN
+			(_currentYear - _selectedYear)*-1
+		formatString: 0
+		lineageTag: 4c11b262-f98c-4713-b3f2-f34482a29002
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Month and Year Short' =
+			
+			dim_date[calendar_month_name_short] & "-" & RIGHT(YEAR(dim_date[calendar_date]),2)
+		lineageTag: 49f8070e-0246-4ffa-98eb-4a04d45a7f82
+		summarizeBy: none
+		sortByColumn: calendar_last_day_of_month_date
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_month_offset =
+			
+			VAR _currentDate = TODAY()
+			VAR _selectedDate = dim_date[calendar_date]
+			VAR _currentYear = YEAR(_currentDate)
+			VAR _currentMonth = MONTH(_currentDate)
+			VAR _selectedYear = YEAR(_selectedDate)
+			VAR _selectedMonth = MONTH(_selectedDate)
+			
+			VAR _totalCurrentMonths = (_currentYear * 12) + _currentMonth
+			VAR _totalSelectedMonths = (_selectedYear * 12) + _selectedMonth
+			
+			RETURN
+			(_totalCurrentMonths - _totalSelectedMonths) * -1
+		formatString: 0
+		lineageTag: 788ed550-1cd6-4c9e-a392-80c121f2854f
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Reporting Month'
+		dataType: string
+		lineageTag: 23719860-67c6-4f85-bff5-93e084d9d6ea
+		summarizeBy: none
+		sourceColumn: Reporting Month
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_offset
+		dataType: int64
+		formatString: 0
+		lineageTag: 03ba22cf-ef7d-414a-81d3-8bb9db7c7fe9
+		summarizeBy: none
+		sourceColumn: date_offset
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_date_rolling_year_offset
+		dataType: int64
+		formatString: 0
+		lineageTag: 81f8e991-3b8a-451e-83c3-61be04cac7e5
+		summarizeBy: none
+		sourceColumn: current_date_rolling_year_offset
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_date_rolling_month_offset
+		dataType: int64
+		formatString: 0
+		lineageTag: 5239ae26-228c-4be8-bf71-741f8a7d531a
+		summarizeBy: none
+		sourceColumn: current_date_rolling_month_offset
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_date_rolling_day_offset
+		dataType: int64
+		formatString: 0
+		lineageTag: 561c7ff0-7c61-4cc7-9699-e227ed0a5c85
+		summarizeBy: none
+		sourceColumn: current_date_rolling_day_offset
+
+		annotation SummarizationSetBy = Automatic
+
+	column DWHDMLOperation
+		dataType: string
+		lineageTag: 8a91b456-68f9-487d-a438-9da75e7ccbde
+		summarizeBy: none
+		sourceColumn: DWHDMLOperation
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_date_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 1bf8be16-314f-4745-9275-17dc3a1a3f89
+		summarizeBy: none
+		sourceColumn: dim_date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_day_num
+		dataType: int64
+		formatString: 0
+		lineageTag: 1840af14-51c8-41d8-818c-af1a60006aee
+		summarizeBy: none
+		sourceColumn: calendar_day_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_day_name_full
+		dataType: string
+		lineageTag: d42cc273-fce1-4116-a0ae-655a94c0666c
+		summarizeBy: none
+		sourceColumn: calendar_day_name_full
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_day_name_short
+		dataType: string
+		lineageTag: fa77942b-a6e7-439e-be6e-2dd416f5265f
+		summarizeBy: none
+		sourceColumn: calendar_day_name_short
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_day_name_TeReo
+		dataType: string
+		lineageTag: 8b86a6b3-840b-477c-b518-c1ad563f0be7
+		summarizeBy: none
+		sourceColumn: calendar_day_name_TeReo
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_day_number_in_year
+		dataType: int64
+		formatString: 0
+		lineageTag: 770482cf-334b-4082-8b71-dbad5d9015e0
+		summarizeBy: none
+		sourceColumn: calendar_day_number_in_year
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_days_in_month_num
+		dataType: int64
+		formatString: 0
+		lineageTag: 78d53583-329d-4f94-984d-4d8aa1dc99c9
+		summarizeBy: none
+		sourceColumn: calendar_days_in_month_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_last_day_of_week_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: f5d1e849-cdda-462e-a8be-f14a9b491741
+		summarizeBy: none
+		sourceColumn: calendar_last_day_of_week_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_week_num
+		dataType: int64
+		formatString: 0
+		lineageTag: 7d5bf845-768e-4374-b947-d9bca5349bc5
+		summarizeBy: none
+		sourceColumn: calendar_week_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_month_name_TeReo
+		dataType: string
+		lineageTag: 94c05209-86a1-47a1-b435-87a4c4738c86
+		summarizeBy: none
+		sourceColumn: calendar_month_name_TeReo
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_quarter_num
+		dataType: string
+		lineageTag: 8c68fda1-436e-48db-a6c8-7301d7ee74d4
+		summarizeBy: none
+		sourceColumn: calendar_quarter_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_first_day_of_quarter_date
+		dataType: string
+		lineageTag: ba8d0848-71bd-4e2e-9fdf-707ab03605f8
+		summarizeBy: none
+		sourceColumn: calendar_first_day_of_quarter_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_last_day_of_quarter_date
+		dataType: string
+		lineageTag: 6042d415-b37a-409f-ac40-3bdda49436fc
+		summarizeBy: none
+		sourceColumn: calendar_last_day_of_quarter_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_first_day_of_year_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 6d11545a-284c-4e1e-9aec-4c813a55f8b2
+		summarizeBy: none
+		sourceColumn: calendar_first_day_of_year_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_last_day_of_year_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: c5b961ed-8bc5-45f8-98b3-3e0bd0d218a4
+		summarizeBy: none
+		sourceColumn: calendar_last_day_of_year_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_week_num
+		dataType: int64
+		formatString: 0
+		lineageTag: a7c5745c-75c3-4ce0-bc17-c3b4634c8fbd
+		summarizeBy: none
+		sourceColumn: financial_week_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_first_day_of_week_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: f03d80ee-c88a-4720-8324-8ac4a84c6939
+		summarizeBy: none
+		sourceColumn: financial_first_day_of_week_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_last_day_of_week_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 9cc2af51-5ef1-4781-be77-eb5a8d00de4f
+		summarizeBy: none
+		sourceColumn: financial_last_day_of_week_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_day_of_week_num
+		dataType: int64
+		formatString: 0
+		lineageTag: e2c154d7-20ca-477b-9b12-ef50fe3b8fec
+		summarizeBy: none
+		sourceColumn: financial_day_of_week_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_first_Day_of_month_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: e013ecbf-020a-463a-8908-e4976421bf44
+		summarizeBy: none
+		sourceColumn: financial_first_Day_of_month_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_last_day_of_month_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 29d0ae33-8dfe-47b8-9568-aee74163ad15
+		summarizeBy: none
+		sourceColumn: financial_last_day_of_month_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_quarter_num
+		dataType: string
+		lineageTag: 23ced147-874d-48dd-82f9-bb8e673303d4
+		summarizeBy: none
+		sourceColumn: financial_quarter_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_quarter_full
+		dataType: string
+		lineageTag: eec09f9c-bf0f-4cb2-b1aa-127910739f84
+		summarizeBy: none
+		sourceColumn: financial_quarter_full
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_first_day_of_quarter_date
+		dataType: string
+		lineageTag: c7ed4e0b-c427-49f0-839d-8b9a67c536f9
+		summarizeBy: none
+		sourceColumn: financial_first_day_of_quarter_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_last_day_of_quarter_date
+		dataType: string
+		lineageTag: 95005b21-e14b-45b3-af92-50567a326b16
+		summarizeBy: none
+		sourceColumn: financial_last_day_of_quarter_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_year_desc
+		dataType: string
+		lineageTag: bf63075e-faa8-4ffe-ae26-ca3221ad85c6
+		summarizeBy: none
+		sourceColumn: financial_year_desc
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_year_month
+		dataType: string
+		lineageTag: c1fa1c0b-544c-41e2-bb59-e4479fd67136
+		summarizeBy: none
+		sourceColumn: financial_year_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column national_holiday_description
+		dataType: string
+		lineageTag: b1a11bbd-b8a6-44a9-aae3-fb0e74a7032b
+		summarizeBy: none
+		sourceColumn: national_holiday_description
+
+		annotation SummarizationSetBy = Automatic
+
+	column national_holiday_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: ad39e03b-74de-4e50-acdc-d0215a95973e
+		summarizeBy: none
+		sourceColumn: national_holiday_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column regional_holiday_description
+		dataType: string
+		lineageTag: b18adf7d-ea14-439c-b79b-d221f14d5293
+		summarizeBy: none
+		sourceColumn: regional_holiday_description
+
+		annotation SummarizationSetBy = Automatic
+
+	column regional_holiday_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: f638d487-df02-419c-af20-d29d57641832
+		summarizeBy: none
+		sourceColumn: regional_holiday_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_holiday_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: b57534a6-3dce-458d-84db-3f59db6016ec
+		summarizeBy: none
+		sourceColumn: is_holiday_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_first_day_of_month_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: 61d9038f-66b9-42a0-8a23-5ed7e882e9a9
+		summarizeBy: none
+		sourceColumn: calendar_first_day_of_month_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_last_day_of_month_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: 6e2df201-2ae7-471d-bfb4-927805f8ff4f
+		summarizeBy: none
+		sourceColumn: calendar_last_day_of_month_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column weekend_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: 210d6463-b5cf-40dd-967e-fcbd89b8afc2
+		summarizeBy: none
+		sourceColumn: weekend_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column weekday_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: a142a417-3e6a-4d69-8f18-dad74121d75a
+		summarizeBy: none
+		sourceColumn: weekday_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_trading_day_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: 403cf8ea-c5c6-439b-9205-e91f6f011d1e
+		summarizeBy: none
+		sourceColumn: calendar_trading_day_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_date_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: 91c68360-a776-4a5c-a3e5-1d9b0d7de7f2
+		summarizeBy: none
+		sourceColumn: current_date_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_month_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: c25c199c-f4ce-4236-af87-e29b01781e29
+		summarizeBy: none
+		sourceColumn: current_month_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_calendar_year_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: fafcd5c2-a9b2-4b57-acad-e9ed2ee6b081
+		summarizeBy: none
+		sourceColumn: current_calendar_year_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_month_to_date_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: 3012eb3f-9ff3-4f03-8681-8e4c77d194dd
+		summarizeBy: none
+		sourceColumn: current_month_to_date_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_calendar_year_to_date_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: 056af971-a5b0-44e1-a7c0-a3f5f38f7e7c
+		summarizeBy: none
+		sourceColumn: current_calendar_year_to_date_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_financial_year_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: 841df61e-34d2-4938-8693-6b527c93d909
+		summarizeBy: none
+		sourceColumn: current_financial_year_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_financial_year_to_date_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: 7516bd02-b827-4955-9414-ed191525ec92
+		summarizeBy: none
+		sourceColumn: current_financial_year_to_date_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column previous_year_date_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: acdc1144-3eee-404a-aa4d-2d1c81648eea
+		summarizeBy: none
+		sourceColumn: previous_year_date_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column previous_year_month_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: 9a60209b-e444-4da7-bd1e-3a29d2eec515
+		summarizeBy: none
+		sourceColumn: previous_year_month_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column previous_calendar_year_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: 41fac5be-2ffe-4f46-a949-914753bd334d
+		summarizeBy: none
+		sourceColumn: previous_calendar_year_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column previous_year_month_to_date_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: bd060714-56f4-4458-a180-f88b115e3f21
+		summarizeBy: none
+		sourceColumn: previous_year_month_to_date_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column previous_calendar_year_to_date_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: b4349f90-c96e-4d2f-ab49-97f223fdd0b0
+		summarizeBy: none
+		sourceColumn: previous_calendar_year_to_date_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column previous_financial_year_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: fbbe4360-171b-483f-8d65-e2b8caf48d7c
+		summarizeBy: none
+		sourceColumn: previous_financial_year_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column previous_financial_year_to_date_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: 17db8b88-b49f-4edf-8863-6ed759925af1
+		summarizeBy: none
+		sourceColumn: previous_financial_year_to_date_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_calendar_trading_days_in_month
+		dataType: int64
+		formatString: 0
+		lineageTag: 8c32b038-be81-4351-b9c7-1f0f3675a0ed
+		summarizeBy: none
+		sourceColumn: current_calendar_trading_days_in_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_calendar_trading_days_in_month_ytd
+		dataType: int64
+		formatString: 0
+		lineageTag: 891e49ae-bbf2-4e51-8b94-d08351787283
+		summarizeBy: none
+		sourceColumn: current_calendar_trading_days_in_month_ytd
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_calendar_trading_days_left_in_month
+		dataType: int64
+		formatString: 0
+		lineageTag: bcf86142-3ccc-4f93-bed2-92b3b353a32d
+		summarizeBy: none
+		sourceColumn: current_calendar_trading_days_left_in_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column DWHSourceSystem
+		dataType: string
+		lineageTag: 9eca9fe9-d7ef-48d2-8b9d-c5757fd8a790
+		summarizeBy: none
+		sourceColumn: DWHSourceSystem
+
+		annotation SummarizationSetBy = Automatic
+
+	column DWHBatchId
+		dataType: int64
+		formatString: 0
+		lineageTag: 677eee40-ee9c-4fdd-8f1d-0d5bbef8bbe4
+		summarizeBy: none
+		sourceColumn: DWHBatchId
+
+		annotation SummarizationSetBy = Automatic
+
+	column DWHModifiedOn
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 0dc4a58f-5f82-40a5-9f8c-6238d0e606b4
+		summarizeBy: none
+		sourceColumn: DWHModifiedOn
+
+		annotation SummarizationSetBy = Automatic
+
+	column DWHCreatedAt
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 33fb275c-0005-44ea-8bbd-d5f2de53c730
+		summarizeBy: none
+		sourceColumn: DWHCreatedAt
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_date_rolling_financial_month_offset
+		dataType: int64
+		formatString: 0
+		lineageTag: f9f3f93c-30a3-4a94-b76b-34595e5e3d9b
+		summarizeBy: none
+		sourceColumn: current_date_rolling_financial_month_offset
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_date_rolling_financial_year_offset
+		dataType: int64
+		formatString: 0
+		lineageTag: 004569ad-6381-4bdf-abe8-3e2f18ad1094
+		summarizeBy: none
+		sourceColumn: current_date_rolling_financial_year_offset
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_financial_year_quarter_offset
+		dataType: int64
+		formatString: 0
+		lineageTag: 8955deb9-b6e5-40e2-a880-370e52bfef1b
+		summarizeBy: none
+		sourceColumn: current_financial_year_quarter_offset
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'calendar_quarter_full Hierarchy'
+		lineageTag: 1e243008-a2bd-4f1a-ab9c-abbe61db2938
+
+		level calendar_quarter_full
+			lineageTag: a2e381f9-6e5c-401e-bad3-3a868bdba4a2
+			column: calendar_quarter_full
+
+		level calendar_month_name_short
+			lineageTag: 62002080-22d4-4210-a176-9d3e6723f543
+			column: calendar_month_name_short
+
+	hierarchy 'calendar_year Hierarchy'
+		lineageTag: ed7eec19-4b5a-451d-bd16-3754acb4d4eb
+
+		level 'Calendar Year'
+			lineageTag: 1f458e12-ea32-42a0-a17b-a49bfe65a488
+			column: calendar_year
+
+		level Month
+			lineageTag: f40695a8-3df8-44ad-8af3-9e43f74e99de
+			column: calendar_month_name_short
+
+	partition dim_date-8887994e-b180-4cd7-9560-a277226df5e5 = m
+		mode: import
+		queryGroup: Dimensions
+		source = ```
+				let
+				    Source = Sql.Database(Server, Database, [Query="-- ============================================================#(lf)-- Model:  Incident Reporting Dataset#(lf)-- Table:  dim_date#(lf)-- Source: native query (complex CTE/window) - emitted in full#(lf)-- Used columns: 14 (mapped 14, unmapped 0)  [full query, not trimmed]#(lf)-- Auto-generated from pbi_complete_dump.csv + model M + EDW/ODS schema.#(lf)-- Review before use; verify joins/filters against the model.#(lf)-- ============================================================#(lf)-- USED model columns: Calendar Month and Year Short; Reporting Month; calendar_date; calendar_last_day_of_month_date; calendar_month_name_short; calendar_month_num; calendar_month_offset; calendar_quarter_full; calendar_year; calendar_year_month; current_date_rolling_month_offset; current_date_rolling_year_offset; financial_year_num; financial_year_offset#(lf)#(lf)Select#(tab)#(tab)*,#(lf)#(tab)#(tab)#(tab)DateDiff(Day, Convert(DateTime, SwitchOffset(Convert(DateTimeOffset, GetDate()),#(lf)#(tab)#(tab)#(tab)#(tab)DatePart(TZOffset, GetDate() At Time Zone 'New Zealand Standard Time'))),#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)dd.calendar_date) As date_offset#(lf)From#(tab)#(tab)edw.dim_date dd#(lf)Where#(tab)#(tab)dd.dim_date_key <> 0#(lf)#(tab)And#(tab)#(tab)dd.calendar_year >= 2015#(lf)#(tab)And#(tab)#(tab)dd.current_date_rolling_year_offset <= 0;#(lf)"]),
+				    #"Changed Type" = Table.TransformColumnTypes(
+				    Source,
+				        {
+				            {"financial_year_num", Int64.Type},
+				            {"calendar_date", type date}
+				        }
+				    ),
+				
+				    // Reference the parameter "Reporting Months Ago"
+				    ReportingPeriod = #"Reporting Months Ago",
+				
+				    // Get the current date and time, and then extract just the date
+				    // DateTime.LocalNow() returns the current date and time, DateTime.Date() extracts just the date part
+				    Today = DateTime.LocalNow(),
+				    TodayDate = DateTime.Date(Today),
+				    
+				    // Calculate the target month and year based on the current date and the ReportingPeriod parameter
+				    TargetDate = Date.AddMonths(TodayDate, -ReportingPeriod),
+				    
+				    // Create a list of 12 months starting from TargetDate and going 12 months back
+				    // List.Transform() applies a function to each item in the original list ({0..12} in this case)
+				    TwelveMonthsList = List.Transform({0..12}, each Date.ToText(Date.AddMonths(TargetDate, -_), "yyyy-MM")),
+				    
+				    // Add a new dynamic calculated column for Reporting Month
+				    // This column will label each month relative to the Reporting Month
+				    #"Added Reporting Month" = Table.AddColumn(#"Changed Type", "Reporting Month", each 
+				        let
+				            // Extract the calendar_date from the current row
+				            CurrentDate = [calendar_date],
+				            
+				            // Convert the calendar_date to a string in "yyyy-MM" format for easier comparison
+				            CurrentDateStr = Date.ToText(CurrentDate, "yyyy-MM"),
+				            
+				            // Find the position of the current month in the TwelveMonthsList
+				            // If the month is not found, List.PositionOf() returns -1
+				            MonthOffset = List.PositionOf(TwelveMonthsList, CurrentDateStr)
+				        in
+				            // Label the month based on its position in the TwelveMonthsList
+				            if MonthOffset = 0 then "Reporting Month"
+				            else if MonthOffset = 1 then "1 Month Prior to Reporting Month"
+				            else if MonthOffset > 1 then Text.From(MonthOffset) & " Months Prior to Reporting Month"
+				            else ""
+				    )
+				in
+				    #"Added Reporting Month"
+				```
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

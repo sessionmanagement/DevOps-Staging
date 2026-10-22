@@ -1,0 +1,106 @@
+table 'RLS with Additional Access'
+	lineageTag: 0767aa7a-961d-4fae-aec2-3ff92fac149a
+
+	column supervisor_person_id
+		dataType: string
+		lineageTag: 7ca75170-d940-4b17-bf74-44ff9e9f9a1c
+		summarizeBy: none
+		sourceColumn: supervisor_person_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column supervisor_employee_number
+		dataType: int64
+		formatString: 0
+		lineageTag: f3df3be3-034f-4e4a-8560-58d26a00db9c
+		summarizeBy: sum
+		sourceColumn: supervisor_employee_number
+
+		annotation SummarizationSetBy = Automatic
+
+	column supervisor_display_name
+		dataType: string
+		lineageTag: bd21b4d6-649d-4bcf-a30d-8cd54d0e2505
+		summarizeBy: none
+		sourceColumn: supervisor_display_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column supervisor_job_title
+		dataType: string
+		lineageTag: 1106bbd5-56ed-467f-8ce6-64508e680e2d
+		summarizeBy: none
+		sourceColumn: supervisor_job_title
+
+		annotation SummarizationSetBy = Automatic
+
+	column supervisor_email
+		dataType: string
+		lineageTag: e177e013-79b3-4bae-9ac6-8b34fff94aa8
+		summarizeBy: none
+		sourceColumn: supervisor_email
+
+		annotation SummarizationSetBy = Automatic
+
+	column supervisor_businessEntity_id
+		dataType: string
+		lineageTag: 28f73c99-22d4-4230-a142-27019f6ee2d4
+		summarizeBy: none
+		sourceColumn: supervisor_businessEntity_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column supervisor_businessEntity_name
+		dataType: string
+		lineageTag: be7bf4b9-d928-490b-896c-99740275c813
+		summarizeBy: none
+		sourceColumn: supervisor_businessEntity_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column supervisor_employment_status
+		dataType: string
+		lineageTag: 327b78df-83c7-4427-8f1f-f0ea01d217d4
+		summarizeBy: none
+		sourceColumn: supervisor_employment_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column intellihr_business_unit_id
+		dataType: string
+		lineageTag: 78e99904-33cc-434e-9bd1-8c8a9197eccd
+		summarizeBy: none
+		sourceColumn: intellihr_business_unit_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_unit_name
+		dataType: string
+		lineageTag: c89fbd10-665b-4722-8511-b0272df8c14d
+		summarizeBy: none
+		sourceColumn: business_unit_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column intellihr_bc_code
+		dataType: string
+		lineageTag: 4ebde7c5-5a4d-4394-b550-4881b6d6cb7c
+		summarizeBy: none
+		sourceColumn: intellihr_bc_code
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'RLS with Additional Access' = m
+		mode: import
+		queryGroup: Workings
+		source =
+				let
+				    Source = Table.Combine({reference_row_level_security, #"reference_row_level_security for Additional Access (not appended)"}),
+				    #"Removed Duplicates" = Table.Distinct(Source)
+				in
+				    #"Removed Duplicates"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

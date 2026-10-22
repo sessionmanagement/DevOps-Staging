@@ -1,0 +1,185 @@
+table dim_service
+	lineageTag: 73f6491d-d216-4461-84e2-160e1e807309
+
+	column dim_service_key
+		dataType: int64
+		formatString: 0
+		lineageTag: f6a3b907-0eb2-4f40-8384-bb7c410bf150
+		summarizeBy: sum
+		sourceColumn: dim_service_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_company_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 8af785dd-6598-43c1-86e1-a6a6c712bcce
+		summarizeBy: sum
+		sourceColumn: dim_company_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column service_id
+		dataType: int64
+		formatString: 0
+		lineageTag: d68b51e6-aa72-4a1f-ae08-fbd3fc3920c5
+		summarizeBy: sum
+		sourceColumn: service_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_service_unique_key
+		dataType: string
+		lineageTag: d832cf19-5a7d-4978-879a-cbee90ffb03c
+		summarizeBy: none
+		sourceColumn: dim_service_unique_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column service_code
+		dataType: string
+		lineageTag: a28a25b8-864d-461f-a98a-55353bf40018
+		summarizeBy: none
+		sourceColumn: service_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column service_name
+		dataType: string
+		lineageTag: 15d6a906-8f18-4697-b91c-72f45feedb9b
+		summarizeBy: none
+		sourceColumn: service_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column intellihr_service_id
+		dataType: string
+		lineageTag: 13b68948-e0b4-4a26-abcd-790d2200becf
+		summarizeBy: none
+		sourceColumn: intellihr_service_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column datapay_service_id
+		dataType: string
+		lineageTag: 0fb64656-f643-4bab-afaf-53bacc40644c
+		summarizeBy: none
+		sourceColumn: datapay_service_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column service_type_code
+		dataType: string
+		lineageTag: 1a5e2016-46af-4880-9445-9a3eeb7c1520
+		summarizeBy: none
+		sourceColumn: service_type_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column service_type_name
+		dataType: string
+		lineageTag: a9c9b7d1-81bc-44e1-8eb2-ee009bb5702d
+		summarizeBy: none
+		sourceColumn: service_type_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column department_code
+		dataType: string
+		lineageTag: 58df2199-f182-49cc-824b-8900301a5571
+		summarizeBy: none
+		sourceColumn: department_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column department_name
+		dataType: string
+		lineageTag: a7178818-1de2-49eb-89d7-d661cdbde923
+		summarizeBy: none
+		sourceColumn: department_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column district_code
+		dataType: string
+		lineageTag: bdf63a60-703d-4fbf-be12-296c466b8d5c
+		summarizeBy: none
+		sourceColumn: district_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column district_name
+		dataType: string
+		lineageTag: 448ade99-c458-4edc-8c96-52f33ec3b8cd
+		summarizeBy: none
+		sourceColumn: district_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column region_code
+		dataType: string
+		lineageTag: 7078059b-c8b2-4c0d-99b0-9a1ca25a686d
+		summarizeBy: none
+		sourceColumn: region_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column region_name
+		dataType: string
+		lineageTag: 5e755432-4521-4719-8ac9-753516154a2c
+		summarizeBy: none
+		sourceColumn: region_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column location_code
+		dataType: string
+		lineageTag: d4aca9be-5156-4dce-929d-8d2a081fb23e
+		summarizeBy: none
+		sourceColumn: location_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column location_name
+		dataType: string
+		lineageTag: 285e85ec-9ded-4a5e-b180-cddebdbab7ee
+		summarizeBy: none
+		sourceColumn: location_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column company_name
+		dataType: string
+		lineageTag: 50a9bfc2-a4ef-47ad-88a3-2df8a617076e
+		summarizeBy: none
+		sourceColumn: company_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column ServiceNameKey
+		dataType: string
+		lineageTag: 915942d3-4e04-494f-ae2e-43216328e872
+		summarizeBy: none
+		sourceColumn: ServiceNameKey
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_service = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT #(lf)    [dim_service_key],#(lf)    [dim_company_key],#(lf)    [service_id],#(lf)    [dim_service_unique_key],#(lf)    [service_code],#(lf)    [service_name],#(lf)    [intellihr_service_id],#(lf)    [datapay_service_id],#(lf)    [service_type_code],#(lf)    [service_type_name],#(lf)    [department_code],#(lf)    [department_name],#(lf)    [district_code],#(lf)    [district_name],#(lf)    [region_code],#(lf)    [region_name],#(lf)    [location_code],#(lf)    [location_name],#(lf)   [company_name],#(lf)   CONCAT([service_name], CAST([dim_company_key] AS NVARCHAR)) AS ServiceNameKey#(lf)   --,[service_name]+CAST([dim_company_key] AS NVARCHAR(200)) AS ServiceNameKey2#(lf)FROM #(lf)    [edw].[dim_service]#(lf)WHERE #(lf)    DWHIsCurrent = 1#(lf)#(tab)and DWHDMLOperation <> 'D'"]),
+				    #"Filtered Rows" = Table.SelectRows(Source, each ([dim_service_key] <> -1 and [dim_service_key] <> 0)),
+				    #"Sorted Rows" = Table.Sort(#"Filtered Rows",{{"service_name", Order.Ascending}}),
+				    #"Filtered Rows1" = Table.SelectRows(#"Sorted Rows", each [service_name] <> "Balance Sheet"),
+				    #"Filtered Rows2" = Table.SelectRows(#"Filtered Rows1", each ([service_name] <> "Entity Missing")),
+				    #"Removed Duplicates" = Table.Distinct(#"Filtered Rows2", {"dim_company_key", "service_name", "intellihr_service_id", "datapay_service_id", "service_type_code", "service_type_name", "department_code", "department_name", "district_code", "district_name", "region_code", "region_name", "location_code", "location_name", "company_name", "ServiceNameKey"}),
+				    #"Filtered Rows3" = Table.SelectRows(#"Removed Duplicates", each [service_code] <> "HAVEN CAFÉ")
+				in
+				    #"Filtered Rows3"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

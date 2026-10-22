@@ -1,0 +1,28 @@
+table 'Last Refreshed Date'
+	lineageTag: b2e56192-3953-4bc7-8580-7171332d816c
+
+	measure RefreshedAt_forDisplay = "Data Last Refreshed: " & FORMAT( LASTDATE( 'Last Refreshed Date'[Last Refreshed Date]), "dd/MM/YYYY - hh:mm AM/PM"  )
+		lineageTag: e5aa2d25-1e34-4da8-af9a-24084a3e35d0
+
+	column 'Last Refreshed Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 6f928b1e-c909-4653-9bb1-41f4057e5b4a
+		summarizeBy: none
+		sourceColumn: Last Refreshed Date
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Last Refreshed Date-2b6cf2f7-4960-4083-ad68-9da3217670f7' = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source =
+				let
+				    Source = DateTime.LocalNow()
+				in
+				    Source
+
+	annotation PBI_ResultType = DateTime
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,79 @@
+/// Model documentation table listing all columns in this semantic model. Shows column names, their parent tables, data types, descriptions, and formatting. Use this to find specific fields and understand data types. This is metadata only - not for reporting data.
+table '_Model Info - Columns'
+	isHidden
+	lineageTag: 3a1f5def-3c36-4c7f-aa10-4927486fa408
+
+	column 'Column Name'
+		isHidden
+		lineageTag: 6f56db3e-aab1-474e-a7d4-9408a8ea57c5
+		isNameInferred
+		sourceColumn: [Column Name]
+
+	column 'Table Name'
+		isHidden
+		lineageTag: 235686b5-05e2-4287-9f5d-9bfa76df123f
+		isNameInferred
+		sourceColumn: [Table Name]
+
+	column 'Data Type'
+		isHidden
+		lineageTag: bb7692a2-e224-4143-8f72-f32e16935f22
+		isNameInferred
+		sourceColumn: [Data Type]
+
+	column Description
+		isHidden
+		lineageTag: 1a0264d1-6624-4088-9db6-53bf2fe64bd3
+		isNameInferred
+		sourceColumn: [Description]
+
+	column 'Is Hidden'
+		isHidden
+		lineageTag: 003dcb46-2236-4ccb-a00a-e21f9171e096
+		isNameInferred
+		sourceColumn: [Is Hidden]
+
+	column 'Format String'
+		isHidden
+		lineageTag: 34eb0e75-401e-4993-b580-54f8e09221df
+		isNameInferred
+		sourceColumn: [Format String]
+
+	column 'Sort By Column'
+		isHidden
+		lineageTag: bb84f410-d588-4afc-ac43-8052eec7d498
+		isNameInferred
+		sourceColumn: [Sort By Column]
+
+	column 'Display Folder'
+		isHidden
+		lineageTag: 583a340c-a59f-49af-949b-d841087a4b3e
+		isNameInferred
+		sourceColumn: [Display Folder]
+
+	column 'Data Category'
+		isHidden
+		lineageTag: cf80b9de-7b59-45c3-b195-dbbf7776c82f
+		isNameInferred
+		sourceColumn: [Data Category]
+
+	partition '_Model Info - Columns' = calculated
+		mode: import
+		source =
+				SELECTCOLUMNS(
+				    FILTER(
+				        INFO.VIEW.COLUMNS(),
+				        NOT(CONTAINSSTRING([Table], "LocalDateTable_")) &&
+				        NOT(CONTAINSSTRING([Table], "DateTableTemplate_"))
+				    ),
+				    "Column Name", [Name],
+				    "Table Name", [Table],
+				    "Data Type", [DataType],
+				    "Description", [Description],
+				    "Is Hidden", [IsHidden],
+				    "Format String", [FormatString],
+				    "Sort By Column", [SortByColumn],
+				    "Display Folder", [DisplayFolder],
+				    "Data Category", [DataCategory]
+				)
+

@@ -1,0 +1,582 @@
+expression 'Import Data' = ```
+		let
+		    // ------------------------------
+		    // 1. GET SOURCE FILES
+		    // ------------------------------
+		    Source = SharePoint.Files(
+		        "https://emergeaotearoaltd.sharepoint.com/sites/IgniteClientandKPIreporting/",
+		        [ApiVersion = 15]
+		    ),
+		
+		    #"Filtered Rows" =
+		        Table.SelectRows(Source, each [Extension] = ".csv"),
+		
+		    #"Filtered Rows1" =
+		        Table.SelectRows(#"Filtered Rows", each Text.Contains([Name], "Platform Report Data")),
+		
+		    #"Reordered Columns" =
+		        Table.ReorderColumns(
+		            #"Filtered Rows1",
+		            {"Content", "Name", "Extension", "Date accessed", "Date modified", "Date created", "Folder Path", "Attributes"}
+		        ),
+		
+		    #"Filtered Rows2" =
+		        Table.SelectRows(
+		            #"Reordered Columns",
+		            each [Folder Path] =
+		                "https://emergeaotearoaltd.sharepoint.com/sites/IgniteClientandKPIreporting/Shared Documents/Client Report/"
+		        ),
+		
+		
+		    // -------------------------------------------------------------
+		    // 2. UNIVERSAL HEADER NORMALISATION FUNCTION
+		    // -------------------------------------------------------------
+		    // This removes underscores, dashes, extra spaces,
+		    // lowercases everything, and trims. This ensures that:
+		    //   "Active_Users" → "active users"
+		    //   "ACTIVE-USERS" → "active users"
+		    //   "Active Users" → "active users"
+		    HeaderNormalize = (colName as text) as text =>
+		        let
+		            s1 = Text.Replace(colName, "_", " "),
+		            s2 = Text.Replace(s1, "-", " "),
+		            s3 = Text.Lower(s2),
+		            s4 = Text.Trim(Text.Clean(s3)),
+		            s5 = Text.Combine(List.Select(Text.Split(s4, " "), each _ <> ""), " ")
+		        in
+		            s5,
+		
+		
+		    // -------------------------------------------------------------
+		    // 3. APPLY TRANSFORM FILE & NORMALISE HEADERS INSIDE EACH FILE
+		    // -------------------------------------------------------------
+		    #"Invoke Custom Function1" =
+		        Table.AddColumn(
+		            #"Filtered Rows2",
+		            "Transform File",
+		            each
+		                let
+		                    t = #"Transform File"([Content]),
+		                    normalized = Table.TransformColumnNames(t, HeaderNormalize)
+		                in
+		                    normalized
+		        ),
+		
+		    #"Renamed Columns1" =
+		        Table.RenameColumns(#"Invoke Custom Function1", {"Name", "Source.Name"}),
+		
+		    #"Removed Other Columns1" =
+		        Table.SelectColumns(#"Renamed Columns1", {"Source.Name", "Transform File"}),
+		
+		    #"Removed Errors1" =
+		        Table.RemoveRowsWithErrors(#"Removed Other Columns1", {"Transform File"}),
+		
+		
+		    // -------------------------------------------------------------
+		    // 4. BUILD THE EXPANSION COLUMN LIST USING THE NORMALISED HEADERS
+		    // -------------------------------------------------------------
+		    SampleTable = #"Transform File"(#"Sample File"),
+		    NormalizedSample =
+		        Table.TransformColumnNames(SampleTable, HeaderNormalize),
+		
+		    ColumnsToExpand = Table.ColumnNames(NormalizedSample),
+		
+		
+		    // -------------------------------------------------------------
+		    // 5. EXPAND THE CLEANED TABLES USING NORMALISED COLUMN NAMES
+		    // -------------------------------------------------------------
+		    #"Expanded Table Column1" =
+		        Table.ExpandTableColumn(
+		            #"Removed Errors1",
+		            "Transform File",
+		            ColumnsToExpand,
+		            ColumnsToExpand
+		        ),
+		
+		
+		    // -------------------------------------------------------------
+		    // 6. REST OF YOUR ORIGINAL LOGIC
+		    // -------------------------------------------------------------
+		    #"Duplicated Column" =
+		        Table.DuplicateColumn(#"Expanded Table Column1", "Source.Name", "Date"),
+		
+		    #"Replaced Value" =
+		        Table.ReplaceValue(#"Duplicated Column", "Platform Report Data ", "01 ", Replacer.ReplaceText, {"Date"}),
+		
+		    #"Replaced Value1" =
+		        Table.ReplaceValue(#"Replaced Value", ".csv", "", Replacer.ReplaceText, {"Date"}),
+		
+		
+		    #"Changed Type" =
+		        Table.TransformColumnTypes(
+		        #"Replaced Value1",
+		        {
+		            
+		            { HeaderNormalize("Organisation"), type text },
+		            { HeaderNormalize("Total Users"), Int64.Type },
+		            { HeaderNormalize("Total Users Previous Month"), Int64.Type },
+		            { HeaderNormalize("Active Users"), Int64.Type },
+		            { HeaderNormalize("Active Users Percentage"), Percentage.Type },
+		            { HeaderNormalize("Inactive Users"), Int64.Type },
+		            { HeaderNormalize("Users added"), Int64.Type },
+		            { HeaderNormalize("Bookings All Time"), Int64.Type },
+		            { HeaderNormalize("Total Users Booking Support"), Int64.Type },
+		            { HeaderNormalize("Booking User Utilisation"), Percentage.Type },
+		            { HeaderNormalize("New Bookings"), Int64.Type },
+		            { HeaderNormalize("Moods All Time"), Int64.Type },
+		            { HeaderNormalize("Moods Previous Month"), Int64.Type },
+		            { HeaderNormalize("New Moods"), Int64.Type },
+		            { HeaderNormalize("Mood User Utilisation"), Int64.Type },
+		            { HeaderNormalize("Percentage of Mood Active Users "), Percentage.Type },
+		            { HeaderNormalize("Average Mood Monthly"), Int64.Type },
+		            { HeaderNormalize("Wellbeing Tests All Time"), Int64.Type },
+		            { HeaderNormalize("Wellbeing Tests Previous Month"), Int64.Type },
+		            { HeaderNormalize("New Wellbeing Tests"), Int64.Type },
+		            { HeaderNormalize("Wellbeing Test User Utilisation"), Int64.Type },
+		            { HeaderNormalize("Percentage of Wellbeing Test Active Users"), Percentage.Type },
+		            { HeaderNormalize("Average Wellbeing per domain"), type number },
+		            { HeaderNormalize("Mind"), type number  },
+		            { HeaderNormalize("Body"), type number  },
+		            { HeaderNormalize("Habits"), type number  },
+		            { HeaderNormalize("Home"), type number  },
+		            { HeaderNormalize("Relationships"), type number  },
+		            { HeaderNormalize("Occupation"), type number  },
+		            { HeaderNormalize("Finances"), type number  },
+		            { HeaderNormalize("Recreation"), type number  },
+		            { HeaderNormalize("Identity"), type number  },
+		            { HeaderNormalize("Beliefs"), type number  },
+		            { HeaderNormalize("Culture"), type number  },
+		            { HeaderNormalize("Connectedness"), type number  },
+		
+		            { HeaderNormalize("MEDIUM-Video"), Int64.Type },
+		            { HeaderNormalize("MEDIUM-In Person"), Int64.Type },
+		            { HeaderNormalize("MEDIUM-Phone"), Int64.Type },
+		
+		            { HeaderNormalize("PROVIDERTYPE-Addiction Practitioner"), Int64.Type },
+		            { HeaderNormalize("PROVIDERTYPE-Coach"), Int64.Type },
+		            { HeaderNormalize("PROVIDERTYPE-Counsellor"), Int64.Type },
+		            { HeaderNormalize("PROVIDERTYPE-Financial Advisor"), Int64.Type },
+		            { HeaderNormalize("PROVIDERTYPE-Financial Mentor"), Int64.Type },
+		            { HeaderNormalize("PROVIDERTYPE-Human Resources Consultant"), Int64.Type },
+		            { HeaderNormalize("PROVIDERTYPE-Mentor"), Int64.Type },
+		            { HeaderNormalize("PROVIDERTYPE-NLP Practitioner Mentor"), Int64.Type },
+		            { HeaderNormalize("PROVIDERTYPE-Occupational Therapist"), Int64.Type },
+		            { HeaderNormalize("PROVIDERTYPE-Psychologist"), Int64.Type },
+		            { HeaderNormalize("PROVIDERTYPE-Registered Nurse"), Int64.Type },
+		            { HeaderNormalize("PROVIDERTYPE-Social Worker"), Int64.Type },
+		            { HeaderNormalize("PROVIDERTYPE-Supervisor"), Int64.Type },
+		            { HeaderNormalize("PROVIDERTYPE-Wellbeing Practitioner RN"), Int64.Type },
+		            { HeaderNormalize("PROVIDERTYPE-Yoga Teacher"), Int64.Type },
+		            { HeaderNormalize("PROVIDERTYPE-Dietitian"), Int64.Type },
+		            { HeaderNormalize("PROVIDERTYPE-Creative Arts Therapist"), Int64.Type },
+		            { HeaderNormalize("PROVIDERTYPE-EFT Tapping"), Int64.Type },
+		            { HeaderNormalize("PROVIDERTYPE-Meditation Teacher"), Int64.Type },
+		            { HeaderNormalize("PROVIDERTYPE-Rongoa Practitioner"), Int64.Type },
+		            { HeaderNormalize("PROVIDERTYPE-Tai Chi  Qigong"), Int64.Type },
+		            { HeaderNormalize("PROVIDERTYPE-Holistic Counsellor"), Int64.Type },
+		            { HeaderNormalize("PROVIDERTYPE- Hypnotherapist"), Int64.Type },
+		            { HeaderNormalize("PROVIDERTYPE- Wellbeing Practitioner"), Int64.Type },
+		
+		            { ("Date"), type date }
+		        }
+		    ),
+		
+		    #"Filtered Rows3" =
+		        Table.SelectRows(#"Changed Type", each [organisation] <> ""),
+		
+		    #"Sorted Rows1" =
+		        Table.Sort(#"Filtered Rows3", {{"Date", Order.Descending}}),
+		
+		    #"Merged Queries" =
+		        Table.NestedJoin(
+		            #"Sorted Rows1",
+		            {"organisation"},
+		            #"Dim Organisation",
+		            {"Recorded Organisation Name"},
+		            "Organisation Names",
+		            JoinKind.LeftOuter
+		        ),
+		
+		    #"Expanded Organisation Names" =
+		        Table.ExpandTableColumn(#"Merged Queries", "Organisation Names", {"dim_organisation_key"}, {"dim_organisation_key"}),
+		    Custom1 = Table.TransformColumnNames(
+		        #"Expanded Organisation Names",
+		        each Text.Proper(_)
+		    )
+		in
+		    Custom1
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		// let
+		//     Source = SharePoint.Files("https://emergeaotearoaltd.sharepoint.com/sites/IgniteClientandKPIreporting/", [ApiVersion = 15]),
+		//     #"Filtered Rows" = Table.SelectRows(Source, each ([Extension] = ".csv")),
+		//     #"Filtered Rows1" = Table.SelectRows(#"Filtered Rows", each Text.Contains([Name], "Platform Report Data")),
+		//     #"Reordered Columns" = Table.ReorderColumns(#"Filtered Rows1",{"Content", "Name", "Extension", "Date accessed", "Date modified", "Date created", "Folder Path", "Attributes"}),
+		//     #"Filtered Rows2" = Table.SelectRows(#"Reordered Columns", each ([Folder Path] = "https://emergeaotearoaltd.sharepoint.com/sites/IgniteClientandKPIreporting/Shared Documents/Client Report/")),
+		
+		//     // Apply Transform File AND normalise column names (remove underscores)
+		//     #"Invoke Custom Function1" = Table.AddColumn(
+		//         #"Filtered Rows2",
+		//         "Transform File",
+		//         each Table.TransformColumnNames(#"Transform File"([Content]), each Text.Replace(_, "_", ""))
+		//     ),
+		
+		//     #"Renamed Columns1" = Table.RenameColumns(#"Invoke Custom Function1", {"Name", "Source.Name"}),
+		//     #"Removed Other Columns1" = Table.SelectColumns(#"Renamed Columns1", {"Source.Name", "Transform File"}),
+		//     #"Removed Errors1" = Table.RemoveRowsWithErrors(#"Removed Other Columns1", {"Transform File"}),
+		
+		//     // Expand using cleaned column names from the sample file (also normalised)
+		//     #"Expanded Table Column1" = Table.ExpandTableColumn(
+		//         #"Removed Errors1",
+		//         "Transform File",
+		//         Table.ColumnNames(Table.TransformColumnNames(#"Transform File"(#"Sample File"), each Text.Replace(_, "_", "")))
+		//     ),
+		//     // 2023-05-22 CJN: Yanking date out of the Source Name
+		//     #"Duplicated Column" = Table.DuplicateColumn(#"Expanded Table Column1", "Source.Name", "Date"),
+		//     #"Replaced Value" = Table.ReplaceValue(#"Duplicated Column","Platform Report Data ","01 ",Replacer.ReplaceText,{"Date"}),
+		//     #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value",".csv","",Replacer.ReplaceText,{"Date"}),
+		//     #"Changed Type" = Table.TransformColumnTypes(#"Replaced Value1",{
+		//         {"Source.Name", type text}, {"Organisation", type text}, {"Total Users", Int64.Type},
+		//         {"Total Users Previous Month", Int64.Type}, {"Active Users", Int64.Type}, {"Active Users Percentage", Percentage.Type},
+		//         {"Inactive Users", Int64.Type}, {"Users added", Int64.Type}, {"Bookings All Time", Int64.Type},
+		//         {"Total #Users booking support", Int64.Type}, {"Booking User Utilisation", Percentage.Type},
+		//         {"New Bookings", Int64.Type}, {"Moods All Time", Int64.Type}, {"Moods Previous Month", Int64.Type},
+		//         {"New Moods", Int64.Type}, {"Mood User Utilisation", Int64.Type}, {"Percentage of Mood Active Users ", Percentage.Type},
+		//         {"Average Mood Monthly", Int64.Type}, {"Wellbeing Tests All Time", Int64.Type}, {"Wellbeing Tests Previous Month", Int64.Type},
+		//         {"New Wellbeing Tests", Int64.Type}, {"Wellbeing Test User Utilisation", Int64.Type},
+		//         {"Percentage of Wellbeing Test Active Users", Percentage.Type}, {"Average Wellbeing per domain", type number},
+		//         {"Mind", type number}, {"Body", type number}, {"Habits", type number}, {"Home", type number}, {"Relationships", type number},
+		//         {"Occupation", type number}, {"Finances", type number}, {"Recreation", type number}, {"Identity", type number},
+		//         {"Beliefs", type number}, {"Culture", type number}, {"Connectedness", type number},
+		//         {"MEDIUM-Video", Int64.Type}, {"MEDIUM-In Person", Int64.Type}, {"MEDIUM-Phone", Int64.Type},
+		//         {"PROVIDERTYPE-Addiction Practitioner", Int64.Type}, {"PROVIDERTYPE-Coach", Int64.Type},
+		//         {"PROVIDERTYPE-Counsellor", Int64.Type}, {"PROVIDERTYPE-Financial Advisor", Int64.Type},
+		//         {"PROVIDERTYPE-Financial Mentor", Int64.Type}, {"PROVIDERTYPE-Human Resources Consultant", Int64.Type},
+		//         {"PROVIDERTYPE-Mentor", Int64.Type}, {"PROVIDERTYPE-NLP Practitioner/Mentor", Int64.Type},
+		//         {"PROVIDERTYPE-Occupational Therapist", Int64.Type}, {"PROVIDERTYPE-Psychologist", Int64.Type},
+		//         {"PROVIDERTYPE-Registered Nurse", Int64.Type}, {"PROVIDERTYPE-Social Worker", Int64.Type},
+		//         {"PROVIDERTYPE-Supervisor", Int64.Type}, {"PROVIDERTYPE-Wellbeing Practitioner/RN", Int64.Type},
+		//         {"PROVIDERTYPE-Yoga Teacher", Int64.Type}, {"PROVIDERTYPE-Dietitian", Int64.Type},
+		//         {"PROVIDERTYPE-Creative Arts Therapist", Int64.Type}, {"PROVIDERTYPE-EFT Tapping", Int64.Type},
+		//         {"PROVIDERTYPE-Meditation Teacher", Int64.Type}, {"PROVIDERTYPE-Rongoa Practioner", Int64.Type},
+		//         {"PROVIDERTYPE-Tai Chi & Qigong", Int64.Type}, {"PROVIDERTYPE-Holistic Counsellor", Int64.Type},
+		//         {"PROVIDERTYPE- Hypnotherapist", Int64.Type}, {"PROVIDERTYPE- Wellbeing Practitioner", Int64.Type},
+		//         {"Date", type date}
+		//     }),
+		//     #"Filtered Rows3" = Table.SelectRows(#"Changed Type", each ([Organisation] <> "")),
+		//     #"Sorted Rows1" = Table.Sort(#"Filtered Rows3",{{"Date", Order.Descending}}),
+		//     #"Merged Queries" = Table.NestedJoin(#"Sorted Rows1", {"Organisation"}, #"Dim Organisation", {"Recorded Organisation Name"}, "Organisation Names", JoinKind.LeftOuter),
+		//     #"Expanded Organisation Names" = Table.ExpandTableColumn(#"Merged Queries", "Organisation Names", {"dim_organisation_key"}, {"dim_organisation_key"})
+		// in
+		//     #"Expanded Organisation Names"
+		
+		
+		// // let
+		// //     Source = SharePoint.Files("https://emergeaotearoaltd.sharepoint.com/sites/IgniteClientandKPIreporting/", [ApiVersion = 15]),
+		// //     #"Filtered Rows" = Table.SelectRows(Source, each ([Extension] = ".csv")),
+		// //     #"Filtered Rows1" = Table.SelectRows(#"Filtered Rows", each Text.Contains([Name], "Platform Report Data")),
+		// //     #"Reordered Columns" = Table.ReorderColumns(#"Filtered Rows1",{"Content", "Name", "Extension", "Date accessed", "Date modified", "Date created", "Folder Path", "Attributes"}),
+		// //     #"Filtered Rows2" = Table.SelectRows(#"Reordered Columns", each ([Folder Path] = "https://emergeaotearoaltd.sharepoint.com/sites/IgniteClientandKPIreporting/Shared Documents/Client Report/")),
+		// //     #"Invoke Custom Function1" = Table.AddColumn(#"Filtered Rows2", "Transform File", each #"Transform File"([Content])),
+		// //     #"Renamed Columns1" = Table.RenameColumns(#"Invoke Custom Function1", {"Name", "Source.Name"}),
+		// //     #"Removed Other Columns1" = Table.SelectColumns(#"Renamed Columns1", {"Source.Name", "Transform File"}),
+		// //     #"Removed Errors1" = Table.RemoveRowsWithErrors(#"Removed Other Columns1", {"Transform File"}),
+		// //     #"Expanded Table Column1" = Table.ExpandTableColumn(#"Removed Errors1", "Transform File", Table.ColumnNames(#"Transform File"(#"Sample File"))),
+		// //   // 2023-05-22 CJN: Yanking date out of the Source Name
+		// //     #"Duplicated Column" = Table.DuplicateColumn(#"Expanded Table Column1", "Source.Name", "Date"),
+		// //     #"Replaced Value" = Table.ReplaceValue(#"Duplicated Column","Platform Report Data ","01 ",Replacer.ReplaceText,{"Date"}),
+		// //     #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value",".csv","",Replacer.ReplaceText,{"Date"}),
+		
+		// //     #"Changed Type" = Table.TransformColumnTypes(#"Replaced Value1",{{"Source.Name", type text}, {"Organisation", type text}, {"Total Users", Int64.Type}, {"Total Users Previous Month", Int64.Type}, {"Active Users", Int64.Type}, {"Active Users Percentage", Percentage.Type}, {"Inactive Users", Int64.Type}, {"Users added", Int64.Type}, {"Bookings All Time", Int64.Type}, {"Total #Users booking support", Int64.Type}, {"Booking User Utilisation", Percentage.Type}, {"New Bookings", Int64.Type}, {"Moods All Time", Int64.Type}, {"Moods Previous Month", Int64.Type}, {"New Moods", Int64.Type}, {"Mood User Utilisation", Int64.Type}, {"Percentage of Mood Active Users ", Percentage.Type}, {"Average Mood Monthly", Int64.Type}, {"Wellbeing Tests All Time", Int64.Type}, {"Wellbeing Tests Previous Month", Int64.Type}, {"New Wellbeing Tests", Int64.Type}, {"Wellbeing Test User Utilisation", Int64.Type}, {"Percentage of Wellbeing Test Active Users", Percentage.Type}, {"Average Wellbeing per domain", type number}, {"Mind", Int64.Type}, {"Body", Int64.Type}, {"Habits", Int64.Type}, {"Home", Int64.Type}, {"Relationships", Int64.Type}, {"Occupation", Int64.Type}, {"Finances", Int64.Type}, {"Recreation", Int64.Type}, {"Identity", Int64.Type}, {"Beliefs", Int64.Type}, {"Culture", Int64.Type}, {"Connectedness", Int64.Type}, {"MEDIUM-Video", Int64.Type}, {"MEDIUM-In Person", Int64.Type}, {"MEDIUM-Phone", Int64.Type}, {"PROVIDERTYPE-Addiction Practitioner", Int64.Type}, {"PROVIDERTYPE-Coach", Int64.Type}, {"PROVIDERTYPE-Counsellor", Int64.Type}, {"PROVIDERTYPE-Financial Advisor", Int64.Type}, {"PROVIDERTYPE-Financial Mentor", Int64.Type}, {"PROVIDERTYPE-Human Resources Consultant", Int64.Type}, {"PROVIDERTYPE-Mentor", Int64.Type}, {"PROVIDERTYPE-NLP Practitioner/Mentor", Int64.Type}, {"PROVIDERTYPE-Occupational Therapist", Int64.Type}, {"PROVIDERTYPE-Psychologist", Int64.Type}, {"PROVIDERTYPE-Registered Nurse", Int64.Type}, {"PROVIDERTYPE-Social Worker", Int64.Type}, {"PROVIDERTYPE-Supervisor", Int64.Type}, {"PROVIDERTYPE-Wellbeing Practitioner/RN", Int64.Type}, {"PROVIDERTYPE-Yoga Teacher", Int64.Type},  {"PROVIDERTYPE-Dietitian", Int64.Type}, {"PROVIDERTYPE-Creative Arts Therapist", Int64.Type}, {"PROVIDERTYPE-EFT Tapping", Int64.Type}, {"PROVIDERTYPE-Meditation Teacher", Int64.Type}, {"PROVIDERTYPE-Rongoa Practioner", Int64.Type}, {"PROVIDERTYPE-Tai Chi & Qigong", Int64.Type}, {"PROVIDERTYPE-Holistic Counsellor", Int64.Type}, {"PROVIDERTYPE- Hypnotherapist", Int64.Type}, {"PROVIDERTYPE- Wellbeing Practitioner", Int64.Type}, {"Date", type date}}),
+		// //     #"Filtered Rows3" = Table.SelectRows(#"Changed Type", each ([Organisation] <> "")),
+		// //     #"Sorted Rows1" = Table.Sort(#"Filtered Rows3",{{"Date", Order.Descending}}),
+		// //     #"Merged Queries" = Table.NestedJoin(#"Sorted Rows1", {"Organisation"}, #"Dim Organisation", {"Recorded Organisation Name"}, "Organisation Names", JoinKind.LeftOuter),
+		// //     #"Expanded Organisation Names" = Table.ExpandTableColumn(#"Merged Queries", "Organisation Names", {"dim_organisation_key"}, {"dim_organisation_key"})
+		// // in
+		// //     #"Expanded Organisation Names"
+		```
+	lineageTag: 09d83f2b-8147-45a4-b5cd-f804ea75be9c
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'Sample File' = ```
+		let Source = SharePoint.Files("https://emergeaotearoaltd.sharepoint.com/sites/IgniteClientandKPIreporting/", [ApiVersion = 15]),  
+		    #"Filtered Rows" = Table.SelectRows(Source, 
+		    each ([Folder Path] = "https://emergeaotearoaltd.sharepoint.com/sites/IgniteClientandKPIreporting/Shared Documents/Client Report/") and ([Name] = "Platform Report Data November 2025.csv")), 
+		    Navigation1 = #"Filtered Rows"{0}[Content] 
+		    
+		    in 
+		    Navigation1
+		
+		
+		
+		
+		
+		// let
+		//     Source = SharePoint.Files("https://emergeaotearoaltd.sharepoint.com/sites/IgniteClientandKPIreporting/", [ApiVersion = 15]),
+		// /*    2024-02-07: CJN: I've changed the file being looked in to the latest file.  This allows us to pull in the additional provider type columns that were added.  Below is the previous file used for sampling.
+		//         #"Filtered Rows" = Table.SelectRows(Source, each ([Name] = "Platform Report Data July 2023.csv") and ([Folder Path] = "https://emergeaotearoaltd.sharepoint.com/sites/IgniteClientandKPIreporting/Shared Documents/Client Report/")),
+		// */
+		//     #"Filtered Rows" = Table.SelectRows(Source, each ([Folder Path] = "https://emergeaotearoaltd.sharepoint.com/sites/IgniteClientandKPIreporting/Shared Documents/Client Report/") and ([Name] = "Platform Report Data July 2025.csv")),
+		//     Navigation1 = #"Filtered Rows"{0}[Content]
+		// in
+		//     Navigation1
+		```
+	lineageTag: 770decd6-aa61-42c0-bfad-74124e8b446d
+	queryGroup: 'Transform File from Import Data\Helper Queries'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Binary
+
+expression Parameter1 = #"Sample File" meta [IsParameterQuery=true, BinaryIdentifier=#"Sample File", Type="Binary", IsParameterQueryRequired=true]
+	lineageTag: 96011957-19cd-40af-b5fa-591016fc1fde
+	queryGroup: 'Transform File from Import Data\Helper Queries'
+
+	annotation PBI_ResultType = Binary
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression 'Transform Sample File' =
+		let
+		    Source = Csv.Document(Parameter1,[Delimiter=",", Columns=66, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+		    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true])
+		in
+		    #"Promoted Headers"
+	lineageTag: ec2784c2-c751-4915-a78d-c7ba4d54fa73
+	queryGroup: 'Transform File from Import Data'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'Transform File' =
+		let
+		    Source = (Parameter1 as binary) => let
+		    Source = Csv.Document(Parameter1,[Delimiter=",", Columns=66, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+		    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true])
+		in
+		    #"Promoted Headers"
+		in
+		    Source
+	lineageTag: 55a55abf-ba7c-4a55-bf90-b8596258ec7f
+	queryGroup: 'Transform File from Import Data\Helper Queries'
+
+	annotation PBI_ResultType = Function
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression 'Sample File (2)' =
+		let
+		    Source = SharePoint.Files("https://emergeaotearoaltd.sharepoint.com/sites/IgniteClientandKPIreporting/", [ApiVersion = 15]),
+		    #"Sorted Rows" = Table.Sort(Source,{{"Date modified", Order.Descending}}),
+		    FilteredRows = Table.SelectRows(#"Sorted Rows", each ([Extension] = ".csv") and ([Folder Path] = "https://emergeaotearoaltd.sharepoint.com/sites/IgniteClientandKPIreporting/Shared Documents/Client Report - Greg Testing/") and ([Name] = "Platform Report Data January 2022.csv")),
+		    Navigation1 = FilteredRows{0}[Content]
+		in
+		    Navigation1
+	lineageTag: c1e28916-fea9-49de-9529-08bb1a04fe5b
+	queryGroup: 'POC - Support Sessions\Transform File from Query1\Helper Queries'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Binary
+
+expression Parameter2 = #"Sample File (2)" meta [IsParameterQuery=true, BinaryIdentifier=#"Sample File (2)", Type="Binary", IsParameterQueryRequired=true]
+	lineageTag: cf7f91c9-3c8e-40ad-8ab1-0ec8753a36db
+	queryGroup: 'POC - Support Sessions\Transform File from Query1\Helper Queries'
+
+	annotation PBI_ResultType = Binary
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression 'Transform Sample File (2)' =
+		let
+		    Source = Csv.Document(Parameter2,[Delimiter=",", Columns=60, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+		    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true])
+		in
+		    #"Promoted Headers"
+	lineageTag: 39ce0850-b1b3-4c9c-9048-ce08265156dc
+	queryGroup: 'POC - Support Sessions\Transform File from Query1'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'Transform File (2)' =
+		let
+		    Source = (Parameter2 as binary) => let
+		    Source = Csv.Document(Parameter2,[Delimiter=",", Columns=66, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+		    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true])
+		in
+		    #"Promoted Headers"
+		in
+		    Source
+	lineageTag: a1ce594c-e040-4c49-a754-e71c422f0202
+	queryGroup: 'POC - Support Sessions\Transform File from Query1\Helper Queries'
+
+	annotation PBI_ResultType = Function
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression 'Pivoted Wellbeing Data' = ```
+		let
+		    Source = #"Import Data",
+		    #"Removed Other Columns" = Table.SelectColumns(Source,{"Organisation", "Average Wellbeing Per Domain", "Mind", "Body", "Habits", "Home", "Relationships", "Occupation", "Finances", "Recreation", "Identity", "Beliefs", "Culture", "Connectedness", "Date", "Dim_Organisation_Key"}),
+		    #"Reordered Columns" = Table.ReorderColumns(#"Removed Other Columns",{"Organisation", "Average Wellbeing Per Domain", "Date",  "Mind", "Body", "Habits", "Home", "Relationships", "Occupation", "Finances", "Recreation", "Identity", "Beliefs", "Culture", "Connectedness", "Dim_Organisation_Key"}),    
+		    #"Replaced Value" = Table.ReplaceValue(#"Reordered Columns",null,99,Replacer.ReplaceValue,{"Organisation",  "Mind", "Body", "Habits", "Home", "Relationships", "Occupation", "Finances", "Recreation", "Identity", "Beliefs", "Culture", "Connectedness"}),
+		    #"Unpivoted Columns" = Table.UnpivotOtherColumns(#"Replaced Value", {"Organisation", "Dim_Organisation_Key", "Average Wellbeing Per Domain", "Date"}, "Attribute", "Value"),
+		    #"Renamed Columns" = Table.RenameColumns(#"Unpivoted Columns",{{"Attribute", "Domain"}, {"Value", "Rating"}}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns",{{"Rating", type number}, {"Average Wellbeing Per Domain", Int64.Type}, {"Domain", type text}, {"Organisation", type text}}),
+		    #"Filtered Rows1" = Table.SelectRows(#"Changed Type", each [Rating] <> 99)
+		in
+		    #"Filtered Rows1"
+		```
+	lineageTag: c48d2a13-14e0-4903-b0b4-c69413efa450
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'Import Data - POC' =
+		let
+		    Source = SharePoint.Files("https://emergeaotearoaltd.sharepoint.com/sites/IgniteClientandKPIreporting/", [ApiVersion = 15]),
+		    #"Filtered Hidden Files1" = Table.SelectRows(Source, each [Attributes]?[Hidden]? <> true),
+		    #"Filtered Rows" = Table.SelectRows(#"Filtered Hidden Files1", each ([Extension] = ".csv") and ([Folder Path] = "https://emergeaotearoaltd.sharepoint.com/sites/IgniteClientandKPIreporting/Shared Documents/Client Report - Greg Testing/") and ([Name] = "Platform Report Data February 2023.csv")),
+		    #"Invoke Custom Function1" = Table.AddColumn(#"Filtered Rows", "Transform File (2)", each #"Transform File (2)"([Content])),
+		    #"Renamed Columns1" = Table.RenameColumns(#"Invoke Custom Function1", {"Name", "Source.Name"}),
+		    #"Removed Other Columns1" = Table.SelectColumns(#"Renamed Columns1", {"Source.Name", "Transform File (2)"}),
+		    #"Removed Errors1" = Table.RemoveRowsWithErrors(#"Removed Other Columns1", {"Transform File (2)"}),
+		    #"Expanded Table Column1" = Table.ExpandTableColumn(#"Removed Errors1", "Transform File (2)", Table.ColumnNames(#"Transform File (2)"(#"Sample File (2)"))),
+		  // 2023-05-22 CJN: Yanking date out of the Source Name
+		    #"Duplicated Column" = Table.DuplicateColumn(#"Expanded Table Column1", "Source.Name", "Date"),
+		    #"Replaced Value" = Table.ReplaceValue(#"Duplicated Column","Platform Report Data ","01 ",Replacer.ReplaceText,{"Date"}),
+		    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value",".csv","",Replacer.ReplaceText,{"Date"}),
+		    /*
+		in
+		    #"Expanded Table Column1"
+		
+		  - 2023-05-19 CJN: Adding in the below to align with the existing format.
+		
+		    #"Split Column by Delimiter" = Table.SplitColumn(#"Changed Type1", "Date", Splitter.SplitTextByDelimiter("-", QuoteStyle.Csv), {"Date.1", "Date.2"}),
+		    #"Added Prefix" = Table.TransformColumns(#"Split Column by Delimiter", {{"Date.1", each "20" & _, type text}}),
+		    #"Merged Columns" = Table.CombineColumns(#"Added Prefix",{"Date.1", "Date.2"},Combiner.CombineTextByDelimiter("-", QuoteStyle.None),"Date"),
+		*/
+		    #"Changed Type" = Table.TransformColumnTypes(#"Replaced Value1",{{"Source.Name", type text}, {"Organisation", type text}, {"Total Users", Int64.Type}, {"Total Users Previous Month", Int64.Type}, {"Active Users", Int64.Type}, {"Active Users Percentage", Percentage.Type}, {"Inactive Users", Int64.Type}, {"Users added", Int64.Type}, {"Bookings All Time", Int64.Type}, {"Total #Users booking support", Int64.Type}, {"Booking User Utilisation", Percentage.Type}, {"New Bookings", Int64.Type}, {"Moods All Time", Int64.Type}, {"Moods Previous Month", Int64.Type}, {"New Moods", Int64.Type}, {"Mood User Utilisation", Int64.Type}, {"Percentage of Mood Active Users ", Percentage.Type}, {"Average Mood Monthly", Int64.Type}, {"Wellbeing Tests All Time", Int64.Type}, {"Wellbeing Tests Previous Month", Int64.Type}, {"New Wellbeing Tests", Int64.Type}, {"Wellbeing Test User Utilisation", Int64.Type}, {"Percentage of Wellbeing Test Active Users", Percentage.Type}, {"Average Wellbeing per domain", type number}, {"Mind", Int64.Type}, {"Body", Int64.Type}, {"Habits", Int64.Type}, {"Home", Int64.Type}, {"Relationships", Int64.Type}, {"Occupation", Int64.Type}, {"Finances", Int64.Type}, {"Recreation", Int64.Type}, {"Identity", Int64.Type}, {"Beliefs", Int64.Type}, {"Culture", Int64.Type}, {"Connectedness", Int64.Type}, {"Date", type date}, {"CommentsUsers", type text}, {"CommentsBookings", type text}, {"CommentsMood", type text}, {"CommentsWellbeing", type text}, {"CommentsWellbeingDomains", type text}, {"CommentsAverageWellbeingRatings", type text}, {"CommentsOrgComparison", type text}, {"MEDIUM-Video", Int64.Type}, {"MEDIUM-In Person", Int64.Type}, {"MEDIUM-Phone", Int64.Type}, {"PROVIDERTYPE-Addiction Practitioner", Int64.Type}, {"PROVIDERTYPE-Coach", Int64.Type}, {"PROVIDERTYPE-Counsellor", Int64.Type}, {"PROVIDERTYPE-Financial Advisor", Int64.Type}, {"PROVIDERTYPE-Financial Mentor", Int64.Type}, {"PROVIDERTYPE-Human Resources Consultant", Int64.Type}, {"PROVIDERTYPE-Mentor", Int64.Type}, {"PROVIDERTYPE-NLP Practitioner/Mentor", Int64.Type}, {"PROVIDERTYPE-Occupational Therapist", Int64.Type}, {"PROVIDERTYPE-Psychologist", Int64.Type}, {"PROVIDERTYPE-Registered Nurse", Int64.Type}, {"PROVIDERTYPE-Social Worker", Int64.Type}, {"PROVIDERTYPE-Supervisor", Int64.Type}, {"PROVIDERTYPE-Wellbeing Practitioner/RN", Int64.Type}, {"PROVIDERTYPE-Yoga Teacher", Int64.Type}}),
+		    #"Filtered Rows3" = Table.SelectRows(#"Changed Type", each ([Organisation] <> "")),
+		    #"Sorted Rows1" = Table.Sort(#"Filtered Rows3",{{"Date", Order.Descending}}),
+		    #"Merged Queries" = Table.NestedJoin(#"Sorted Rows1", {"Organisation"}, #"Dim Organisation", {"Recorded Organisation Name"}, "Organisation Names", JoinKind.LeftOuter),
+		    #"Expanded Organisation Names" = Table.ExpandTableColumn(#"Merged Queries", "Organisation Names", {"dim_organisation_key"}, {"dim_organisation_key"})
+		in
+		    #"Expanded Organisation Names"
+	lineageTag: a354ac72-f124-4aa4-99cd-0e796a02baad
+	queryGroup: 'POC - Support Sessions'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'Support Session Summary' =
+		let
+		    // Load source table
+		    Source = #"Import Data",
+		
+		    // --- HEADER NORMALISATION STEP ---
+		    // 1. Create a function to normalise column names (same logic as earlier)
+		    NormalizeHeader = (colName as text) as text =>
+		        let
+		            lower = Text.Lower(colName),
+		            trimmed = Text.Trim(lower),
+		            replacedHyphens = Text.Replace(trimmed, "-", " "),
+		            replacedUnderscore = Text.Replace(replacedHyphens, "_", " "),
+		            collapsedSpaces = Text.Combine(List.Select(Text.Split(replacedUnderscore, " "), each _ <> ""), " ")
+		        in
+		            collapsedSpaces,
+		
+		    // 2. Apply the normalisation to the actual table column names
+		    NormalisedTable = Table.TransformColumnNames(Source, each NormalizeHeader(_)),
+		
+		    // Build a normalised list of the columns you want to select
+		    ColumnsToSelectRaw = {
+		        "MEDIUM-Video", "MEDIUM-In Person", "MEDIUM-Phone",
+		        "PROVIDERTYPE-Addiction Practitioner", "PROVIDERTYPE-Coach", "PROVIDERTYPE-Counsellor",
+		        "PROVIDERTYPE-Financial Advisor", "PROVIDERTYPE-Financial Mentor",
+		        "PROVIDERTYPE-Human Resources Consultant", "PROVIDERTYPE-Mentor",
+		        "PROVIDERTYPE-NLP Practitioner Mentor", "PROVIDERTYPE-Occupational Therapist",
+		        "PROVIDERTYPE-Psychologist", "PROVIDERTYPE-Registered Nurse",
+		        "PROVIDERTYPE-Social Worker", "PROVIDERTYPE-Supervisor",
+		        "PROVIDERTYPE-Wellbeing Practitioner RN", "PROVIDERTYPE-Yoga Teacher",
+		        "PROVIDERTYPE- Wellbeing Practitioner", "PROVIDERTYPE- Hypnotherapist",
+		        "PROVIDERTYPE-Holistic Counsellor",
+		        "Date", "dim_organisation_key"
+		    },
+		
+		    ColumnsToSelect = List.Transform(ColumnsToSelectRaw, each NormalizeHeader(_)),
+		
+		    // Select columns using the normalised names
+		    #"Removed Other Columns" = Table.SelectColumns(NormalisedTable, ColumnsToSelect),
+		
+		    // Unpivot, split and shape
+		    #"Unpivoted Columns" = Table.UnpivotOtherColumns(
+		        #"Removed Other Columns",
+		        {"dim organisation key", "date"},
+		        "Attribute", "Value"
+		    ),
+		
+		    #"Split Column" = Table.SplitColumn(
+		        #"Unpivoted Columns",
+		        "Attribute",
+		        Splitter.SplitTextByDelimiter(" ", QuoteStyle.Csv),
+		        {"Attribute.1", "Attribute.2"}
+		    ),
+		
+		    #"Filtered Rows1" = Table.SelectRows(#"Split Column", each [Attribute.1] = "medium"),
+		
+		    #"Replaced Value" = Table.ReplaceValue(#"Filtered Rows1", "medium", "total", Replacer.ReplaceText, {"Attribute.1"}),
+		
+		    #"Grouped Rows" = Table.Group(
+		        #"Replaced Value",
+		        {"date", "dim organisation key", "Attribute.1"},
+		        {{"Value", each List.Sum([Value]), type number}}
+		    ),
+		
+		    #"Renamed Columns1" = Table.RenameColumns(#"Grouped Rows",{{"Attribute.1", "Mode - Provider"}, {"Value", "Session Booked Count"}, {"date", "Date"}, {"dim organisation key", "Dim_Organisation_Key"}})
+		in
+		    #"Renamed Columns1"
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		// let
+		// // 2023-06-01 CJN : Rebuilt onto the new Import Data file     Source = #"Import Data - POC",
+		//     Source = #"Import Data",
+		//     #"Removed Other Columns" = Table.SelectColumns(Source,{"MEDIUM-Video", "MEDIUM-In Person", "MEDIUM-Phone", "PROVIDERTYPE-Addiction Practitioner", "PROVIDERTYPE-Coach", "PROVIDERTYPE-Counsellor", "PROVIDERTYPE-Financial Advisor", "PROVIDERTYPE-Financial Mentor", "PROVIDERTYPE-Human Resources Consultant", "PROVIDERTYPE-Mentor", "PROVIDERTYPE-NLP Practitioner/Mentor", "PROVIDERTYPE-Occupational Therapist", "PROVIDERTYPE-Psychologist", "PROVIDERTYPE-Registered Nurse", "PROVIDERTYPE-Social Worker", "PROVIDERTYPE-Supervisor", "PROVIDERTYPE-Wellbeing Practitioner/RN", "PROVIDERTYPE-Yoga Teacher", "PROVIDERTYPE- Wellbeing Practitioner", "PROVIDERTYPE- Hypnotherapist", "PROVIDERTYPE-Holistic Counsellor",  "Date", "dim_organisation_key"}),
+		//     #"Unpivoted Columns" = Table.UnpivotOtherColumns(#"Removed Other Columns", {"dim_organisation_key", "Date"}, "Attribute", "Value"),
+		//     #"Split Column by Delimiter" = Table.SplitColumn(#"Unpivoted Columns", "Attribute", Splitter.SplitTextByDelimiter("-", QuoteStyle.Csv), {"Attribute.1", "Attribute.2"}),
+		//     #"Filtered Rows1" = Table.SelectRows(#"Split Column by Delimiter", each ([Attribute.1] = "MEDIUM")),
+		//     #"Replaced Value" = Table.ReplaceValue(#"Filtered Rows1","MEDIUM","TOTAL",Replacer.ReplaceText,{"Attribute.1"}),
+		//     #"Grouped Rows" = Table.Group(#"Replaced Value", {"Date", "dim_organisation_key", "Attribute.1"}, {{"Value", each List.Sum([Value]), type number}}),
+		//     #"Renamed Columns1" = Table.RenameColumns(#"Grouped Rows",{{"Attribute.1", "Mode - Provider"}, {"Value", "Session Booked Count"}})
+		// in
+		//     #"Renamed Columns1"
+	lineageTag: e13bc760-211c-4e09-a20a-9bf6da96fb59
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

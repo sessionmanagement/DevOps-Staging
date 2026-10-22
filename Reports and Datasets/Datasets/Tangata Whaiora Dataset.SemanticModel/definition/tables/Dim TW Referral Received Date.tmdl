@@ -1,0 +1,135 @@
+table 'Dim TW Referral Received Date'
+	excludeFromModelRefresh
+	lineageTag: 9abd6dcc-944f-4998-82e5-768c06abd763
+
+	column 'Referral Received Dim Date KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 892acc6a-d39a-4efd-a326-3e33fd74daf9
+		summarizeBy: none
+		sourceColumn: Referral Received Dim Date KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Received Calendar Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: e8dae552-0160-4b1c-8da6-3d092109d544
+		summarizeBy: none
+		sourceColumn: Referral Received Calendar Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Referral Received Calendar Day Name Full'
+		dataType: string
+		lineageTag: 8eb53db3-17f2-4378-bb30-bfc079f524d2
+		summarizeBy: none
+		sourceColumn: Referral Received Calendar Day Name Full
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Received Calendar Day Name Tereo'
+		dataType: string
+		lineageTag: e25ad783-7e78-4e14-bded-c6336b285c29
+		summarizeBy: none
+		sourceColumn: Referral Received Calendar Day Name Tereo
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Received Calendar Month Name Long'
+		dataType: string
+		lineageTag: 95046bb0-017e-4fc2-92a8-bb531ce8a847
+		summarizeBy: none
+		sourceColumn: Referral Received Calendar Month Name Long
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Received Calendar Month Name Tereo'
+		dataType: string
+		lineageTag: 9c2a2117-03c0-493b-b099-ab034bb32bf9
+		summarizeBy: none
+		sourceColumn: Referral Received Calendar Month Name Tereo
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Received Calendar Month Num'
+		dataType: int64
+		formatString: 0
+		lineageTag: 4abd8eee-32af-4eb8-9550-e848780c388e
+		summarizeBy: none
+		sourceColumn: Referral Received Calendar Month Num
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Received Calendar Year Month'
+		dataType: string
+		lineageTag: 2b4e03ff-b0eb-490e-8edf-489ee832b93f
+		summarizeBy: none
+		sourceColumn: Referral Received Calendar Year Month
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Received Calendar Year'
+		dataType: int64
+		formatString: 0
+		lineageTag: 62deca0a-0912-4d07-b8df-76fb89796ed4
+		summarizeBy: none
+		sourceColumn: Referral Received Calendar Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Received Current Month Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: b0099535-9947-4112-becc-4dbce4a86185
+		summarizeBy: none
+		sourceColumn: Referral Received Current Month Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Received Current Calendar Year Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: 30d34107-13fc-4735-983d-af9b78cc255a
+		summarizeBy: none
+		sourceColumn: Referral Received Current Calendar Year Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Received Is Current Date'
+		dataType: int64
+		formatString: 0
+		lineageTag: 0015c0d8-1890-4860-8994-5b3859892be4
+		summarizeBy: none
+		sourceColumn: Referral Received Is Current Date
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim TW Referral Received Date' = m
+		mode: import
+		queryGroup: 'Role Playing Date Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database),
+				    edw_dim_client_referral_received_date = Source{[Schema="edw",Item="dim_client_referral_received_date"]}[Data],
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            capitaliseWords = Text.Proper(replaceUnderscore),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY")
+				        in
+				            capitaliseKEY,
+				    #"Transformed Column Names" = Table.TransformColumnNames(edw_dim_client_referral_received_date, each ApplyNamingConventions(_)),
+				    #"Removed Other Columns" = Table.SelectColumns(#"Transformed Column Names",{"Referral Received Dim Date KEY", "Referral Received Calendar Date", "Referral Received Calendar Day Name Full", "Referral Received Calendar Day Name Tereo", "Referral Received Calendar Month Num", "Referral Received Calendar Month Name Long", "Referral Received Calendar Month Name Tereo", "Referral Received Calendar Year Month", "Referral Received Calendar Year", "Referral Received Current Month Flag", "Referral Received Current Calendar Year Flag", "Referral Received Is Current Date"})
+				in
+				    #"Removed Other Columns"
+
+	annotation PBI_ResultType = Table
+

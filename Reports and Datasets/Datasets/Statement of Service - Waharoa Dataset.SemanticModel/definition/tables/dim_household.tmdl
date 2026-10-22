@@ -1,0 +1,62 @@
+table dim_household
+	lineageTag: 578c069f-dddd-4089-9ea4-6d95e21d24e0
+
+	column zav_name
+		dataType: string
+		isHidden
+		lineageTag: 2e7f4061-7737-4c1d-8770-497d69adaaea
+		summarizeBy: none
+		sourceColumn: zav_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_hhid
+		dataType: string
+		isHidden
+		lineageTag: 1527261c-6da5-4f19-b3ef-682424a894b5
+		summarizeBy: none
+		sourceColumn: zav_hhid
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_tenancy
+		dataType: string
+		lineageTag: cf14dd5a-fff2-4af6-8ec6-ad7be0099182
+		summarizeBy: none
+		sourceColumn: zav_tenancy
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_tenancyname
+		dataType: string
+		lineageTag: f1a646d6-3a81-4b58-b0c4-540d1ca29334
+		summarizeBy: none
+		sourceColumn: zav_tenancyname
+
+		annotation SummarizationSetBy = Automatic
+
+	column Composite
+		dataType: string
+		lineageTag: 5c2fc438-00ce-4413-b827-9dd39872fca7
+		summarizeBy: none
+		sourceColumn: Composite
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_household-f420bab1-03d8-4fc6-8e49-950cac3c03b6 = m
+		mode: import
+		queryGroup: dimensions
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="-- ============================================================#(lf)-- Model:  Statement of Service - Waharoa Dataset#(lf)-- Table:  dim_household#(lf)-- Source: native query (complex CTE/window) - emitted in full#(lf)-- Used columns: 1 (mapped 1, unmapped 0)  [full query, not trimmed]#(lf)-- Auto-generated from pbi_complete_dump.csv + model M + EDW/ODS schema.#(lf)-- Review before use; verify joins/filters against the model.#(lf)-- ============================================================#(lf)-- USED model columns: zav_hhid#(lf)#(lf)WITH RecentHouseholds AS (#(lf)    SELECT#(lf)        zav_name,#(lf)        zav_hhid,#(lf)        zav_tenancy,#(lf)        zav_tenancyname,#(lf)        SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (PARTITION BY zav_hhid ORDER BY SinkModifiedOn DESC) AS rn#(lf)    FROM#(lf)        [Zavanti].[vw_zav_household]#(lf))#(lf)SELECT#(lf)    zav_name,#(lf)    zav_hhid,#(lf)    zav_tenancy,#(lf)    zav_tenancyname#(lf)FROM#(lf)    RecentHouseholds#(lf)WHERE#(lf)    rn = 1;#(lf)#(lf)-- NOTE: after the query above, the model also applies these in-memory#(lf)-- Power Query row filters (add to the WHERE for an exact row match):#(lf)--   each ([Composite] <> null)#(lf)"]),
+				    #"Sorted Rows" = Table.Sort(Source,{{"zav_name", Order.Ascending}}),
+				    #"Added Custom" = Table.AddColumn(#"Sorted Rows", "Composite", each [zav_name]&[zav_hhid]&[zav_tenancy]&[zav_tenancyname]),
+				    #"Filtered Rows" = Table.SelectRows(#"Added Custom", each ([Composite] <> null)),
+				    #"Removed Duplicates" = Table.Distinct(#"Filtered Rows", {"zav_hhid"})
+				in
+				    #"Removed Duplicates"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

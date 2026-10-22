@@ -1,0 +1,155 @@
+table MNB_DimTeamFunction
+	isHidden
+	lineageTag: eaac43a3-1d13-4bb8-b70b-ab09e78d2218
+
+	column CompanyIdentifier
+		dataType: string
+		isHidden
+		lineageTag: 4f2ae4e4-4de3-4820-8d9c-2e769fa55a0c
+		summarizeBy: none
+		sourceColumn: CompanyIdentifier
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionID
+		dataType: string
+		isHidden
+		lineageTag: f918c84c-2359-4084-b521-9b9415660ddb
+		summarizeBy: none
+		sourceColumn: TeamFunctionID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamConfigurationID
+		dataType: string
+		isHidden
+		lineageTag: 31ec1e87-4330-4af3-9018-6c0992d7f677
+		summarizeBy: none
+		sourceColumn: TeamConfigurationID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column DefaultTaskProcessID
+		dataType: string
+		isHidden
+		lineageTag: 9e55c874-5b8d-4faf-84e6-367f6db220f3
+		summarizeBy: none
+		sourceColumn: DefaultTaskProcessID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionCode
+		dataType: string
+		isHidden
+		lineageTag: a3256bf6-6d06-47de-9884-e23aa8c00fd0
+		summarizeBy: none
+		sourceColumn: TeamFunctionCode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionName
+		dataType: string
+		isHidden
+		lineageTag: 580a9f65-06b7-436c-bc64-fdbdd1bdb65d
+		summarizeBy: none
+		sourceColumn: TeamFunctionName
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionDescription
+		dataType: string
+		isHidden
+		lineageTag: 06c02139-ad53-4903-9c67-bbe57dbfcd76
+		summarizeBy: none
+		sourceColumn: TeamFunctionDescription
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionAllowConcurrentReferrals
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 8495275d-faf5-44f9-8e86-1f4678624a94
+		summarizeBy: sum
+		sourceColumn: TeamFunctionAllowConcurrentReferrals
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionIsAccomodationBased
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 1d93a21b-20e0-4d74-aefe-c90a23916434
+		summarizeBy: sum
+		sourceColumn: TeamFunctionIsAccomodationBased
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionRecentlyDischargedPeriodDays
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: cac3d565-1fa0-4ad9-a961-3e064271517b
+		summarizeBy: sum
+		sourceColumn: TeamFunctionRecentlyDischargedPeriodDays
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionAllowExitWithoutDischarge
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 6fd024ea-e132-416f-9daa-29f3a79c253b
+		summarizeBy: sum
+		sourceColumn: TeamFunctionAllowExitWithoutDischarge
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionNameBucket
+		dataType: string
+		isHidden
+		lineageTag: e029aff6-7b79-45d8-ac7f-badb39d63f63
+		summarizeBy: none
+		sourceColumn: TeamFunctionNameBucket
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition MNB_DimTeamFunction-76e962c1-1ab0-42d5-b46a-d267845929fe = m
+		mode: import
+		queryGroup: MNB
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)'MNB' AS CompanyIdentifier,#(lf)CASE WHEN [TeamFunctionID]IS NOT NULL THEN CONCAT('M',[TeamFunctionID]) ELSE NULL END AS [TeamFunctionID],#(lf)CASE WHEN [TeamConfigurationID]IS NOT NULL THEN CONCAT('M',[TeamConfigurationID]) ELSE NULL END AS [TeamConfigurationID],#(lf)CASE WHEN [DefaultTaskProcessID]IS NOT NULL THEN CONCAT('M',[DefaultTaskProcessID]) ELSE NULL END AS [DefaultTaskProcessID],#(lf)[TeamFunctionCode],#(lf)[TeamFunctionName],#(lf)[TeamFunctionDescription],#(lf)[TeamFunctionAllowConcurrentReferrals],#(lf)[TeamFunctionIsAccomodationBased],#(lf)[TeamFunctionRecentlyDischargedPeriodDays],#(lf)[TeamFunctionAllowExitWithoutDischarge],#(lf)CASE WHEN TeamFunctionName LIKE '%Residential%' THEN 'Residential' WHEN TeamFunctionName LIKE '%Respite%' THEN 'Respite' ELSE TeamFunctionName END AS TeamFunctionNameBucket#(lf)FROM RBMNB.dlDimTeamFunction"])
+				in
+				    Source
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

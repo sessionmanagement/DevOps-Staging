@@ -1,0 +1,107 @@
+table 'Budget Holder'
+	lineageTag: c6d7aff1-d500-439d-a688-ef3ee4c03849
+
+	column 'Dim Finance Budget Holder KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 7d327a68-21b3-409a-9b0f-0ab8df6e1a9f
+		summarizeBy: none
+		sourceColumn: Dim Finance Budget Holder KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Is Current'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 5920ef01-7fab-4a71-a103-6fb15c757be3
+		summarizeBy: none
+		sourceColumn: DWH Is Current
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Budget Holder Dimension Value ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b7618227-5921-4364-9795-5e84db92b042
+		summarizeBy: none
+		sourceColumn: Budget Holder Dimension Value ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Budget Holder Code'
+		dataType: string
+		lineageTag: 483aa1e9-eb63-43f4-b50b-f22b4fcf0197
+		summarizeBy: none
+		sourceColumn: Budget Holder Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Budget Holder Name'
+		dataType: string
+		lineageTag: 9f32f963-6b97-4988-918c-b4961b9b9a20
+		summarizeBy: none
+		sourceColumn: Budget Holder Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Budget Holder Company Name'
+		dataType: string
+		lineageTag: afe0e040-edb4-46dc-aa94-e32f35f9fbd0
+		summarizeBy: none
+		sourceColumn: Budget Holder Company Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Budget Holder Last Modified Date Time'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 72a83701-5d0a-454c-bfd8-d7e078174160
+		summarizeBy: none
+		sourceColumn: Budget Holder Last Modified Date Time
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Budget Holder' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database),
+				    dim_finance_budget_holder = Source{[Schema = "edw", Item = "vw_dim_finance_budget_holder"]}[Data],
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(dim_finance_budget_holder, each ApplyNamingConventions(_)),
+				    #"Removed Finance Prefix" = Table.TransformColumnNames(#"Transformed Column Names", each if Text.StartsWith(_, "Finance ") then Text.AfterDelimiter(_, "Finance ") else _),
+				    #"Removed Columns" = Table.RemoveColumns(#"Removed Finance Prefix",{"DWH Source System", "DWH Dml Operation", "DWH Batch ID", "DWH Effective From", "DWH Effective To"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

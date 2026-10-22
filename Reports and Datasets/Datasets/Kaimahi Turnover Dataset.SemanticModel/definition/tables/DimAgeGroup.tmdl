@@ -1,0 +1,38 @@
+table DimAgeGroup
+	lineageTag: a944e178-7a4f-4f2b-a615-0e3f8a69edc7
+
+	column Days
+		dataType: string
+		lineageTag: 7677e8f7-31ab-4adf-982b-94407bc4c36b
+		summarizeBy: none
+		sourceColumn: Days
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Age Range'
+		dataType: string
+		lineageTag: 85fe2405-26fd-4639-b4cb-2225a1fec5c0
+		summarizeBy: none
+		sourceColumn: Age Range
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimAgeGroup-d40e2063-d3f1-441f-915a-f7a81fb03d58 = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WMlDSUTI2MzUwUIqNBQA=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [int1 = _t, int2 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"int1", Int64.Type}, {"int2", Int64.Type}}),
+				    #"Added Custom" = Table.AddColumn(#"Changed Type", "explosion", each {[int1]..[int2]}),
+				    #"Expanded explosion" = Table.ExpandListColumn(#"Added Custom", "explosion"),
+				    #"Removed Columns" = Table.RemoveColumns(#"Expanded explosion",{"int1", "int2"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"explosion", "Days"}}),
+				    #"Added Conditional Column" = Table.AddColumn(#"Renamed Columns", "Age Range", each if [Days] < 0 then "Not set" else if [Days] <= 7300 then "0-20" else if [Days] <= 10950 then "21-30" else if [Days] <= 14600 then "31-40" else if [Days] <= 18250 then "41-50" else if [Days] <= 21900 then "51-60" else if [Days] <= 25550 then "61-70" else if [Days] > 25550 then "70+" else null)
+				in
+				    #"Added Conditional Column"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

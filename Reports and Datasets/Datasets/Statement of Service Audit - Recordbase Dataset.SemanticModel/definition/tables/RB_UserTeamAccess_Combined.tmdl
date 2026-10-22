@@ -1,0 +1,75 @@
+table RB_UserTeamAccess_Combined
+	lineageTag: b737929d-c8d0-4edc-a579-09ecb08c1571
+
+	column TeamID
+		dataType: int64
+		formatString: 0
+		lineageTag: f59dca61-bb5a-4858-9be3-d69ebe61d7fd
+		summarizeBy: count
+		sourceColumn: TeamID
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserEmailAddress
+		dataType: string
+		lineageTag: 24916874-3d73-4276-9317-0d02a6920c87
+		summarizeBy: none
+		sourceColumn: UserEmailAddress
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamName
+		dataType: string
+		lineageTag: b721cf11-8afa-441c-9801-eb1a2361b797
+		summarizeBy: none
+		sourceColumn: TeamName
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Surrogate Key'
+		dataType: string
+		lineageTag: 0e732349-01f5-4ede-9bfb-4856ea3f6e0c
+		summarizeBy: none
+		sourceColumn: Surrogate Key
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionID
+		dataType: string
+		lineageTag: 8ea0e8e2-87ad-47e9-a611-bfdecf61aae5
+		summarizeBy: none
+		sourceColumn: TeamFunctionID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition RB_UserTeamAccess_Combined = m
+		mode: import
+		queryGroup: RLS
+		source =
+				let
+				    // Own rows: hierarchy-derived Recordbase client teams per viewer (expression RLS-Recordbase)
+				    Own = #"RLS-Recordbase",
+				    // Additional Access grants for this report, emails lowercased and trimmed on both sides of the case-sensitive join
+				    GrantsRaw = Table.SelectColumns(#"Additional Access", {"Requester Email", "Person to Impersonate Email"}),
+				    GrantsLower = Table.TransformColumns(GrantsRaw, {{"Requester Email", each Text.Lower(Text.Trim(_)), type text}, {"Person to Impersonate Email", each Text.Lower(Text.Trim(_)), type text}}),
+				    Grants = Table.Distinct(Table.SelectRows(GrantsLower, each [Requester Email] <> null and [Requester Email] <> "" and [Person to Impersonate Email] <> null and [Person to Impersonate Email] <> "")),
+				    // Delegated rows: the requester gets every team of the person they impersonate
+				    Delegated = Table.Join(Grants, "Person to Impersonate Email", Own, "UserEmailAddress", JoinKind.Inner),
+				    DelegatedRows = Table.RenameColumns(Table.RemoveColumns(Delegated, {"Person to Impersonate Email", "UserEmailAddress"}), {{"Requester Email", "UserEmailAddress"}}),
+				    // Own rows plus delegated rows, so a user who impersonates someone keeps their own access
+				    AllRows = Table.Distinct(Table.Combine({Own, DelegatedRows})),
+				    // Composite team key (TeamFunctionID & TeamID, e.g. E12E345) from the RecordBase team dimension
+				    Teams = Table.RenameColumns(Table.SelectColumns(ALL_DimTeamFunction, {"TeamID", "TeamFunctionID", "TeamName", "TeamKeyComposite"}), {{"TeamID", "Dim TeamID"}}),
+				    Joined = Table.Join(AllRows, "Team Key", Teams, "Dim TeamID", JoinKind.Inner),
+				    Shaped = Table.SelectColumns(Joined, {"UserEmailAddress", "client_team_id", "TeamName", "TeamFunctionID", "TeamKeyComposite"}),
+				    Renamed = Table.RenameColumns(Shaped, {{"client_team_id", "TeamID"}, {"TeamKeyComposite", "Surrogate Key"}}),
+				    NonBlank = Table.SelectRows(Renamed, each [Surrogate Key] <> null and [Surrogate Key] <> "" and [UserEmailAddress] <> null and [UserEmailAddress] <> ""),
+				    Typed = Table.TransformColumnTypes(NonBlank, {{"TeamID", Int64.Type}, {"UserEmailAddress", type text}, {"TeamName", type text}, {"Surrogate Key", type text}, {"TeamFunctionID", type text}}),
+				    Result = Table.Distinct(Typed)
+				in
+				    Result
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,46 @@
+/// Disconnected slicer table (no relationship to any fact). Its 'Category' column filters the Transitional Housing chain-level Length-of-Stay measure via SELECTEDVALUE('Stay Category'[Category]); with no selection the measure returns the all-category value. Sole live consumer: 'TH Median Exit Time by Stay (Weeks)' (there is NO 'TH Avg Exit Time by Stay (Weeks)' measure in the model — drop that stale reference). Non-overlapping whole-week buckets: Short 0-12, Medium 13-52, Long 53-104, Ultra-Long 105+ (the 999 Max Weeks cap is nominal). Category sorts by 'Sort Order'.
+table 'Stay Category'
+	lineageTag: 5fdbe1a3-a4e3-46ec-baab-372a571f826b
+
+	/// Stay-duration bucket used to slice the Transitional Housing Length-of-Stay measures: Short (0-12 weeks), Medium (13-52), Long (53-104), Ultra-Long (105+). Disconnected slicer value read via SELECTEDVALUE; sorts by 'Sort Order'.
+	column Category
+		lineageTag: ea2d0c7c-b408-46a7-898b-d76ec31d438f
+		isNameInferred
+		sourceColumn: [Category]
+		sortByColumn: 'Sort Order'
+
+	column 'Sort Order'
+		isHidden
+		lineageTag: 5d4ef026-8396-4d11-affc-3be013857dcc
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Sort Order]
+
+	column 'Min Weeks'
+		isHidden
+		lineageTag: e3e6fb3f-65d9-44be-a502-6b793c53866b
+		isNameInferred
+		sourceColumn: [Min Weeks]
+
+	column 'Max Weeks'
+		isHidden
+		lineageTag: 9eab88c9-6195-4713-a354-df48b00ecf66
+		isNameInferred
+		sourceColumn: [Max Weeks]
+
+	partition 'Stay Category' = calculated
+		mode: import
+		source =
+				DATATABLE(
+				    "Category", STRING,
+				    "Sort Order", INTEGER,
+				    "Min Weeks", INTEGER,
+				    "Max Weeks", INTEGER,
+				    {
+				        {"Short", 1, 0, 12},
+				        {"Medium", 2, 13, 52},
+				        {"Long", 3, 53, 104},
+				        {"Ultra-Long", 4, 105, 999}
+				    }
+				)
+

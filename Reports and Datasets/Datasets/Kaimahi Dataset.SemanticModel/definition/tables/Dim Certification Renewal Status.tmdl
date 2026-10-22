@@ -1,0 +1,33 @@
+table 'Dim Certification Renewal Status'
+	lineageTag: ae041e86-32af-49bf-adf3-6efed0c179a5
+
+	column 'Status ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 75f95ecc-0392-445c-bda1-2927512abb31
+		summarizeBy: count
+		sourceColumn: Status ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Renewal Status'
+		dataType: string
+		lineageTag: fdb2dd0c-ca31-41fe-9c17-ef25ecf10457
+		summarizeBy: none
+		sourceColumn: Renewal Status
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Certification Renewal Status' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WMlLSUQpKzUstT8xRcK0oyCxKTVGK1YlWMgCK++WXKLiUpiqk5RcpFEHUgOUMgXJgtZl56QrB+fl5SrGxAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Status ID" = _t, #"Renewal Status" = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Status ID", Int64.Type}, {"Renewal Status", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

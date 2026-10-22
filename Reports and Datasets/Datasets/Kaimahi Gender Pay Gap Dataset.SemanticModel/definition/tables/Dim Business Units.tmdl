@@ -1,0 +1,106 @@
+table 'Dim Business Units'
+	lineageTag: 1668691e-b6cd-449a-8598-8e9fce2d5553
+
+	column dim_business_unit_hierarchy_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 01091992-93b9-4ccf-824f-026aa30cd664
+		summarizeBy: none
+		sourceColumn: dim_business_unit_hierarchy_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_unit_id
+		dataType: string
+		lineageTag: aa55ca13-7795-4f05-9b98-7a8c6f0ef652
+		summarizeBy: none
+		sourceColumn: business_unit_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Business Unit'
+		dataType: string
+		lineageTag: f4268935-35c0-45a0-9360-4f55f40dc718
+		summarizeBy: none
+		sourceColumn: Business Unit
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_unit_hierarchy_level1_name
+		dataType: string
+		lineageTag: 55e34fe2-cf1e-4386-9882-73bf192232d6
+		summarizeBy: none
+		sourceColumn: business_unit_hierarchy_level1_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_unit_hierarchy_level2_name
+		dataType: string
+		lineageTag: cea180dc-c072-4203-bdfc-02cf5989882b
+		summarizeBy: none
+		sourceColumn: business_unit_hierarchy_level2_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_unit_hierarchy_level3_name
+		dataType: string
+		lineageTag: 71494450-f259-400d-8d4f-71ed0c42ba18
+		summarizeBy: none
+		sourceColumn: business_unit_hierarchy_level3_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_unit_hierarchy_level4_name
+		dataType: string
+		lineageTag: 685fe435-0809-428e-96c0-677eff56c2fc
+		summarizeBy: none
+		sourceColumn: business_unit_hierarchy_level4_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_unit_hierarchy_level5_name
+		dataType: string
+		lineageTag: f2f9aaae-b09f-4a68-9833-0826efdfe259
+		summarizeBy: none
+		sourceColumn: business_unit_hierarchy_level5_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_unit_hierarchy_level6_name
+		dataType: string
+		lineageTag: e31ca59d-8c87-42ca-86cd-2eb356e940db
+		summarizeBy: none
+		sourceColumn: business_unit_hierarchy_level6_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_unit_hierarchy_level7_name
+		dataType: string
+		lineageTag: 50811288-adf9-4496-aa73-37784d732f45
+		summarizeBy: none
+		sourceColumn: business_unit_hierarchy_level7_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_active_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: 170267b8-1d08-4723-9d08-ee0f01f01e07
+		summarizeBy: none
+		sourceColumn: is_active_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Business Units' = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT [dim_business_unit_hierarchy_key]#(lf)      ,[business_unit_id]#(lf)      ,[business_unit_name] AS 'Business Unit'#(lf)      ,[business_unit_hierarchy_level1_name]#(lf)      ,[business_unit_hierarchy_level2_name]#(lf)      ,[business_unit_hierarchy_level3_name]#(lf)      ,[business_unit_hierarchy_level4_name]#(lf)      ,[business_unit_hierarchy_level5_name]#(lf)      ,[business_unit_hierarchy_level6_name]#(lf)      ,[business_unit_hierarchy_level7_name]#(lf)      ,[is_active_flag]#(lf)  FROM [edw].[dim_business_unit_hierarchy]#(lf)  WHERE DWHDMLOperation <> 'D'#(lf)  AND is_active_flag = 1#(lf)AND [dim_business_unit_hierarchy_key] > 0"])
+				in
+				    Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

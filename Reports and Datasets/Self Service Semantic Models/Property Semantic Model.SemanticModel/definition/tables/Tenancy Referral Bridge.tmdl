@@ -1,0 +1,310 @@
+/// Bridge table linking tenancies to Transitional Housing referrals for the same client (Tangata Whaiora ID) with a 3-day date-overlap tolerance. Calculated table: for each non-'Waitlisted' referral it matches every tenancy in the same client's chain where Referral Accepted Date >= Chain Start Date - 3, Referral Discharge Date <= Chain End Date + 3 (or the chain is still open / discharge blank), Referral Discharge Date >= Tenancy Start Date, and Referral Accepted Date <= Tenancy Vacated Date + 3 (or the tenancy is current). Grain: one row per matching referral-tenancy pair (~4,746 rows over ~4,070 distinct tenancies). Joins to Tenancy on Property Tenancy ID (single direction).
+table 'Tenancy Referral Bridge'
+	lineageTag: c7b712e7-070a-45e3-8f93-0282449c1593
+
+	column 'Property Tenancy ID'
+		isHidden
+		lineageTag: a654dc67-7a41-4070-ba9d-3636b5f0e467
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Property Tenancy ID]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tenancy Tangata Whaiora ID'
+		isHidden
+		lineageTag: 40bfff45-3a70-459b-a838-14c8b57f6b00
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tenancy Tangata Whaiora ID]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tenancy Start Date'
+		formatString: d/mm/yyyy
+		lineageTag: 10ec750c-c292-43b6-a0b4-4dc82d34ec0f
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tenancy Start Date]
+
+		variation Variation
+			isDefault
+			relationship: 38f3a037-9763-4e76-9af3-47adb9b0bf4b
+			defaultHierarchy: LocalDateTable_cd9aa0d2-ffed-4b10-a859-776f3068bc97.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tenancy Vacated Date'
+		formatString: d/mm/yyyy
+		lineageTag: cbe766a6-af83-4422-8e4d-8b3a62ba5945
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tenancy Vacated Date]
+
+		variation Variation
+			isDefault
+			relationship: 24f801e1-d4b1-44f6-b314-00cbb341d5a5
+			defaultHierarchy: LocalDateTable_5c3557fb-7039-4c2b-9127-a85a91450161.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Tangata Whaiora ID'
+		isHidden
+		lineageTag: 4c335ac6-e991-4c21-a2c7-fba9b50de914
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Referral Tangata Whaiora ID]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Accepted Date'
+		formatString: d/mm/yyyy
+		lineageTag: acb8f2f5-f577-419b-895a-2e545e74e211
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Referral Accepted Date]
+
+		variation Variation
+			isDefault
+			relationship: 2071e5a4-d4e1-4176-a08c-ec58549591ca
+			defaultHierarchy: LocalDateTable_f1820ef2-d748-4a50-a07b-6e57dc2f1324.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Discharge Date'
+		formatString: d/mm/yyyy
+		lineageTag: eeae643e-1c26-4272-a0d7-eadcbbb98ed8
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Referral Discharge Date]
+
+		variation Variation
+			isDefault
+			relationship: ae214477-d177-4feb-88a8-fb9d31584076
+			defaultHierarchy: LocalDateTable_6792e642-bc4d-404a-bd01-faa0c42b553b.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referrer Name'
+		lineageTag: 097e284a-5045-4ed3-aaa9-aa6b90daf705
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Referrer Name]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Status'
+		lineageTag: 0f7f79d8-1927-452f-8cdc-ecaef20cf258
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Referral Status]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Accepted Reason'
+		lineageTag: 9f4c6880-0b7c-453e-a217-f6b1309ecbaf
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Referral Accepted Reason]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Discharge Reason'
+		lineageTag: 74ffe6fa-7bbd-4525-b0ac-a155e251dc19
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Referral Discharge Reason]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Received Date'
+		formatString: d/mm/yyyy
+		lineageTag: bacd65e9-925c-4160-8e97-0752449f096a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Referral Received Date]
+
+		variation Variation
+			isDefault
+			relationship: 9096fade-a34b-4207-b261-8ace1ae49ecb
+			defaultHierarchy: LocalDateTable_de0d0f22-e4e2-4e46-a677-7c7979c8fd35.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Accepted Reason Code'
+		isHidden
+		lineageTag: befe3ab6-9f08-4000-9c9e-aeda4811653d
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Referral Accepted Reason Code]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Discharge Reason Code'
+		isHidden
+		lineageTag: 5a70b35b-cf1b-4ad2-897c-e15256147ace
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Referral Discharge Reason Code]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Name'
+		lineageTag: ed3a45eb-a884-4812-baea-83a31616df6a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Service Name]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Type Name'
+		lineageTag: 1be19d81-4831-4dcb-8ec1-a94c3c6dba62
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Service Type Name]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Finance Funder Name'
+		lineageTag: 593a3f40-073d-48ec-8141-d96736577383
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Finance Funder Name]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team Name'
+		lineageTag: 695a9656-47dc-4641-af4d-b7068da80278
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tangata Whaiora Team Name]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Referrer name with internal-transfer inheritance. Returns the row's own Referrer Name when populated. When blank (typical for internal transfers), inherits the Referrer Name of the same client's prior referral with the latest discharge date among those whose accepted date is on or after this chain's start date minus 3 days and whose discharge date is on or before this referral's accepted date; blank if none qualifies.
+	column 'Effective Referrer Name' =
+			VAR _CurrentReferrerName = 'Tenancy Referral Bridge'[Referrer Name]
+			VAR _CurrentAccepted = 'Tenancy Referral Bridge'[Referral Accepted Date]
+			VAR _CurrentClientID = 'Tenancy Referral Bridge'[Referral Tangata Whaiora ID]
+			VAR _ChainStart = 'Tenancy Referral Bridge'[Chain Start Date]
+			VAR _InheritedName =
+			    MAXX(
+			        TOPN(
+			            1,
+			            FILTER(
+			                ALL('Transitional Housing Referrals'),
+			                'Transitional Housing Referrals'[Tangata Whaiora ID] = _CurrentClientID &&
+			                NOT(ISBLANK('Transitional Housing Referrals'[Tangata Whaiora Referrer Name])) &&
+			                NOT(ISBLANK('Transitional Housing Referrals'[Tangata Whaiora Referral Discharge Date])) &&
+			                'Transitional Housing Referrals'[Tangata Whaiora Referral Accepted Date] >= _ChainStart - 3 &&
+			                'Transitional Housing Referrals'[Tangata Whaiora Referral Discharge Date] <= _CurrentAccepted
+			            ),
+			            'Transitional Housing Referrals'[Tangata Whaiora Referral Discharge Date], DESC
+			        ),
+			        'Transitional Housing Referrals'[Tangata Whaiora Referrer Name]
+			    )
+			RETURN
+			    IF(
+			        NOT(ISBLANK(_CurrentReferrerName)),
+			        _CurrentReferrerName,
+			        _InheritedName
+			    )
+		dataType: string
+		lineageTag: 68e315b5-5d41-460c-967f-9cf96e9112c7
+		summarizeBy: none
+
+	column 'Chain Start Date'
+		formatString: d/mm/yyyy
+		lineageTag: 3a8bf098-cd1d-4377-b136-109672a87640
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Chain Start Date]
+
+		variation Variation
+			isDefault
+			relationship: e3b8cfeb-a1c7-4609-90b5-9166b5ba4d03
+			defaultHierarchy: LocalDateTable_73d96f42-ec29-4eb3-a36c-05cb42ce9444.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Chain End Date'
+		formatString: d/mm/yyyy
+		lineageTag: 737755a9-0ad5-4c2a-9335-3950e7959d34
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Chain End Date]
+
+		variation Variation
+			isDefault
+			relationship: 4a2faff7-563b-4851-ac47-838e3812f556
+			defaultHierarchy: LocalDateTable_846fb4ac-f248-4ccd-855e-330ec75dcf29.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Tenancy Referral Bridge' = calculated
+		mode: import
+		source = ```
+				VAR TenancyBase = 
+				    FILTER(Tenancy, NOT ISBLANK(Tenancy[Tangata Whaiora ID]))
+				VAR TenancyData = 
+				    ADDCOLUMNS(
+				        SELECTCOLUMNS(
+				            TenancyBase,
+				            "Property Tenancy ID", Tenancy[Property Tenancy ID],
+				            "Tenancy Tangata Whaiora ID", Tenancy[Tangata Whaiora ID],
+				            "Tenancy Start Date", Tenancy[Tenancy Start Date],
+				            "Tenancy Vacated Date", Tenancy[Vacated Date],
+				            "Chain Start Date", Tenancy[Chain Start Date]
+				        ),
+				        "Chain End Date",
+				        VAR _ClientID = [Tenancy Tangata Whaiora ID]
+				        VAR _ChainStart = [Chain Start Date]
+				        VAR _ChainTenancies = 
+				            FILTER(
+				                TenancyBase,
+				                Tenancy[Tangata Whaiora ID] = _ClientID && 
+				                Tenancy[Chain Start Date] = _ChainStart
+				            )
+				        VAR _HasOpenTenancy = 
+				            COUNTROWS(
+				                FILTER(_ChainTenancies, ISBLANK(Tenancy[Vacated Date]))
+				            ) > 0
+				        RETURN 
+				            IF(
+				                _HasOpenTenancy, 
+				                BLANK(), 
+				                MAXX(_ChainTenancies, Tenancy[Vacated Date])
+				            )
+				    )
+				VAR ReferralData = 
+				    SELECTCOLUMNS(
+				        FILTER(
+				            'Transitional Housing Referrals',
+				            'Transitional Housing Referrals'[Tangata Whaiora Referral Status] <> "Waitlisted"
+				        ),
+				        "Referral Tangata Whaiora ID", 'Transitional Housing Referrals'[Tangata Whaiora ID],
+				        "Referral Received Date", 'Transitional Housing Referrals'[Tangata Whaiora Referral Received Date],
+				        "Referral Accepted Date", 'Transitional Housing Referrals'[Tangata Whaiora Referral Accepted Date],
+				        "Referral Discharge Date", 'Transitional Housing Referrals'[Tangata Whaiora Referral Discharge Date],
+				        "Referrer Name", 'Transitional Housing Referrals'[Tangata Whaiora Referrer Name],
+				        "Referral Status", 'Transitional Housing Referrals'[Tangata Whaiora Referral Status],
+				        "Referral Accepted Reason", 'Transitional Housing Referrals'[Tangata Whaiora Referral Accepted Reason],
+				        "Referral Accepted Reason Code", 'Transitional Housing Referrals'[Tangata Whaiora Referral Accepted Reason Code],
+				        "Referral Discharge Reason", 'Transitional Housing Referrals'[Tangata Whaiora Referral Discharge Reason],
+				        "Referral Discharge Reason Code", 'Transitional Housing Referrals'[Tangata Whaiora Referral Discharge Reason Code],
+				        "Service Name", 'Transitional Housing Referrals'[Service Name],
+				        "Service Type Name", 'Transitional Housing Referrals'[Service Type Name],
+				        "Finance Funder Name", 'Transitional Housing Referrals'[Finance Funder Name],
+				        "Tangata Whaiora Team Name", 'Transitional Housing Referrals'[Tangata Whaiora Team Name]
+				    )
+				RETURN
+				FILTER(
+				    CROSSJOIN(TenancyData, ReferralData),
+				    [Tenancy Tangata Whaiora ID] = [Referral Tangata Whaiora ID]
+				        && [Referral Accepted Date] >= [Chain Start Date] - 3
+				        && ([Referral Discharge Date] <= [Chain End Date] + 3 || ISBLANK([Chain End Date]))
+				        && ([Referral Discharge Date] >= [Tenancy Start Date] || ISBLANK([Referral Discharge Date]))
+				        && ([Referral Accepted Date] <= [Tenancy Vacated Date] + 3 || ISBLANK([Tenancy Vacated Date]))
+				)
+				```
+

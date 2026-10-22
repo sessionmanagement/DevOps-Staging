@@ -1,0 +1,246 @@
+table 'RLS with Additional Access'
+	lineageTag: caefbd09-e31f-4f96-9f66-631a087e7e34
+
+	column 'Hierarchy Number'
+		dataType: int64
+		formatString: 0
+		lineageTag: 3f09a2a7-5ef6-472e-891e-3d49bb3fe3d1
+		summarizeBy: sum
+		sourceColumn: Hierarchy Number
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Employee KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: f80612d0-1db9-417d-bcf0-b9216f698539
+		summarizeBy: sum
+		sourceColumn: Dim Employee KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: fc9494b0-04f3-4d88-9acf-de73b1c622e9
+		summarizeBy: count
+		sourceColumn: Employee ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Job Name'
+		dataType: string
+		lineageTag: 309104e8-a144-4b2f-87f8-18992ba4fe62
+		summarizeBy: none
+		sourceColumn: Employee Job Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Name'
+		dataType: string
+		lineageTag: 431fa0dd-b8e4-47fb-92fe-626ea8656f04
+		summarizeBy: none
+		sourceColumn: Service Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Service KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: fa75a413-3815-4035-b799-47a34e84fac8
+		summarizeBy: none
+		sourceColumn: Dim Service KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 0e96c0c7-789c-4dd4-a2f8-030b28286b36
+		summarizeBy: count
+		sourceColumn: Service ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Department Name'
+		dataType: string
+		lineageTag: b1866027-0a0d-46e3-9390-71726b0d5f0d
+		summarizeBy: none
+		sourceColumn: Department Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'District Name'
+		dataType: string
+		lineageTag: c1ffa0f3-83a9-47cd-8fb0-e1037121dcf3
+		summarizeBy: none
+		sourceColumn: District Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Region Name'
+		dataType: string
+		lineageTag: ca0dd328-daf8-4550-bdea-84ab7653710e
+		summarizeBy: none
+		sourceColumn: Region Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Company
+		dataType: string
+		lineageTag: 929e505b-a957-4ec5-945f-dce7caa17e89
+		summarizeBy: none
+		sourceColumn: Company
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team Area'
+		dataType: string
+		lineageTag: 695ed579-0c6a-45d0-ae20-5f20c71f5de6
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Team Area
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team Function'
+		dataType: string
+		lineageTag: 7b2bda2b-7ddd-4fcb-b02e-3bd25128be87
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Team Function
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team Name'
+		dataType: string
+		lineageTag: facb159e-9b03-41db-978d-73597bccf448
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Team Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: e82198a9-8ae5-489f-9dc7-0743372affc1
+		summarizeBy: count
+		sourceColumn: Tangata Whaiora Team ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Company KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: c5973543-22e0-47c8-b025-23427a631ab7
+		summarizeBy: sum
+		sourceColumn: Dim Company KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'User Principal Name'
+		dataType: string
+		lineageTag: a14b1893-e3a1-4d6a-916b-cc56fe791f9c
+		summarizeBy: none
+		sourceColumn: User Principal Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Persona
+		dataType: string
+		lineageTag: 9150d7ac-e85b-4880-ac68-7728d9b0dee8
+		summarizeBy: none
+		sourceColumn: Persona
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Tangata Whaiora Team Unique KEY'
+		dataType: string
+		lineageTag: d443f11d-24db-43da-bf44-6f19de203b6b
+		summarizeBy: none
+		sourceColumn: Dim Tangata Whaiora Team Unique KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Relevant Bu'
+		dataType: string
+		lineageTag: fafc87b8-020a-4bb4-b5ed-842869af3485
+		summarizeBy: none
+		sourceColumn: Relevant Bu
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'RLS with Additional Access' = m
+		mode: import
+		queryGroup: 'RLS\RLS - RB'
+		source =
+				let
+				    // Load both tables
+				    RowLevelSecurity = @#"RLS - New RB Structure ALL services",
+				    AdditionalAccess = #"Additional Access",
+				    // Join tables
+				    JoinedTable = Table.Join(
+				        AdditionalAccess, "Person to Impersonate Email", RowLevelSecurity, "User Principal Name", JoinKind.RightOuter
+				    ),
+				
+				    #"Added Conditional Column" = Table.AddColumn(
+				        JoinedTable, "Custom", each if [Requester Email] = null then [User Principal Name] else [Requester Email]
+				    ),
+				
+				    #"Removed Columns" = Table.RemoveColumns(
+				        #"Added Conditional Column",
+				        {
+				            "Report",
+				            "Requester Email",
+				            "Person to Impersonate Email",
+				            "Expiry Date",
+				            "Access Reason",
+				            "Approved By Email",
+				            "Approved Date",
+				            "Modified",
+				            "Created",
+				            "Created By Email",
+				            "Modified By Email",
+				            "Version",
+				            "User Principal Name"
+				        }
+				    ),
+				
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns", {{"Custom", "User Principal Name"}}),
+				
+				    #"Reordered Columns" = Table.ReorderColumns(
+				        #"Renamed Columns", {"User Principal Name"}
+				    ),
+				
+				    #"Changed Type" = Table.TransformColumnTypes(#"Reordered Columns", {{"User Principal Name", type text}}),
+				    #"Appended Query" = Table.Combine({#"Changed Type", #"RLS - New RB Structure ALL services"}),
+				    #"Removed Duplicates" = Table.Distinct(#"Appended Query"),
+				    #"Merged Queries1" = Table.NestedJoin(#"Removed Duplicates", {"Employee Job Name"}, Persona, {"Role"}, "Persona", JoinKind.LeftOuter),
+				    #"Expanded Persona" = Table.ExpandTableColumn(#"Merged Queries1", "Persona", {"Proposed persona"}, {"Proposed persona"}),
+				    #"Added Conditional Column1" = Table.AddColumn(#"Expanded Persona", "Persona", each if [Proposed persona] = null then "Exec & Senior Leaders" else [Proposed persona], type text),
+				    #"Removed Columns1" = Table.RemoveColumns(#"Added Conditional Column1",{"Proposed persona"}),
+				    Custom2 = Table.AddColumn(
+				    #"Removed Columns1",
+				    "Relevant Bu",
+				    each
+				        let
+				            dept = if [Department Name] = null then "" else Text.Trim([Department Name]),
+				            reg  = if [Region Name]   = null then "" else Text.Trim([Region Name]),
+				            comp = [Dim Company KEY]
+				        in
+				            if dept = "" and Text.Contains(reg, "Tenancy", Comparer.OrdinalIgnoreCase) then "Tenancy"
+				            else if dept = "" and reg = "" and comp = 6 then "Unknown"
+				            else if Text.Contains(dept, "Health", Comparer.OrdinalIgnoreCase) and Text.Contains(dept, "Disability", Comparer.OrdinalIgnoreCase) then "Health & Disability"
+				            else if Text.Contains(dept, "Peer", Comparer.OrdinalIgnoreCase) then "Health & Disability"
+				            else if Text.Contains(dept, "Housing", Comparer.OrdinalIgnoreCase) then "Housing"
+				            else if Text.Contains(dept, "Tenancy", Comparer.OrdinalIgnoreCase) then "Tenancy"
+				            else if Text.Contains(dept, "Owned", Comparer.OrdinalIgnoreCase) then "Tenancy"
+				            else if Text.Contains(dept, "Leased", Comparer.OrdinalIgnoreCase) then "Tenancy"
+				            else if Text.Contains(dept, "Shared", Comparer.OrdinalIgnoreCase) then "Shared Services"
+				            else "Unknown"
+				)
+				in
+				    Custom2
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Exception
+

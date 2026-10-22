@@ -1,0 +1,195 @@
+table fact_approved_shifts
+	lineageTag: 16d3ae03-0aa0-43cc-8a7e-35b063bcde02
+
+	column employee_id
+		dataType: string
+		lineageTag: e98cfd7e-a225-4182-aa8e-9c47f1469d6b
+		summarizeBy: none
+		sourceColumn: employee_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column work_type_id
+		dataType: string
+		lineageTag: 8a383445-a7b3-4e4a-8548-93af82652c60
+		summarizeBy: none
+		sourceColumn: work_type_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column start_date
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 7d726398-4c1a-4109-9d17-bd558a8cd645
+		summarizeBy: none
+		sourceColumn: start_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column end_date
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 3d39887e-918a-4b0c-a710-1ad1b668bae4
+		summarizeBy: none
+		sourceColumn: end_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column start_datetime
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: e00dff73-f2d2-45fd-845e-a111a57ef35f
+		summarizeBy: none
+		sourceColumn: start_datetime
+
+		annotation SummarizationSetBy = Automatic
+
+	column end_datetime
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: cebd8fb0-b24b-440d-bda7-515cd8540a90
+		summarizeBy: none
+		sourceColumn: end_datetime
+
+		annotation SummarizationSetBy = Automatic
+
+	column shift_length_mins
+		dataType: int64
+		formatString: 0
+		lineageTag: cc6fd041-2a96-4550-9f26-f7c53fad7c25
+		summarizeBy: sum
+		sourceColumn: shift_length_mins
+
+		annotation SummarizationSetBy = Automatic
+
+	column time_since_last_shift_mins
+		dataType: int64
+		formatString: 0
+		lineageTag: 17bc09c9-c608-4189-88b7-1d96f6d34107
+		summarizeBy: sum
+		sourceColumn: time_since_last_shift_mins
+
+		annotation SummarizationSetBy = Automatic
+
+	column prev_end_datetime
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: b636af37-1866-4688-8a1a-b0d6b03ccb79
+		summarizeBy: none
+		sourceColumn: prev_end_datetime
+
+		annotation SummarizationSetBy = Automatic
+
+	column shift_length_hours
+		dataType: double
+		formatString: 0
+		lineageTag: 48ab1a70-635b-4371-8c88-8fe8884b4b0a
+		summarizeBy: sum
+		sourceColumn: shift_length_hours
+
+		annotation SummarizationSetBy = Automatic
+
+	column time_since_last_shift_hours
+		dataType: int64
+		formatString: 0
+		lineageTag: 6d4a4c8b-c80b-4890-89c0-e72cda94b92b
+		summarizeBy: sum
+		sourceColumn: time_since_last_shift_hours
+
+		annotation SummarizationSetBy = Automatic
+
+	column count
+		dataType: int64
+		formatString: 0
+		lineageTag: c6a13955-bf39-4aa9-aaf9-bed0fa6f6b07
+		summarizeBy: sum
+		sourceColumn: count
+
+		annotation SummarizationSetBy = Automatic
+
+	column timesheet_id
+		dataType: string
+		lineageTag: 1ad34a55-1c2a-458f-9a5f-482b6f34b495
+		summarizeBy: none
+		sourceColumn: timesheet_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column day
+		dataType: int64
+		formatString: 0
+		lineageTag: f8549a74-b20e-456d-a1b0-75881776aa8c
+		summarizeBy: none
+		sourceColumn: day
+
+		annotation SummarizationSetBy = Automatic
+
+	column shift_length_cumulative
+		dataType: double
+		lineageTag: 01572501-8fb3-412c-ab9c-aa381c44152b
+		summarizeBy: sum
+		sourceColumn: shift_length_cumulative
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column role_id
+		dataType: string
+		lineageTag: cd80aacd-7b42-491b-b698-2d7def95ef33
+		summarizeBy: none
+		sourceColumn: role_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column approval_status
+		dataType: string
+		lineageTag: aed36e64-2974-4e2e-8634-f263bf153b9c
+		summarizeBy: none
+		sourceColumn: approval_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_unit_id = RELATED(dim_people[businessUnit_id])
+		lineageTag: e25ee23f-696b-4b1c-a423-b175f94d2424
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Start Date & Time'
+		dataType: string
+		lineageTag: efb8f4a4-3909-4cb5-8fed-2a12c5c7d11b
+		summarizeBy: none
+		sourceColumn: Start Date & Time
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'End Date Time'
+		dataType: string
+		lineageTag: 2c3668f2-650b-405e-9557-55de6ff87f95
+		summarizeBy: none
+		sourceColumn: End Date Time
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_approved_shifts = m
+		mode: import
+		source = ```
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT#(lf)t2.*,#(lf)CASE WHEN t2.time_since_last_shift_hours < 2 THEN t2.shift_length_hours + LAG(t2.shift_length_hours) OVER (PARTITION BY t2.employee_id, t2.work_type_id ORDER BY t2.start_datetime)#(lf)ELSE t2.shift_length_hours END AS shift_length_cumulative#(lf)FROM (#(lf)SELECT#(lf)t1.*,#(lf)DATEDIFF(MINUTE,t1.start_datetime,t1.end_datetime) AS shift_length_mins,#(lf)DATEDIFF(MINUTE, LAG(t1.end_datetime) OVER (PARTITION BY employee_id, work_type_id ORDER BY start_datetime), t1.start_datetime) AS time_since_last_shift_mins,#(lf)LAG(t1.end_datetime) OVER (PARTITION BY employee_id, work_type_id ORDER BY start_datetime) AS prev_end_datetime,#(lf)CEILING(CAST(DATEDIFF(MINUTE,t1.start_datetime,t1.end_datetime) AS FLOAT) / 60) AS shift_length_hours,#(lf)DATEDIFF(HOUR, LAG(t1.end_datetime) OVER (PARTITION BY employee_id, work_type_id ORDER BY start_date, start_datetime), t1.start_datetime) AS time_since_last_shift_hours,#(lf)DATEPART(WEEKDAY,t1.start_date) as day,#(lf)1 AS count#(lf)FROM (#(lf)    SELECT DISTINCT#(lf)    id AS timesheet_id,#(lf)#(tab)role_id,#(lf)#(tab)approval_status,#(lf)    employee_id,#(lf)    work_type_id,#(lf)    CAST(start_date as date) AS start_date,#(lf)    CAST(end_date as date) AS end_date,#(lf)      DATEADD(HOUR, DATEPART(HOUR, actual_start_time),#(lf)        DATEADD(MINUTE, DATEPART(MINUTE, actual_start_time),#(lf)          DATEADD(SECOND, DATEPART(SECOND, actual_start_time),#(lf)            DATEADD(MILLISECOND, DATEPART(MILLISECOND, actual_start_time),#(lf)              CAST(CAST(actual_start_date AS DATE) AS DATETIME2)#(lf)            )#(lf)          )#(lf)        )#(lf)      ) AS start_datetime,#(lf)      DATEADD(HOUR, DATEPART(HOUR, actual_end_time),#(lf)        DATEADD(MINUTE, DATEPART(MINUTE, actual_end_time),#(lf)          DATEADD(SECOND, DATEPART(SECOND, actual_end_time),#(lf)            DATEADD(MILLISECOND, DATEPART(MILLISECOND, actual_end_time),#(lf)              CAST(CAST(actual_end_date AS DATE) AS DATETIME2)#(lf)            )#(lf)          )#(lf)        )#(lf)      ) AS end_datetime#(lf)    FROM [EmpLive].[time_sheets_entries]#(lf)    --WHERE approval_status = 'APPROVED'#(lf)) AS t1#(lf)) AS t2"]),
+				    #"Added Custom" = Table.AddColumn(
+				    Source, 
+				    "Start Date & Time", 
+				    each DateTime.ToText([start_datetime], "dddd MMM yyyy (h:mm tt)", "en-US")
+				),
+				    #"Added Custom1" = Table.AddColumn(
+				    #"Added Custom", 
+				    "End Date Time", 
+				    each DateTime.ToText([end_datetime], "dddd MMM yyyy (h:mm tt)", "en-US")
+				)
+				in
+				    #"Added Custom1"
+				```
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,485 @@
+table Changelog
+	isHidden
+	lineageTag: e96a511e-1e19-43d2-b091-bce9fc05d8e0
+
+	/// Latest dataset name and version from the changelog
+	measure 'Latest Version' =
+			
+			VAR LatestChangeID =
+			    MAX ( 'Changelog'[Change ID] ) -- Get the highest Change ID
+			VAR LatestRow =
+			    CALCULATETABLE ( 'Changelog', 'Changelog'[Change ID] = LatestChangeID ) -- Get the row with the highest Change ID
+			VAR LatestVersion =
+			    MAXX ( LatestRow, 'Changelog'[Version] ) -- Extract the latest version
+			VAR LatestDatasetName =
+			    MAXX ( LatestRow, 'Changelog'[Dataset Name] ) -- Extract the latest Dataset Name
+			RETURN
+			    LatestDatasetName & " Dataset - v" & LatestVersion
+			-- Return the latest dataset name and version
+		isHidden
+		lineageTag: 3fbf9a79-05eb-404d-b582-d9d4195a4ab4
+
+		changedProperty = IsHidden
+
+	column Version
+		dataType: string
+		isHidden
+		lineageTag: 1d903aae-5db1-4ff6-aa1b-ed64e61c6ebb
+		summarizeBy: none
+		sourceColumn: Version
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		isHidden
+		lineageTag: 2cf1186a-0c42-4df4-9b03-0e9d4d9f72e5
+		summarizeBy: none
+		sourceColumn: Description
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Change ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d57862cc-a547-463f-8888-1300648eb666
+		summarizeBy: count
+		sourceColumn: Change ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Change Date'
+		dataType: string
+		isHidden
+		lineageTag: efa97f30-8573-42b3-a40f-531c630136ed
+		summarizeBy: none
+		sourceColumn: Change Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Changed By'
+		dataType: string
+		isHidden
+		lineageTag: f519c384-2447-4b2d-8b7f-fc087ad9cd4d
+		summarizeBy: none
+		sourceColumn: Changed By
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'User Story ID'
+		dataType: string
+		isHidden
+		lineageTag: 38818f77-01b3-4074-8d71-b2b4b5e81fda
+		summarizeBy: none
+		sourceColumn: User Story ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dataset Name'
+		dataType: string
+		isHidden
+		lineageTag: 53cf5fc0-bb9d-4ab6-ab5b-202b9b101f96
+		summarizeBy: none
+		sourceColumn: Dataset Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Changelog = m
+		mode: import
+		queryGroup: Changelog
+		source = ```
+				let
+				    // Define the table schema without the ChangeID column
+				    InitialTable = #table(
+				        {"Version", "Change Date", "Changed By", "User Story ID", "Description"},
+				        {
+				            // Add new entries at the top here
+				            {
+				                "0.6.1", /* Version */
+				                #date(2026, 07, 06),  /* Date */
+				                "Thijs B",  /* Changed By */
+				                "13882",  /* Bug */
+				                "Remove unused columns"  /* Description */
+				            },
+				            {
+				                "0.6.0", /* Version */
+				                #date(2026, 05, 04),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "N/A",  /* Bug */
+				                "Updated Fact Aged Debt to use EDW table."  /* Description */
+				            },
+				            {
+				                "0.5.5", /* Version */
+				                #date(2026, 03, 09),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "13160",  /* Bug */
+				                "Updated measure 'Tenants Overdue Count': kept original overdue-bucket logic (Days 7-14, 15-21, 22-28, 29-60, 61-90, 91+) and excluded rows where Total Balance = 0."  /* Description */
+				            },
+				            {
+				                "0.5.4", /* Version */
+				                #date(2025, 10, 24),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11466",  /* Bug */
+				                "Filter measure fix."  /* Description */
+				            },
+				            {
+				                "0.5.3", /* Version */
+				                #date(2025, 10, 21),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11466",  /* Bug */
+				                "Corrected Overdue Tenants measure."  /* Description */
+				            },
+				            {
+				                "0.5.2", /* Version */
+				                #date(2025, 10, 15),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11417",  /* Bug */
+				                "Corrected Tenants Overdue Count."  /* Description */
+				            },
+				            {
+				                "0.5.1", /* Version */
+				                #date(2025, 09, 22),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11222",  /* Bug */
+				                "Corrected Aged Debt table to NZ currency."  /* Description */
+				            },
+				            {
+				                "0.5.0", /* Version */
+				                #date(2025, 07, 02),  /* Date */
+				                "Mike G / JD",  /* Changed By */
+				                "11122",  /* Bug */
+				                "Expanded buckets for DVT."  /* Description */
+				            },
+				            {
+				                "0.4.1", /* Version */
+				                #date(2025, 07, 02),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11122",  /* Bug */
+				                "Removed masking and corrected Dim Property assigned tenancy manager alongside property tenancy name."  /* Description */
+				            },
+				            {
+				                "0.4.0", /* Version */
+				                #date(2025, 07, 02),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "10663",  /* Bug */
+				                "Adding PII Masking for execs."  /* Description */
+				            },
+				            {
+				                "0.3.3", /* Version */
+				                #date(2025, 05, 27),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "10272",  /* Bug */
+				                "Updating Fact Property Tenant"  /* Description */
+				            },
+				            {
+				                "0.3.2", /* Version */
+				                #date(2025, 05, 27),  /* Date */
+				                "Timi B",  /* Changed By */
+				                "10311",  /* Bug */
+				                "Dataset Tables needed refreshing"  /* Description */
+				            },
+				            {
+				                "0.3.1", /* Version */
+				                #date(2025, 05, 23),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Added Data and Measure Definitions."  /* Description */
+				            },
+				            {
+				                "0.3.0", /* Version */
+				                #date(2025, 05, 23),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Added Fact Vacant Tenantable Gap."  /* Description */
+				            },
+				            {
+				                "0.2.4", /* Version */
+				                #date(2025, 05, 23),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Corrected Fact Void Checklist missing EDW columns."  /* Description */
+				            },
+				            {
+				                "0.2.3", /* Version */
+				                #date(2025, 05, 06),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Updated role playing dim date month sort."  /* Description */
+				            },
+				            {
+				                "0.2.2", /* Version */
+				                #date(2025, 05, 06),  /* Date */
+				                "Greg H",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Updated selected filters to include all slicers."  /* Description */
+				            },
+				            {
+				                "0.2.1", /* Version */
+				                #date(2025, 05, 07),  /* Date */
+				                "Greg H & Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Measure fix (addition of currency)."  /* Description */
+				            },
+				            {
+				                "0.2.0", /* Version */
+				                #date(2025, 05, 07),  /* Date */
+				                "Greg H & Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Reverted PBIR."  /* Description */
+				            },
+				            {
+				                "0.1.16", /* Version */
+				                #date(2025, 04, 10),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Added Ref Tenant Missing Flags."  /* Description */
+				            },
+				            {
+				                "0.1.15", /* Version */
+				                #date(2025, 04, 09),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Added Tenancy relationship."  /* Description */
+				            },
+				            {
+				                "0.1.14", /* Version */
+				                #date(2025, 04, 09),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Added Inspection D365 link."  /* Description */
+				            },
+				            {
+				                "0.1.13", /* Version */
+				                #date(2025, 03, 20),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Added Void Dim and Fact."  /* Description */
+				            },
+				            {
+				                "0.1.12", /* Version */
+				                #date(2025, 03, 18),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Refreshed Dim Property Tenancy."  /* Description */
+				            },
+				            {
+				                "0.1.11", /* Version */
+				                #date(2025, 03, 12),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Refreshed Dim Property and Dim Property Tenancy."  /* Description */
+				            },
+				            {
+				                "0.1.10", /* Version */
+				                #date(2025, 03, 12),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Added filter column on date dimension for current date."  /* Description */
+				            },
+				            {
+				                "0.1.9", /* Version */
+				                #date(2025, 03, 12),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Added role playing date dimension for as at date."  /* Description */
+				            },
+				            {
+				                "0.1.8", /* Version */
+				                #date(2025, 02, 12),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Add tenancy hyperlink."  /* Description */
+				            },
+				            {
+				                "0.1.7", /* Version */
+				                #date(2025, 02, 10),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Added 'Has No Overall Debt' column to 'Fact Aged Debt' table."  /* Description */
+				            },
+				            {
+				                "0.1.6", /* Version */
+				                #date(2025, 02, 05),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Addition of [edw].[vw_dim_property_tenancy].[property_tenancy_vacated_date]"  /* Description */
+				            },
+				            {
+				                "0.1.5", /* Version */
+				                #date(2025, 02, 03),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Full history aged debt."  /* Description */
+				            },
+				            {
+				                "0.1.4", /* Version */
+				                #date(2025, 01, 31),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Tenants Overdue Count measure added commas."  /* Description */
+				            },
+				            {
+				                "0.1.3", /* Version */
+				                #date(2025, 01, 2),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Added $NZ for monetary measures."  /* Description */
+				            },   
+				            {
+				                "0.1.2", /* Version */
+				                #date(2025, 01, 2),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Added measure for last refreshed date time."  /* Description */
+				            },
+				            {
+				                "0.1.1", /* Version */
+				                #date(2025, 01, 17),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Logic limited to current date only."  /* Description */
+				            },
+				            {
+				                "0.1.0", /* Version */
+				                #date(2025, 01, 17),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "New ageing logic with FIFO fix and PARTITION BY  RentNonRent."  /* Description */
+				            },
+				            {
+				                "0.0.13", /* Version */
+				                #date(2025, 01, 06),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Added UTC Safe today's date."  /* Description */
+				            },
+				            {
+				                "0.0.12", /* Version */
+				                #date(2024, 12, 18),  /* Date */
+				                "Mike G / JD",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Full history update with no cursors (disabled load)"  /* Description */
+				            },
+				            {
+				                "0.0.11", /* Version */
+				                #date(2024, 12, 17),  /* Date */
+				                "Mike G / JD",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Full history update (disabled load)"  /* Description */
+				            },
+				            {
+				                "0.0.10", /* Version */
+				                #date(2024, 12, 16),  /* Date */
+				                "Mike G / JD",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Exclude transactions not associated with a tenancy (property_tenancy_id IS NOT NULL)"  /* Description */
+				            },
+				            {
+				                "0.0.9", /* Version */
+				                #date(2024, 12, 16),  /* Date */
+				                "Mike G / JD",  /* Changed By */
+				                "8906",  /* User Story */
+				                "property_tenancy_transaction_suspense_account_flag = 0"  /* Description */
+				            },
+				            {
+				                "0.0.8", /* Version */
+				                #date(2024, 12, 13),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Added initial measures"  /* Description */
+				            },
+				            {
+				                "0.0.7", /* Version */
+				                #date(2024, 12, 13),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Removed commented code from Aged Debt"  /* Description */
+				            },
+				            {
+				                "0.0.6", /* Version */
+				                #date(2024, 12, 13),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Added RLS Joiner"  /* Description */
+				            },
+				            {
+				                "0.0.5", /* Version */
+				                #date(2024, 12, 12),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Corrected dim_property_tenancy logic"  /* Description */
+				            },
+				            {
+				                "0.0.4", /* Version */
+				                #date(2024, 12, 11),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Removing history"  /* Description */
+				            },
+				            {
+				                "0.0.3", /* Version */
+				                #date(2024, 12, 11),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "History work"  /* Description */
+				            },
+				            {
+				                "0.0.2", /* Version */
+				                #date(2024, 12, 10),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Addition of Aged Debt table"  /* Description */
+				            },
+				            {
+				                "0.0.1", /* Version */
+				                #date(2024, 11, 12),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "First Publishing"  /* Description */
+				            },
+				            {
+				                "0.0.0", /* Version */
+				                #date(2024, 11, 12),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "8906",  /* User Story */
+				                "Dataset Creation"  /* Description */
+				            }
+				        }
+				    ),
+				
+				    // Reverse the order of the rows so new entries are at the top
+				    ReversedTable = Table.ReverseRows(InitialTable),
+				
+				    // Add an Index column to generate incremental numbers
+				    TableWithIndex = Table.AddIndexColumn(ReversedTable, "Change ID", 1, 1, Int64.Type),
+				
+				    // Add a new column for the parameter "Dataset Name"
+				    TableWithParameter = Table.AddColumn(TableWithIndex, "Dataset Name", each #"Dataset Name"),
+				
+				    // Reorder the columns to place ChangeID first
+				    ReorderedColumns = Table.ReorderColumns(TableWithParameter, {"Change ID", "Version", "Change Date", "Changed By", "User Story ID", "Description", "Dataset Name"})
+				in
+				    ReorderedColumns
+				```
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

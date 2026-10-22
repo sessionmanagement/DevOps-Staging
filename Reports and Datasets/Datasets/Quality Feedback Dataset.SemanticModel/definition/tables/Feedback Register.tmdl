@@ -1,0 +1,220 @@
+table 'Feedback Register'
+	lineageTag: d981e36d-eb8d-4538-9d9f-66fa9a86ca2d
+
+	column 'Feedback ID'
+		dataType: string
+		lineageTag: 5f00ce13-5284-4526-bd07-5b152c6b1d17
+		summarizeBy: none
+		sourceColumn: Feedback ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Feedback Type'
+		dataType: string
+		lineageTag: e2de8fe7-1224-4c14-bba7-d3bda84a60d0
+		summarizeBy: none
+		sourceColumn: Feedback Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Current Status'
+		dataType: string
+		lineageTag: 1db0419b-9423-47f7-8acf-8f907e1429f6
+		summarizeBy: none
+		sourceColumn: Current Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Type / Location'
+		dataType: string
+		lineageTag: 316a116e-7080-4b31-b621-6ce6412f3bc1
+		summarizeBy: none
+		sourceColumn: Service Type / Location
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Name'
+		dataType: string
+		lineageTag: b1c6cece-dee6-4c8b-86b5-53163acfe148
+		summarizeBy: none
+		sourceColumn: Service Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Mode of Feedback'
+		dataType: string
+		lineageTag: 8cf8d86f-070f-41f4-a5e8-e302153d39b3
+		summarizeBy: none
+		sourceColumn: Mode of Feedback
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Client Ethnicity (Primary)'
+		dataType: string
+		lineageTag: b0fbbb4d-42fb-4d8a-a17a-f7bf73afb98c
+		summarizeBy: none
+		sourceColumn: Client Ethnicity (Primary)
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation __PBI_SemanticLinks = [{"LinkTarget":{"TableName":"Feedback Register","TableItemName":"EthnicityGroups","ObjectType":4},"LinkType":"UsedInGroup"}]
+
+	column 'Date of Receipt'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 01c9ae0b-afb6-4b6e-9b06-572fd0165bea
+		summarizeBy: none
+		sourceColumn: Date of Receipt
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Feedback Subject'
+		dataType: string
+		lineageTag: 034cff92-3f1b-4b1e-a229-479530fa1d69
+		summarizeBy: none
+		sourceColumn: Feedback Subject
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Complaint Primary Class'
+		dataType: string
+		lineageTag: fa342465-42a1-4b06-b914-63eff6418e83
+		summarizeBy: none
+		sourceColumn: Complaint Primary Class
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Complaint Risk Rating'
+		dataType: string
+		lineageTag: dd439603-571b-485e-922c-7fd906b2a5d9
+		summarizeBy: none
+		sourceColumn: Complaint Risk Rating
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Complaint Manager'
+		dataType: string
+		lineageTag: acab6790-74fb-4730-bf5a-ca670d47068e
+		summarizeBy: none
+		sourceColumn: Complaint Manager
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Completed By'
+		dataType: string
+		lineageTag: f03e7e56-d5b3-449c-9bdd-3b4326b84e06
+		summarizeBy: none
+		sourceColumn: Completed By
+
+		annotation SummarizationSetBy = Automatic
+
+	column EthnicityGroups =
+			SWITCH(
+				TRUE,
+				ISBLANK('Feedback Register'[Client Ethnicity (Primary)]),
+				"(Blank)",
+				'Feedback Register'[Client Ethnicity (Primary)] IN {"Asian"},
+				"Asian",
+				'Feedback Register'[Client Ethnicity (Primary)] IN {"British and Irish",
+					"European",
+					"European nfd",
+					"N Z European Pakeha",
+					"New Zealand European/Päkehä",
+					"NZ Euro",
+					"NZ European Pakeha",
+					"Pakeha"},
+				"European",
+				'Feedback Register'[Client Ethnicity (Primary)] IN {"Maori",
+					"Māori"},
+				"Maori",
+				'Feedback Register'[Client Ethnicity (Primary)] IN {"African"},
+				"MELAA",
+				'Feedback Register'[Client Ethnicity (Primary)] IN {"Pacifika",
+					"Pasifika",
+					"Samoan",
+					"Tokelauan",
+					"Tongan"},
+				"Pasifika",
+				"Other"
+			)
+		lineageTag: e51abc15-a7c5-46b7-911f-3c88defadfe2
+		summarizeBy: none
+
+		extendedProperty GroupingMetadata =
+				{
+				  "version": 0,
+				  "groupedColumns": [
+				    {
+				      "Column": {
+				        "Expression": {
+				          "SourceRef": {
+				            "Entity": "Feedback Register"
+				          }
+				        },
+				        "Property": "Client Ethnicity (Primary)"
+				      }
+				    }
+				  ]
+				}
+
+		annotation GroupingDesignState = {"Version":0,"Sources":[{"Name":"f","Entity":"Feedback Register"}],"GroupedColumns":[{"Column":{"Expression":{"SourceRef":{"Source":"f"}},"Property":"Client Ethnicity (Primary)"}}],"GroupItems":[{"DisplayName":"(Blank)","BlankDefaultPlaceholder":true},{"DisplayName":"Asian","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"f"}},"Property":"Client Ethnicity (Primary)"}}],"Values":[[{"Literal":{"Value":"'Asian'"}}]]}}},{"DisplayName":"European","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"f"}},"Property":"Client Ethnicity (Primary)"}}],"Values":[[{"Literal":{"Value":"'British and Irish'"}}],[{"Literal":{"Value":"'European'"}}],[{"Literal":{"Value":"'European nfd'"}}],[{"Literal":{"Value":"'N Z European Pakeha'"}}],[{"Literal":{"Value":"'New Zealand European/Päkehä'"}}],[{"Literal":{"Value":"'NZ Euro'"}}],[{"Literal":{"Value":"'NZ European Pakeha'"}}],[{"Literal":{"Value":"'Pakeha'"}}]]}}},{"DisplayName":"Maori","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"f"}},"Property":"Client Ethnicity (Primary)"}}],"Values":[[{"Literal":{"Value":"'Maori'"}}],[{"Literal":{"Value":"'Māori'"}}]]}}},{"DisplayName":"MELAA","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"f"}},"Property":"Client Ethnicity (Primary)"}}],"Values":[[{"Literal":{"Value":"'African'"}}]]}}},{"DisplayName":"Pasifika","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"f"}},"Property":"Client Ethnicity (Primary)"}}],"Values":[[{"Literal":{"Value":"'Pacifika'"}}],[{"Literal":{"Value":"'Pasifika'"}}],[{"Literal":{"Value":"'Samoan'"}}],[{"Literal":{"Value":"'Tokelauan'"}}],[{"Literal":{"Value":"'Tongan'"}}]]}}},{"DisplayName":"Other"}]}
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Feedback Register' = m
+		mode: import
+		queryGroup: 'Quality Feedback'
+		source = ```
+				let
+				    // Combine 2024 and 2025 feedback data
+				    // Note: 2024 has fewer columns than 2025; Table.Combine will fill missing columns with null
+				    Source = Table.Combine({#"Feedback Register (2025)", #"Feedback Register (2024)"}),
+				    
+				    // Remove columns that are either:
+				    // - Not common to both years, OR
+				    // - Not needed for the final combined report
+				    #"Removed Columns" = Table.RemoveColumns(Source, {
+				        // Columns only in 2025 or not needed for combined view
+				        "Division", 
+				        "Feedback Source", 
+				        "Source Name", 
+				        "Client ID (if relevant)", 
+				        "Month", 
+				        "Feedback Description (summary only)", 
+				        "Date Acknowledgement Due", 
+				        "Date Acknowledgement Sent", 
+				        "Mode of Ack Comms", 
+				        "Complaint Secondary Class", 
+				        "Investigator", 
+				        "Immediate Resolution Actions", 
+				        "Improvements/Corrective Actions Identified - include plan to address", 
+				        "Responsible Person for Improvements/Corrective Actions", 
+				        "Date of extension required by Day 10 (usually allow 2-4 weeks past original OUTCOME due date)", 
+				        "Extension Y | N", 
+				        "Extension Reason", 
+				        "Date Outcome Due (without ext)", 
+				        "Outcome letter endorsed by QIP", 
+				        "Mode of Outcome Comms", 
+				        "Date Outcome Sent", 
+				        "Feedback File completed", 
+				        "Feedback Closure Date", 
+				        "Processing Notes",
+				        // Duplicate date columns used for Excel comment preservation
+				        "Date Acknowledgement Sent - Copy", 
+				        "Date Outcome Due (without ext) - Copy", 
+				        "Date Outcome Sent - Copy", 
+				        "Date of Receipt - Copy", 
+				        "Date Acknowledgement Due - Copy", 
+				        "Date of extension required by Day 10 (usually allow 2-4 weeks past original OUTCOME due date) - Copy", 
+				        "Feedback Closure Date - Copy"
+				    })
+				in
+				    #"Removed Columns"
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

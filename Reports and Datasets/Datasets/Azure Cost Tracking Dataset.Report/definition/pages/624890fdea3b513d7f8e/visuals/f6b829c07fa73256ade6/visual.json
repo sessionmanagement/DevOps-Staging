@@ -1,0 +1,459 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "f6b829c07fa73256ade6",
+  "position": {
+    "x": 10.017391304347827,
+    "y": 180,
+    "z": 3000,
+    "height": 220,
+    "width": 625,
+    "tabOrder": 4000
+  },
+  "visual": {
+    "visualType": "lineChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_date"
+                    }
+                  },
+                  "Property": "calendar_date"
+                }
+              },
+              "queryRef": "dim_date.calendar_date",
+              "nativeQueryRef": "calendar_date",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Total Cost"
+                }
+              },
+              "queryRef": "_Measures.Total Costs",
+              "nativeQueryRef": "Total Costs"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Yearly Budget"
+                    }
+                  },
+                  "Property": "Daily Budget to Today"
+                }
+              },
+              "queryRef": "Yearly Budget.Daily Budget to Today",
+              "nativeQueryRef": "Daily Budget",
+              "displayName": "Daily Budget"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "dim_date"
+                  }
+                },
+                "Property": "calendar_date"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "objects": {
+      "labels": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "fontFamily": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Calibri'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "valueAxis": [
+        {
+          "properties": {
+            "showAxisTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "dataPoint": [
+        {
+          "properties": {
+            "fill": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 2,
+                      "Percent": 0
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "legend": [
+        {
+          "properties": {
+            "position": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Left'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "lineStyles": [
+        {
+          "properties": {
+            "showMarker": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "categoryAxis": [
+        {
+          "properties": {
+            "axisType": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Scalar'"
+                }
+              }
+            },
+            "showAxisTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "anomalyDetection": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "displayName": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Find anomalies 1'"
+                }
+              }
+            },
+            "transform": {
+              "algorithm": "SampleAndDetectAnomaly",
+              "parameters": [
+                {
+                  "Literal": {
+                    "Value": "0.85D"
+                  },
+                  "Name": "Sensitivity"
+                },
+                {
+                  "Literal": {
+                    "Value": "3500L"
+                  },
+                  "Name": "SampleSizePerSeries"
+                }
+              ]
+            },
+            "explainBy": {
+              "exprs": [
+                {
+                  "expr": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "june_costs"
+                        }
+                      },
+                      "Property": "location"
+                    }
+                  }
+                },
+                {
+                  "expr": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "june_costs"
+                        }
+                      },
+                      "Property": "service_name"
+                    }
+                  }
+                },
+                {
+                  "expr": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "june_costs"
+                        }
+                      },
+                      "Property": "charge_type"
+                    }
+                  }
+                },
+                {
+                  "expr": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "june_costs"
+                        }
+                      },
+                      "Property": "meter"
+                    }
+                  }
+                },
+                {
+                  "expr": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "june_costs"
+                        }
+                      },
+                      "Property": "resource_group"
+                    }
+                  }
+                }
+              ],
+              "kind": "ExprList"
+            }
+          },
+          "selector": {
+            "metadata": "_Measures.Total Costs",
+            "id": "1"
+          }
+        }
+      ],
+      "referenceLine": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "displayName": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Average'"
+                }
+              }
+            },
+            "value": {
+              "expr": {
+                "Aggregation": {
+                  "Expression": {
+                    "SelectRef": {
+                      "ExpressionName": "_Measures.Total Costs"
+                    }
+                  },
+                  "Function": 1
+                }
+              }
+            },
+            "dataLabelShow": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "dataLabelDecimalPoints": {
+              "expr": {
+                "Literal": {
+                  "Value": "2D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Measures.Total Costs",
+            "id": "1"
+          }
+        }
+      ],
+      "y2Axis": [
+        {
+          "properties": {
+            "secFontFamily": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Calibri'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Daily Cost and Budget Current FYTD'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Right click to drill through'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            },
+            "fontFamily": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Calibri'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "divider": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 5,
+                      "Percent": 0.4
+                    }
+                  }
+                }
+              }
+            },
+            "width": {
+              "expr": {
+                "Literal": {
+                  "Value": "1D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filterf5eb5da724a1b1222e4a",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_date"
+              }
+            },
+            "Property": "month_offset"
+          }
+        },
+        "type": "Advanced",
+        "howCreated": "User",
+        "isLockedInViewMode": true
+      }
+    ]
+  }
+}

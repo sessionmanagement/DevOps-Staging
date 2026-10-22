@@ -1,0 +1,963 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.1.0/schema.json",
+  "name": "92356a7578efa31967e3",
+  "position": {
+    "x": 5.2618757612667482,
+    "y": 79.805115712545685,
+    "z": 1000,
+    "height": 599.85383678440928,
+    "width": 1270,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_property"
+                    }
+                  },
+                  "Property": "zav_fulladdress"
+                }
+              },
+              "queryRef": "dim_property.zav_fulladdress",
+              "nativeQueryRef": "Address",
+              "displayName": "Address"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_property"
+                    }
+                  },
+                  "Property": "zav_name"
+                }
+              },
+              "queryRef": "dim_property.zav_name",
+              "nativeQueryRef": "Property Name",
+              "displayName": "Property Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_property"
+                    }
+                  },
+                  "Property": "zav_acquireddate"
+                }
+              },
+              "queryRef": "dim_property.zav_acquireddate",
+              "nativeQueryRef": "zav_acquireddate",
+              "displayName": "Property Acquired Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_property"
+                    }
+                  },
+                  "Property": "zav_confirmeddisposaldate"
+                }
+              },
+              "queryRef": "dim_property.zav_confirmeddisposaldate",
+              "nativeQueryRef": "Property Disposal Date",
+              "displayName": "Property Disposal Date"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "TenancyDaysByFY"
+                        }
+                      },
+                      "Property": "zav_tenancystartdate"
+                    }
+                  },
+                  "Function": 3
+                }
+              },
+              "queryRef": "TenancyDaysByFY.zav_tenancystartdate",
+              "nativeQueryRef": "Earliest zav_tenancystartdate",
+              "displayName": "Tenancy Start Date"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "TenancyDaysByFY"
+                        }
+                      },
+                      "Property": "zav_vacateddate"
+                    }
+                  },
+                  "Function": 4
+                }
+              },
+              "queryRef": "TenancyDaysByFY.zav_vacateddate",
+              "nativeQueryRef": "Latest zav_vacateddate",
+              "displayName": "Tenancy End Date"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "PropertyOwnershipDaysByFY"
+                        }
+                      },
+                      "Property": "PropertyOwnershipDaysInFY"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(PropertyOwnershipDaysByFY.PropertyOwnershipDaysInFY)",
+              "nativeQueryRef": "PropertyOwnershipDaysInFY",
+              "displayName": "Theoretical Available Days in FY"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "TenancyDaysByFY"
+                        }
+                      },
+                      "Property": "TenancyActiveDaysInFY"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(TenancyDaysByFY.TenancyActiveDaysInFY)",
+              "nativeQueryRef": "TenancyActiveDaysInFY",
+              "displayName": "Days of Active Tenancy in FY"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Tenancy Active in FY % (Multiple Properties)"
+                }
+              },
+              "queryRef": "PropertyOwnershipDaysByFY.Tenancy Active in FY %",
+              "nativeQueryRef": "Utilisation/Occupancy Rate for FY",
+              "displayName": "Utilisation  / Occupancy Rate for FY"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FactHouseholdMembersByFY"
+                        }
+                      },
+                      "Property": "MaxHouseholdMembersForTenancyInFY"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(FactHouseholdMembersByFY.MaxHouseholdMembersForTenancyInFY)",
+              "nativeQueryRef": "Max. Tenants Housed in FY",
+              "displayName": "Max. Tenants Housed in FY"
+            }
+          ],
+          "showAll": true
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "dim_property"
+                  }
+                },
+                "Property": "zav_fulladdress"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "columnHeaders": [
+        {
+          "properties": {
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 2,
+                      "Percent": 0
+                    }
+                  }
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "10D"
+                }
+              }
+            },
+            "alignment": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Center'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "10D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "columnFormatting": [
+        {
+          "properties": {
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 2,
+                      "Percent": 0
+                    }
+                  }
+                }
+              }
+            },
+            "styleValues": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "styleTotal": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Table._CurrentTeam"
+          }
+        },
+        {
+          "properties": {
+            "dataBars": {
+              "minValue": {
+                "expr": {
+                  "Literal": {
+                    "Value": "0D"
+                  }
+                }
+              },
+              "maxValue": {
+                "expr": {
+                  "Literal": {
+                    "Value": "1D"
+                  }
+                }
+              },
+              "positiveColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'#00FF00'"
+                      }
+                    }
+                  }
+                }
+              },
+              "negativeColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'#DEEFFF'"
+                      }
+                    }
+                  }
+                }
+              },
+              "axisColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'#000000'"
+                      }
+                    }
+                  }
+                }
+              },
+              "reverseDirection": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              },
+              "hideText": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "PropertyOwnershipDaysByFY.Tenancy Active in FY %"
+          }
+        },
+        {
+          "properties": {
+            "styleValues": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "styleTotal": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#ffffff'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "TenancyDaysByFY.zav_tenancystartdate"
+          }
+        },
+        {
+          "properties": {
+            "styleTotal": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "styleValues": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#ffffff'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "TenancyDaysByFY.zav_vacateddate"
+          }
+        }
+      ],
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "203.61811919795727D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "IntelliDimPerson.Age_Group"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "128.73187387423053D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "IntelliDimJobs.businessEntity_name"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "130.38124740207041D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "IntelliDimPerson.gender"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "142.63937768452723D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "IntelliDimPerson.ethnicity_group"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "400.8710717733379D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "dim_property.zav_fulladdress"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "88.88566525799502D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sum(PropertyOwnershipDaysByFY.PropertyOwnershipDaysInFY)"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "118.66885097326902D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sum(TenancyDaysByFY.TenancyActiveDaysInFY)"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "130.1277277036933D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "PropertyOwnershipDaysByFY.Tenancy Active in FY %"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "77.8484383440451D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "dim_property.zav_acquireddate"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "79.97786828286358D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sum(FactHouseholdMembersByFY.MaxHouseholdMembersForTenancyInFY)"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "70.52732055433535D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "TenancyDaysByFY.zav_tenancystartdate"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "76.72266591922757D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "TenancyDaysByFY.zav_vacateddate"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "84.23881156013455D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "dim_property.zav_confirmeddisposaldate"
+          }
+        }
+      ],
+      "total": [
+        {
+          "properties": {
+            "totals": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "grid": [
+        {
+          "properties": {
+            "gridVertical": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "heading": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Heading3'"
+                }
+              }
+            },
+            "titleWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 1,
+                      "Percent": 0
+                    }
+                  }
+                }
+              }
+            },
+            "alignment": {
+              "expr": {
+                "Literal": {
+                  "Value": "'center'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "14D"
+                }
+              }
+            },
+            "fontFamily": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Calibri'"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Title: Owner (for Register)"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualTooltip": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "'11'"
+                }
+              }
+            },
+            "fontFamily": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Calibri'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "stylePreset": [
+        {
+          "properties": {
+            "name": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Minimal'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualHeaderTooltip": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "'11'"
+                }
+              }
+            },
+            "fontFamily": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Calibri'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filter3cec2f3d5a1de3201d4a",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_property"
+              }
+            },
+            "Property": "zav_fulladdress"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "Filter89bcc32e422704728b02",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "TenancyDaysByFY"
+                  }
+                },
+                "Property": "TenancyActiveDaysInFY"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "Filter9b9a5b00700000c19920",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "PropertyOwnershipDaysByFY"
+                  }
+                },
+                "Property": "PropertyOwnershipDaysInFY"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "Filterb8393887b9cc655114a6",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "_Measures"
+              }
+            },
+            "Property": "Tenancy Active in FY % (Multiple Properties)"
+          }
+        },
+        "type": "Advanced",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "Filterfdb8cabadb104a45bcb6",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_property"
+              }
+            },
+            "Property": "zav_acquireddate"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "Filter8f7ec051ec6058037e10",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "FactHouseholdMembersByFY"
+                  }
+                },
+                "Property": "MaxHouseholdMembersForTenancyInFY"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "Filter070d6f2940a7acc0e33c",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "TenancyDaysByFY"
+                  }
+                },
+                "Property": "zav_tenancystartdate"
+              }
+            },
+            "Function": 3
+          }
+        },
+        "type": "Advanced",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "Filter8f5bafc7ba5370037312",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "TenancyDaysByFY"
+                  }
+                },
+                "Property": "zav_vacateddate"
+              }
+            },
+            "Function": 4
+          }
+        },
+        "type": "Advanced",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "Filterebca6733c9949270e72b",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_property"
+              }
+            },
+            "Property": "zav_confirmeddisposaldate"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      }
+    ]
+  }
+}

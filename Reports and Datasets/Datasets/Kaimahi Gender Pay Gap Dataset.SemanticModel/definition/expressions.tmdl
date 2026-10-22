@@ -1,0 +1,66 @@
+expression WorkingPayGrades-nonStandard =
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT#(lf)    [pay_grades_id],#(lf)    code,#(lf)    name#(lf)FROM [IntelliHR].[pay_grades]#(lf)WHERE (([ODSIsCurrent] = 1) AND ([isEnabled] = 1));#(lf)"]),
+		    #"Filtered Rows" = Table.SelectRows(Source, each ([name] = "Grade 20" or [name] = "Grade 20c" or [name] = "Grade 21" or [name] = "Grade 22" or [name] = "Grade 23" or [name] = "Grade 24" or [name] = "Grade 25" or [name] = "Grade 26" or [name] = "Grade 27" or [name] = "Grade 28" or [name] = "No Pay Grade" or [name] = "PE - Level 0" or [name] = "PE - Level 2" or [name] = "PE - Level 3" or [name] = "PE - Level 4" or [name] = "PE - Level 4b")),
+		    #"Inserted Removed Characters" = Table.AddColumn(#"Filtered Rows", "Removed Characters", each Text.Remove([name], {"b", "c"}), type text),
+		    #"Renamed Columns" = Table.RenameColumns(#"Inserted Removed Characters",{{"Removed Characters", "Grade"}}),
+		    #"Removed Columns1" = Table.RemoveColumns(#"Renamed Columns",{"name"})
+		in
+		    #"Removed Columns1"
+	lineageTag: 46871527-2b45-4e0d-a93f-546a4d2d16dc
+	queryGroup: 'Raw Intelli Data'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression FactPeople =
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT [people_id]#(lf)      ,[displayName] AS 'Kaimahi Name'#(lf)      ,[dateOfBirth]#(lf)      ,[gender]#(lf)      ,[primaryEmailAddress_email]#(lf)      ,[employeeNumber]#(lf)      ,[employmentStatus]#(lf)  FROM [IntelliHR].[people]#(lf)  WHERE ODSIsCurrent = 1"]),
+		    #"Inserted Age" = Table.AddColumn(Source, "Age", each DateTime.LocalNow() - [dateOfBirth], type duration),
+		    #"Inserted Total Years" = Table.AddColumn(#"Inserted Age", "Total Years", each Duration.TotalDays([Age]) / 365, type number),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Inserted Total Years",{{"Total Years", Int64.Type}}),
+		    #"Filtered Rows1" = Table.SelectRows(#"Changed Type", each [employeeNumber] <> null and [employeeNumber] <> ""),
+		    #"Merged Queries" = Table.NestedJoin(#"Filtered Rows1", {"employeeNumber"}, PayRates, {"code"}, "PayRates", JoinKind.LeftOuter),
+		    #"Expanded PayRates" = Table.ExpandTableColumn(#"Merged Queries", "PayRates", {"company_id", "pay_rate_value", "standard_hours_per_week_value", "standard_days_per_week_value", "HourlyPay"}, {"company_id", "pay_rate_value", "standard_hours_per_week_value", "standard_days_per_week_value", "HourlyPay"}),
+		    #"Filtered Rows" = Table.SelectRows(#"Expanded PayRates", each ([employmentStatus] = "Current Staff" or [employmentStatus] = "Exiting Staff"))
+		in
+		    #"Filtered Rows"
+	lineageTag: a8dba5a7-8d5b-4d41-8472-4b9ed98d1375
+	queryGroup: 'Raw Intelli Data'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'Sample File' =
+		let
+		    Source = SharePoint.Files("https://emergeaotearoaltd.sharepoint.com/sites/OPS_ITServices", [ApiVersion = 15]),
+		    #"Filtered Rows" = Table.SelectRows(Source, each [Name] = "Locations.xlsx"),
+		    Navigation1 = #"Filtered Rows"{0}[Content]
+		in
+		    Navigation1
+	lineageTag: fd889fd5-c031-4ea5-b43c-f2a13ac98892
+	queryGroup: 'Helper Queries'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Binary
+
+expression 'Transform File' =
+		let
+		    Source = (Parameter1 as binary) => let
+		        Source = Excel.Workbook(Parameter1, null, true),
+		        Sheet1_Sheet = Source{[Item="Sheet1",Kind="Sheet"]}[Data],
+		        #"Promoted Headers" = Table.PromoteHeaders(Sheet1_Sheet, [PromoteAllScalars=true])
+		    in
+		        #"Promoted Headers"
+		in
+		    Source
+	lineageTag: af892e54-f03c-4e7c-8907-e382e9876c13
+	queryGroup: 'Helper Queries'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Function
+

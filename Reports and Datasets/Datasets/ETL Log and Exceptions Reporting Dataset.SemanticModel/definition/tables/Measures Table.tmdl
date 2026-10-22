@@ -1,0 +1,1056 @@
+table 'Measures Table'
+	lineageTag: 59b1bfb2-6735-4fca-8df4-4dc1cc543ce3
+
+	measure RefreshedAt_forDisplay = "Data Last Refreshed: " & FORMAT(LASTDATE(LastRefreshed[Date Last Refreshed]), "dd/MM/YYYY - hh:mm AM/PM")
+		displayFolder: Helpers
+		lineageTag: 04a35b3d-4080-4dc2-9b46-ed89f4f6f8d1
+
+	measure 'Sum of CountValue' =
+			
+			SUM(
+			    fact_etl_log_overview_unpivot[CountValue]
+			)
+		formatString: 0
+		displayFolder: fact_etl_log_overview_unpivot
+		lineageTag: 30bcd69b-c314-46a1-aa59-81914d3022d9
+
+	measure 'Number of Tables Updated' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT(fact_etl_log_overview_unpivot[table_key])
+			    //,fact_etl_log_overview_unpivot[CountValue] > 0
+			)
+		formatString: 0
+		displayFolder: fact_etl_log_overview_unpivot
+		lineageTag: c1789b5a-ea30-4dc9-9cdb-4f9c14304621
+
+	measure 'Total Duration Minutes' =
+			
+			SUM(
+			    fact_etl_log_overview_simple[DurationSeconds]
+			)/60
+		displayFolder: fact_etl_log_overview_simple
+		lineageTag: 4858c4f2-3285-46e8-8d0f-affbff02c7fe
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Number of Tables Updated (28-day Avg)' =
+			
+			AVERAGEX(
+			    FILTER(
+			        ALL(dim_date),
+			        dim_date[date_offset] >= -29 &&
+			        dim_date[date_offset] <= -1
+			    ),
+			    CALCULATE(
+			        DISTINCTCOUNT(fact_etl_log_overview_unpivot[table_key])
+			    )
+			)
+		displayFolder: fact_etl_log_overview_unpivot
+		lineageTag: b19366fc-09e0-4e61-9247-48370ba8ddc9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Duration in Mins (28-day Avg)' =
+			
+			AVERAGEX(
+			    FILTER(
+			        ALL(dim_date),
+			        dim_date[calendar_date] >= MAX(dim_date[calendar_date]) - 29 &&
+			        dim_date[calendar_date] <= MAX(dim_date[calendar_date]) - 1
+			    ),
+			    CALCULATE(
+			        [Total Duration Minutes]
+			    )
+			)
+		displayFolder: fact_etl_log_overview_simple
+		lineageTag: e719bcf9-4e46-47b4-87cf-6c5c788375a8
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Duration Minutes (For Display)' =
+			
+			VAR TotalSeconds = CALCULATE(SUM(fact_etl_log_overview_simple[DurationSeconds]))
+			VAR Minutes = TRUNC(TotalSeconds / 60)
+			VAR Seconds = MOD(TotalSeconds, 60)
+			RETURN
+			    IF(
+			        ISBLANK(
+			            TotalSeconds),
+			            BLANK(),
+			            FORMAT(Minutes, "00") & ":" & FORMAT(Seconds, "00")
+			    )
+		displayFolder: fact_etl_log_overview_simple
+		lineageTag: 50d9aad0-a728-4d1c-9fe1-2d549333a6d7
+
+	measure 'Total Duration in Mins (28-day Avg for Display)' = ```
+			
+			VAR AverageSeconds = 
+			    CALCULATE(
+			        SUM(
+			            fact_28_day_avg[28DayAvgDurationSeconds])
+			    )
+			VAR Minutes = TRUNC(AverageSeconds / 60)
+			VAR Seconds = MOD(AverageSeconds, 60)
+			RETURN 
+			    IF(
+			        ISBLANK(
+			            AverageSeconds),
+			            BLANK(),
+			            FORMAT(Minutes, "00") & ":" & FORMAT(Seconds, "00")
+			    )
+			```
+		displayFolder: fact_28_day_avg
+		lineageTag: f3d8cc31-dc93-4a70-b142-0bc72c8c2118
+
+	measure 'Min Start Time' =
+			
+			MIN(
+			    fact_etl_log_overview_simple[StartTime_TimeOnly]
+			)
+		formatString: h:nn:ss AM/PM
+		displayFolder: fact_etl_log_overview_simple
+		lineageTag: 47dd196c-56a1-4bb8-8d29-e64ad67d4760
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	measure 'Latest End Time' =
+			
+			MAX(
+			    fact_etl_log_overview_simple[EndTime_TimeOnly]
+			)
+		formatString: h:nn:ss AM/PM
+		displayFolder: fact_etl_log_overview_simple
+		lineageTag: 7dbfe075-555d-4584-a44a-7e5618644a24
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	measure 'Time Between Process Start and End' =
+			
+			DATEDIFF(
+			    [Min Start Time],
+			    [Latest End Time],
+			    SECOND
+			)/60
+		displayFolder: fact_etl_log_overview_simple
+		lineageTag: abe43c2c-5359-43ce-b993-c7536bcfadbc
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Time Between Process Start and End (28-day Avg)' =
+			
+			AVERAGEX(
+			    FILTER(
+			        ALL(dim_date),
+			        dim_date[calendar_date] >= MAX(dim_date[calendar_date]) - 29 &&
+			        dim_date[calendar_date] <= MAX(dim_date[calendar_date]) - 1
+			    ),
+			    CALCULATE(
+			        [Time Between Process Start and End]
+			    )
+			)
+		displayFolder: fact_etl_log_overview_simple
+		lineageTag: 3b6878cc-73d7-4c2d-895f-3be0e7a77ff0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Deviation from 28-day Avg (Total Processing Time in Mins)' =
+			
+			DIVIDE(
+			    ([Time Between Process Start and End (28-day Avg)]-[Time Between Process Start and End]),
+			    [Time Between Process Start and End (28-day Avg)]
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: fact_etl_log_overview_simple
+		lineageTag: 0b2d1845-6bbb-4b5d-a2d7-653927945e4e
+
+	measure 'Sum of Errors' =
+			
+			SUM(
+			    fact_etl_log_overview_simple[ETLErrorCount]
+			)
+		formatString: 0
+		displayFolder: fact_etl_log_overview_unpivot
+		lineageTag: 39f909cf-c17f-47be-9f26-4d0d2fe818cf
+
+	measure 'Sum of Rows' =
+			
+			SUM(
+			    fact_etl_log_overview_simple[ETLRowCount]
+			)
+		formatString: 0
+		displayFolder: fact_etl_log_overview_unpivot
+		lineageTag: cf8367ab-c9d4-4efc-bbb1-f7049691d86c
+
+	measure 'Sum of Warnings' =
+			
+			SUM(
+			    fact_etl_log_overview_simple[ETLWarningCount]
+			)
+		formatString: 0
+		displayFolder: fact_etl_log_overview_simple
+		lineageTag: 8fa2ac9e-732f-4be0-9287-c6e5fed76644
+
+	measure 'Earliest Last Load Status Created Time' =
+			
+			MIN(
+			    fact_last_load_status_by_table[LastLoadCreatedAt]
+			)
+		formatString: General Date
+		displayFolder: fact_last_load_status_by_table
+		lineageTag: 3dbf81a1-f702-4fe2-8d3e-fc59c0066831
+
+	measure 'Latest Last Load Status Closed Time' =
+			
+			MAX(
+			    fact_last_load_status_by_table[LastLoadClosedAt]
+			)
+		formatString: General Date
+		displayFolder: fact_last_load_status_by_table
+		lineageTag: c61908c5-e324-4739-a72d-5107e95e4747
+
+	measure 'Earliest Start Time (All Time)' =
+			
+			CALCULATE(
+			    MIN(
+			        fact_etl_log_overview_simple[StartTime]),
+			        ALL(
+			            dim_date
+			        )
+			)
+		formatString: General Date
+		displayFolder: fact_etl_log_overview_simple
+		lineageTag: 7336f0c9-b301-485c-a6b4-e70572c27e12
+
+	measure 'Last Start Time (All Time)' =
+			
+			CALCULATE(
+			    MAX(
+			        fact_etl_log_overview_simple[StartTime]),
+			        ALL(
+			            dim_date
+			        )
+			)
+		formatString: General Date
+		displayFolder: fact_etl_log_overview_simple
+		lineageTag: 7351ca09-1a51-4285-a92f-318a3efcf84d
+
+	measure 'Count Batch ID (All Time)' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT(
+			        fact_etl_log_overview_simple[BatchID]),
+			        ALL(
+			            dim_date
+			        )
+			)
+		formatString: 0
+		displayFolder: fact_etl_log_overview_simple
+		lineageTag: e2377d5f-3cbe-4d1b-9299-660a0dba2f27
+
+	measure 'Row Count' =
+			
+			SUM(
+			    fact_etl_log_overview_simple[ETLRowCount]
+			)
+		formatString: 0
+		displayFolder: fact_etl_log_overview_simple
+		lineageTag: f91754a5-3c7e-47dd-82a8-cdf77ab22eb8
+
+	measure 'Row Count (28-day Avg)' =
+			
+			AVERAGEX(
+			    FILTER(
+			        ALL(dim_date),
+			        dim_date[calendar_date] >= MAX(dim_date[calendar_date]) - 29 &&
+			        dim_date[calendar_date] <= MAX(dim_date[calendar_date]) - 1
+			    ),
+			    CALCULATE(
+			        [Row Count]
+			    )
+			)
+		displayFolder: fact_etl_log_overview_simple
+		lineageTag: 5a87137f-fcb8-4f26-b980-f8e2741f5101
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'TITLE: Load Time by Date - Table Name' =
+			
+			CONCATENATE(
+			    "Load Time by Date - ",
+			    SELECTEDVALUE(dim_table[TableName])
+			)
+		displayFolder: Titles
+		lineageTag: 8c5b5bb1-8565-4e0d-804f-d20f88a001d6
+
+	measure 'TITLE: Table Analysis Page' =
+			
+			IFERROR(
+			    CONCATENATE(
+			        "Load Analysis: ",
+			        SELECTEDVALUE(
+			            dim_table[TableName]
+			            )
+			    ),
+			    "Table Analysis"
+			)
+		displayFolder: Titles
+		lineageTag: da011484-a788-4a04-b95b-72233e164807
+
+	measure 'Max Calendar Date' =
+			
+			MAX(
+			    dim_date[calendar_date]
+			)
+		formatString: Short Date
+		lineageTag: 4c988d11-bb06-4db3-b778-16d3c46f71b0
+
+	measure 'Total Duration Minutes (all dim_date)' =
+			
+			CALCULATE(
+			    [Total Duration Minutes],
+			    ALL(dim_date)
+			   /* REMOVEFILTERS(
+			        dim_date[calendar_date] */
+			    )
+		lineageTag: 32d61c19-10b5-4b37-b466-39a40c7042d9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Number of tables updated (all dim_date)' =
+			
+			CALCULATE(
+			    [Number of Tables Updated],
+			    ALL(dim_date)
+			    /*
+			    REMOVEFILTERS(
+			        dim_date[calendar_date] */
+			    )
+		formatString: 0
+		lineageTag: ffbb2d54-7926-43ce-a744-8c11c94b6b1a
+
+	measure '(ETL) Applied Filters' = ```
+			
+			VAR dim_action_action_type = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_action'[action_type]), NOT(ISBLANK('dim_action'[action_type]))), 'dim_action'[action_type], ASC),
+			    "action_type_display", 'dim_action'[action_type]
+			)
+			VAR dim_action_action_typeCount = IF(ISFILTERED('dim_action'[action_type]), COUNTROWS(VALUES('dim_action'[action_type])), 0)
+			VAR More_dim_action_action_type = IF(dim_action_action_typeCount > 5, " and " & (dim_action_action_typeCount - 5) & " more", "")
+			VAR FC_dim_action_action_type = IF(dim_action_action_typeCount > 0, "ACTION TYPES CHOSEN: " & CONCATENATEX(dim_action_action_type, [action_type_display], ", "), BLANK()) & More_dim_action_action_type
+			
+			VAR dim_table_SourceSystem = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_table'[SourceSystem]), NOT(ISBLANK('dim_table'[SourceSystem]))), 'dim_table'[SourceSystem], ASC),
+			    "SourceSystem_display", 'dim_table'[SourceSystem]
+			)
+			VAR dim_table_SourceSystemCount = IF(ISFILTERED('dim_table'[SourceSystem]), COUNTROWS(VALUES('dim_table'[SourceSystem])), 0)
+			VAR More_dim_table_SourceSystem = IF(dim_table_SourceSystemCount > 5, " and " & (dim_table_SourceSystemCount - 5) & " more", "")
+			VAR FC_dim_table_SourceSystem = IF(dim_table_SourceSystemCount > 0, "SOURCE SYSTEMS CHOSEN: " & CONCATENATEX(dim_table_SourceSystem, [SourceSystem_display], ", "), BLANK()) & More_dim_table_SourceSystem
+			
+			VAR dim_table_TableName = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_table'[TableName]), NOT(ISBLANK('dim_table'[TableName]))), 'dim_table'[TableName], ASC),
+			    "TableName_display", 'dim_table'[TableName]
+			)
+			VAR dim_table_TableNameCount = IF(ISFILTERED('dim_table'[TableName]), COUNTROWS(VALUES('dim_table'[TableName])), 0)
+			VAR More_dim_table_TableName = IF(dim_table_TableNameCount > 5, " and " & (dim_table_TableNameCount - 5) & " more", "")
+			VAR FC_dim_table_TableName = IF(dim_table_TableNameCount > 0, "TABLES CHOSEN: " & CONCATENATEX(dim_table_TableName, [TableName_display], ", "), BLANK()) & More_dim_table_TableName
+			
+			VAR fact_index_rebuild_log_detail_SchemaAndTable = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('fact_index_rebuild_log_detail'[SchemaAndTable]), NOT(ISBLANK('fact_index_rebuild_log_detail'[SchemaAndTable]))), 'fact_index_rebuild_log_detail'[SchemaAndTable], ASC),
+			    "SchemaAndTable_display", 'fact_index_rebuild_log_detail'[SchemaAndTable]
+			)
+			VAR fact_index_rebuild_log_detail_SchemaAndTableCount = IF(ISFILTERED('fact_index_rebuild_log_detail'[SchemaAndTable]), COUNTROWS(VALUES('fact_index_rebuild_log_detail'[SchemaAndTable])), 0)
+			VAR More_fact_index_rebuild_log_detail_SchemaAndTable = IF(fact_index_rebuild_log_detail_SchemaAndTableCount > 5, " and " & (fact_index_rebuild_log_detail_SchemaAndTableCount - 5) & " more", "")
+			VAR FC_fact_index_rebuild_log_detail_SchemaAndTable = IF(fact_index_rebuild_log_detail_SchemaAndTableCount > 0, "SCHEMA AND TABLES CHOSEN: " & CONCATENATEX(fact_index_rebuild_log_detail_SchemaAndTable, [SchemaAndTable_display], ", "), BLANK()) & More_fact_index_rebuild_log_detail_SchemaAndTable
+			
+			VAR fact_index_rebuild_log_detail_IndexName = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('fact_index_rebuild_log_detail'[IndexName]), NOT(ISBLANK('fact_index_rebuild_log_detail'[IndexName]))), 'fact_index_rebuild_log_detail'[IndexName], ASC),
+			    "IndexName_display", 'fact_index_rebuild_log_detail'[IndexName]
+			)
+			VAR fact_index_rebuild_log_detail_IndexNameCount = IF(ISFILTERED('fact_index_rebuild_log_detail'[IndexName]), COUNTROWS(VALUES('fact_index_rebuild_log_detail'[IndexName])), 0)
+			VAR More_fact_index_rebuild_log_detail_IndexName = IF(fact_index_rebuild_log_detail_IndexNameCount > 5, " and " & (fact_index_rebuild_log_detail_IndexNameCount - 5) & " more", "")
+			VAR FC_fact_index_rebuild_log_detail_IndexName = IF(fact_index_rebuild_log_detail_IndexNameCount > 0, "INDEXES CHOSEN: " & CONCATENATEX(fact_index_rebuild_log_detail_IndexName, [IndexName_display], ", "), BLANK()) & More_fact_index_rebuild_log_detail_IndexName
+			
+			VAR fact_index_rebuild_log_detail_BatchID = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('fact_index_rebuild_log_detail'[BatchID]), NOT(ISBLANK('fact_index_rebuild_log_detail'[BatchID]))), 'fact_index_rebuild_log_detail'[BatchID], ASC),
+			    "BatchID_display", 'fact_index_rebuild_log_detail'[BatchID]
+			)
+			VAR fact_index_rebuild_log_detail_BatchIDCount = IF(ISFILTERED('fact_index_rebuild_log_detail'[BatchID]), COUNTROWS(VALUES('fact_index_rebuild_log_detail'[BatchID])), 0)
+			VAR More_fact_index_rebuild_log_detail_BatchID = IF(fact_index_rebuild_log_detail_BatchIDCount > 5, " and " & (fact_index_rebuild_log_detail_BatchIDCount - 5) & " more", "")
+			VAR FC_fact_index_rebuild_log_detail_BatchID = IF(fact_index_rebuild_log_detail_BatchIDCount > 0, "BATCH IDs CHOSEN: " & CONCATENATEX(fact_index_rebuild_log_detail_BatchID, [BatchID_display], ", "), BLANK()) & More_fact_index_rebuild_log_detail_BatchID
+			
+			VAR edw_unknown_keys_SchemaName = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('edw_unknown_keys'[SchemaName]), NOT(ISBLANK('edw_unknown_keys'[SchemaName]))), 'edw_unknown_keys'[SchemaName], ASC),
+			    "SchemaName_display", 'edw_unknown_keys'[SchemaName]
+			)
+			VAR edw_unknown_keys_SchemaNameCount = IF(ISFILTERED('edw_unknown_keys'[SchemaName]), COUNTROWS(VALUES('edw_unknown_keys'[SchemaName])), 0)
+			VAR More_edw_unknown_keys_SchemaName = IF(edw_unknown_keys_SchemaNameCount > 5, " and " & (edw_unknown_keys_SchemaNameCount - 5) & " more", "")
+			VAR FC_edw_unknown_keys_SchemaName = IF(edw_unknown_keys_SchemaNameCount > 0, "SCHEMAS CHOSEN: " & CONCATENATEX(edw_unknown_keys_SchemaName, [SchemaName_display], ", "), BLANK()) & More_edw_unknown_keys_SchemaName
+			
+			VAR edw_unknown_keys_TableName = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('edw_unknown_keys'[TableName]), NOT(ISBLANK('edw_unknown_keys'[TableName]))), 'edw_unknown_keys'[TableName], ASC),
+			    "TableName_display", 'edw_unknown_keys'[TableName]
+			)
+			VAR edw_unknown_keys_TableNameCount = IF(ISFILTERED('edw_unknown_keys'[TableName]), COUNTROWS(VALUES('edw_unknown_keys'[TableName])), 0)
+			VAR More_edw_unknown_keys_TableName = IF(edw_unknown_keys_TableNameCount > 5, " and " & (edw_unknown_keys_TableNameCount - 5) & " more", "")
+			VAR FC_edw_unknown_keys_TableName = IF(edw_unknown_keys_TableNameCount > 0, "TABLES CHOSEN: " & CONCATENATEX(edw_unknown_keys_TableName, [TableName_display], ", "), BLANK()) & More_edw_unknown_keys_TableName
+			
+			VAR edw_unknown_keys_ColumnName = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('edw_unknown_keys'[ColumnName]), NOT(ISBLANK('edw_unknown_keys'[ColumnName]))), 'edw_unknown_keys'[ColumnName], ASC),
+			    "ColumnName_display", 'edw_unknown_keys'[ColumnName]
+			)
+			VAR edw_unknown_keys_ColumnNameCount = IF(ISFILTERED('edw_unknown_keys'[ColumnName]), COUNTROWS(VALUES('edw_unknown_keys'[ColumnName])), 0)
+			VAR More_edw_unknown_keys_ColumnName = IF(edw_unknown_keys_ColumnNameCount > 5, " and " & (edw_unknown_keys_ColumnNameCount - 5) & " more", "")
+			VAR FC_edw_unknown_keys_ColumnName = IF(edw_unknown_keys_ColumnNameCount > 0, "COLUMNS CHOSEN: " & CONCATENATEX(edw_unknown_keys_ColumnName, [ColumnName_display], ", "), BLANK()) & More_edw_unknown_keys_ColumnName
+			
+			VAR edw_unknown_keys_PercentageUnknown = 
+			    IF(
+			        ISFILTERED('dim_percentage'[Value]),
+			        VAR MinValue = MINX(VALUES('dim_percentage'[Value]), 'dim_percentage'[Value])/100
+			        VAR MaxValue = MAXX(VALUES('dim_percentage'[Value]), 'dim_percentage'[Value])/100
+			        RETURN
+			            IF(
+			                MinValue = MaxValue,
+			                FORMAT(MinValue, "0%"),
+			                FORMAT(MinValue, "0%") & " - " & FORMAT(MaxValue, "0%")
+			            ),
+			        BLANK()
+			    )
+			
+			VAR FC_edw_unknown_keys_PercentageUnknown = 
+			    IF(
+			        NOT(ISBLANK(edw_unknown_keys_PercentageUnknown)),
+			        "PERCENTAGE RANGE: " & edw_unknown_keys_PercentageUnknown,
+			        BLANK()
+			    )
+			
+			RETURN
+			IF(
+			    (ISBLANK(FC_dim_action_action_type) || FC_dim_action_action_type = "") && 
+			    (ISBLANK(FC_dim_table_SourceSystem) || FC_dim_table_SourceSystem = "") && 
+			    (ISBLANK(FC_dim_table_TableName) || FC_dim_table_TableName = "") && 
+			    (ISBLANK(FC_fact_index_rebuild_log_detail_SchemaAndTable) || FC_fact_index_rebuild_log_detail_SchemaAndTable = "") && 
+			    (ISBLANK(FC_fact_index_rebuild_log_detail_IndexName) || FC_fact_index_rebuild_log_detail_IndexName = "") && 
+			    (ISBLANK(FC_fact_index_rebuild_log_detail_BatchID) || FC_fact_index_rebuild_log_detail_BatchID = "") && 
+			    (ISBLANK(FC_edw_unknown_keys_SchemaName) || FC_edw_unknown_keys_SchemaName = "") && 
+			    (ISBLANK(FC_edw_unknown_keys_TableName) || FC_edw_unknown_keys_TableName = "") && 
+			    (ISBLANK(FC_edw_unknown_keys_ColumnName) || FC_edw_unknown_keys_ColumnName = "") &&
+			    (ISBLANK(FC_edw_unknown_keys_PercentageUnknown) || FC_edw_unknown_keys_PercentageUnknown = ""),
+			    "No filters are currently applied to this page.",
+			    "Please note that the following filters are currently applied to this page: " &
+			    CONCATENATEX(
+			        FILTER(
+			            { 
+			                FC_dim_action_action_type, 
+			                FC_dim_table_SourceSystem, 
+			                FC_dim_table_TableName, 
+			                FC_fact_index_rebuild_log_detail_SchemaAndTable, 
+			                FC_fact_index_rebuild_log_detail_IndexName, 
+			                FC_fact_index_rebuild_log_detail_BatchID, 
+			                FC_edw_unknown_keys_SchemaName, 
+			                FC_edw_unknown_keys_TableName, 
+			                FC_edw_unknown_keys_ColumnName,
+			                FC_edw_unknown_keys_PercentageUnknown
+			            }, 
+			            [Value] <> BLANK()
+			        ), 
+			        [Value], 
+			        " | "
+			    )
+			)
+			```
+		lineageTag: 493598e2-0732-4479-9adf-f1392c917710
+
+	measure '(ETL) Applied Filters - Source and Table Only' = ```
+			
+			VAR __SourceSystems = ADDCOLUMNS(
+			    TOPN(10, ALLSELECTED(dim_table[SourceSystem]), dim_table[SourceSystem], ASC),
+			    "SourceSystem_display", dim_table[SourceSystem]
+			)
+			VAR __SourceSystemsCount = IF(ISFILTERED(dim_table[SourceSystem]), COUNTROWS(VALUES(dim_table[SourceSystem])), 0)
+			VAR __MoreSourceSystems = IF(__SourceSystemsCount > 10, " and " & (__SourceSystemsCount - 10) & " more", "")
+			
+			VAR __TableNames = ADDCOLUMNS(
+			    TOPN(10, ALLSELECTED(dim_table[TableName]), dim_table[TableName], ASC),
+			    "TableName_display", dim_table[TableName]
+			)
+			VAR __TableNamesCount = IF(ISFILTERED(dim_table[TableName]), COUNTROWS(VALUES(dim_table[TableName])), 0)
+			VAR __MoreTableNames = IF(__TableNamesCount > 10, " and " & (__TableNamesCount - 10) & " more", "")
+			
+			VAR _FC_SourceSystems = IF(__SourceSystemsCount > 0, "SOURCE SYSTEMS CHOSEN: " & CONCATENATEX(__SourceSystems, [SourceSystem_display], ", "), BLANK()) & __MoreSourceSystems
+			VAR _FC_TableNames = IF(__TableNamesCount > 0, "TABLE NAMES CHOSEN: " & CONCATENATEX(__TableNames, [TableName_display], ", "), BLANK()) & __MoreTableNames
+			
+			RETURN
+			IF(
+			    (ISBLANK(_FC_SourceSystems) || _FC_SourceSystems = "") && 
+			    (ISBLANK(_FC_TableNames) || _FC_TableNames = ""),
+			    "No filters are currently applied to this page.",
+			    "This page will only show the last load status. Other filters currently applied: " & _FC_SourceSystems & " " & _FC_TableNames
+			)
+			
+			```
+		lineageTag: 211bf5be-04ab-4a57-a556-8635ed3c7c71
+
+	measure 'Average Process Duration (s)' =
+			
+			AVERAGEX(
+			    SUMMARIZE(
+			        fact_index_rebuild_log_detail,
+			        fact_index_rebuild_log_detail[BatchID],
+			        "TotalDuration", SUM(fact_index_rebuild_log_detail[IndexRebuildDurationSeconds])
+			    ),
+			    [TotalDuration]
+			)
+		lineageTag: 524ecc3e-f041-41d7-914e-f0b7fa1287ac
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Count of Batch ID (Index Rebuild)' =
+			
+			DISTINCTCOUNT(
+			    fact_index_rebuild_log_detail[BatchID]
+			)
+		formatString: 0
+		lineageTag: f9c56472-d990-4ef9-9218-e459462cc293
+
+	measure 'Count of Index Name (Index Rebuild)' =
+			
+			DISTINCTCOUNT(
+			    fact_index_rebuild_log_detail[IndexName]
+			)
+		formatString: 0
+		lineageTag: 44a69942-893b-4b8c-8b1a-d29a9802f07b
+
+	measure 'Personaverse Exceptions Employee ID Count' =
+			
+			DISTINCTCOUNT(personaverse_exceptions_data[EmployeeNameFinal])
+		formatString: 0
+		lineageTag: 15cf5c52-3dcc-4075-8fbb-d19568eca8c8
+
+	measure 'Count of Personaverse Columns to Fix' = SUM(personaverse_exceptions_data[CountOfPersonaverseColumnsToFix])
+		formatString: 0
+		lineageTag: da20d12a-259f-40d7-b240-88b2f80882e9
+
+	measure FixesFor1UpManagerFormatting =
+			
+			IF(
+			    SELECTEDVALUE(personaverse_exceptions_data[FixesFor1UpManager]) <> "", "#f47c20", BLANK()
+			)
+		lineageTag: f9af0110-271b-4d86-8a7b-8fedec552143
+
+	measure FixesForBusinessUnitFormatting =
+			
+			IF(
+			    SELECTEDVALUE(personaverse_exceptions_data[FixesForBusinessUnit]) <> "", "#f47c20", BLANK()
+			)
+		lineageTag: 66e3c917-a284-4f28-9e4e-9295e22d0fd5
+
+	measure FixesForJobRoleFormatting =
+			
+			IF(
+			    SELECTEDVALUE(personaverse_exceptions_data[FixesForJobRole]) <> "", "#f47c20", BLANK()
+			)
+		lineageTag: 2f48b7da-82c9-4f62-9655-78fa114e41c0
+
+	measure FixesForManagerFormatting =
+			
+			IF(
+			    SELECTEDVALUE(personaverse_exceptions_data[FixesForManager]) <> "", "#f47c20", BLANK()
+			)
+		lineageTag: 7ef69ddc-64e6-4d4e-a097-a63b08aecf17
+
+	measure FixesForWorkTypeFormatting =
+			
+			IF(
+			    SELECTEDVALUE(personaverse_exceptions_data[FixesForWorkType]) <> "", "#f47c20", BLANK()
+			)
+		lineageTag: 378d5061-1f3f-4f71-8ecf-5cd88b315447
+
+	measure 'BC Exceptions Row Count' = COUNTROWS(business_central_exceptions)
+		formatString: 0
+		lineageTag: a79bdf96-80cf-46a7-aea5-ca804f13b733
+
+	measure FixesForDatapayFormatting =
+			
+			IF(
+			    SELECTEDVALUE(business_central_exceptions[datapay_status_overall]) <> "OK", "#f47c20", BLANK()
+			)
+		lineageTag: 03e3e7f8-bb8d-44c1-8296-dc2cb531f32f
+
+	measure FixesForIntelliHRFormatting =
+			
+			IF(
+			    SELECTEDVALUE(business_central_exceptions[intellihr_status_overall]) <> "OK", "#f47c20", BLANK()
+			)
+		lineageTag: 55ceb074-143a-4b38-a954-8ed8259de985
+
+	measure PersonaverseStatusFormatting =
+			
+			IF(
+			    SELECTEDVALUE(personaverse_exceptions_data[PersonaverseStatusCalc]) <> "Exists in Personaverse", "#f47c20", BLANK()
+			)
+		lineageTag: ac495b86-c9cc-4f88-870a-c21d94e98fc9
+
+	measure FixesForRecordBaseFormatting =
+			
+			IF(
+			    SELECTEDVALUE(business_central_exceptions[recordbase_status_overall]) <> "OK", "#f47c20", BLANK()
+			)
+		lineageTag: c6a44417-cc80-4e4f-a2ad-05374b92fba9
+
+	measure 'Date Title' = ```
+			
+			VAR Label = MAX(dim_date[formatted_calendar_date])
+			VAR DateValue = MAX(dim_date[calendar_date])
+			RETURN
+			    IF(
+			        Label = "Today" || Label = "Yesterday",
+			        Label & " (" & FORMAT(DateValue, "DD/MM/YYYY") & ")",
+			        Label
+			    )
+			
+			```
+		lineageTag: 24fc53e8-cfaa-48c7-b50f-b4111b2f7d19
+
+	measure FixesForEmpLiveFormatting =
+			
+			IF(
+			    SELECTEDVALUE(business_central_exceptions[emplive_status_overall]) <> "OK", "#f47c20", BLANK()
+			)
+		lineageTag: 4f3b1cf8-bb04-467d-90ce-233b9a586b3c
+
+	measure FixesForWaharoaFormatting =
+			
+			IF(
+			    SELECTEDVALUE(business_central_exceptions[waharoa_status_overall]) <> "OK", "#f47c20", BLANK()
+			)
+		lineageTag: af72cea5-2d9f-474b-8811-23c290349f7d
+
+	measure FixesForEmergencyContactsFormatting =
+			
+			IF(
+			    SELECTEDVALUE(personaverse_exceptions_data[OverallEmergencyContactStatus]) <> "No issues", "#f47c20", BLANK()
+			)
+		lineageTag: db172a3f-3786-4fe8-872a-711bb3ac18e3
+
+	measure 'Sum Emergency Contact Columns to Fix' =
+			
+			SUM(personaverse_exceptions_data[CountOfEmergencyContactColumnsToFix])
+		formatString: 0
+		lineageTag: 8823e8f3-cf99-4972-b295-a861d81af2c7
+
+	measure '(Exceptions) Applied Filters' = ```
+			
+			VAR __Company = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_employee_hierarchy[employee_company_name]), NOT(ISBLANK(dim_employee_hierarchy[employee_company_name]))), dim_employee_hierarchy[employee_company_name], ASC),
+			    "Company_display", dim_employee_hierarchy[employee_company_name]
+			)
+			VAR __CompanyCount = IF(ISFILTERED(dim_employee_hierarchy[employee_company_name]), COUNTROWS(VALUES(dim_employee_hierarchy[employee_company_name])), 0)
+			VAR __MoreCompany = IF(__CompanyCount > 10, " and " & (__CompanyCount - 10) & " more", "")
+			
+			VAR __BusinessUnitLevel_1 = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_1]), NOT(ISBLANK(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_1]))), dim_employee_hierarchy[employee_people_leader_business_unit_name_level_1], ASC),
+			    "BusinessUnitLevel_1_display", dim_employee_hierarchy[employee_people_leader_business_unit_name_level_1]
+			)
+			VAR __BusinessUnitLevel_1Count = IF(ISFILTERED(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_1]), COUNTROWS(VALUES(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_1])), 0)
+			VAR __MoreBusinessUnitLevel_1 = IF(__BusinessUnitLevel_1Count > 10, " and " & (__BusinessUnitLevel_1Count - 10) & " more", "")
+			
+			VAR __BusinessUnitLevel_2 = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_2]), NOT(ISBLANK(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_2]))), dim_employee_hierarchy[employee_people_leader_business_unit_name_level_2], ASC),
+			    "BusinessUnitLevel_2_display", dim_employee_hierarchy[employee_people_leader_business_unit_name_level_2]
+			)
+			VAR __BusinessUnitLevel_2Count = IF(ISFILTERED(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_2]), COUNTROWS(VALUES(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_2])), 0)
+			VAR __MoreBusinessUnitLevel_2 = IF(__BusinessUnitLevel_2Count > 10, " and " & (__BusinessUnitLevel_2Count - 10) & " more", "")
+			
+			VAR __BusinessUnitLevel_3 = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_3]), NOT(ISBLANK(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_3]))), dim_employee_hierarchy[employee_people_leader_business_unit_name_level_3], ASC),
+			    "BusinessUnitLevel_3_display", dim_employee_hierarchy[employee_people_leader_business_unit_name_level_3]
+			)
+			VAR __BusinessUnitLevel_3Count = IF(ISFILTERED(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_3]), COUNTROWS(VALUES(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_3])), 0)
+			VAR __MoreBusinessUnitLevel_3 = IF(__BusinessUnitLevel_3Count > 10, " and " & (__BusinessUnitLevel_3Count - 10) & " more", "")
+			
+			VAR __BusinessUnitLevel_4 = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_4]), NOT(ISBLANK(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_4]))), dim_employee_hierarchy[employee_people_leader_business_unit_name_level_4], ASC),
+			    "BusinessUnitLevel_4_display", dim_employee_hierarchy[employee_people_leader_business_unit_name_level_4]
+			)
+			VAR __BusinessUnitLevel_4Count = IF(ISFILTERED(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_4]), COUNTROWS(VALUES(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_4])), 0)
+			VAR __MoreBusinessUnitLevel_4 = IF(__BusinessUnitLevel_4Count > 10, " and " & (__BusinessUnitLevel_4Count - 10) & " more", "")
+			
+			VAR __BusinessUnitLevel_5 = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_5]), NOT(ISBLANK(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_5]))), dim_employee_hierarchy[employee_people_leader_business_unit_name_level_5], ASC),
+			    "BusinessUnitLevel_5_display", dim_employee_hierarchy[employee_people_leader_business_unit_name_level_5]
+			)
+			VAR __BusinessUnitLevel_5Count = IF(ISFILTERED(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_5]), COUNTROWS(VALUES(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_5])), 0)
+			VAR __MoreBusinessUnitLevel_5 = IF(__BusinessUnitLevel_5Count > 10, " and " & (__BusinessUnitLevel_5Count - 10) & " more", "")
+			
+			VAR __BusinessUnitLevel_6 = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_6]), NOT(ISBLANK(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_6]))), dim_employee_hierarchy[employee_people_leader_business_unit_name_level_6], ASC),
+			    "BusinessUnitLevel_6_display", dim_employee_hierarchy[employee_people_leader_business_unit_name_level_6]
+			)
+			VAR __BusinessUnitLevel_6Count = IF(ISFILTERED(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_6]), COUNTROWS(VALUES(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_6])), 0)
+			VAR __MoreBusinessUnitLevel_6 = IF(__BusinessUnitLevel_6Count > 10, " and " & (__BusinessUnitLevel_6Count - 10) & " more", "")
+			
+			VAR __BusinessUnitLevel_7 = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_7]), NOT(ISBLANK(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_7]))), dim_employee_hierarchy[employee_people_leader_business_unit_name_level_7], ASC),
+			    "BusinessUnitLevel_7_display", dim_employee_hierarchy[employee_people_leader_business_unit_name_level_7]
+			)
+			VAR __BusinessUnitLevel_7Count = IF(ISFILTERED(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_7]), COUNTROWS(VALUES(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_7])), 0)
+			VAR __MoreBusinessUnitLevel_7 = IF(__BusinessUnitLevel_7Count > 10, " and " & (__BusinessUnitLevel_7Count - 10) & " more", "")
+			
+			VAR __BusinessUnitLevel_8 = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_8]), NOT(ISBLANK(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_8]))), dim_employee_hierarchy[employee_people_leader_business_unit_name_level_8], ASC),
+			    "BusinessUnitLevel_8_display", dim_employee_hierarchy[employee_people_leader_business_unit_name_level_8]
+			)
+			VAR __BusinessUnitLevel_8Count = IF(ISFILTERED(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_8]), COUNTROWS(VALUES(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_8])), 0)
+			VAR __MoreBusinessUnitLevel_8 = IF(__BusinessUnitLevel_8Count > 10, " and " & (__BusinessUnitLevel_8Count - 10) & " more", "")
+			
+			VAR __BusinessUnitLevel_9 = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_9]), NOT(ISBLANK(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_9]))), dim_employee_hierarchy[employee_people_leader_business_unit_name_level_9], ASC),
+			    "BusinessUnitLevel_9_display", dim_employee_hierarchy[employee_people_leader_business_unit_name_level_9]
+			)
+			VAR __BusinessUnitLevel_9Count = IF(ISFILTERED(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_9]), COUNTROWS(VALUES(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_9])), 0)
+			VAR __MoreBusinessUnitLevel_9 = IF(__BusinessUnitLevel_9Count > 10, " and " & (__BusinessUnitLevel_9Count - 10) & " more", "")
+			
+			VAR __Issue = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(personaverse_exceptions_data[PersonaverseIssueStatus]), NOT(ISBLANK(personaverse_exceptions_data[PersonaverseIssueStatus]))), personaverse_exceptions_data[PersonaverseIssueStatus], ASC),
+			    "Issue_display", personaverse_exceptions_data[PersonaverseIssueStatus]
+			)
+			VAR __IssueCount = IF(ISFILTERED(personaverse_exceptions_data[PersonaverseIssueStatus]), COUNTROWS(VALUES(personaverse_exceptions_data[PersonaverseIssueStatus])), 0)
+			VAR __MoreIssue = IF(__IssueCount > 10, " and " & (__IssueCount - 10) & " more", "")
+			
+			VAR __PersonaverseStatus = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(personaverse_exceptions_data[PersonaverseStatusCalc]), NOT(ISBLANK(personaverse_exceptions_data[PersonaverseStatusCalc]))), personaverse_exceptions_data[PersonaverseStatusCalc], ASC),
+			    "PersonaverseStatus_display", personaverse_exceptions_data[PersonaverseStatusCalc]
+			)
+			VAR __PersonaverseStatusCount = IF(ISFILTERED(personaverse_exceptions_data[PersonaverseStatusCalc]), COUNTROWS(VALUES(personaverse_exceptions_data[PersonaverseStatusCalc])), 0)
+			VAR __MorePersonaverseStatus = IF(__PersonaverseStatusCount > 10, " and " & (__PersonaverseStatusCount - 10) & " more", "")
+			
+			VAR __Companies = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_employee_hierarchy[employee_company_name]), NOT(ISBLANK(dim_employee_hierarchy[employee_company_name]))), dim_employee_hierarchy[employee_company_name], ASC),
+			    "Company_display", dim_employee_hierarchy[employee_company_name]
+			)
+			VAR __CompaniesCount = IF(ISFILTERED(dim_employee_hierarchy[employee_company_name]), COUNTROWS(VALUES(dim_employee_hierarchy[employee_company_name])), 0)
+			VAR __MoreCompanies = IF(__CompaniesCount > 10, " and " & (__CompaniesCount - 10) & " more", "")
+			VAR _FC_Company = IF(__CompaniesCount > 0, "COMPANY: " & CONCATENATEX(__Companies, [Company_display], ", "), BLANK()) & __MoreCompanies
+			
+			VAR _FC_BusinessUnitLevel_1 = IF(__BusinessUnitLevel_1Count > 0, "BUSINESS UNIT LEVEL 1: " & CONCATENATEX(__BusinessUnitLevel_1, [BusinessUnitLevel_1_display], ", "), BLANK()) & __MoreBusinessUnitLevel_1
+			VAR _FC_BusinessUnitLevel_2 = IF(__BusinessUnitLevel_2Count > 0, "BUSINESS UNIT LEVEL 2: " & CONCATENATEX(__BusinessUnitLevel_2, [BusinessUnitLevel_2_display], ", "), BLANK()) & __MoreBusinessUnitLevel_2
+			VAR _FC_BusinessUnitLevel_3 = IF(__BusinessUnitLevel_3Count > 0, "BUSINESS UNIT LEVEL 3: " & CONCATENATEX(__BusinessUnitLevel_3, [BusinessUnitLevel_3_display], ", "), BLANK()) & __MoreBusinessUnitLevel_3
+			VAR _FC_BusinessUnitLevel_4 = IF(__BusinessUnitLevel_4Count > 0, "BUSINESS UNIT LEVEL 4: " & CONCATENATEX(__BusinessUnitLevel_4, [BusinessUnitLevel_4_display], ", "), BLANK()) & __MoreBusinessUnitLevel_4
+			VAR _FC_BusinessUnitLevel_5 = IF(__BusinessUnitLevel_5Count > 0, "BUSINESS UNIT LEVEL 5: " & CONCATENATEX(__BusinessUnitLevel_5, [BusinessUnitLevel_5_display], ", "), BLANK()) & __MoreBusinessUnitLevel_5
+			VAR _FC_BusinessUnitLevel_6 = IF(__BusinessUnitLevel_6Count > 0, "BUSINESS UNIT LEVEL 6: " & CONCATENATEX(__BusinessUnitLevel_6, [BusinessUnitLevel_6_display], ", "), BLANK()) & __MoreBusinessUnitLevel_6
+			VAR _FC_BusinessUnitLevel_7 = IF(__BusinessUnitLevel_7Count > 0, "BUSINESS UNIT LEVEL 7: " & CONCATENATEX(__BusinessUnitLevel_7, [BusinessUnitLevel_7_display], ", "), BLANK()) & __MoreBusinessUnitLevel_7
+			VAR _FC_BusinessUnitLevel_8 = IF(__BusinessUnitLevel_8Count > 0, "BUSINESS UNIT LEVEL 8: " & CONCATENATEX(__BusinessUnitLevel_8, [BusinessUnitLevel_8_display], ", "), BLANK()) & __MoreBusinessUnitLevel_8
+			VAR _FC_BusinessUnitLevel_9 = IF(__BusinessUnitLevel_9Count > 0, "BUSINESS UNIT LEVEL 9: " & CONCATENATEX(__BusinessUnitLevel_9, [BusinessUnitLevel_9_display], ", "), BLANK()) & __MoreBusinessUnitLevel_9
+			VAR _FC_Issue = IF(__IssueCount > 0, "ISSUE STATUS: " & CONCATENATEX(__Issue, [Issue_display], ", "), BLANK()) & __MoreIssue
+			VAR _FC_PersonaverseStatus = IF(__PersonaverseStatusCount > 0, "PERSONAVERSE STATUS: " & CONCATENATEX(__PersonaverseStatus, [PersonaverseStatus_display], ", "), BLANK()) & __MorePersonaverseStatus
+			
+			RETURN
+			IF(
+			    (ISBLANK(_FC_Company) || _FC_Company = "") &&
+			    (ISBLANK(_FC_BusinessUnitLevel_1) || _FC_BusinessUnitLevel_1 = "") &&
+			    (ISBLANK(_FC_BusinessUnitLevel_2) || _FC_BusinessUnitLevel_2 = "") &&
+			    (ISBLANK(_FC_BusinessUnitLevel_3) || _FC_BusinessUnitLevel_3 = "") &&
+			    (ISBLANK(_FC_BusinessUnitLevel_4) || _FC_BusinessUnitLevel_4 = "") &&
+			    (ISBLANK(_FC_BusinessUnitLevel_5) || _FC_BusinessUnitLevel_5 = "") &&
+			    (ISBLANK(_FC_BusinessUnitLevel_6) || _FC_BusinessUnitLevel_6 = "") &&
+			    (ISBLANK(_FC_BusinessUnitLevel_7) || _FC_BusinessUnitLevel_7 = "") &&
+			    (ISBLANK(_FC_BusinessUnitLevel_8) || _FC_BusinessUnitLevel_8 = "") &&
+			    (ISBLANK(_FC_BusinessUnitLevel_9) || _FC_BusinessUnitLevel_9 = "") &&
+			    (ISBLANK(_FC_Issue) || _FC_Issue = "") &&
+			    (ISBLANK(_FC_PersonaverseStatus) || _FC_PersonaverseStatus = "")
+			    ,"No filters are currently applied to this page.",
+			    "Please note that the following filters are applied to this page: " & 
+			    _FC_Issue & " " & 
+			    _FC_PersonaverseStatus & " " & 
+			    _FC_Company & " " & 
+			    _FC_BusinessUnitLevel_1 & " " & 
+			    _FC_BusinessUnitLevel_2 & " " & 
+			    _FC_BusinessUnitLevel_3 & " " & 
+			    _FC_BusinessUnitLevel_4 & " " & 
+			    _FC_BusinessUnitLevel_5 & " " & 
+			    _FC_BusinessUnitLevel_6 & " " & 
+			    _FC_BusinessUnitLevel_7 & " " & 
+			    _FC_BusinessUnitLevel_8 & " " & 
+			    _FC_BusinessUnitLevel_9
+			)
+			```
+		lineageTag: aca272c9-5308-49b9-a41e-d41fcaeb4e61
+
+	measure '(ETL) - Applied Filters - Source and Table with Date Range' =
+			
+			VAR _MinDate = FORMAT(MIN(dim_date[calendar_date]), "dd/mm/yyyy")
+			VAR _MaxDate = FORMAT(MAX(dim_date[calendar_date]), "dd/mm/yyyy")
+			VAR _DateRangeDisplay = CONCATENATE("Selected date range: " & _MinDate & " - ", _MaxDate & ". ")
+			RETURN
+			CONCATENATE(
+			    _DateRangeDisplay,
+			    [(ETL) Applied Filters - Source and Table Only]
+			)
+		lineageTag: cc583291-09ef-44fd-9c3f-ae8049757424
+
+	measure 'Count UserID (dim_recordbase_user)' =
+			
+			DISTINCTCOUNT(
+			    dim_recordbase_user[UserID]
+			)
+		formatString: 0
+		lineageTag: 47cc5529-b2bf-4561-8c60-9de408f91e59
+
+	measure '(RB USERS) Filters Applied' =
+			
+			VAR dim_recordbase_user_UserFullName = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_recordbase_user'[UserFullName]), NOT(ISBLANK('dim_recordbase_user'[UserFullName]))), 'dim_recordbase_user'[UserFullName], ASC),
+			    "UserFullName_display", 'dim_recordbase_user'[UserFullName]
+			)
+			VAR dim_recordbase_user_UserFullNameCount = IF(ISFILTERED('dim_recordbase_user'[UserFullName]), COUNTROWS(VALUES('dim_recordbase_user'[UserFullName])), 0)
+			VAR More_dim_recordbase_user_UserFullName = IF(dim_recordbase_user_UserFullNameCount > 5, " and " & (dim_recordbase_user_UserFullNameCount - 5) & " more", "")
+			VAR FC_dim_recordbase_user_UserFullName = IF(dim_recordbase_user_UserFullNameCount > 0, "USERS CHOSEN: " & CONCATENATEX(dim_recordbase_user_UserFullName, [UserFullName_display], ", "), BLANK()) & More_dim_recordbase_user_UserFullName
+			
+			VAR dim_recordbase_user_UserLicenceType = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_recordbase_user'[UserLicenceType]), NOT(ISBLANK('dim_recordbase_user'[UserLicenceType]))), 'dim_recordbase_user'[UserLicenceType], ASC),
+			    "UserLicenceType_display", 'dim_recordbase_user'[UserLicenceType]
+			)
+			VAR dim_recordbase_user_UserLicenceTypeCount = IF(ISFILTERED('dim_recordbase_user'[UserLicenceType]), COUNTROWS(VALUES('dim_recordbase_user'[UserLicenceType])), 0)
+			VAR More_dim_recordbase_user_UserLicenceType = IF(dim_recordbase_user_UserLicenceTypeCount > 5, " and " & (dim_recordbase_user_UserLicenceTypeCount - 5) & " more", "")
+			VAR FC_dim_recordbase_user_UserLicenceType = IF(dim_recordbase_user_UserLicenceTypeCount > 0, "LICENCE TYPES CHOSEN: " & CONCATENATEX(dim_recordbase_user_UserLicenceType, [UserLicenceType_display], ", "), BLANK()) & More_dim_recordbase_user_UserLicenceType
+			
+			VAR dim_recordbase_user_user_exists_in_intellihr = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_recordbase_user'[user_exists_in_intellihr]), NOT(ISBLANK('dim_recordbase_user'[user_exists_in_intellihr]))), 'dim_recordbase_user'[user_exists_in_intellihr], ASC),
+			    "user_exists_in_intellihr_display", 'dim_recordbase_user'[user_exists_in_intellihr]
+			)
+			VAR dim_recordbase_user_user_exists_in_intellihrCount = IF(ISFILTERED('dim_recordbase_user'[user_exists_in_intellihr]), COUNTROWS(VALUES('dim_recordbase_user'[user_exists_in_intellihr])), 0)
+			VAR More_dim_recordbase_user_user_exists_in_intellihr = IF(dim_recordbase_user_user_exists_in_intellihrCount > 5, " and " & (dim_recordbase_user_user_exists_in_intellihrCount - 5) & " more", "")
+			VAR FC_dim_recordbase_user_user_exists_in_intellihr = IF(dim_recordbase_user_user_exists_in_intellihrCount > 0, "USER EXISTS IN INTELLIHR: " & CONCATENATEX(dim_recordbase_user_user_exists_in_intellihr, [user_exists_in_intellihr_display], ", "), BLANK()) & More_dim_recordbase_user_user_exists_in_intellihr
+			
+			VAR dim_recordbase_user_EmailDomain = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_recordbase_user'[EmailDomain]), NOT(ISBLANK('dim_recordbase_user'[EmailDomain]))), 'dim_recordbase_user'[EmailDomain], ASC),
+			    "EmailDomain_display", 'dim_recordbase_user'[EmailDomain]
+			)
+			VAR dim_recordbase_user_EmailDomainCount = IF(ISFILTERED('dim_recordbase_user'[EmailDomain]), COUNTROWS(VALUES('dim_recordbase_user'[EmailDomain])), 0)
+			VAR More_dim_recordbase_user_EmailDomain = IF(dim_recordbase_user_EmailDomainCount > 5, " and " & (dim_recordbase_user_EmailDomainCount - 5) & " more", "")
+			VAR FC_dim_recordbase_user_EmailDomain = IF(dim_recordbase_user_EmailDomainCount > 0, "EMAIL DOMAINS CHOSEN: " & CONCATENATEX(dim_recordbase_user_EmailDomain, [EmailDomain_display], ", "), BLANK()) & More_dim_recordbase_user_EmailDomain
+			
+			VAR dim_recordbase_user_UserTypeName = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_recordbase_user'[UserTypeName]), NOT(ISBLANK('dim_recordbase_user'[UserTypeName]))), 'dim_recordbase_user'[UserTypeName], ASC),
+			    "UserTypeName_display", 'dim_recordbase_user'[UserTypeName]
+			)
+			VAR dim_recordbase_user_UserTypeNameCount = IF(ISFILTERED('dim_recordbase_user'[UserTypeName]), COUNTROWS(VALUES('dim_recordbase_user'[UserTypeName])), 0)
+			VAR More_dim_recordbase_user_UserTypeName = IF(dim_recordbase_user_UserTypeNameCount > 5, " and " & (dim_recordbase_user_UserTypeNameCount - 5) & " more", "")
+			VAR FC_dim_recordbase_user_UserTypeName = IF(dim_recordbase_user_UserTypeNameCount > 0, "USER TYPES CHOSEN: " & CONCATENATEX(dim_recordbase_user_UserTypeName, [UserTypeName_display], ", "), BLANK()) & More_dim_recordbase_user_UserTypeName
+			
+			VAR fact_user_team_TeamFunctionName = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('fact_user_team'[TeamFunctionName]), NOT(ISBLANK('fact_user_team'[TeamFunctionName]))), 'fact_user_team'[TeamFunctionName], ASC),
+			    "TeamFunctionName_display", 'fact_user_team'[TeamFunctionName]
+			)
+			VAR fact_user_team_TeamFunctionNameCount = IF(ISFILTERED('fact_user_team'[TeamFunctionName]), COUNTROWS(VALUES('fact_user_team'[TeamFunctionName])), 0)
+			VAR More_fact_user_team_TeamFunctionName = IF(fact_user_team_TeamFunctionNameCount > 5, " and " & (fact_user_team_TeamFunctionNameCount - 5) & " more", "")
+			VAR FC_fact_user_team_TeamFunctionName = IF(fact_user_team_TeamFunctionNameCount > 0, "TEAM FUNCTIONS CHOSEN: " & CONCATENATEX(fact_user_team_TeamFunctionName, [TeamFunctionName_display], ", "), BLANK()) & More_fact_user_team_TeamFunctionName
+			
+			VAR fact_user_team_TeamName = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('fact_user_team'[TeamName]), NOT(ISBLANK('fact_user_team'[TeamName]))), 'fact_user_team'[TeamName], ASC),
+			    "TeamName_display", 'fact_user_team'[TeamName]
+			)
+			VAR fact_user_team_TeamNameCount = IF(ISFILTERED('fact_user_team'[TeamName]), COUNTROWS(VALUES('fact_user_team'[TeamName])), 0)
+			VAR More_fact_user_team_TeamName = IF(fact_user_team_TeamNameCount > 5, " and " & (fact_user_team_TeamNameCount - 5) & " more", "")
+			VAR FC_fact_user_team_TeamName = IF(fact_user_team_TeamNameCount > 0, "TEAMS CHOSEN: " & CONCATENATEX(fact_user_team_TeamName, [TeamName_display], ", "), BLANK()) & More_fact_user_team_TeamName
+			
+			RETURN
+			IF(
+			    (ISBLANK(FC_dim_recordbase_user_UserFullName) || FC_dim_recordbase_user_UserFullName = "") && (ISBLANK(FC_dim_recordbase_user_UserLicenceType) || FC_dim_recordbase_user_UserLicenceType = "") && (ISBLANK(FC_dim_recordbase_user_user_exists_in_intellihr) || FC_dim_recordbase_user_user_exists_in_intellihr = "") && (ISBLANK(FC_dim_recordbase_user_EmailDomain) || FC_dim_recordbase_user_EmailDomain = "") && (ISBLANK(FC_dim_recordbase_user_UserTypeName) || FC_dim_recordbase_user_UserTypeName = "") && (ISBLANK(FC_fact_user_team_TeamFunctionName) || FC_fact_user_team_TeamFunctionName = "") && (ISBLANK(FC_fact_user_team_TeamName) || FC_fact_user_team_TeamName = ""),
+			    "No filters are currently applied to this page.",
+			    "Please note that the following filters are currently applied to this page: " &
+			    CONCATENATEX(FILTER({ FC_dim_recordbase_user_UserFullName, FC_dim_recordbase_user_UserLicenceType, FC_dim_recordbase_user_user_exists_in_intellihr, FC_dim_recordbase_user_EmailDomain, FC_dim_recordbase_user_UserTypeName, FC_fact_user_team_TeamFunctionName, FC_fact_user_team_TeamName }, [Value] <> BLANK()), [Value], " | ")
+			)
+		lineageTag: 5ba20351-c701-477c-b26e-20f8b3450ed0
+
+	measure 'Max ChangeLog ID' =
+			
+			CONCATENATE("Dataset Version ",
+			MAX(
+			    ChangeLog[Version]
+			)
+			)
+		isHidden
+		displayFolder: Helpers
+		lineageTag: 22abfef9-8b92-4fd9-b889-ce3fe895310e
+
+		changedProperty = IsHidden
+
+	measure 'Number of Mismatches' =
+			
+			CALCULATE(
+			    SUM(fact_etl_mismatch_counts[mismatches_count])
+			)
+		formatString: #,0
+		displayFolder: fact_etl_mismatch_counts
+		lineageTag: 50ccaa90-0e76-4bc9-bf5f-87630f7cd4e6
+
+	measure Measure
+		lineageTag: 9ffde3a9-fd8f-4865-9d40-fa2c2dcca5d5
+
+		annotation 43dbc3e8-3a1c-4b6f-9923-b49ff7d6691c = True
+
+	measure 'Number of Mismatches (28-day Avg)' =
+			
+			AVERAGEX(
+			    FILTER(
+			        ALL(dim_date),
+			        dim_date[date_offset] >= -29 &&
+			        dim_date[date_offset] <= -1
+			    ),
+			    CALCULATE(
+			        [Number of Mismatches]
+			    )
+			)
+		displayFolder: fact_etl_mismatch_counts
+		lineageTag: a1af118e-fc19-4c79-89ee-c98c68e025db
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Yesterdays Mismatches' = CALCULATE(SUM(fact_etl_mismatch_counts[yesterdays_mismatches]))
+		formatString: #,0
+		displayFolder: fact_etl_mismatch_counts
+		lineageTag: 4f2a99dd-bc35-4652-a6a7-b14a2181cae2
+
+	measure '% Pipeline Daily Change' =
+			
+			CALCULATE(
+			    SUM(fact_etl_pipeline_counts[percent_daily_change])
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: fact_etl_pipeline_counts
+		lineageTag: 6a88d77d-123c-4241-82f1-8b6220dab937
+
+	measure '% Pipeline Daily Change (Yesterday)' =
+			
+			CALCULATE(
+			    [% Pipeline Daily Change],
+			    FILTER(
+			        ALL(dim_date),
+			        dim_date[date_offset] = -2
+			    )
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: fact_etl_pipeline_counts
+		lineageTag: 5704c84d-d0f2-4b56-949b-e0f2271ab607
+
+	measure 'EDW Pipeline Load difference' =
+			
+			CALCULATE(
+			    SUM(fact_etl_pipeline_counts[edw_load_difference])
+			)
+		formatString: #,0
+		displayFolder: fact_etl_pipeline_counts
+		lineageTag: 6d186241-b48e-4059-bb99-5c8fef1192d1
+
+	measure 'EDW Pipeline Load Count' =
+			
+			CALCULATE(SUM(fact_etl_pipeline_counts[edw_load_count]))
+		formatString: #,0
+		displayFolder: fact_etl_pipeline_counts
+		lineageTag: b5b81064-78e3-457b-8030-ed1316750af3
+
+	measure '% Pipeline Load Difference (28 day average)' =
+			
+			AVERAGEX(
+			    FILTER(
+			        ALL(dim_date),
+			        dim_date[date_offset] >= -29 &&
+			        dim_date[date_offset] <= -1
+			    ),
+			    CALCULATE(
+			        [EDW Pipeline Load difference]
+			    )
+			)
+		displayFolder: fact_etl_pipeline_counts
+		lineageTag: 65573d23-ffdb-4cda-8a1a-e838c628150f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Pipeline Load Count (28 day average)' =
+			
+			AVERAGEX(
+			    FILTER(
+			        ALL(dim_date),
+			        dim_date[date_offset] >= -29 &&
+			        dim_date[date_offset] <= -1
+			    ),
+			    CALCULATE(
+			        [EDW Pipeline Load Count]
+			    )
+			)
+		displayFolder: fact_etl_pipeline_counts
+		lineageTag: d555456a-4859-436b-a151-3bb9cbd5fee8
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'EDW Pipeline Daily difference' =
+			
+			CALCULATE(
+			    SUM(fact_etl_pipeline_counts[edw_daily_change])
+			)
+		formatString: #,0
+		displayFolder: fact_etl_pipeline_counts
+		lineageTag: 4e90b39a-6050-4404-8412-67ec049d23ce
+
+	measure 'ODS Pipeline Load difference' =
+			
+			CALCULATE(
+			    SUM(fact_etl_pipeline_counts[ods_load_difference])
+			)
+		formatString: #,0
+		displayFolder: fact_etl_pipeline_counts
+		lineageTag: fc610cbf-034f-4398-ac84-28a6e19074dd
+
+	measure 'Source Load Count' = ```
+			
+			CALCULATE ( SUM ( fact_etl_pipeline_counts[source_load_count] ) )
+			
+			```
+		formatString: #,0
+		displayFolder: fact_etl_pipeline_counts
+		lineageTag: f345521c-5c49-4dbf-aeb8-c35a339f22ed
+
+	measure 'Difference Target' = 0
+		formatString: 0
+		lineageTag: 055eb1f5-d13f-48cd-b59c-4dd532a9c29e
+
+	measure '% Change vs 28-Day Avg' = ```
+			
+			DIVIDE(
+			    [Yesterdays Mismatches] - [Number of Mismatches (28-day Avg)],
+			    [Number of Mismatches (28-day Avg)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: fact_etl_mismatch_counts
+		lineageTag: ab3a5a93-05b0-40f2-9788-1dd9c1a95934
+
+	measure 'Yesterday as % of 28-Day Avg' = ```
+			
+			DIVIDE(
+			    [Yesterdays Mismatches],
+			    [Number of Mismatches (28-day Avg)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: fact_etl_mismatch_counts
+		lineageTag: 1872e08d-b3b7-4e3c-9169-7bf2efd97ac6
+
+	partition 'Measures Table' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

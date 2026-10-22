@@ -1,0 +1,37 @@
+table 'Dim RAG Status'
+	lineageTag: 297fde06-9d40-442d-8b19-2ec85cce95dc
+
+	column 'RAG Status'
+		dataType: string
+		lineageTag: 04fdd4fb-dd13-454f-a4bd-eead8e8d798d
+		summarizeBy: none
+		sourceColumn: RAG Status
+		sortByColumn: Order
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Order
+		dataType: int64
+		formatString: 0
+		lineageTag: 776d9400-596d-4926-a81f-a6bd6598e083
+		summarizeBy: none
+		sourceColumn: Order
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim RAG Status' = m
+		mode: import
+		queryGroup: 'EDW Dim Tables'
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WCkpNUdJRMlSK1YlWcsxNSi0C8ozAPPei1NQ8IM9YKTYWAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"RAG Status" = _t, Order = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"RAG Status", type text}, {"Order", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

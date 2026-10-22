@@ -1,0 +1,55 @@
+/// Current board column placement for work items on the Epics board, sourced from the WorkItemBoardSnapshot OData entity. Filtered to the latest available date to represent current state. Relates to WorkItems via WorkItemId.
+table WorkItemBoardSnapshot
+	lineageTag: a0903e0d-dc0a-47fb-82d6-611b8946e56f
+
+	/// Work item ID linking to WorkItems table
+	column WorkItemId
+		dataType: int64
+		formatString: 0
+		lineageTag: 392f536d-808b-445f-b8b0-f157c8e24547
+		summarizeBy: none
+		sourceColumn: WorkItemId
+
+	/// Board column name (e.g., New, Prioritized, Active, Resolved, Closed)
+	column ColumnName
+		dataType: string
+		lineageTag: f65227ab-279f-402f-b92a-b835362842f1
+		summarizeBy: none
+		sourceColumn: ColumnName
+
+	/// Swim lane name on the board
+	column LaneName
+		dataType: string
+		lineageTag: d5ab7105-b3aa-483d-b33b-a9962a1b7789
+		summarizeBy: none
+		sourceColumn: LaneName
+
+	/// Whether the item is in the done sub-column
+	column IsDone
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: d8815479-99d3-4f4d-b15c-84499ef7f2ec
+		summarizeBy: none
+		sourceColumn: IsDone
+
+	partition WorkItemBoardSnapshot = m
+		mode: import
+		source =
+				let
+				   Source = OData.Feed ("https://analytics.dev.azure.com/EmergeAotearoa/Data%20and%20Analytics/_odata/V3.0-preview/WorkItemBoardSnapshot?"
+				        &"$apply=filter( "
+				            &"Team/TeamName eq 'Data and Analytics Team'  "
+				            &"and BoardName eq 'Epics'  "
+				        &") "
+				        &"/groupby ((DateValue,WorkItemId,ColumnName,LaneName,IsDone)) "
+				    ,null, [Implementation="2.0",OmitValues = ODataOmitValues.Nulls,ODataVersion = 4, Headers=[Authorization=fnGetToken()]]),
+				    MaxDate = List.Max(Source[DateValue]),
+				    FilteredToLatest = Table.SelectRows(Source, each [DateValue] = MaxDate),
+				    RemovedColumns = Table.RemoveColumns(FilteredToLatest, {"DateValue"})
+				in
+				    RemovedColumns
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

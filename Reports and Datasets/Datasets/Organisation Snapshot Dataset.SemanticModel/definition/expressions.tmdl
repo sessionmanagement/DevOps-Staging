@@ -1,0 +1,231 @@
+/// Azure SQL Server
+expression Server = "sql-prod-aus-svc-datawarehouse-01.database.windows.net" meta [IsParameterQuery=true, List={"sql-dev-aue-svc-datawarehouse-01.database.windows.net", "sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sql-test-aus-svc-datawarehouse-01.database.windows.net"}, DefaultValue="sql-dev-aue-svc-datawarehouse-01.database.windows.net", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 8003b753-f6d7-4aa3-8478-721f6b48a922
+	queryGroup: Parameters
+
+	annotation PBI_ResultType = Text
+
+expression Database = "sqldb-prod-datawarehouse-01" meta [IsParameterQuery=true, List={"sqldb-dev-datawarehouse-01", "sqldb-prod-datawarehouse-01", "sqldb-test-datawarehouse-01"}, DefaultValue="sqldb-prod-datawarehouse-01", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: c0b1a54d-80cd-4d10-9adb-ffff436ecdd7
+	queryGroup: Parameters
+
+	annotation PBI_ResultType = Text
+
+expression 'Ethnicity Historical Mapping' = ```
+		let
+		    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("pVjNcts4DH4VTk7JjDp5htRNU9eO1xMl25nN9ADLrMVYIjUUma73tu+2D7aQSEmk9Ue3FxuEPkDEDwFQr69Xm5f1+up79HpV/9ztcyYhUyeyLDPgeyoN+8chBW5JyRKfJnc5dZh2Qa5f4ps+J1ryPWug8kC5Yrxdlx7lQWvGhhaQ0ZIali4V7rVFtMsohlxY7kfghwz2tEyZWUv4h7UyHyVTrExdOvqkVZKSW7KhKqWyckJpnuvsALKV1DLHjfg7WgBZCX4gi5Tx6qGzjwXkO9FaswAOvYUHp5liiSFTltGGbRS7dOUkgUSrTWQi33UrcbShJI8gJBvmRrFIGHWiTq4ZTzK9Z2jNM6ToGeA3I7LPaHL/dTZzPI5r4ZibB/jnJk5D3K1/hXeonITgWPN9Td/GOgfMFKPrHtOjyQBLRw9U5s1jLUXReP8ze6v1078TWihSLYlJUdRfbeCDQdxcho62kLAfLCFbKgrMJdeh4UqehEK7KnZDeXEIV9R/+xBu7nn0oN9AgmLuIZ7CO6nxGQ9owTjcWkIMczFpNSYAlIp0hcOJnSGjDdMYQNesB0np0U0Tw1icCsmEMtH7orlz2pcfVkyyHZqDu35g2Y5K1ZxDxz5DRlvN32DHXFa9VeLWzrOcXmJCdnSTkUvV1bevUEB7+Fcp1lTcywryQifohMqdfo1ZCdkk7ho33lVpRH5hJSqzBWbNVKq7tz9CBqeytyJu7UGu6mjOUnZkfr49/vdvU20MaeNgOGy/zyi5x9BRaVheHd3Qn+QvCnWNaU4g7noLR5rCPCIa7EszInV/aXwcDZs9o6JtQORuhxYfMFmzi+SithW4gZ+W9hvaNNZrOzPQwcYRLGOzYAYvBagqb6v/2uoq8TEIOQRGrach/snKMkDwEyYtvsoUHbc2zIiNNK1pKbfHTCPDq3ScCFWNK+S6osqbIOWch23DFqOKQWUZljDhGesVsmmoX4tmsF3FmQY6hWga+EcVZOKNANMCZ408QOJJYIs6VU3lVJSnX4nqky4DHeR02Bng5bvo97cZfOA5HTmZI7G2nWa+do0Bo9Fg9yX8cXYIe1acxnAhRcVC/Ql15v0N+Dyc6Hy6HyoEjZz1QeQ8G6jnFn3ZUDykQFKepGPH14L8cWwA0M1MYw9nvGXrV7QVUumDHqpPFtmfZwZAl40wIULunLAVgw0lSE3w6fj9VhikyATHWDRfeoJU/kZoZrJkrlodaQb618Unit2M7DeaTSTEtD/MBWna8LnW1sAmE3P6Fe0wNuPE6aHNgoafNmXM8Uff+N59sZ4DOsqfCIYcc36hd7T37/qutRhMViocvszKL0XutdLt+o72QRf2/RVjk8aLL7y3KoaOXUzlrvpwgn8tzmNFz1oeaynnY5FleZfpmB1TS+Aeiu5iiuu0u/bFmXiHoyF784TluDc6yzIfferQ2NdJRtbAjw3MaXfd3OH7yHFOqFHP+h0y3X0xuyX3WcYS6t+AXiRGEE5W95+MKg55Y3B3aL/RUhHnS4Kzri/2ku12tdO+/w8=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [employee_ethnicity = _t]),
+		    #"Changed Type" = Table.TransformColumnTypes(Source,{{"employee_ethnicity", type text}}),
+		    
+		    #"Added Ethnicity Group" = Table.AddColumn(#"Changed Type", "Ethnicity Group", each 
+		        if [employee_ethnicity] = null then "Unspecified"
+		        
+		        // Maori
+		        else if [employee_ethnicity] = "Māori" then "Maori"
+		        else if [employee_ethnicity] = "Māori,Niuean" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Māori" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,Cook Island Maori" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,Cook Island Maori,European" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,Cook Islander,Samoan" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,Croat / Croatian" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,Dutch / Netherlands" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,English,German,Samoan" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,English,Scottish (Scots),Swedish" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,European,New Zealander" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,Fijian (except Fiji Indian / Indo-Fijian)" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,French,Māori" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,Hungarian" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,Irish" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,Irish,Samoan" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,Italian,Portuguese" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,Māori,Niuean" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,New Zealand European / Pakeha" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,New Zealand European / Pakeha,Australian,Polish" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,New Zealand European / Pakeha,Cook Island Maori" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,New Zealand European / Pakeha,Dutch / Netherlands" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,New Zealand European / Pakeha,Irish,Polish,Scottish (Scots)" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,New Zealand European / Pakeha,Niuean" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,New Zealand European / Pakeha,Samoan" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,New Zealand European / Pakeha,Tokelauan" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,New Zealand European / Pakeha,Tongan" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,New Zealand European / Pakeha,Welsh" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,Niuean" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,Niuean,Samoan" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,Pacific Peoples" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,Polish" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,Samoan" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,Samoan,Tokelauan" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,Samoan,Tongan" then "Maori"
+		        else if [employee_ethnicity] = "New Zealand Māori,Tongan" then "Maori"
+		        
+		        // European
+		        else if [employee_ethnicity] = "American (US)" then "European"
+		        else if [employee_ethnicity] = "American (US),Indian" then "European"
+		        else if [employee_ethnicity] = "Australian" then "European"
+		        else if [employee_ethnicity] = "Australian,Samoan" then "European"
+		        else if [employee_ethnicity] = "British" then "European"
+		        else if [employee_ethnicity] = "British,Dutch / Netherlands" then "European"
+		        else if [employee_ethnicity] = "Bulgarian" then "European"
+		        else if [employee_ethnicity] = "Canadian" then "European"
+		        else if [employee_ethnicity] = "Canadian,Samoan" then "European"
+		        else if [employee_ethnicity] = "Celtic" then "European"
+		        else if [employee_ethnicity] = "Dutch / Netherlands" then "European"
+		        else if [employee_ethnicity] = "Dutch / Netherlands,Indonesian" then "European"
+		        else if [employee_ethnicity] = "Dutch / Netherlands,Indonesian (including Javanese / Sundanese/Sumatran" then "European"
+		        else if [employee_ethnicity] = "English" then "European"
+		        else if [employee_ethnicity] = "English,German" then "European"
+		        else if [employee_ethnicity] = "European" then "European"
+		        else if [employee_ethnicity] = "German" then "European"
+		        else if [employee_ethnicity] = "German,Niuean,Tongan" then "European"
+		        else if [employee_ethnicity] = "Greek (including Greek Cypriot)" then "European"
+		        else if [employee_ethnicity] = "Hungarian" then "European"
+		        else if [employee_ethnicity] = "Indian,South African" then "European"
+		        else if [employee_ethnicity] = "Irish" then "European"
+		        else if [employee_ethnicity] = "Italian" then "European"
+		        else if [employee_ethnicity] = "Lithuanian" then "European"
+		        else if [employee_ethnicity] = "Maltese" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,African American" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Asian,Japanese,Malaysian Chinese" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Australian Aboriginal" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Australian,Canadian,Italian" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Brazilian" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Canadian" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Cook Island Maori" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Cook Islander" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Croat / Croatian,Irish,Jamaican" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Croat / Croatian,Swiss" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Danish,Samoan,Tongan" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Dutch / Netherlands" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,English" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Fijian (except Fiji Indian / Indo-Fijian),Scottish (Scots)" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Finnish" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Iranian / Persian" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Italian" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Japanese" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Malaysian" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Niuean" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Other European" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Pacific Peoples" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Romany / Gypsy,Scottish (Scots)" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Russian" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Samoan" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Scottish (Scots)" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,South African" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Swiss" then "European"
+		        else if [employee_ethnicity] = "New Zealand European / Pakeha,Tongan" then "European"
+		        else if [employee_ethnicity] = "New Zealander" then "European"
+		        else if [employee_ethnicity] = "Other European" then "European"
+		        else if [employee_ethnicity] = "Portuguese" then "European"
+		        else if [employee_ethnicity] = "Russian" then "European"
+		        else if [employee_ethnicity] = "Scandinavian" then "European"
+		        else if [employee_ethnicity] = "Scottish (Scots)" then "European"
+		        else if [employee_ethnicity] = "Serb / Serbian" then "European"
+		        else if [employee_ethnicity] = "Serb / Serbian,Turkish (including Turkish Cypriot)" then "European"
+		        else if [employee_ethnicity] = "Slovak" then "European"
+		        else if [employee_ethnicity] = "South African" then "European"
+		        else if [employee_ethnicity] = "Swedish" then "European"
+		        else if [employee_ethnicity] = "Swiss" then "European"
+		        else if [employee_ethnicity] = "Welsh" then "European"
+		        
+		        // Asian
+		        else if [employee_ethnicity] = "Afghan" then "Asian"
+		        else if [employee_ethnicity] = "Asian" then "Asian"
+		        else if [employee_ethnicity] = "Asian,Indian" then "Asian"
+		        else if [employee_ethnicity] = "Asian,Nepalese" then "Asian"
+		        else if [employee_ethnicity] = "Bangladeshi" then "Asian"
+		        else if [employee_ethnicity] = "Burmese,Nepalese" then "Asian"
+		        else if [employee_ethnicity] = "Ca Kong Chinese,Samoan" then "Asian"
+		        else if [employee_ethnicity] = "Cambodian" then "Asian"
+		        else if [employee_ethnicity] = "Chinese" then "Asian"
+		        else if [employee_ethnicity] = "Chinese,Indonesian" then "Asian"
+		        else if [employee_ethnicity] = "Fijian Indian / Indo-Fijian" then "Asian"
+		        else if [employee_ethnicity] = "Fijian Indian / Indo-Fijian,Gujarati,Indian" then "Asian"
+		        else if [employee_ethnicity] = "Fijian Indian / Indo-Fijian,Samoan" then "Asian"
+		        else if [employee_ethnicity] = "Filipina/Filipino" then "Asian"
+		        else if [employee_ethnicity] = "Filipina/Filipino,Southeast Asian" then "Asian"
+		        else if [employee_ethnicity] = "Indian" then "Asian"
+		        else if [employee_ethnicity] = "Indian,Punjabi" then "Asian"
+		        else if [employee_ethnicity] = "Indonesian" then "Asian"
+		        else if [employee_ethnicity] = "Japanese" then "Asian"
+		        else if [employee_ethnicity] = "Khmer / Kampuchean / Cambodian" then "Asian"
+		        else if [employee_ethnicity] = "Korean" then "Asian"
+		        else if [employee_ethnicity] = "Malaysian" then "Asian"
+		        else if [employee_ethnicity] = "Malaysian Chinese" then "Asian"
+		        else if [employee_ethnicity] = "Nepalese" then "Asian"
+		        else if [employee_ethnicity] = "Pakistani" then "Asian"
+		        else if [employee_ethnicity] = "Punjabi" then "Asian"
+		        else if [employee_ethnicity] = "Sikh" then "Asian"
+		        else if [employee_ethnicity] = "Singaporean" then "Asian"
+		        else if [employee_ethnicity] = "Sinhalese" then "Asian"
+		        else if [employee_ethnicity] = "South Asian (Other)" then "Asian"
+		        else if [employee_ethnicity] = "Sri Lankan" then "Asian"
+		        else if [employee_ethnicity] = "Vietnamese" then "Asian"
+		        
+		        // Pacific Peoples
+		        else if [employee_ethnicity] = "Admiralty Islander" then "Pacific Peoples"
+		        else if [employee_ethnicity] = "Cook Island Maori" then "Pacific Peoples"
+		        else if [employee_ethnicity] = "Cook Island Maori,Society Islander (including Tahitian)" then "Pacific Peoples"
+		        else if [employee_ethnicity] = "Cook Island Maori,Tongan" then "Pacific Peoples"
+		        else if [employee_ethnicity] = "Cook Islander" then "Pacific Peoples"
+		        else if [employee_ethnicity] = "Cook Islander,Samoan" then "Pacific Peoples"
+		        else if [employee_ethnicity] = "Fijian (except Fiji Indian / Indo-Fijian)" then "Pacific Peoples"
+		        else if [employee_ethnicity] = "Fijian (except Fiji Indian / Indo-Fijian),Pacific Peoples,Tongan" then "Pacific Peoples"
+		        else if [employee_ethnicity] = "Fijian (except Fiji Indian / Indo-Fijian),Rotuman / Rotuman Islander" then "Pacific Peoples"
+		        else if [employee_ethnicity] = "Fijian (except Fiji Indian / Indo-Fijian),Tongan" then "Pacific Peoples"
+		        else if [employee_ethnicity] = "I-Kiribati / Gilbertese" then "Pacific Peoples"
+		        else if [employee_ethnicity] = "Manihiki Islander" then "Pacific Peoples"
+		        else if [employee_ethnicity] = "Niuean" then "Pacific Peoples"
+		        else if [employee_ethnicity] = "Niuean,Samoan" then "Pacific Peoples"
+		        else if [employee_ethnicity] = "Niuean,Tongan" then "Pacific Peoples"
+		        else if [employee_ethnicity] = "Pacific Peoples" then "Pacific Peoples"
+		        else if [employee_ethnicity] = "Pacific Peoples,Samoan" then "Pacific Peoples"
+		        else if [employee_ethnicity] = "Pacific Peoples,Tokelauan" then "Pacific Peoples"
+		        else if [employee_ethnicity] = "Samoan" then "Pacific Peoples"
+		        else if [employee_ethnicity] = "Samoan,Tokelauan" then "Pacific Peoples"
+		        else if [employee_ethnicity] = "Samoan,Tongan" then "Pacific Peoples"
+		        else if [employee_ethnicity] = "Tokelauan" then "Pacific Peoples"
+		        else if [employee_ethnicity] = "Tongan" then "Pacific Peoples"
+		        else if [employee_ethnicity] = "Tuvalu Islander / Ellice Islander" then "Pacific Peoples"
+		        
+		        // Middle Eastern/Latin American/African
+		        else if [employee_ethnicity] = "African" then "Middle Eastern/Latin American/African"
+		        else if [employee_ethnicity] = "African American" then "Middle Eastern/Latin American/African"
+		        else if [employee_ethnicity] = "Argentinian" then "Middle Eastern/Latin American/African"
+		        else if [employee_ethnicity] = "Brazilian" then "Middle Eastern/Latin American/African"
+		        else if [employee_ethnicity] = "Chilean" then "Middle Eastern/Latin American/African"
+		        else if [employee_ethnicity] = "Colombian" then "Middle Eastern/Latin American/African"
+		        else if [employee_ethnicity] = "Iranian" then "Middle Eastern/Latin American/African"
+		        else if [employee_ethnicity] = "Latin American / Hispanic" then "Middle Eastern/Latin American/African"
+		        else if [employee_ethnicity] = "Middle Eastern" then "Middle Eastern/Latin American/African"
+		        else if [employee_ethnicity] = "South American" then "Middle Eastern/Latin American/African"
+		        else if [employee_ethnicity] = "Turkish (including Turkish Cypriot)" then "Middle Eastern/Latin American/African"
+		        else if [employee_ethnicity] = "Uruguayan" then "Middle Eastern/Latin American/African"
+		        else if [employee_ethnicity] = "West Indian" then "Middle Eastern/Latin American/African"
+		        else if [employee_ethnicity] = "West Indian / Caribbean" then "Middle Eastern/Latin American/African"
+		        
+		        // Other Ethnicity
+		        else if [employee_ethnicity] = "Other" then "Other Ethnicity"
+		        
+		        // Default to Unspecified
+		        else "Unspecified"
+		    )
+		in
+		    #"Added Ethnicity Group"
+		```
+	lineageTag: dbcd99fe-7120-402a-8f4c-61191b96ee27
+	queryGroup: Facts
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+/// Please enter the name of this dataset here.
+expression 'Dataset Name' = "Organisation Snapshot" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 069cde17-757b-44f8-9702-04d593048803
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+

@@ -1,0 +1,100 @@
+table dim_person
+	lineageTag: be973b0d-7d21-4c2b-82da-09cff7287e45
+
+	column CompanyIdentifier
+		dataType: string
+		lineageTag: cb084338-633c-4afd-861e-f652884cc7a2
+		summarizeBy: none
+		sourceColumn: CompanyIdentifier
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonID
+		dataType: string
+		lineageTag: e42941f7-d7f8-4c71-927f-987a40e96080
+		summarizeBy: none
+		sourceColumn: PersonID
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonDateOfBirth
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 68c91980-cd34-46d9-93de-1b5e9d65e910
+		summarizeBy: none
+		sourceColumn: PersonDateOfBirth
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column HasSmokingAssessment
+		dataType: string
+		lineageTag: 5f5b2b31-1aee-4c03-a908-ee4074717b08
+		summarizeBy: none
+		sourceColumn: HasSmokingAssessment
+
+		annotation SummarizationSetBy = Automatic
+
+	column EarliestSmokingAssessmentDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: df05edd4-e745-41a3-b9a1-b6f826a3fba6
+		summarizeBy: none
+		sourceColumn: EarliestSmokingAssessmentDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column LatestSmokingAssessmentDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 830c0190-d487-440d-aef7-f939822455db
+		summarizeBy: none
+		sourceColumn: LatestSmokingAssessmentDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column NumberOfSmokingAssessments
+		dataType: int64
+		formatString: 0
+		lineageTag: 57153df1-c05b-43e4-9f2a-49dfb6d7c9fd
+		summarizeBy: sum
+		sourceColumn: NumberOfSmokingAssessments
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderID
+		dataType: string
+		lineageTag: 3fd8079b-fd42-47da-95c1-5d97b825f2fd
+		summarizeBy: none
+		sourceColumn: GenderID
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonFullName
+		dataType: string
+		lineageTag: f50a2ae1-28dc-4313-844d-1291824494d4
+		summarizeBy: none
+		sourceColumn: PersonFullName
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_person-5c2a8edc-dc52-443f-83f6-2a2085def474 = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT#(lf)'EAL' AS CompanyIdentifier,#(lf)CASE WHEN [PersonID]IS NOT NULL THEN CONCAT('E',[PersonID]) ELSE NULL END AS [PersonID],#(lf)CASE WHEN [TitleID]IS NOT NULL THEN CONCAT('E',[TitleID]) ELSE NULL END AS [TitleID],#(lf)CASE WHEN [GenderID]IS NOT NULL THEN CONCAT('E',[GenderID]) ELSE NULL END AS [GenderID],#(lf)CASE WHEN [OldClientID]IS NOT NULL THEN CONCAT('E',[OldClientID]) ELSE NULL END AS [OldClientID],#(lf)CASE WHEN [MaritalStatusID]IS NOT NULL THEN CONCAT('E',[MaritalStatusID]) ELSE NULL END AS [MaritalStatusID],#(lf)CASE WHEN [HighestQualificationTypeID]IS NOT NULL THEN CONCAT('E',[HighestQualificationTypeID]) ELSE NULL END AS [HighestQualificationTypeID],#(lf)CASE WHEN [ReligionID]IS NOT NULL THEN CONCAT('E',[ReligionID]) ELSE NULL END AS [ReligionID],#(lf)CASE WHEN [ResidencyID]IS NOT NULL THEN CONCAT('E',[ResidencyID]) ELSE NULL END AS [ResidencyID],#(lf)CASE WHEN [NationalityID]IS NOT NULL THEN CONCAT('E',[NationalityID]) ELSE NULL END AS [NationalityID],#(lf)CASE WHEN [CountryOfBirthID]IS NOT NULL THEN CONCAT('E',[CountryOfBirthID]) ELSE NULL END AS [CountryOfBirthID],#(lf)CASE WHEN [PrimaryDailyActivityID]IS NOT NULL THEN CONCAT('E',[PrimaryDailyActivityID]) ELSE NULL END AS [PrimaryDailyActivityID],#(lf)CASE WHEN [PrimaryTransportID]IS NOT NULL THEN CONCAT('E',[PrimaryTransportID]) ELSE NULL END AS [PrimaryTransportID],#(lf)CASE WHEN [EducationalActivityTypeID]IS NOT NULL THEN CONCAT('E',[EducationalActivityTypeID]) ELSE NULL END AS [EducationalActivityTypeID],#(lf)CASE WHEN [EmploymentStatusID]IS NOT NULL THEN CONCAT('E',[EmploymentStatusID]) ELSE NULL END AS [EmploymentStatusID],#(lf)CASE WHEN [EmploymentHistoryID]IS NOT NULL THEN CONCAT('E',[EmploymentHistoryID]) ELSE NULL END AS [EmploymentHistoryID],#(lf)CASE WHEN [LivingSituationID]IS NOT NULL THEN CONCAT('E',[LivingSituationID]) ELSE NULL END AS [LivingSituationID],#(lf)CASE WHEN [PrimaryCarerID]IS NOT NULL THEN CONCAT('E',[PrimaryCarerID]) ELSE NULL END AS [PrimaryCarerID],#(lf)CASE WHEN [Ethnicity1ID]IS NOT NULL THEN CONCAT('E',[Ethnicity1ID]) ELSE NULL END AS [Ethnicity1ID],#(lf)CASE WHEN [Ethnicity2ID]IS NOT NULL THEN CONCAT('E',[Ethnicity2ID]) ELSE NULL END AS [Ethnicity2ID],#(lf)CASE WHEN [Ethnicity3ID]IS NOT NULL THEN CONCAT('E',[Ethnicity3ID]) ELSE NULL END AS [Ethnicity3ID],#(lf)CASE WHEN [Ethnicity4ID]IS NOT NULL THEN CONCAT('E',[Ethnicity4ID]) ELSE NULL END AS [Ethnicity4ID],#(lf)CASE WHEN [Ethnicity5ID]IS NOT NULL THEN CONCAT('E',[Ethnicity5ID]) ELSE NULL END AS [Ethnicity5ID],#(lf)COALESCE(#(lf)CASE WHEN [Ethnicity1ID]IS NOT NULL THEN CONCAT('E',[Ethnicity1ID]) ELSE NULL END,#(lf)CASE WHEN [Ethnicity2ID]IS NOT NULL THEN CONCAT('E',[Ethnicity2ID]) ELSE NULL END,#(lf)CASE WHEN [Ethnicity3ID]IS NOT NULL THEN CONCAT('E',[Ethnicity3ID]) ELSE NULL END,#(lf)CASE WHEN [Ethnicity4ID]IS NOT NULL THEN CONCAT('E',[Ethnicity4ID]) ELSE NULL END,#(lf)CASE WHEN [Ethnicity5ID]IS NOT NULL THEN CONCAT('E',[Ethnicity5ID]) ELSE NULL END#(lf)) AS FirstNonBlankEthnicityID,#(lf)CASE WHEN [GenderIdentityId]IS NOT NULL THEN CONCAT('E',[GenderIdentityId]) ELSE NULL END AS [GenderIdentityId],#(lf)CASE WHEN [PersonCreatedUserID]IS NOT NULL THEN CONCAT('E',[PersonCreatedUserID]) ELSE NULL END AS [PersonCreatedUserID],#(lf)CASE WHEN [PronounsId]IS NOT NULL THEN CONCAT('E',[PronounsId]) ELSE NULL END AS [PronounsId],#(lf)CASE WHEN [MadePrivateOrPublicUserId]IS NOT NULL THEN CONCAT('E',[MadePrivateOrPublicUserId]) ELSE NULL END AS [MadePrivateOrPublicUserId],#(lf)[PersonFirstName],#(lf)[PersonMiddleNames],#(lf)[PersonLastName],#(lf)CONCAT([PersonFirstName],' ',[PersonLastName]) AS PersonFullName,#(lf)[PersonPreferredName],#(lf)[PersonMaidenName],#(lf)[PersonDateOfBirth],#(lf)[PersonDeceasedDate],#(lf)[PersonOccupation],#(lf)[PersonDriversLicenceNumber],#(lf)[PersonDriversLicenceExpiry],#(lf)[PersonVehicleRegistrationNumber],#(lf)[PersonVehicleMakeAndModel],#(lf)[PersonVehicleColor],#(lf)[PersonVehicleDescription],#(lf)[PersonPhysicalDescription],#(lf)[PersonCulturalNeeds],#(lf)[PersonSpiritualNeeds],#(lf)[PersonHeight],#(lf)[PersonWeight],#(lf)[PersonBuild],#(lf)[PersonEyeColor],#(lf)[PersonHairColor],#(lf)[PersonHairStyle],#(lf)[PersonEducationalActivityHoursPerWeek],#(lf)[PersonEducationBackground],#(lf)[PersonCaresForOtherFamilyMembers],#(lf)[PersonCaresForOtherFamilyMembersReason],#(lf)[PersonFamilyBackground],#(lf)[PersonEmploymentStatusHoursPerWeek],#(lf)[PersonLastEmploymentDate],#(lf)[PersonEmploymentBackground],#(lf)[PersonReferenceNumber],#(lf)[PersonUDF1],#(lf)[PersonUDF2],#(lf)[PersonUDF3],#(lf)[PersonUDF4],#(lf)[PersonUDF5],#(lf)[PersonSocialBackground],#(lf)[PersonTreatmentBackground],#(lf)[PersonServiceUserConsent],#(lf)[PersonIsPrivate],#(lf)[PersonFosterChildrenCapacity],#(lf)[PersonPreferedFosterCareService],#(lf)[PersonMadePrivateOrPublicReason],#(lf)[PersonMadePrivateOrPublicDate],#(lf)[PersonCreatedDate]#(lf)FROM [RBEAL].[dlDimPerson]#(lf)#(lf)UNION#(lf)#(lf)SELECT#(lf)'MNB' AS CompanyIdentifier,#(lf)CASE WHEN [PersonID]IS NOT NULL THEN CONCAT('M',[PersonID]) ELSE NULL END AS [PersonID],#(lf)CASE WHEN [TitleID]IS NOT NULL THEN CONCAT('M',[TitleID]) ELSE NULL END AS [TitleID],#(lf)CASE WHEN [GenderID]IS NOT NULL THEN CONCAT('M',[GenderID]) ELSE NULL END AS [GenderID],#(lf)CASE WHEN [OldClientID]IS NOT NULL THEN CONCAT('M',[OldClientID]) ELSE NULL END AS [OldClientID],#(lf)CASE WHEN [MaritalStatusID]IS NOT NULL THEN CONCAT('M',[MaritalStatusID]) ELSE NULL END AS [MaritalStatusID],#(lf)CASE WHEN [HighestQualificationTypeID]IS NOT NULL THEN CONCAT('M',[HighestQualificationTypeID]) ELSE NULL END AS [HighestQualificationTypeID],#(lf)CASE WHEN [ReligionID]IS NOT NULL THEN CONCAT('M',[ReligionID]) ELSE NULL END AS [ReligionID],#(lf)CASE WHEN [ResidencyID]IS NOT NULL THEN CONCAT('M',[ResidencyID]) ELSE NULL END AS [ResidencyID],#(lf)CASE WHEN [NationalityID]IS NOT NULL THEN CONCAT('M',[NationalityID]) ELSE NULL END AS [NationalityID],#(lf)CASE WHEN [CountryOfBirthID]IS NOT NULL THEN CONCAT('M',[CountryOfBirthID]) ELSE NULL END AS [CountryOfBirthID],#(lf)CASE WHEN [PrimaryDailyActivityID]IS NOT NULL THEN CONCAT('M',[PrimaryDailyActivityID]) ELSE NULL END AS [PrimaryDailyActivityID],#(lf)CASE WHEN [PrimaryTransportID]IS NOT NULL THEN CONCAT('M',[PrimaryTransportID]) ELSE NULL END AS [PrimaryTransportID],#(lf)CASE WHEN [EducationalActivityTypeID]IS NOT NULL THEN CONCAT('M',[EducationalActivityTypeID]) ELSE NULL END AS [EducationalActivityTypeID],#(lf)CASE WHEN [EmploymentStatusID]IS NOT NULL THEN CONCAT('M',[EmploymentStatusID]) ELSE NULL END AS [EmploymentStatusID],#(lf)CASE WHEN [EmploymentHistoryID]IS NOT NULL THEN CONCAT('M',[EmploymentHistoryID]) ELSE NULL END AS [EmploymentHistoryID],#(lf)CASE WHEN [LivingSituationID]IS NOT NULL THEN CONCAT('M',[LivingSituationID]) ELSE NULL END AS [LivingSituationID],#(lf)CASE WHEN [PrimaryCarerID]IS NOT NULL THEN CONCAT('M',[PrimaryCarerID]) ELSE NULL END AS [PrimaryCarerID],#(lf)CASE WHEN [Ethnicity1ID]IS NOT NULL THEN CONCAT('M',[Ethnicity1ID]) ELSE NULL END AS [Ethnicity1ID],#(lf)CASE WHEN [Ethnicity2ID]IS NOT NULL THEN CONCAT('M',[Ethnicity2ID]) ELSE NULL END AS [Ethnicity2ID],#(lf)CASE WHEN [Ethnicity3ID]IS NOT NULL THEN CONCAT('M',[Ethnicity3ID]) ELSE NULL END AS [Ethnicity3ID],#(lf)CASE WHEN [Ethnicity4ID]IS NOT NULL THEN CONCAT('M',[Ethnicity4ID]) ELSE NULL END AS [Ethnicity4ID],#(lf)CASE WHEN [Ethnicity5ID]IS NOT NULL THEN CONCAT('M',[Ethnicity5ID]) ELSE NULL END AS [Ethnicity5ID],#(lf)COALESCE(#(lf)CASE WHEN [Ethnicity1ID]IS NOT NULL THEN CONCAT('M',[Ethnicity1ID]) ELSE NULL END,#(lf)CASE WHEN [Ethnicity2ID]IS NOT NULL THEN CONCAT('M',[Ethnicity2ID]) ELSE NULL END,#(lf)CASE WHEN [Ethnicity3ID]IS NOT NULL THEN CONCAT('M',[Ethnicity3ID]) ELSE NULL END,#(lf)CASE WHEN [Ethnicity4ID]IS NOT NULL THEN CONCAT('M',[Ethnicity4ID]) ELSE NULL END,#(lf)CASE WHEN [Ethnicity5ID]IS NOT NULL THEN CONCAT('M',[Ethnicity5ID]) ELSE NULL END#(lf)) AS FirstNonBlankEthnicityID,#(lf)CASE WHEN [GenderIdentityId]IS NOT NULL THEN CONCAT('M',[GenderIdentityId]) ELSE NULL END AS [GenderIdentityId],#(lf)CASE WHEN [PersonCreatedUserID]IS NOT NULL THEN CONCAT('M',[PersonCreatedUserID]) ELSE NULL END AS [PersonCreatedUserID],#(lf)CASE WHEN [PronounsId]IS NOT NULL THEN CONCAT('M',[PronounsId]) ELSE NULL END AS [PronounsId],#(lf)CASE WHEN [MadePrivateOrPublicUserId]IS NOT NULL THEN CONCAT('M',[MadePrivateOrPublicUserId]) ELSE NULL END AS [MadePrivateOrPublicUserId],#(lf)[PersonFirstName],#(lf)[PersonMiddleNames],#(lf)[PersonLastName],#(lf)CONCAT([PersonFirstName],' ',[PersonLastName]) AS PersonFullName,#(lf)[PersonPreferredName],#(lf)[PersonMaidenName],#(lf)[PersonDateOfBirth],#(lf)[PersonDeceasedDate],#(lf)[PersonOccupation],#(lf)[PersonDriversLicenceNumber],#(lf)[PersonDriversLicenceExpiry],#(lf)[PersonVehicleRegistrationNumber],#(lf)[PersonVehicleMakeAndModel],#(lf)[PersonVehicleColor],#(lf)[PersonVehicleDescription],#(lf)[PersonPhysicalDescription],#(lf)[PersonCulturalNeeds],#(lf)[PersonSpiritualNeeds],#(lf)[PersonHeight],#(lf)[PersonWeight],#(lf)[PersonBuild],#(lf)[PersonEyeColor],#(lf)[PersonHairColor],#(lf)[PersonHairStyle],#(lf)[PersonEducationalActivityHoursPerWeek],#(lf)[PersonEducationBackground],#(lf)[PersonCaresForOtherFamilyMembers],#(lf)[PersonCaresForOtherFamilyMembersReason],#(lf)[PersonFamilyBackground],#(lf)[PersonEmploymentStatusHoursPerWeek],#(lf)[PersonLastEmploymentDate],#(lf)[PersonEmploymentBackground],#(lf)[PersonReferenceNumber],#(lf)[PersonUDF1],#(lf)[PersonUDF2],#(lf)[PersonUDF3],#(lf)[PersonUDF4],#(lf)[PersonUDF5],#(lf)[PersonSocialBackground],#(lf)[PersonTreatmentBackground],#(lf)[PersonServiceUserConsent],#(lf)[PersonIsPrivate],#(lf)[PersonFosterChildrenCapacity],#(lf)[PersonPreferedFosterCareService],#(lf)[PersonMadePrivateOrPublicReason],#(lf)[PersonMadePrivateOrPublicDate],#(lf)[PersonCreatedDate]#(lf)FROM [RBMNB].[dlDimPerson]"]),
+				    #"Removed Columns" = Table.RemoveColumns(Source,{"TitleID", "OldClientID", "MaritalStatusID", "HighestQualificationTypeID", "ResidencyID", "NationalityID", "CountryOfBirthID", "PrimaryDailyActivityID", "PrimaryTransportID", "EducationalActivityTypeID", "EmploymentStatusID", "EmploymentHistoryID", "LivingSituationID", "PrimaryCarerID", "Ethnicity1ID", "Ethnicity2ID", "Ethnicity3ID", "Ethnicity4ID", "Ethnicity5ID", "FirstNonBlankEthnicityID", "GenderIdentityId", "PersonCreatedUserID", "PronounsId", "MadePrivateOrPublicUserId", "PersonFirstName", "PersonMiddleNames", "PersonLastName", "PersonPreferredName", "PersonMaidenName", "PersonDeceasedDate", "PersonOccupation", "PersonDriversLicenceNumber", "PersonDriversLicenceExpiry", "PersonVehicleRegistrationNumber", "PersonVehicleMakeAndModel", "PersonVehicleColor", "PersonVehicleDescription", "PersonPhysicalDescription", "PersonCulturalNeeds", "PersonSpiritualNeeds", "PersonHeight", "PersonWeight", "PersonBuild", "PersonEyeColor", "PersonHairColor", "PersonHairStyle", "PersonEducationalActivityHoursPerWeek", "PersonEducationBackground", "PersonCaresForOtherFamilyMembers", "PersonCaresForOtherFamilyMembersReason", "PersonFamilyBackground", "PersonEmploymentStatusHoursPerWeek", "PersonLastEmploymentDate", "PersonEmploymentBackground", "PersonReferenceNumber", "PersonUDF1", "PersonUDF2", "PersonUDF3", "PersonUDF4", "PersonUDF5", "PersonSocialBackground", "PersonTreatmentBackground", "PersonServiceUserConsent", "PersonIsPrivate", "PersonFosterChildrenCapacity", "PersonPreferedFosterCareService", "PersonMadePrivateOrPublicReason", "PersonMadePrivateOrPublicDate", "PersonCreatedDate", "ReligionID"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Removed Columns",{{"PersonDateOfBirth", type date}}),
+				    #"Merged Queries" = Table.NestedJoin(#"Changed Type", {"PersonID"}, work_fact_smoking_assessment_agg, {"PersonID"}, "work_fact_smoking_assessment_agg", JoinKind.LeftOuter),
+				    #"Expanded work_fact_smoking_assessment_agg" = Table.ExpandTableColumn(#"Merged Queries", "work_fact_smoking_assessment_agg", {"Count", "EarliestSmokingAssessmentDate", "LatestSmokingAssessmentDate", "HasSmokingAssessment"}, {"Count", "EarliestSmokingAssessmentDate", "LatestSmokingAssessmentDate", "HasSmokingAssessment"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Expanded work_fact_smoking_assessment_agg",{{"Count", "NumberOfSmokingAssessments"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,106 @@
+/// Test case definitions with name and test suite membership. Source: OData Tests entity.
+table Tests
+	lineageTag: 228d7313-6869-436b-9cf0-3bea4b11c31b
+
+	/// Surrogate key linking to the Projects dimension table
+	column ProjectSK
+		dataType: string
+		isHidden
+		lineageTag: c12fc15e-52fa-448f-b506-2ea4ee4b1796
+		summarizeBy: none
+		sourceColumn: ProjectSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key uniquely identifying the test
+	column TestSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: a8127848-75e8-4d1a-80e2-59ca0bf0b77f
+		summarizeBy: none
+		sourceColumn: TestSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Reference identifier linking this test to a test case work item
+	column TestCaseReferenceId
+		dataType: int64
+		formatString: 0
+		lineageTag: fccc02a7-8a54-4eff-83fb-2d16723c9097
+		summarizeBy: count
+		sourceColumn: TestCaseReferenceId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Short display name of the test
+	column TestName
+		dataType: string
+		lineageTag: df4e1057-ddff-4ff7-a53b-66a8fdb71f66
+		summarizeBy: none
+		sourceColumn: TestName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Fully qualified name of the test including namespace and class
+	column FullyQualifiedTestName
+		dataType: string
+		lineageTag: fdfd22e4-2502-473d-90ba-a527aff3732d
+		summarizeBy: none
+		sourceColumn: FullyQualifiedTestName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Owner of the test (typically the user who created or last modified it)
+	column TestOwner
+		dataType: string
+		lineageTag: b45b510d-f25d-459c-b28d-a2c9d2346f9c
+		summarizeBy: none
+		sourceColumn: TestOwner
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Name of the test assembly or container holding this test
+	column ContainerName
+		dataType: string
+		lineageTag: 7eaf6f05-bb98-48c3-86fc-f4e72e209f78
+		summarizeBy: none
+		sourceColumn: ContainerName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Priority level of the test (1=Critical, 2=High, 3=Medium, 4=Low)
+	column Priority
+		dataType: int64
+		formatString: 0
+		lineageTag: 99f75d38-3cbf-48c9-afdf-2c9aa7b3e06a
+		summarizeBy: sum
+		sourceColumn: Priority
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date and time when this record was last updated in Azure DevOps Analytics
+	column AnalyticsUpdatedDate
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 57e73efc-f42b-4265-be3b-149f4c0f5a98
+		summarizeBy: none
+		sourceColumn: AnalyticsUpdatedDate
+
+		variation Variation
+			isDefault
+			relationship: e5b81ad5-b7c2-45ec-a18e-42caea0fedc0
+			defaultHierarchy: LocalDateTable_708b50db-65aa-481d-b68b-69a2280cf2ae.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Tests = m
+		mode: import
+		queryGroup: 'DevOps Tables'
+		source =
+				let
+				    Source = OData.Feed("https://analytics.dev.azure.com/EmergeAotearoa/Data%20and%20Analytics/_odata/v3.0-preview/", null, [Implementation="2.0",OmitValues = ODataOmitValues.Nulls,ODataVersion = 4, Headers=[Authorization=fnGetToken()]]),
+				    Tests_table = Source{[Name="Tests",Signature="table"]}[Data]
+				in
+				    Tests_table
+

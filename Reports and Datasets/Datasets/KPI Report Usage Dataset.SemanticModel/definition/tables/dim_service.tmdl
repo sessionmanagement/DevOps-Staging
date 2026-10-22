@@ -1,0 +1,89 @@
+table dim_service
+	lineageTag: e342741d-e4f3-40fc-8741-2d34e2ec32b1
+
+	column 'Dim Service KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: d5469907-6225-486e-bab5-67da4200d71c
+		summarizeBy: none
+		sourceColumn: Dim Service KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Name'
+		dataType: string
+		lineageTag: 3e2905d2-2cbe-4c16-9b65-070c51260518
+		summarizeBy: none
+		sourceColumn: Service Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'District Name'
+		dataType: string
+		lineageTag: 14d03b6d-c0f9-447c-8c58-d5386c7f20d8
+		summarizeBy: none
+		sourceColumn: District Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Region Name'
+		dataType: string
+		lineageTag: fa2f8c38-321f-42c3-b488-0f1cb612827a
+		summarizeBy: none
+		sourceColumn: Region Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company Name'
+		dataType: string
+		lineageTag: 4a99f1b1-eae2-43cf-ae0c-78c5fb915c36
+		summarizeBy: none
+		sourceColumn: Company Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company Short Code'
+		dataType: string
+		lineageTag: 3bdcea28-9b54-456b-88a5-d8dd53c99bc8
+		summarizeBy: none
+		sourceColumn: Company Short Code
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_service = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)    [dim_service_key],#(lf)    [service_name],#(lf)    [district_name],#(lf)    [region_name],#(lf)    [company_name],#(lf)    [DWHDMLOperation]#(lf)FROM [edw].[vw_dim_service]"]),
+				    edw_dim_service = Source,
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(edw_dim_service, each ApplyNamingConventions(_)),
+				    #"Filtered Rows" = Table.SelectRows(#"Transformed Column Names", each ([DWH Dml Operation] <> "D")),
+				    #"Removed Columns" = Table.RemoveColumns(#"Filtered Rows",{ "DWH Dml Operation"}),
+				    #"Removed Other Columns" = Table.SelectColumns(#"Removed Columns",{"Dim Service KEY",  "Service Name", "District Name", "Region Name", "Company Name"}),
+				    #"Added Conditional Column" = Table.AddColumn(#"Removed Other Columns", "Company Short Code", each if [Company Name] = "Mind and Body Consultants Ltd" then "MBC" else if [Company Name] = "Emerge Aotearoa Housing Trust" then "EAHT" else if [Company Name] = "Ignite Aotearoa Limited" then "IGN" else "EAL", type text)
+				in
+				    #"Added Conditional Column"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

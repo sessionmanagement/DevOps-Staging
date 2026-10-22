@@ -1,0 +1,81 @@
+table 'Ref Property Tenancy Status'
+	lineageTag: 481869c4-f267-4594-a89d-292e4458c4b0
+
+	column 'Property Tenancy ID'
+		dataType: string
+		lineageTag: 2d672757-526f-4f01-9566-c12216f9f9ca
+		summarizeBy: none
+		sourceColumn: Property Tenancy ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenant Opportunity Status'
+		dataType: string
+		lineageTag: 9a9ae4a5-ce60-4d9e-bf61-b30ee121473c
+		summarizeBy: none
+		sourceColumn: Property Tenant Opportunity Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property ID'
+		dataType: string
+		lineageTag: fd7e7d1e-2980-4612-ae43-34cc08a6b698
+		summarizeBy: none
+		sourceColumn: Property ID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Ref Property Tenancy Status' = m
+		mode: import
+		queryGroup: 'Ref Tables'
+		source = ```
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)    [property_tenancy_id],#(lf)    [property_id],#(lf)    [property_tenant_opportunity_status],#(lf)    [DWHDMLOperation],#(lf)    [DWHIsCurrent]#(lf)FROM [edw].[vw_dim_property_tenancy]"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				    #"Filtered Rows" = Table.SelectRows(#"Transformed Column Names", each ([DWH Is Current] = true) and ([DWH Dml Operation] <> "D") and ([Property ID] <> null)),
+				    
+				    // Step to remove columns that start with "DWH" if needed
+				    RemoveDWHColumns = Table.RemoveColumns(
+				        #"Filtered Rows",
+				        List.Select(Table.ColumnNames(#"Filtered Rows"), each Text.StartsWith(_, "DWH"))
+				    ),
+				    
+				    //---------------------------------------------------
+				    // Add Dynamics 365 Link column
+				    //---------------------------------------------------
+				    #"Added Dynamics 365 Link" = Table.AddColumn(
+				        RemoveDWHColumns,
+				        "Dynamics 365 Link",
+				        each
+				            "https://emergeaotearoa.crm6.dynamics.com/main.aspx?appid=cf3d4408-7345-453c-8775-1e5538c40ddf"
+				            & "&forceUCI=1&pagetype=entityrecord&etn=opportunity&id="
+				            & Text.From([Property Tenancy ID]),
+				        type text
+				    ),
+				    #"Removed Other Columns" = Table.SelectColumns(#"Added Dynamics 365 Link",{"Property ID", "Property Tenancy ID", "Property Tenant Opportunity Status"})
+				in
+				    #"Removed Other Columns"
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

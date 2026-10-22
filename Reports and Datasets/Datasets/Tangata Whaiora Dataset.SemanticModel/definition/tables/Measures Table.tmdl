@@ -1,0 +1,1755 @@
+table 'Measures Table'
+	lineageTag: 59b1bfb2-6735-4fca-8df4-4dc1cc543ce3
+
+	measure 'Tangata Whaiora Count' =
+			
+			COUNTROWS ( 'Dim Tangata Whaiora' )
+		formatString: 0
+		displayFolder: Tangata Whaiora Measures
+		lineageTag: c160b0de-565a-4cff-83d7-828e9eb29fba
+
+	measure 'Tangata Whaiora Active Count' =
+			
+			CALCULATE (
+			    [Tangata Whaiora Count],
+			    'Dim Tangata Whaiora'[Tangata Whaiora Status Is Active] = "Active"
+			)
+		formatString: 0
+		displayFolder: Tangata Whaiora Measures
+		lineageTag: fcc3f024-82e0-406e-9a3d-765f7fd06196
+
+	measure 'Tangata Whaiora Female Count' =
+			
+			CALCULATE (
+			    [Tangata Whaiora Count],
+			    'Dim Tangata Whaiora'[Tangata Whaiora Gender] = "Female"
+			)
+		formatString: 0
+		displayFolder: Tangata Whaiora Measures
+		lineageTag: 713d03bf-fd50-4c55-9bd5-ccd034469ca8
+
+	measure 'Tangata Whaiora Female Gender %' =
+			
+			DIVIDE ( [Tangata Whaiora Female Count], [Tangata Whaiora Count], 0 )
+		displayFolder: Tangata Whaiora Measures
+		lineageTag: 00b76488-c6c2-4b76-b7ef-f6bb7ca1897c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Number Of Referrals' =
+			
+			COUNTROWS ( 'Fact Tangata Whaiora Referral' )
+		formatString: #,0
+		displayFolder: Referral Measures
+		lineageTag: 05eb99ad-fd40-47f5-9191-8dcd85dfa405
+
+	measure 'Total Current Referrals' =
+			
+			CALCULATE (
+			    [Total Number Of Referrals],
+			    'Fact Tangata Whaiora Referral'[Tangata Whaiora Referral End Date KEY]
+			        = BLANK ()
+			)
+		formatString: 0
+		displayFolder: Referral Measures
+		lineageTag: 3f7c211f-a7d0-4ca4-982a-ffa09c54d0b7
+
+	measure 'Total Closed Referrals' =
+			
+			CALCULATE (
+			    [Total Number Of Referrals],
+			    'Fact Tangata Whaiora Referral'[Tangata Whaiora Referral End Date KEY]
+			        <> BLANK ()
+			)
+		formatString: 0
+		displayFolder: Referral Measures
+		lineageTag: 827175f1-b484-42a1-848f-72a343f52327
+
+	measure 'Tangata Whaiora Number of Referrals' =
+			
+			DISTINCTCOUNT ( 'Fact Tangata Whaiora Referral'[Tangata Whaiora Referral ID] )
+		formatString: #,0
+		displayFolder: Tangata Whaiora Measures
+		lineageTag: eeded99e-eac8-45bb-a1df-303fb3785604
+
+	measure 'Total Referrals This Month' =
+			
+			CALCULATE (
+			    COUNTROWS ( 'Fact Tangata Whaiora Referral' ),
+			    FILTER (
+			        ALL ( 'Dim TW Referral Created Date' ),
+			        'Dim TW Referral Created Date'[Referral Created Calendar Date] <= TODAY ()
+			            && MONTH ( 'Dim TW Referral Created Date'[Referral Created Calendar Date] )
+			                = MONTH ( TODAY () )
+			            && YEAR ( 'Dim TW Referral Created Date'[Referral Created Calendar Date] )
+			                = YEAR ( TODAY () )
+			    )
+			)
+		formatString: 0
+		displayFolder: Referral Measures
+		lineageTag: 4e84492e-f706-44b1-8a0a-01bc5dcd5e63
+
+	measure 'Tangata Whaiora Missing Address Count' =
+			
+			COUNTROWS (
+			    FILTER (
+			        'Dim Tangata Whaiora',
+			        [Tangata Whaiora Address Missing Flag]
+			            && [DWH Is Current] = 1
+			    )
+			)
+		formatString: 0
+		displayFolder: Tangata Whaiora Measures
+		lineageTag: c8c441c0-6d49-441d-a844-467f7d5b2366
+
+	measure 'Fact Referral Row Count' =
+			
+			COUNTROWS ( 'Fact Tangata Whaiora Referral' )
+		formatString: 0
+		displayFolder: Referral Measures
+		lineageTag: aee82abf-f37b-4162-893f-ad4dc13e96a9
+
+	measure 'Referral Accepted 2' =
+			
+			IF (
+			    ISBLANK (
+			        MAXX (
+			            'Fact Tangata Whaiora Referral',
+			            'Fact Tangata Whaiora Referral'[Tangata Whaiora Referral Accepted Date KEY]
+			        )
+			    ),
+			    FALSE (),
+			    TRUE ()
+			)
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		displayFolder: Referral Measures
+		lineageTag: 10259148-c020-4117-b186-ab5af5e127f0
+
+	measure 'Fact Activity Row Count' =
+			
+			COUNTROWS ( 'Fact Tangata Whaiora Activity Breakdown' )
+		formatString: 0
+		displayFolder: Activity Measures
+		lineageTag: 7c79360a-3037-4d14-b0de-df24b542f091
+
+	measure 'Tangata Whaiora Number of Referrals Relationship' =
+			
+			CALCULATE (
+			    DISTINCTCOUNT ( 'Fact Tangata Whaiora Referral'[Tangata Whaiora Referral ID] ),
+			    USERELATIONSHIP ( 'Dim Date'[Dim Date KEY], 'Dim TW Referral Created Date'[Referral Created Dim Date KEY] )
+			)
+		formatString: #,0
+		displayFolder: Tangata Whaiora Measures
+		lineageTag: d30f6f3d-a09c-4d87-9370-eccf4e2a388a
+
+	measure RefreshedAt_forDisplay =
+			
+			"Data Last Refreshed: "
+			    & FORMAT (
+			        LASTDATE ( LastRefreshed[Date Last Refreshed] ),
+			        "dd/MM/YYYY - hh:mm AM/PM"
+			    )
+		lineageTag: 04a35b3d-4080-4dc2-9b46-ed89f4f6f8d1
+
+	measure 'Tangata Whaiora Count (Referral Explosion)' =
+			
+			DISTINCTCOUNT ( 'Fact Tangata Whaiora Referral _Explosion'[Dim Tangata Whaiora KEY] )
+		formatString: 0
+		displayFolder: Referral Measures
+		lineageTag: 38f8e6d3-f76a-4e57-bf0e-7a807d9e094b
+
+	measure 'Referral Count (Referral Explosion)' =
+			
+			DISTINCTCOUNT ( 'Fact Tangata Whaiora Referral _Explosion'[Dim Tangata Whaiora Referral KEY] )
+		formatString: 0
+		lineageTag: 1cf79ffe-038c-4944-a32b-020bdf2b1ac3
+
+	measure 'New referrals in selected range' =
+			
+			VAR _StartDate =
+			    MIN ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			VAR _EndDate =
+			    MAX ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			RETURN
+			    CALCULATE (
+			        DISTINCTCOUNT ( 'Fact Tangata Whaiora Referral _Explosion'[Dim Tangata Whaiora Referral KEY] ),
+			        ALL ( 'Dim TW Referral _Explosion' ),
+			        'Fact Tangata Whaiora Referral _Explosion'[Tangata Whaiora Referral Accepted Date] >= _StartDate,
+			        'Fact Tangata Whaiora Referral _Explosion'[Tangata Whaiora Referral Accepted Date] <= _EndDate
+			    )
+		formatString: 0
+		lineageTag: a984da9a-e4f6-411d-aced-092ceedc557d
+
+	measure 'Activity Count' =
+			
+			DISTINCTCOUNT ( 'Fact Tangata Whaiora Activity Breakdown'[Tangata Whaiora Activity ID] )
+		formatString: 0
+		displayFolder: Activity Measures
+		lineageTag: d4a75e50-ec82-4d91-883d-a1afcd8c1eba
+
+	measure 'People Count (PRIMHD Explosion)' =
+			
+			VAR _StartDate =
+			    MIN ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			VAR _EndDate =
+			    MAX ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			RETURN
+			    CALCULATE (
+			        DISTINCTCOUNT ( 'Fact Tangata Whaiora PRIMHD Review _Explosion'[Dim Tangata Whaiora Unique KEY] ),
+			        'Fact Tangata Whaiora PRIMHD Review _Explosion'[explosion] >= _StartDate,
+			        'Fact Tangata Whaiora PRIMHD Review _Explosion'[explosion] <= _EndDate
+			    )
+		formatString: 0
+		lineageTag: 88b810c2-28ea-46cd-ab9a-9dd96e4f58eb
+
+	measure 'People Count (Referral Explosion)' =
+			
+			DISTINCTCOUNT ( 'Fact Tangata Whaiora Referral _Explosion'[Dim Tangata Whaiora KEY] )
+		formatString: 0
+		lineageTag: 1445c934-1b42-49ed-8508-935947d446ee
+
+	measure 'People Count (Length of Stay at Quarter End)' =
+			
+			VAR _StartDate =
+			    MIN ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			VAR _EndDate =
+			    MAX ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			RETURN
+			    CALCULATE (
+			        DISTINCTCOUNT ( 'Fact Tangata Whaiora Referral Open Days by Quarter'[Dim Tangata Whaiora KEY] ),
+			        'Fact Tangata Whaiora Referral Open Days by Quarter'[Referral End Date for Quarter] >= _StartDate,
+			        'Fact Tangata Whaiora Referral Open Days by Quarter'[Referral End Date for Quarter] <= _EndDate
+			    )
+		formatString: 0
+		lineageTag: 8b765f3d-d606-45d5-b030-64ccc98fb409
+
+	measure 'People Count (Length of Stay at Quarter End & Referral Ended in Quarter)' =
+			
+			VAR _StartDate =
+			    MIN ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			VAR _EndDate =
+			    MAX ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			RETURN
+			    CALCULATE (
+			        [People Count (Length of Stay at Quarter End)],
+			        'Fact Tangata Whaiora Referral Open Days by Quarter'[Tangata Whaiora Referral Discharge Date] >= _StartDate,
+			        'Fact Tangata Whaiora Referral Open Days by Quarter'[Tangata Whaiora Referral Discharge Date] <= _EndDate
+			    )
+		formatString: 0
+		lineageTag: 76b1a51d-c09e-40dd-a8d7-9b5fabd7c3f9
+
+	measure 'Referrals that Ended in selected range' =
+			
+			VAR _StartDate =
+			    MIN ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			VAR _EndDate =
+			    MAX ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			RETURN
+			    CALCULATE (
+			        DISTINCTCOUNT ( 'Fact Tangata Whaiora Referral _Explosion'[Dim Tangata Whaiora Referral KEY] ),
+			        ALL ( 'Dim TW Referral _Explosion' ),
+			        'Fact Tangata Whaiora Referral _Explosion'[Tangata Whaiora Referral Discharge Date] >= _StartDate,
+			        'Fact Tangata Whaiora Referral _Explosion'[Tangata Whaiora Referral Discharge Date] <= _EndDate
+			    )
+		formatString: 0
+		lineageTag: 41176e80-8d90-4f4c-8586-195c087ac5d1
+
+	measure 'Tangata Whaiora Count (Referral)' =
+			
+			DISTINCTCOUNT ( 'Fact Tangata Whaiora Referral'[Dim Tangata Whaiora KEY] )
+		formatString: 0
+		lineageTag: dd413346-989e-4593-819f-50f97d91d287
+
+	measure 'Activity Duration (Activity Start Date in Selected Period - Hours)' =
+			
+			VAR _StartDate =
+			    MIN ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			VAR _EndDate =
+			    MAX ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			RETURN
+			    CALCULATE (
+			        SUM ( 'Fact Tangata Whaiora Activity Breakdown'[Tangata Whaiora Activity Duration] ) / 60,
+			        'Fact Tangata Whaiora Activity Breakdown'[Tangata Whaiora Activity Start Date] >= _StartDate,
+			        'Fact Tangata Whaiora Activity Breakdown'[Tangata Whaiora Activity Start Date] <= _EndDate
+			    )
+		formatString: #,0
+		lineageTag: 16abf88f-e693-4282-b680-7676a6ebd37d
+
+	measure 'People Count (For Wait Time to First Contact)' =
+			
+			VAR _StartDate =
+			    MIN ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			VAR _EndDate =
+			    MAX ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			RETURN
+			    CALCULATE (
+			        [People Count (Referral Explosion)],
+			        'Fact Tangata Whaiora Referral _Explosion'[First Contact Date] >= _StartDate,
+			        'Fact Tangata Whaiora Referral _Explosion'[First Contact Date] <= _EndDate
+			    )
+		formatString: 0
+		lineageTag: 5eb9d8a6-4868-4f72-abe3-cecbc07a5cc1
+
+	measure 'People Count (For Wait Time to First FTF Contact)' =
+			
+			VAR _StartDate =
+			    MIN ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			VAR _EndDate =
+			    MAX ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			RETURN
+			    CALCULATE (
+			        [People Count (Referral Explosion)],
+			        'Fact Tangata Whaiora Referral _Explosion'[First FTF Contact Date] >= _StartDate,
+			        'Fact Tangata Whaiora Referral _Explosion'[First FTF Contact Date] <= _EndDate
+			    )
+		formatString: 0
+		lineageTag: 44dacb91-bb7a-451f-940d-d24ddc8199a8
+
+	measure 'People Count (Where New Clients Are Referred From)' =
+			
+			VAR _StartDate =
+			    MIN ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			VAR _EndDate =
+			    MAX ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			RETURN
+			    CALCULATE (
+			        DISTINCTCOUNT ( 'Fact Tangata Whaiora Activity Breakdown'[Dim Tangata Whaiora KEY] ),
+			        'Fact Tangata Whaiora Activity Breakdown'[Tangata Whaiora Referral Accepted Date] >= _StartDate,
+			        'Fact Tangata Whaiora Activity Breakdown'[Tangata Whaiora Referral Accepted Date] <= _EndDate
+			    )
+		formatString: 0
+		lineageTag: f8dc10eb-fb9c-4f32-994c-d5680bc41ff9
+
+	measure 'People Count (How Cases Ended)' =
+			
+			VAR _StartDate =
+			    MIN ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			VAR _EndDate =
+			    MAX ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			RETURN
+			    CALCULATE (
+			        DISTINCTCOUNT ( 'Fact Tangata Whaiora Activity Breakdown'[Dim Tangata Whaiora KEY] ),
+			        'Fact Tangata Whaiora Activity Breakdown'[Tangata Whaiora Referral Discharge Date] >= _StartDate,
+			        'Fact Tangata Whaiora Activity Breakdown'[Tangata Whaiora Referral Discharge Date] <= _EndDate
+			    )
+		formatString: 0
+		lineageTag: 7ad64f90-6494-4b99-a8eb-e3953440271a
+
+	measure 'Count of Referrals Where PRIMHD Review Entered Within 48 hours of Acceptance' =
+			
+			VAR _StartDate =
+			    MIN ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			VAR _EndDate =
+			    MAX ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			RETURN
+			    CALCULATE (
+			        DISTINCTCOUNT ( 'Fact Tangata Whaiora PRIMHD Review'[Dim Tangata Whaiora Referral Unique KEY] ),
+			        'Fact Tangata Whaiora PRIMHD Review'[AcceptedDate] >= _StartDate,
+			        'Fact Tangata Whaiora PRIMHD Review'[AcceptedDate] <= _EndDate
+			    )
+		formatString: 0
+		lineageTag: 01eea320-3607-423c-be03-a3e675ef53a4
+
+	measure 'Count of Referrals Where PRIMHD Review Entered Within 48 hours of Discharge' =
+			
+			VAR _StartDate =
+			    MIN ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			VAR _EndDate =
+			    MAX ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			RETURN
+			    CALCULATE (
+			        DISTINCTCOUNT ( 'Fact Tangata Whaiora PRIMHD Review'[Dim Tangata Whaiora Referral Unique KEY] ),
+			        'Fact Tangata Whaiora PRIMHD Review'[DischargeDate] >= _StartDate,
+			        'Fact Tangata Whaiora PRIMHD Review'[DischargeDate] <= _EndDate
+			    )
+		formatString: 0
+		lineageTag: 351b3aa7-0848-43d9-95b7-8a834c745478
+
+	measure 'Count of Referrals Where Previous PRIMHD Review Within 90 Days' =
+			
+			VAR _StartDate =
+			    MIN ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			VAR _EndDate =
+			    MAX ( 'Dim TW Activity Start Date'[Activity Start Calendar Date] )
+			RETURN
+			    CALCULATE (
+			        DISTINCTCOUNT ( 'Fact Tangata Whaiora PRIMHD Review _Explosion'[Dim Tangata Whaiora Referral Unique KEY] ),
+			        'Fact Tangata Whaiora PRIMHD Review _Explosion'[explosion] >= _StartDate,
+			        'Fact Tangata Whaiora PRIMHD Review _Explosion'[explosion] <= _EndDate
+			    )
+		formatString: 0
+		lineageTag: e9fd2a2c-1b82-4c00-8a4a-a2b007545ef5
+
+	measure 'Count People (More Or Less than 4 Hours of Activity in Week in Period)' =
+			
+			VAR _StartDate =
+			    MIN ( 'Dim Date'[Calendar Date] )
+			VAR _EndDate =
+			    MAX ( 'Dim Date'[Calendar Date] )
+			RETURN
+			    CALCULATE (
+			        DISTINCTCOUNT ( 'Fact Tangata Whaiora Activity Hours by Week'[Dim Tangata Whaiora KEY] ),
+			        'Fact Tangata Whaiora Activity Hours by Week'[RelatedWeekStartDate] >= _StartDate,
+			        'Fact Tangata Whaiora Activity Hours by Week'[RelatedWeekStartDate] <= _EndDate
+			    )
+		formatString: 0
+		lineageTag: 00764358-4f8e-4f9f-aaab-a10a7ca96183
+
+	measure 'Count of Tangata Whaiora Smoking Status Missing Flag min per Dim Tangata Whaiora Unique KEY' =
+			
+			MINX (
+			    KEEPFILTERS ( VALUES ( 'Dim Tangata Whaiora'[Dim Tangata Whaiora Unique KEY] ) ),
+			    CALCULATE (
+			        DISTINCTCOUNT ( 'Dim Tangata Whaiora'[Tangata Whaiora Smoking Status Missing Flag] )
+			    )
+			)
+		formatString: 0
+		displayFolder: MORe Measures
+		lineageTag: 5ef3f77d-a70e-411f-86cf-9b07dcbce84f
+
+	measure 'Number of Tangata Whaiora' =
+			
+			DISTINCTCOUNT ( 'Fact Tangata Whaiora Referral'[Ref Tangata Whaiora Unique KEY] )
+		formatString: #,0
+		displayFolder: MORe Measures
+		lineageTag: d1d70e59-c2bb-482e-b1ba-ab8b549c54d9
+
+	measure 'Missing Percent (All)' =
+			
+			(
+			    SUM ( 'Ref Tangata Whaiora Latest Flags'[Addition of Missing] ) / ( [Number of Tangata Whaiora] * 14 )
+			)
+		displayFolder: MORe Measures
+		lineageTag: a877cd4b-d366-4f22-b644-a08e15d1d66e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'TW Person Centred Goals' =
+			
+			IF (
+			    ISBLANK (
+			        MAXX (
+			            'Fact Tangata Whaiora Personal Goal',
+			            'Fact Tangata Whaiora Personal Goal'[Tangata Whaiora Personal Goal ID]
+			        )
+			    ),
+			    0,
+			    1
+			)
+		displayFolder: MORe Measures
+		lineageTag: c02b98ea-6f63-4552-ac88-cf3ae69fed71
+
+	measure 'Missing Percent Ethnicity' =
+			
+			SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Ethnicity Group Missing Flag] ) / ( [Number of Tangata Whaiora] )
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: ce1edf21-9f51-4b68-8328-a82a2e1f19ea
+
+	measure 'Missing Percent Residency' =
+			
+			SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Residency Missing Flag] ) / ( [Number of Tangata Whaiora] )
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 148b30db-98c4-4501-95e8-306a3af360a4
+
+	measure 'Missing Percent Address' =
+			
+			SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Address Missing Flag] ) / ( [Number of Tangata Whaiora] )
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 5b30178a-68da-4b80-b14d-634a45f4c10c
+
+	measure 'Missing Percent Contact Phone' =
+			
+			SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Contact Phone Missing Flag] ) / ( [Number of Tangata Whaiora] )
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 2baea98c-5bae-4779-a64c-a8e85f0416a1
+
+	measure 'Missing Percent Legal Status' =
+			
+			SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Legal Status Missing Flag] ) / ( [Number of Tangata Whaiora] )
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 80d5d043-2f59-4427-a9e4-ac1af00d41c9
+
+	measure 'Missing Percent Mental Health' =
+			
+			SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Mental Health Condition Missing Flag] ) / ( [Number of Tangata Whaiora] )
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 284f485c-53fa-407b-99c1-364574a3258d
+
+	measure 'Missing Percent Emergency Contact' =
+			
+			SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Emergency Contact Phone Missing Flag] ) / ( [Number of Tangata Whaiora] )
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 08aa2e0f-b022-461c-abd2-131c554cd33b
+
+	measure 'Missing Percent GP Only' =
+			
+			SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora GP Only Missing Flag] ) / ( [Number of Tangata Whaiora] )
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 90c4d7f9-0a8b-418c-8e63-c56f409607c0
+
+	measure 'Missing Percent GP Registration' =
+			
+			SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora GP Registration Missing Flag] ) / ( [Number of Tangata Whaiora] )
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: f9b9bb5a-0ea1-4203-8ef4-e2cc15820bba
+
+	measure 'Missing Percent Substance Use' =
+			
+			SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Substance Condition Missing Flag] ) / ( [Number of Tangata Whaiora] )
+		displayFolder: MORe Measures
+		lineageTag: 4030cdc5-7001-406c-9620-2932f04900e0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Missing Percent Smoking Status' =
+			
+			SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Smoking Status Missing Flag] ) / ( [Number of Tangata Whaiora] )
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: e639755c-f1c0-4126-bf49-bf77bf29f382
+
+	measure 'Missing Percent PrimHD Review' =
+			
+			SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Primhd Review Missing Flag] ) / ( [Number of Tangata Whaiora] )
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: a9ba0e6c-7444-471c-9880-226d0470df25
+
+	measure 'Missing Percent Physical Health' =
+			
+			SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Physical Condition Missing Flag] ) / ( [Number of Tangata Whaiora] )
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: fcf20f05-885e-4445-be48-3929e093e703
+
+	measure 'Missing Percent Ref Goal' =
+			
+			SUM ( 'Ref Tangata Whaiora Goals'[Referral Goal Is Missing] ) / ( [Number of Tangata Whaiora] )
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 7c3fa214-6451-4cb1-ad2c-61d04025444a
+
+	measure 'Missing Percent PC Goal' =
+			
+			SUM ( 'Ref Tangata Whaiora Goals'[Person Centred Goal Is Missing] ) / ( [Number of Tangata Whaiora] )
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 9c4cc9a2-4923-4b8f-af4e-4e9877eb3de0
+
+	measure 'Non Missing Percent (All)' =
+			
+			DIVIDE (
+			    SUM ( 'Ref Tangata Whaiora Latest Flags'[Addition Of Non Missing] ),
+			    SUM ( 'Ref Tangata Whaiora Latest Flags'[Addition Of Missing] )
+			        + SUM ( 'Ref Tangata Whaiora Latest Flags'[Addition Of Non Missing] ),
+			    0
+			)
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: MORe Measures
+		lineageTag: 2d222ef0-e61f-4031-a09f-301320b87c78
+
+	measure 'Non Missing Percent Address' =
+			
+			IF (
+			    ISBLANK (
+			        SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Address Missing Flag] )
+			    ),
+			    BLANK (),
+			    1
+			        - SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Address Missing Flag] ) / [Number of Tangata Whaiora]
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 34bd1c39-d0cc-4baf-831e-3830451eb94e
+
+	measure 'Non Missing Percent Substance Use' =
+			
+			IF (OR(
+			    ISBLANK (
+			        SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Substance Condition Missing Flag] )
+			    ),max('Dim Service'[Company Name])="Mind and Body Consultants Ltd"),
+			    BLANK (),
+			    1
+			        - SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Substance Condition Missing Flag] ) / [Number of Tangata Whaiora]
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 88006d29-04b8-43e3-96a9-d26503a0b34f
+
+	measure 'Non Missing Percent Smoking Status' =
+			
+			IF (
+			    ISBLANK (
+			        SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Smoking Status Missing Flag] )
+			    ),
+			    BLANK (),
+			    1
+			        - SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Smoking Status Missing Flag] ) / [Number of Tangata Whaiora]
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 90414995-a945-4789-b9c0-7098ec762d23
+
+	measure 'Non Missing Percent Residency' =
+			
+			IF (
+			    ISBLANK (
+			        SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Residency Missing Flag] )
+			    ),
+			    BLANK (),
+			    1
+			        - SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Residency Missing Flag] ) / [Number of Tangata Whaiora]
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 9c7654e8-9ef0-4ab2-a40d-e16e12181788
+
+	measure 'Non Missing Percent Ref Goal' =
+			
+			IF (
+			    ISBLANK ( SUM ( 'Ref Tangata Whaiora Goals'[Referral Goal Is Missing] ) ),
+			    BLANK (),
+			    1
+			        - SUM ( 'Ref Tangata Whaiora Goals'[Referral Goal Is Missing] ) / [Number of Tangata Whaiora]
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: e66d10c9-3241-470b-be2f-7eec77c4b342
+
+	measure 'Non Missing Percent PrimHD Review' =
+			
+			IF (
+			    ISBLANK (
+			        SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Primhd Review Missing Flag] )
+			    ),
+			    BLANK (),
+			    1
+			        - SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Primhd Review Missing Flag] ) / [Number of Tangata Whaiora]
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: c6866ef0-d2c4-4165-8c98-484836c67903
+
+	measure 'Non Missing Percent Physical Health' =
+			
+			IF (OR(
+			    ISBLANK (
+			        SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Physical Condition Missing Flag] )
+			    ),max('Dim Service'[Company Name])="Mind and Body Consultants Ltd"),
+			    BLANK (),
+			    1
+			        - SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Physical Condition Missing Flag] ) / [Number of Tangata Whaiora]
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 735d29a8-1f32-4473-a252-349347a207aa
+
+	measure 'Non Missing Percent PC Goal' =
+			
+			IF (
+			    ISBLANK ( SUM ( 'Ref Tangata Whaiora Goals'[Person Centred Goal Is Missing] ) ),
+			    BLANK (),
+			    1
+			        - SUM ( 'Ref Tangata Whaiora Goals'[Person Centred Goal Is Missing] ) / [Number of Tangata Whaiora]
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 2923c6c3-ee12-4cec-b82c-cad112197c92
+
+	measure 'Non Missing Percent Mental Health' =
+			
+			IF (OR(
+			    ISBLANK (
+			        SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Mental Health Condition Missing Flag] )
+			    ),MAX('Dim Service'[Company Name]) = "Mind and Body Consultants Ltd"),
+			    BLANK (),
+			    1
+			        - SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Mental Health Condition Missing Flag] ) / [Number of Tangata Whaiora]
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 7c77faba-63af-4642-b7c6-cd7341c9e00f
+
+	measure 'Non Missing Percent Legal Status ' = ```
+			
+			IF (OR(
+			    ISBLANK (
+			        SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Legal Status Missing Flag] ) 
+			    ),max('Dim Service'[Company Name])="Mind and Body Consultants Ltd"),
+			    BLANK (),
+			              1
+			        - SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Legal Status Missing Flag] ) / [Number of Tangata Whaiora]
+			)
+			```
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: d1214f5f-84c5-41d3-9877-0f8b3c3be4ae
+
+	measure 'Non Missing Percent GP Registration' =
+			
+			IF (
+			    ISBLANK (
+			        SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora GP Registration Missing Flag] )
+			    ),
+			    BLANK (),
+			    1
+			        - SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora GP Registration Missing Flag] ) / [Number of Tangata Whaiora]
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 0e7b1569-6f41-4da7-995a-3980f9b952e1
+
+	measure 'Non Missing Percent Ethnicity' =
+			
+			IF (
+			    ISBLANK (
+			        SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Ethnicity Group Missing Flag] )
+			    ),
+			    BLANK (),
+			    1
+			        - SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Ethnicity Group Missing Flag] ) / [Number of Tangata Whaiora]
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: aed6c406-697d-45f1-9d28-93b3f7c4dcae
+
+	measure 'Non Missing Percent Contact Phone' =
+			
+			IF (
+			    ISBLANK ( SUM ( 'Ref Tangata Whaiora Latest Flags'[Addition of Missing] ) ),
+			    BLANK (),
+			    1
+			        - (
+			            SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Contact Phone Missing Flag] ) / ( [Number of Tangata Whaiora] )
+			        )
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 57edefd3-c2be-4f70-85b4-1aca293dda93
+
+	measure 'Non Missing Percent GP Only' =
+			
+			IF (
+			    ISBLANK (
+			        SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora GP Only Missing Flag] )
+			    ),
+			    BLANK (),
+			    1
+			        - SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora GP Only Missing Flag] ) / [Number of Tangata Whaiora]
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 8dfcc289-c368-40a9-ae58-88346aadff4a
+
+	measure 'Non Missing Percent Emergency Contact' =
+			
+			IF (
+			    ISBLANK (
+			        SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Emergency Contact Phone Missing Flag] )
+			    ),
+			    BLANK (),
+			    1
+			        - SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Emergency Contact Phone Missing Flag] ) / [Number of Tangata Whaiora]
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 24f84450-b3f8-4909-9f91-28288693930d
+
+	measure 'Missing Contact Flags' =
+			
+			SUMX (
+			    'Ref Tangata Whaiora Latest Flags',
+			    'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Address Missing Flag] + 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Contact Phone Missing Flag] + 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Emergency Contact Phone Missing Flag]
+			)
+		displayFolder: MORe Measures
+		lineageTag: cfb5a318-c462-40ac-9d9c-63c4509e9bcd
+
+	measure %Target =
+			
+			0.85
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 12c35f12-0f99-4e76-97a1-788dcd2c09d0
+
+	measure 'Current Date' =
+			
+			CALCULATE (
+			    MAX ( 'Dim Date'[Calendar Date] ),
+			    'Dim Date'[Current Date Flag] = 1
+			)
+		displayFolder: MORe Measures
+		lineageTag: 08a132f2-5eb0-4e1c-9504-1dca313c3071
+
+	measure 100% =
+			
+			1
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 5e5f3afe-149d-4107-ad18-b55b5919c628
+
+	measure 'Missing Addiction Flags' =
+			
+			SUMX (
+			    'Ref Tangata Whaiora Latest Flags',
+			    'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Smoking Status Missing Flag] + 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Substance Condition Missing Flag]
+			)
+		displayFolder: MORe Measures
+		lineageTag: ad742bce-e12d-46a3-afa0-aa4bc9c42c52
+
+	measure 'Missing Mental and Physical Flags' =
+			
+			SUMX (
+			    'Ref Tangata Whaiora Latest Flags',
+			    'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Physical Condition Missing Flag] + 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Mental Health Condition Missing Flag]
+			)
+		displayFolder: MORe Measures
+		lineageTag: d51fbc5b-9e14-4499-8fab-11ccc167bff3
+
+	measure 'Missing GP Flags' =
+			
+			SUMX (
+			    'Ref Tangata Whaiora Latest Flags',
+			    'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Gp Only Missing Flag] + 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Gp Registration Missing Flag]
+			)
+		displayFolder: MORe Measures
+		lineageTag: 280b3fc6-ea53-4770-b794-bc847d8278d2
+
+	measure 'Non Missing Addiction Comp' =
+			
+			IF (
+			    ISBLANK ( [Missing Addiction Flags] ),
+			    BLANK (),
+			    1 - ( [Missing Addiction Flags] / ( 2 * [Number of Tangata Whaiora] ) )
+			)
+		displayFolder: MORe Measures
+		lineageTag: 8348b0ff-ce50-4709-82f4-1834e7946637
+
+	measure 'Non Missing Contact Comp' =
+			
+			IF (
+			    ISBLANK ( [Missing Contact Flags] ),
+			    BLANK (),
+			    1 - ( [Missing Contact Flags] / ( 3 * [Number of Tangata Whaiora] ) )
+			)
+		displayFolder: MORe Measures
+		lineageTag: 892eda6a-d8fa-4074-b7dc-1890c0f00972
+
+	measure 'Non Missing GP Comp' =
+			
+			IF (
+			    ISBLANK ( [Missing GP Flags] ),
+			    BLANK (),
+			    1 - ( [Missing GP Flags] / ( 2 * [Number of Tangata Whaiora] ) )
+			)
+		displayFolder: MORe Measures
+		lineageTag: 52dbacdf-3bec-4566-8d39-93b46c37d211
+
+	measure 'Non Missing Mental and Physical Condition Comp' =
+			
+			IF (
+			    ISBLANK ( [Missing Mental and Physical Flags] ),
+			    BLANK (),
+			    1 - ( [Missing Mental and Physical Flags] / ( 2 * [Number of Tangata Whaiora] ) )
+			)
+		displayFolder: MORe Measures
+		lineageTag: 7b56b554-b1fa-46b2-9f85-cdb9abdefad7
+
+	measure 'Total Person Centred Goals' =
+			
+			SUM ( 'Ref Person Referral to Goals'[total_person_centred_goals] )
+		displayFolder: MORe Measures
+		lineageTag: 14fa4d6a-c2fd-48eb-a652-c024d215af69
+
+	measure 'Number of Referrals' =
+			
+			COUNTROWS ( 'Ref Person Referral to Goals' )
+		formatString: #,0
+		displayFolder: MORe Measures
+		lineageTag: 3e7d0809-5c83-41a1-9ba0-3c83f62c1df1
+
+	measure 'Non Missing Percent PC Goal (Referral)' =
+			
+			IF (
+			    ISBLANK (
+			        SUM ( 'Ref Person Referral to Goals'[person_centred_goals_missing_flag] )
+			    ),
+			    BLANK (),
+			    1
+			        - SUM ( 'Ref Person Referral to Goals'[person_centred_goals_missing_flag] ) / [Number of Referrals]
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 409a9c44-7f1e-4cff-a4d5-3f1d6b504070
+
+	measure 'Non Missing Percent Ref Goal (Referral)' =
+			
+			IF (
+			    ISBLANK (
+			        SUM ( 'Ref Person Referral to Goals'[total_referral_goals_missing_flag] )
+			    ),
+			    BLANK (),
+			    1
+			        - SUM ( 'Ref Person Referral to Goals'[total_referral_goals_missing_flag] ) / [Number of Referrals]
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 720934bf-93d9-486d-97c5-01644400bee2
+
+	measure FiltersApplied =
+			
+			VAR __ParentAreas =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Company Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[Company Name] ) )
+			            ),
+			            'Dim Service'[Company Name], ASC
+			        ),
+			        "AreaParentName_display", 'Dim Service'[Company Name]
+			    )
+			VAR __ParentAreasCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Company Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Company Name] ) ),
+			        0
+			    )
+			VAR __MoreParentAreas =
+			    IF (
+			        __ParentAreasCount > 10,
+			        " and " & ( __ParentAreasCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __Services =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ),
+			                NOT ( ISBLANK ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ) )
+			            ),
+			            'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name], ASC
+			        ),
+			        "TeamName_display", 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name]
+			    )
+			VAR __ServicesCount =
+			    IF (
+			        ISFILTERED ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ) ),
+			        0
+			    )
+			VAR __MoreServices =
+			    IF ( __ServicesCount > 10, " and " & ( __ServicesCount - 10 ) & " more", "" )
+			VAR _FC_ParentAreas =
+			    IF (
+			        __ParentAreasCount > 0,
+			        "| Company: " & CONCATENATEX ( __ParentAreas, [AreaParentName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentAreas =
+			    IF (
+			        __ParentAreasCount > 5,
+			        " and " & ( __ParentAreasCount - 10 ) & " more",
+			        ""
+			    )
+			VAR _FC_Services =
+			    IF (
+			        __ServicesCount > 0,
+			        "| Teams chosen: " & CONCATENATEX ( __Services, [TeamName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreServices =
+			    IF ( __ServicesCount > 5, " and " & ( __ServicesCount - 10 ) & " more", "" )
+			VAR __ParentRegion =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Region Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[Region Name] ) )
+			            ),
+			            'Dim Service'[Region Name], ASC
+			        ),
+			        "AreaParentRegionName_display", 'Dim Service'[Region Name]
+			    )
+			VAR __ParentRegionCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Region Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Region Name] ) ),
+			        0
+			    )
+			VAR _FC_ParentRegion =
+			    IF (
+			        __ParentRegionCount > 0,
+			        "| Region: "
+			            & CONCATENATEX ( __ParentRegion, [AreaParentRegionName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentRegionAreas =
+			    IF (
+			        __ParentRegionCount > 5,
+			        " and " & ( __ParentRegionCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __ParentDistrict =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[District Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[District Name] ) )
+			            ),
+			            'Dim Service'[District Name], ASC
+			        ),
+			        "AreaParentDistrictName_display", 'Dim Service'[District Name]
+			    )
+			VAR __ParentDistrictCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[District Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[District Name] ) ),
+			        0
+			    )
+			VAR _FC_ParentDistrict =
+			    IF (
+			        __ParentDistrictCount > 0,
+			        "| District: "
+			            & CONCATENATEX ( __ParentDistrict, [AreaParentDistrictName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentDistrictAreas =
+			    IF (
+			        __ParentDistrictCount > 5,
+			        " and " & ( __ParentDistrictCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __ParentServiceType =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Service Type Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[Service Type Name] ) )
+			            ),
+			            'Dim Service'[Service Type Name], ASC
+			        ),
+			        "AreaParentServiceTypeName_display", 'Dim Service'[Service Type Name]
+			    )
+			VAR __ParentServiceTypeCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Service Type Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Service Type Name] ) ),
+			        0
+			    )
+			VAR _FC_ParentServiceType =
+			    IF (
+			        __ParentServiceTypeCount > 0,
+			        "| Service Type: "
+			            & CONCATENATEX ( __ParentServiceType, [AreaParentServiceTypeName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentServiceTypeAreas =
+			    IF (
+			        __ParentServiceTypeCount > 5,
+			        " and " & ( __ParentServiceTypeCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __ParentTeamFunction =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] ),
+			                NOT ( ISBLANK ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] ) )
+			            ),
+			            'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function], ASC
+			        ),
+			        "AreaParentTeamFunction_display", 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function]
+			    )
+			VAR __ParentTeamFunctionCount =
+			    IF (
+			        ISFILTERED ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] ),
+			        COUNTROWS (
+			            VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] )
+			        ),
+			        0
+			    )
+			VAR _FC_ParentTeamFunction =
+			    IF (
+			        __ParentTeamFunctionCount > 0,
+			        "| Team Function: "
+			            & CONCATENATEX ( __ParentTeamFunction, [AreaParentTeamFunction_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentTeamFunctionAreas =
+			    IF (
+			        __ParentTeamFunctionCount > 5,
+			        " and " & ( __ParentTeamFunctionCount - 10 ) & " more",
+			        ""
+			    )
+			RETURN
+			    " Number of active Tangata Whaiora: " & [Number of Tangata Whaiora]
+			        & UNICHAR ( 10 )
+			        & UNICHAR ( 13 ) & " -- Summary of filters applied to page: " & " " & _FC_ParentAreas & _FC_MoreParentAreas & " " & _FC_ParentRegion & _FC_MoreParentRegionAreas & " " & _FC_ParentDistrict & _FC_MoreParentDistrictAreas & " " & _FC_ParentServiceType & _FC_MoreParentServiceTypeAreas
+			        & UNICHAR ( 10 )
+			        & UNICHAR ( 13 ) & _FC_ParentTeamFunction & _FC_MoreParentTeamFunctionAreas & _FC_Services & _FC_MoreServices
+		displayFolder: MORe Measures
+		lineageTag: 1d779707-7dc3-452c-80c8-2f0847012f5f
+
+	measure 'Measure Title' =
+			
+			"Regional View Completion"
+		displayFolder: MORe Measures
+		lineageTag: 5eb51fd2-2085-427f-8d78-1eb5f5fe17d5
+
+	measure 'Open PC Goals' =
+			
+			CALCULATE ( SUM ( 'Ref Person Referral to Goals'[open_person_centred_goals] ) )
+		displayFolder: MORe Measures
+		lineageTag: 3b8564f3-7323-4d31-a158-e1039cb35734
+
+	measure 'Open Ref Goals' =
+			
+			CALCULATE ( SUM ( 'Ref Person Referral to Goals'[total_referral_goals_open] ) )
+		displayFolder: MORe Measures
+		lineageTag: ad368c8f-02f1-4450-b693-60a38ecfb237
+
+	measure FiltersAppliedRefs =
+			
+			VAR __ParentAreas =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Company Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[Company Name] ) )
+			            ),
+			            'Dim Service'[Company Name], ASC
+			        ),
+			        "AreaParentName_display", 'Dim Service'[Company Name]
+			    )
+			VAR __ParentAreasCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Company Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Company Name] ) ),
+			        0
+			    )
+			VAR __MoreParentAreas =
+			    IF (
+			        __ParentAreasCount > 10,
+			        " and " & ( __ParentAreasCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __Services =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ),
+			                NOT ( ISBLANK ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ) )
+			            ),
+			            'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name], ASC
+			        ),
+			        "TeamName_display", 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name]
+			    )
+			VAR __ServicesCount =
+			    IF (
+			        ISFILTERED ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ) ),
+			        0
+			    )
+			VAR __MoreServices =
+			    IF ( __ServicesCount > 10, " and " & ( __ServicesCount - 10 ) & " more", "" )
+			VAR _FC_ParentAreas =
+			    IF (
+			        __ParentAreasCount > 0,
+			        "| Company: " & CONCATENATEX ( __ParentAreas, [AreaParentName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentAreas =
+			    IF (
+			        __ParentAreasCount > 5,
+			        " and " & ( __ParentAreasCount - 10 ) & " more",
+			        ""
+			    )
+			VAR _FC_Services =
+			    IF (
+			        __ServicesCount > 0,
+			        "| Teams chosen: " & CONCATENATEX ( __Services, [TeamName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreServices =
+			    IF ( __ServicesCount > 5, " and " & ( __ServicesCount - 10 ) & " more", "" )
+			VAR __ParentRegion =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Region Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[Region Name] ) )
+			            ),
+			            'Dim Service'[Region Name], ASC
+			        ),
+			        "AreaParentRegionName_display", 'Dim Service'[Region Name]
+			    )
+			VAR __ParentRegionCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Region Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Region Name] ) ),
+			        0
+			    )
+			VAR _FC_ParentRegion =
+			    IF (
+			        __ParentRegionCount > 0,
+			        "| Region: "
+			            & CONCATENATEX ( __ParentRegion, [AreaParentRegionName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentRegionAreas =
+			    IF (
+			        __ParentRegionCount > 5,
+			        " and " & ( __ParentRegionCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __ParentDistrict =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[District Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[District Name] ) )
+			            ),
+			            'Dim Service'[District Name], ASC
+			        ),
+			        "AreaParentDistrictName_display", 'Dim Service'[District Name]
+			    )
+			VAR __ParentDistrictCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[District Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[District Name] ) ),
+			        0
+			    )
+			VAR _FC_ParentDistrict =
+			    IF (
+			        __ParentDistrictCount > 0,
+			        "| District: "
+			            & CONCATENATEX ( __ParentDistrict, [AreaParentDistrictName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentDistrictAreas =
+			    IF (
+			        __ParentDistrictCount > 5,
+			        " and " & ( __ParentDistrictCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __ParentServiceType =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Service Type Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[Service Type Name] ) )
+			            ),
+			            'Dim Service'[Service Type Name], ASC
+			        ),
+			        "AreaParentServiceTypeName_display", 'Dim Service'[Service Type Name]
+			    )
+			VAR __ParentServiceTypeCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Service Type Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Service Type Name] ) ),
+			        0
+			    )
+			VAR _FC_ParentServiceType =
+			    IF (
+			        __ParentServiceTypeCount > 0,
+			        "| Service Type: "
+			            & CONCATENATEX ( __ParentServiceType, [AreaParentServiceTypeName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentServiceTypeAreas =
+			    IF (
+			        __ParentServiceTypeCount > 5,
+			        " and " & ( __ParentServiceTypeCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __ParentTeamFunction =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] ),
+			                NOT ( ISBLANK ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] ) )
+			            ),
+			            'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function], ASC
+			        ),
+			        "AreaParentTeamFunction_display", 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function]
+			    )
+			VAR __ParentTeamFunctionCount =
+			    IF (
+			        ISFILTERED ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] ),
+			        COUNTROWS (
+			            VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] )
+			        ),
+			        0
+			    )
+			VAR _FC_ParentTeamFunction =
+			    IF (
+			        __ParentTeamFunctionCount > 0,
+			        "| Team Function: "
+			            & CONCATENATEX ( __ParentTeamFunction, [AreaParentTeamFunction_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentTeamFunctionAreas =
+			    IF (
+			        __ParentTeamFunctionCount > 5,
+			        " and " & ( __ParentTeamFunctionCount - 10 ) & " more",
+			        ""
+			    )
+			RETURN
+			    " Number of active referrals: " & [Number of Referrals]
+			        & UNICHAR ( 10 )
+			        & UNICHAR ( 13 ) & " -- Summary of filters applied to page: " & " " & _FC_ParentAreas & _FC_MoreParentAreas & " " & _FC_ParentRegion & _FC_MoreParentRegionAreas
+			        & UNICHAR ( 10 )
+			        & UNICHAR ( 13 ) & " " & _FC_ParentDistrict & _FC_MoreParentDistrictAreas & " " & _FC_ParentServiceType & _FC_MoreParentServiceTypeAreas & _FC_ParentTeamFunction & _FC_MoreParentTeamFunctionAreas & _FC_Services & _FC_MoreServices
+		displayFolder: MORe Measures
+		lineageTag: 4bfa4cb5-8977-40be-8f73-dbd53ffdd7ee
+
+	measure 'Number of Referral Goals' =
+			
+			SUM ( 'Ref Person Referral to Goals'[total_referral_goals] )
+		formatString: #,0
+		displayFolder: MORe Measures
+		lineageTag: 9913104d-a309-4cbd-b2fe-a4f747dbf2d1
+
+	measure 'Percent Missing PC Goal' =
+			
+			IF (
+			    [Number of Referrals] > 0,
+			    [Person Centred Goals Missing] / [Number of Referrals],
+			    0
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 77db47b3-453d-4f91-8748-100eb16bb938
+
+	measure 'Percent Missing Ref Goal' =
+			
+			IF (
+			    [Number of Referrals] > 0,
+			    [Referral Goals Missing] / [Number of Referrals],
+			    0
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 4014af2b-7af0-43f0-83f9-083602749adc
+
+	measure 'Percent PC Goal within 28 Days' =
+			
+			IF (
+			    [Number of Referrals] > 0,
+			    [Person Centred Goal within 28 Days] / [Number of Referrals],
+			    0
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 8f8ce401-36c8-462c-9de5-444f0b8aced6
+
+	measure 'Percent PC Goals Open' =
+			
+			IF (
+			    [Total Person Centred Goals] > 0,
+			    [Open PC Goals] / [Total Person Centred Goals],
+			    0
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: a8299097-3c23-4c42-9118-2bc674b3af0c
+
+	measure 'Percent Ref G Tangata Whaiora Open' =
+			
+			IF (
+			    [Number of Referral Goals] > 0,
+			    [Open Ref Goals] / [Number of Referral Goals],
+			    0
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 3268056f-8574-4bf6-9381-36ee2a0e5a98
+
+	measure 'Percent Ref G Tangata Whaiora within 48 Hrs' =
+			
+			IF (
+			    [Number of Referrals] > 0,
+			    [Referral Goal within 48 Hours] / [Number of Referrals],
+			    0
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: 7db12b7a-2e5f-4d32-a18c-0e7f9d2da9b7
+
+	measure 'Person Centred Goals Missing' =
+			
+			CALCULATE (
+			    SUM ( 'Ref Person Referral to Goals'[person_centred_goals_missing_flag] )
+			)
+		formatString: 0%;-0%;0%
+		displayFolder: MORe Measures
+		lineageTag: dc4efaa6-ac8a-46d3-9e05-325fbb842c8d
+
+	measure 'Referral Goals Missing' =
+			
+			CALCULATE (
+			    SUM ( 'Ref Person Referral to Goals'[total_referral_goals_missing_flag] )
+			)
+		displayFolder: MORe Measures
+		lineageTag: 948c4df6-1a4b-4487-b96e-6c4d0ff2841b
+
+	measure 'Total Referral Goals' =
+			
+			CALCULATE ( SUM ( 'Ref Person Referral to Goals'[total_referral_goals] ) )
+		displayFolder: MORe Measures
+		lineageTag: eac69cd0-c5b5-4492-b5d0-dd5b21c92ce6
+
+	measure 'Person Centred Goal within 28 Days' =
+			
+			CALCULATE (
+			    SUM ( 'Ref Person Referral to Goals'[person_centred_goal_within_28_days_flag] )
+			)
+		displayFolder: MORe Measures
+		lineageTag: 4cd41682-075e-4712-bda8-c661c846626c
+
+	measure 'Referral Goal within 48 Hours' =
+			
+			SUM ( 'Ref Person Referral to Goals'[referral_goal_within_24_hours_flag] )
+			--==== it should be 48 hrs - not 24.  I want to make it a number as well, so created a new measure
+		displayFolder: MORe Measures
+		lineageTag: 1720c30b-53e3-49da-8b8e-78dc72c6397a
+
+	measure 'TW Hyperlink' =
+			
+			VAR UniqueKey =
+			    MAX ( 'Fact Tangata Whaiora Referral'[Ref Tangata Whaiora Unique KEY] )
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        RIGHT ( UniqueKey, 2 ) = "-1",
+			            "https://emergeaotearoa.wildbamboo.co.nz/person/"
+			                & SELECTEDVALUE ( 'Dim Tangata Whaiora Referral'[Tangata Whaiora ID] ),
+			        RIGHT ( UniqueKey, 2 ) = "-5",
+			            "https://mindandbody.wildbamboo.co.nz/person/"
+			                & SELECTEDVALUE ( 'Dim Tangata Whaiora Referral'[Tangata Whaiora ID] ),
+			        BLANK ()
+			    )
+		displayFolder: MORe Measures
+		lineageTag: a2ad3f3f-b17d-4a12-8288-8f9adb769479
+
+	measure 'Non Missing Percent Gender' =
+			
+			IF (
+			    ISBLANK ( SUM ( 'Ref Tangata Whaiora Latest Flags'[Addition of Missing] ) ),
+			    BLANK (),
+			    1
+			        - (
+			            SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Gender Missing Flag] ) / ( [Number of Tangata Whaiora] )
+			        )
+			)
+		formatString: 0%;-0%;0%
+		lineageTag: 7c153991-9898-4e09-ac34-74a94e8360e3
+
+	measure 'Tangata Whaiora Tooltip' =
+			
+			VAR CurrentRefKey =
+			    SELECTEDVALUE ( 'Fact Tangata Whaiora Referral'[Ref Tangata Whaiora Unique KEY] )
+			VAR CurrentDimKey =
+			    SELECTEDVALUE ( 'Fact Tangata Whaiora Referral'[Dim Tangata Whaiora KEY] )
+			VAR UniqueKey =
+			    CALCULATE (
+			        MAX ( 'Ref Tangata Whaiora Latest Flags'[Ref Tangata Whaiora Unique KEY] ),
+			        'Ref Tangata Whaiora Latest Flags'[Ref Tangata Whaiora Unique KEY] = CurrentRefKey
+			    )
+			VAR ClientName =
+			    CALCULATE (
+			        MAX ( 'Dim Tangata Whaiora'[Tangata Whaiora Display Name] ),
+			        'Dim Tangata Whaiora'[Dim Tangata Whaiora KEY] = CurrentDimKey
+			    )
+			RETURN
+			    ClientName
+		displayFolder: Tangata Whaiora Measures
+		lineageTag: a4c29f2d-9027-439a-8da6-b0e1f123cb36
+
+	measure 'Number of Clients' =
+			
+			DISTINCTCOUNT ( 'Fact Tangata Whaiora Referral'[Ref Tangata Whaiora Unique KEY] )
+		formatString: 0
+		displayFolder: Referral Measures
+		lineageTag: 491ffd02-66d7-4c36-9847-29caea183a24
+
+	measure '%Tangata Whaiora Ethnic Group' =
+			
+			VAR Numerator =
+			    DISTINCTCOUNT ( 'Fact Tangata Whaiora Referral'[Dim Tangata Whaiora KEY Latest] )
+			VAR Denominator =
+			    CALCULATE (
+			        DISTINCTCOUNT ( 'Fact Tangata Whaiora Referral'[Dim Tangata Whaiora KEY Latest] ),
+			        REMOVEFILTERS ( 'Dim Tangata Whaiora'[Latest Tangata Whaiora Ethnicity Group] )
+			    )
+			RETURN
+			    DIVIDE ( numerator, Denominator, 0 )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Tangata Whaiora Measures\Demographics
+		lineageTag: d6923e36-04d5-48eb-b821-51647006c653
+
+	measure '%Tangata Whaiora Gender' =
+			
+			VAR Numerator =
+			    DISTINCTCOUNT ( 'Fact Tangata Whaiora Referral'[Dim Tangata Whaiora KEY Latest] )
+			VAR Denominator =
+			    CALCULATE (
+			        DISTINCTCOUNT ( 'Fact Tangata Whaiora Referral'[Dim Tangata Whaiora KEY Latest] ),
+			        REMOVEFILTERS ( 'Dim Tangata Whaiora'[Latest Tangata Whaiora Gender] )
+			    )
+			RETURN
+			    DIVIDE ( numerator, Denominator, 0 )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Tangata Whaiora Measures\Demographics
+		lineageTag: b147ad95-11e0-4ac7-9c9d-85d3130b4a86
+
+	measure '%Whaiora Māori' =
+			
+			DIVIDE ( [Number of Clients Maori], [Number of Clients (format)] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Tangata Whaiora Measures\Demographics
+		lineageTag: 7e5d5f1e-effd-4209-b521-363e2825b72a
+
+	measure '%Whaiora Pasifika' =
+			
+			DIVIDE ( [Number of Clients Pasifika], [Number of Clients (format)] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Tangata Whaiora Measures\Demographics
+		lineageTag: 6b007903-8662-4c88-b4bf-659398207f65
+
+	measure 'Number of Clients (format)' =
+			
+			[Number of Clients]
+		formatString: #,0
+		displayFolder: Tangata Whaiora Measures\Demographics
+		lineageTag: f0823e4a-281f-440f-a22a-f3bc42256fab
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Number of Clients Maori' =
+			
+			CALCULATE (
+			    [Number of Clients],
+			    'Dim Tangata Whaiora'[Latest Tangata Whaiora Ethnicity Group] = "Maori"
+			)
+		formatString: #,0
+		displayFolder: Tangata Whaiora Measures\Demographics
+		lineageTag: 666fc937-7296-46fa-8eca-aeb8bc945a05
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Number of Clients Maori Prior' =
+			
+			CALCULATE (
+			    [Number of Clients],
+			    'Dim Tangata Whaiora'[Latest Tangata Whaiora Ethnicity Group] = "Maori"
+			)
+		formatString: #,0
+		displayFolder: Tangata Whaiora Measures\Demographics
+		lineageTag: 4252dc4b-42ac-418c-be9d-51418a77f7ee
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Number of Clients Pasifika' =
+			
+			CALCULATE (
+			    [Number of Clients],
+			    'Dim Tangata Whaiora'[Latest Tangata Whaiora Pasifika] = "Pasifika"
+			)
+		formatString: #,0
+		displayFolder: Tangata Whaiora Measures\Demographics
+		lineageTag: 5637f638-1ab5-4a5f-a10e-563d6c71aba1
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Missing Individual CPX' = ```
+			
+			VAR Cheat1 = RELATEDTABLE('Dim Service')
+			Var Cheat2 = left(MAXX(Cheat1,'Dim Service'[Region Code]),2)
+			Return
+			
+			IF (OR(Cheat2 = "HS",Cheat2="TS"),
+			CALCULATE(SUM('Ref Tangata Whaiora Latest Flags'[Addition Of Missing])-SUM('Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Primhd Review Missing Flag])-SUM('Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Legal Status Missing Flag])),
+			CALCULATE(SUM('Ref Tangata Whaiora Latest Flags'[Addition Of Missing]))
+			)
+			
+			
+			```
+		formatString: 0
+		displayFolder: MORe Measures
+		lineageTag: b0b00f14-f08c-49a7-a41d-2f843d0ef233
+
+	measure 'Non Missing Individual CPX' = ```
+			
+			VAR Cheat1 = RELATEDTABLE('Dim Service')
+			Var Cheat2 = left(MAXX(Cheat1,'Dim Service'[Region Code]),2)
+			Return
+			
+			IF (OR(Cheat2 = "HS",Cheat2="TS"),
+			12-CALCULATE(SUM('Ref Tangata Whaiora Latest Flags'[Addition Of Missing])-SUM('Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Primhd Review Missing Flag])-SUM('Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Legal Status Missing Flag])),
+			CALCULATE(SUM('Ref Tangata Whaiora Latest Flags'[Addition Of Missing]))
+			)
+			
+			```
+		formatString: 0
+		displayFolder: MORe Measures
+		lineageTag: 99d9fafd-5fae-4a8d-a52a-7d6ffcda864f
+
+	measure '__Percent Non Missing CPX2' =
+			
+			VAR Cheat3 = [__Missing Individual CPX2]+[__Non Missing Individual CPX2]
+			Return
+			DIVIDE([__Non Missing Individual CPX2],Cheat3)
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: MORe Measures
+		lineageTag: 1c7d3a8d-7ef7-449a-980d-1ca3ab6a1b37
+
+	measure 'PrimHd Review Overdue Format' = ```
+			
+			--====== Creating another measure so that if the PrimHD review is missing, I can take the icon off the visual
+			CALCULATE(sum('Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Primhd Review Overdue Flag]),'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Primhd Review Missing Flag]=0)
+			
+			
+			```
+		formatString: 0
+		displayFolder: MORe Measures
+		lineageTag: e50b5bb3-8906-48d9-9ba6-5f6e416d2194
+
+	measure 'PrimHd Review Current Format' =
+			
+			--====== Creating another measure so that if the PrimHD review is missing, I can take the icon off the visual
+			CALCULATE(sum('Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Primhd Review Current Flag]),'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Primhd Review Missing Flag]=0&&'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Primhd Review Overdue Flag]=0)
+		formatString: 0
+		displayFolder: MORe Measures
+		lineageTag: 511755c4-dac2-4d7d-a3f7-d57d083cc8e4
+
+	measure 'PrimHd Review Due Soon Format' =
+			
+			--====== Creating another measure so that if the PrimHD review is missing, I can take the icon off the visual
+			CALCULATE(sum('Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Primhd Review Due Soon Flag]),'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Primhd Review Missing Flag]=0 &&'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Primhd Review Overdue Flag]=0)
+		formatString: 0
+		displayFolder: MORe Measures
+		lineageTag: d82bc4a0-9e19-4a71-8b18-d0a6e20d4dfc
+
+	measure '__CPX2 Region Group' = ```
+			
+			VAR Cheat1 = RELATEDTABLE('Dim Service')
+			Return
+			LEFT(MAXX(Cheat1,'Dim Service'[Region Code]),2)
+			
+			```
+		displayFolder: MORe Measures
+		isHidden
+		lineageTag: 7f3a9c2e-1b4d-4e6f-8a2c-5d9e6b3f1a70
+
+	measure '__Missing Individual CPX2' = ```
+			
+			Var Cheat2 = [__CPX2 Region Group]
+			Var cheat3 = calculate(sum('Ref Tangata Whaiora Latest Flags'[Addition Of Missing Housing]))
+			Var Cheat4 = calculate(sum('Ref Tangata Whaiora Latest Flags'[Addition Of Missing]))
+			Return
+			
+			IF (Cheat2 in {"HS","TS"},
+			cheat3, Cheat4)
+			
+			```
+		formatString: 0
+		displayFolder: MORe Measures
+		lineageTag: cdef617a-d4c8-48ff-9408-b97f1a81d88d
+
+	measure '__Non Missing Individual CPX2' =
+			
+			Var Cheat2 = [__CPX2 Region Group]
+			Var cheat3 = calculate(sum('Ref Tangata Whaiora Latest Flags'[Addition Of Non Missing Housing]))
+			Var Cheat4 = calculate(sum('Ref Tangata Whaiora Latest Flags'[Addition Of Non Missing]))
+			Return
+			
+			IF (Cheat2 in {"HS","TS"},
+			cheat3, Cheat4)
+		formatString: 0
+		displayFolder: MORe Measures
+		lineageTag: 9ada0c6b-3cbb-4636-90f2-5bb98aa84705
+
+	measure 'Tangata Whaiora Display Name Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME() IN VALUES('Executinve Masking'[User Principal Name]),
+			    "Tangata Whaiora ID: " & FORMAT(SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora ID]), "0"),
+			    SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora Display Name])
+			)
+		displayFolder: Data Masking
+		lineageTag: c20bec7b-5364-4bdd-a7c2-a0b8ecb75f78
+
+	measure 'Tangata Whaiora First Name Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME() IN VALUES('Executinve Masking'[User Principal Name]),
+			    "Tangata Whaiora ID: " & FORMAT(SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora ID]), "0"),
+			    SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora First Name])
+			)
+		displayFolder: Data Masking
+		lineageTag: 2e5c921f-123f-492a-a325-a81d7d98277b
+
+	measure 'Tangata Whaiora Last Name Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME() IN VALUES('Executinve Masking'[User Principal Name]),
+			    "Tangata Whaiora ID: " & FORMAT(SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora ID]), "0"),
+			    SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora Last Name])
+			)
+		displayFolder: Data Masking
+		lineageTag: 2bdf8a6c-e4fe-49b2-83a5-7b11e8446bfb
+
+	measure 'Tangata Whaiora Middle Name Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME() IN VALUES('Executinve Masking'[User Principal Name]),
+			    "Tangata Whaiora ID: " & FORMAT(SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora ID]), "0"),
+			    SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora Middle Name])
+			)
+		displayFolder: Data Masking
+		lineageTag: da7cf869-c5a1-49e9-aa82-ce3e9dbae8db
+
+	measure 'Tangata Whaiora Preferred Name Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME() IN VALUES('Executinve Masking'[User Principal Name]),
+			    "Tangata Whaiora ID: " & FORMAT(SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora ID]), "0"),
+			    SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora Preferred Name])
+			)
+		displayFolder: Data Masking
+		lineageTag: 39cc0e0a-eefa-4e8f-a637-31d73fc73133
+
+	partition 'Measures Table' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+

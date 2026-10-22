@@ -1,0 +1,119 @@
+table edw_unknown_keys
+	lineageTag: 7402fadd-5684-4115-9764-b094e931864c
+
+	measure PercentageUnknownDataBars =
+			
+			DIVIDE(SUM(edw_unknown_keys[KeyCount]),MAX(edw_unknown_keys[TotalRows]))
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: c2ddfd51-9143-4ca9-b61c-6c8a4d15de33
+
+	column SchemaName
+		dataType: string
+		lineageTag: 08f5ebb0-ff1f-4b4b-b188-a05cfea31aac
+		summarizeBy: none
+		sourceColumn: SchemaName
+
+		annotation SummarizationSetBy = Automatic
+
+	column TableName
+		dataType: string
+		lineageTag: ff044e73-6e3f-48e7-9c01-c2a4bab69e19
+		summarizeBy: none
+		sourceColumn: TableName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ColumnName
+		dataType: string
+		lineageTag: e6c535ff-f84a-4989-935c-8e37634fb70a
+		summarizeBy: none
+		sourceColumn: ColumnName
+
+		annotation SummarizationSetBy = Automatic
+
+	column KeyCount
+		dataType: int64
+		formatString: 0
+		lineageTag: 7a4db697-bc46-40a1-8205-575498993a98
+		summarizeBy: sum
+		sourceColumn: KeyCount
+
+		annotation SummarizationSetBy = Automatic
+
+	column Survey_Date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 9857399d-8c21-4b54-b946-1816859169e9
+		summarizeBy: none
+		sourceColumn: Survey_Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column TotalRows
+		dataType: int64
+		formatString: 0
+		lineageTag: ae577c60-67e0-4fd4-823b-1c6211cc1ce7
+		summarizeBy: sum
+		sourceColumn: TotalRows
+
+		annotation SummarizationSetBy = Automatic
+
+	column PercentageUnknown
+		dataType: double
+		formatString: 0%;-0%;0%
+		lineageTag: 68d54750-51ed-4b1a-bace-602f61ae424a
+		summarizeBy: sum
+		sourceColumn: PercentageUnknown
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_percentage_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 48435db3-94e4-4a6e-a69d-6cdddb86266d
+		summarizeBy: none
+		sourceColumn: dim_percentage_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column TableType
+		dataType: string
+		lineageTag: 99c958cb-003c-4676-bec2-7df94af57b28
+		summarizeBy: none
+		sourceColumn: TableType
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'SchemaName Hierarchy'
+		lineageTag: 53338580-d50a-4305-977e-6f5a066e9915
+
+		level Schema
+			lineageTag: 9dbdb256-8b5d-409e-8f97-1ec09f0f5bbe
+			column: SchemaName
+
+		level Table
+			lineageTag: c211c577-6aa0-40ba-962f-0c1f0d1efa77
+			column: TableName
+
+		level Column
+			lineageTag: f46b6166-1287-47a7-b8d7-0591811a58b4
+			column: ColumnName
+
+	partition edw_unknown_keys = m
+		mode: import
+		queryGroup: EDW
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SET NOCOUNT ON;#(lf)DECLARE @TableName NVARCHAR(255);#(lf)DECLARE @ColumnName NVARCHAR(255);#(lf)DECLARE @SQL NVARCHAR(MAX);#(lf)DECLARE @SchemaName NVARCHAR(255);#(lf)DECLARE @ErrorMessage NVARCHAR(4000);#(lf)#(lf)BEGIN TRY#(lf)    -- Create temporary table to store results#(lf)    CREATE TABLE #Results (#(lf)        SchemaName NVARCHAR(255),#(lf)        TableName NVARCHAR(255),#(lf)        ColumnName NVARCHAR(255),#(lf)        KeyCount INT,#(lf)        TotalRows BIGINT,#(lf)        TableType NVARCHAR(10)#(lf)    );#(lf)#(lf)    -- Cursor to iterate through tables and columns#(lf)    DECLARE TableCursor CURSOR FOR#(lf)    SELECT s.name AS SchemaName,#(lf)        t.name AS TableName,#(lf)        c.name AS ColumnName#(lf)    FROM sys.tables t#(lf)    INNER JOIN sys.schemas s ON t.schema_id = s.schema_id#(lf)    INNER JOIN sys.columns c ON t.object_id = c.object_id#(lf)    INNER JOIN sys.types ty ON c.user_type_id = ty.user_type_id#(lf)    WHERE c.name LIKE '%_key'#(lf)        AND ty.name IN ('int', 'bigint', 'smallint', 'tinyint')#(lf)        AND s.name = 'edw';#(lf)#(lf)    OPEN TableCursor;#(lf)    FETCH NEXT FROM TableCursor INTO @SchemaName, @TableName, @ColumnName;#(lf)#(lf)    WHILE @@FETCH_STATUS = 0#(lf)    BEGIN#(lf)        SET @SQL = N'#(lf)            INSERT INTO #Results (SchemaName, TableName, ColumnName, KeyCount, TotalRows, TableType)#(lf)            SELECT #(lf)                @SchemaName, #(lf)                @TableName, #(lf)                @ColumnName, #(lf)                SUM(CASE WHEN ' + QUOTENAME(@ColumnName) + ' = -1 THEN 1 ELSE 0 END),#(lf)                COUNT_BIG(*),#(lf)                CASE #(lf)                    WHEN LEFT(@TableName, 3) = ''dim'' THEN ''Dimension''#(lf)                    WHEN LEFT(@TableName, 4) = ''fact'' THEN ''Fact''#(lf)                    ELSE ''Other''#(lf)                END#(lf)            FROM ' + QUOTENAME(@SchemaName) + '.' + QUOTENAME(@TableName);#(lf)#(lf)        EXEC sp_executesql @SQL, #(lf)            N'@SchemaName NVARCHAR(255), @TableName NVARCHAR(255), @ColumnName NVARCHAR(255)', #(lf)            @SchemaName, @TableName, @ColumnName;#(lf)#(lf)        FETCH NEXT FROM TableCursor INTO @SchemaName, @TableName, @ColumnName;#(lf)    END#(lf)#(lf)    CLOSE TableCursor;#(lf)    DEALLOCATE TableCursor;#(lf)#(lf)    -- Display all results with survey date and table type#(lf)    SELECT #(lf)        SchemaName,#(lf)        TableName,#(lf)        ColumnName,#(lf)        KeyCount,#(lf)        TotalRows,#(lf)        TableType,#(lf)        CONVERT(datetime, SWITCHOFFSET(CONVERT(datetimeoffset, GETDATE()), DATEPART(TZOFFSET,GETDATE() AT TIME ZONE 'New Zealand Standard Time'))) AS Survey_Date#(lf)    FROM #Results#(lf)    ORDER BY SchemaName, TableName, ColumnName;#(lf)#(lf)END TRY#(lf)BEGIN CATCH#(lf)    SELECT @ErrorMessage = ERROR_MESSAGE();#(lf)    RAISERROR (@ErrorMessage, 16, 1);#(lf)END CATCH#(lf)#(lf)-- Clean up#(lf)IF OBJECT_ID('tempdb..#Results') IS NOT NULL#(lf)    DROP TABLE #Results;"]),
+				    #"Added Custom" = Table.AddColumn(Source, "PercentageUnknown", each [KeyCount] / [TotalRows]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Added Custom",{{"PercentageUnknown", Percentage.Type}}),
+				    #"Added Custom1" = Table.AddColumn(#"Changed Type", "dim_percentage_key", each if [PercentageUnknown] > 0 then Number.RoundUp([PercentageUnknown] * 100, 5) else 0),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Added Custom1",{{"dim_percentage_key", Int64.Type}}),
+				    #"Replaced Errors" = Table.ReplaceErrorValues(#"Changed Type1", {{"dim_percentage_key", 0}})
+				in
+				    #"Replaced Errors"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

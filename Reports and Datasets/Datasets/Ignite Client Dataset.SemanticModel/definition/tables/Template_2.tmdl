@@ -1,0 +1,43 @@
+table Template_2
+	lineageTag: 7e6eb29a-0de0-4a8d-a400-62417dc19ce5
+
+	column ID
+		dataType: int64
+		formatString: 0
+		lineageTag: 077fd2f8-b636-4df0-8c96-7a043ee7430e
+		summarizeBy: count
+		sourceColumn: ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Metric
+		dataType: string
+		lineageTag: 4d01282a-2e31-423d-b91f-c31b94eb3cb3
+		summarizeBy: none
+		sourceColumn: Metric
+		sortByColumn: Order
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Order
+		dataType: int64
+		formatString: 0
+		lineageTag: c2acc1f1-7bad-4f6d-a103-79502401a68b
+		summarizeBy: sum
+		sourceColumn: Order
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Template_2-53177210-4ca1-4f8c-9fac-9409492cf6c3 = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("NY+7DsIwDEX/JXMH0ndXKiEYEBJr1SEkRlgqTtWkA3+PbcTkk2PH8p0mY01hrkiBizVzMZmS6RjDh0upomI6uwfmxFCpqkXFN3CpVTRMd1hcxkjphauMNtppmW7e76v2+NGq7phOSI48yGynstctfoP/bK96YLoEoIxZrhpU2oPcCQvCUxbwU63EGfcl75scZ3+RrGQaIxH4DIEg6Q9ON38B", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [ID = _t, Metric = _t, Order = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"ID", Int64.Type}, {"Metric", type text}, {"Order", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

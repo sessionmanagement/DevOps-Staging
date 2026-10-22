@@ -1,0 +1,33 @@
+table DimCompany
+	lineageTag: b3655e19-3e4d-4d79-ad59-2fad47cbb0c3
+
+	column 'Business Entity'
+		dataType: string
+		lineageTag: 26d41e4a-2dbc-489e-98d9-932beb4d85fe
+		summarizeBy: none
+		sourceColumn: Business Entity
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_company_datapay_key
+		dataType: string
+		lineageTag: 166927a9-99d7-49bd-823f-8f9591f13045
+		summarizeBy: none
+		sourceColumn: dim_company_datapay_key
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimCompany-1fd89548-7b29-4646-93c2-da97e9658e9a = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT dim_company_datapay_key,#(lf)company_name AS 'Company Name'#(lf)  FROM edw.vw_dim_company#(lf)  WHERE DWHIsCurrent = 1#(lf)AND dim_company_datapay_key IS NOT NULL"]),
+				    #"Renamed Columns" = Table.RenameColumns(Source,{{"Company Name", "Business Entity"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,94 @@
+table mdl_course
+	lineageTag: 54d12b8f-9778-414c-87f3-3e57990adb17
+
+	column id
+		dataType: int64
+		formatString: 0
+		lineageTag: 8762aff1-e77c-4a12-89dd-99aef9adb69a
+		summarizeBy: none
+		sourceColumn: id
+
+		annotation SummarizationSetBy = Automatic
+
+	column fullname
+		dataType: string
+		lineageTag: 056f2d61-108e-4e04-ba9e-ad24ed546f2e
+		summarizeBy: none
+		sourceColumn: fullname
+
+		annotation SummarizationSetBy = Automatic
+
+	column shortname
+		dataType: string
+		lineageTag: c66c6461-f115-4c11-a468-d366c251596b
+		summarizeBy: none
+		sourceColumn: shortname
+
+		annotation SummarizationSetBy = Automatic
+
+	column idnumber
+		dataType: string
+		lineageTag: 626c9868-d299-4083-970b-0029b2b78fdb
+		summarizeBy: none
+		sourceColumn: idnumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column startdate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 825ca724-5a20-497d-adcd-60393c45250f
+		summarizeBy: none
+		sourceColumn: startdate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column enddate
+		dataType: int64
+		formatString: 0
+		lineageTag: e8500723-9dbf-4570-81d0-d1cb8baec2c9
+		summarizeBy: none
+		sourceColumn: enddate
+
+		annotation SummarizationSetBy = Automatic
+
+	column ArchivedCourse = IF([enddate] = 0, "Current", "Archived")
+		dataType: string
+		lineageTag: 839b7ca7-3cc6-4251-b39b-11dc351f00fa
+		summarizeBy: none
+		isDataTypeInferred
+
+		annotation SummarizationSetBy = Automatic
+
+	partition mdl_course-d7460a37-a2c5-4d5f-a628-0ec7bee8beb5 = m
+		mode: import
+		queryGroup: Akoranga
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT [id] AS [id]#(lf)      ,[category] AS [category]#(lf)      ,[sort_order] AS [sortorder]#(lf)      ,[full_name] AS [fullname]#(lf)      ,[short_name] AS [shortname]#(lf)      ,[id_number] AS [idnumber]#(lf)      ,[summary] AS [summary]#(lf)      ,[summary_format] AS [summaryformat]#(lf)      ,[format] AS [format]#(lf)      ,[show_grades] AS [showgrades]#(lf)      ,[news_items] AS [newsitems]#(lf)      ,[start_date] AS [startdate]#(lf)      ,[end_date] AS [enddate]#(lf)      ,[marker] AS [marker]#(lf)      ,[max_bytes] AS [maxbytes]#(lf)      ,[legacy_files] AS [legacyfiles]#(lf)      ,[show_reports] AS [showreports]#(lf)      ,[visible] AS [visible]#(lf)      ,[visible_old] AS [visibleold]#(lf)      ,[group_mode] AS [groupmode]#(lf)      ,[group_mode_force] AS [groupmodeforce]#(lf)      ,[default_grouping_id] AS [defaultgroupingid]#(lf)      ,[lang] AS [lang]#(lf)      ,[calendar_type] AS [calendartype]#(lf)      ,[theme] AS [theme]#(lf)      ,[time_created] AS [timecreated]#(lf)      ,[time_modified] AS [timemodified]#(lf)      ,[requested] AS [requested]#(lf)      ,[enable_completion] AS [enablecompletion]#(lf)      ,[completion_start_on_enrol] AS [completionstartonenrol]#(lf)      ,[completion_progress_on_view] AS [completionprogressonview]#(lf)      ,[completion_notify] AS [completionnotify]#(lf)      ,[audience_visible] AS [audiencevisible]#(lf)      ,[cache_rev] AS [cacherev]#(lf)      ,[course_type] AS [coursetype]#(lf)      ,[icon] AS [icon]#(lf)      ,[container_type] AS [containertype]#(lf)      ,[due_date] AS [duedate]#(lf)      ,[due_date_offset_unit] AS [duedateoffsetunit]#(lf)      ,[due_date_offset_amount] AS [duedateoffsetamount]#(lf)      ,[ODSIsCurrent] AS [ODSIsCurrent]#(lf)      ,[ODSEffectiveFrom] AS [ODSEffectiveFrom]#(lf)      ,[ODSEffectiveTo] AS [ODSEffectiveTo]#(lf)      ,[ODSDMLOperation] AS [ODSDMLOperation]#(lf)      ,[ODSBatchId] AS [ODSBatchId]#(lf)      ,[ODSSourceSystem] AS [ODSSourceSystem]#(lf)  FROM [Akoranga].[mdl_course]#(lf)  WHERE [ODSIsCurrent] = 1#(lf)  AND [ODSDMLOperation] <> 'D'#(lf)"]),
+				    // Removing unwanted columns
+				    #"Removed Other Columns" = Table.SelectColumns(Source,{"id", "fullname", "shortname", "idnumber", "startdate", "enddate"}),
+				
+				    // Adding custom column for NewStartDate
+				    #"Added Custom" = Table.AddColumn(#"Removed Other Columns", "NewStartDate", each #date(1970, 1, 1) + #duration(0, 0, 0, [startdate] + 46800)),
+				
+				    // Removing old startdate column
+				    #"Removed Columns2" = Table.RemoveColumns(#"Added Custom",{"startdate"}),
+				
+				    // Renaming NewStartDate to startdate
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns2",{{"NewStartDate", "startdate"}}),
+				
+				    // Changing column type for startdate
+				    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns",{{"startdate", type date}}),
+				
+				    // Sorting rows by ID
+				    #"Sorted Rows" = Table.Sort(#"Changed Type",{{"id", Order.Ascending}})
+				in
+				    #"Sorted Rows"
+
+	annotation PBI_QueryRelationships = {"columnCount":5,"keyColumnNames":[],"queryRelationships":[],"columnIdentities":["Section1/mdl_course/akoranga_live mdl_course1.{id,0}","Section1/mdl_course/akoranga_live mdl_course1.{fullname,3}","Section1/mdl_course/akoranga_live mdl_course1.{shortname,4}","Section1/mdl_course/akoranga_live mdl_course1.{idnumber,5}","Section1/mdl_course/Changed Type.{startdate,4}"],"ColumnCount":5,"KeyColumnNames":[],"ColumnIdentities":["Section1/mdl_course/akoranga_live mdl_course1.{id,0}","Section1/mdl_course/akoranga_live mdl_course1.{fullname,3}","Section1/mdl_course/akoranga_live mdl_course1.{shortname,4}","Section1/mdl_course/akoranga_live mdl_course1.{idnumber,5}","Section1/mdl_course/Changed Type.{startdate,4}"],"RelationshipInfo":[]}
+
+	annotation PBI_ResultType = Table
+

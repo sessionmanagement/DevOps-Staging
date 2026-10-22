@@ -1,0 +1,120 @@
+table template_2
+	lineageTag: 02b21bd7-d6c6-4ea0-b3fa-e97cbe1162a2
+
+	measure 'DV - Template2 - Prev Year' =
+			
+			VAR _year = SELECTEDVALUE(dim_date[financial_year_num])-1
+			RETURN
+			CALCULATE(
+			    [DV - Template2],
+			    ALL(dim_date),
+			    dim_date[financial_year_num] = _year
+			)
+		isHidden
+		lineageTag: 8ec538d5-1139-4038-b448-b7e7b16535ae
+
+		changedProperty = IsHidden
+
+	measure 'DV - Template2' = ```
+			
+			    SWITCH(
+			        SELECTEDVALUE(template_2[id]),
+			        1,IF(ISBLANK([Number of Household Members for Tenancies Active in Selected FY]),"No data", FORMAT([Number of Household Members for Tenancies Active in Selected FY],"0,0")),
+			        2,IF(ISBLANK([Average Number of Household Members for Tenancies Active in Selected FY]),"No data", FORMAT([Average Number of Household Members for Tenancies Active in Selected FY],"0.0")),
+			        3,IF(ISBLANK([Number of Tenanted Properties]),"No data", FORMAT([Number of Tenanted Properties],"0,0")),
+			        4,IF(ISBLANK([Number of Untenanted Properties]),"No data", FORMAT([Number of Untenanted Properties],"0,0")),
+			        5,IF(ISBLANK([Average Tenancy Length (All)]),"No data", FORMAT([Average Tenancy Length (All)],"0,0")),
+			        6,IF(ISBLANK([Average Tenancy Length for Tenancies Ended in Selected FY (Days)]),"No data",FORMAT([Average Tenancy Length for Tenancies Ended in Selected FY (Days)],"0,0")),
+			        7,IF(ISBLANK([Average Tenancy Length for Tenancies Started in Selected FY (Days)]),"No data",FORMAT([Average Tenancy Length for Tenancies Started in Selected FY (Days)],"0,0")),
+			        8,IF(ISBLANK([Number of tenancies started in FY]),"No data",FORMAT([Number of tenancies started in FY],"0,0")),
+			        9,IF(ISBLANK([Number of tenancies ended in FY]),"No data",FORMAT([Number of tenancies ended in FY],"0,0"))
+			    )
+			```
+		isHidden
+		lineageTag: 56b5acb9-cd53-423b-9af6-576e3bb7d3cb
+
+		changedProperty = IsHidden
+
+	measure 'Template 2 Difference %' =
+			
+			IFERROR(
+			([DV - Template2 - Prev Year] - [DV - Template2]) / [DV - Template2 - Prev Year]*-1,
+			0)
+		formatString: 0.00%;-0.00%;0.00%
+		isHidden
+		lineageTag: 5fb49cf9-ddf4-4e3f-af06-85098666ae33
+
+		changedProperty = IsHidden
+
+	column id
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: aab7fc87-1bbd-4b03-8286-4d917c7f8001
+		summarizeBy: sum
+		sourceColumn: id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column metric
+		dataType: string
+		lineageTag: a25741d2-6478-4878-b296-b82189a064c6
+		summarizeBy: none
+		sourceColumn: metric
+		sortByColumn: order
+
+		changedProperty = SortByColumn
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column order
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: adc88d0e-d564-4b53-a92e-a45ac8a7529b
+		summarizeBy: sum
+		sourceColumn: order
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column show_hide
+		dataType: string
+		isHidden
+		lineageTag: de54fab2-5024-4411-a5ff-a291e1bb814b
+		summarizeBy: none
+		sourceColumn: show_hide
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column definition
+		dataType: string
+		lineageTag: ac2f66d9-d7db-4dd3-9e84-10353f5788ad
+		summarizeBy: none
+		sourceColumn: definition
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition template_2-1907a1ed-6205-414a-bff2-3b3df7d085d6 = m
+		mode: import
+		queryGroup: helpers
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("7VZNb9pAEP0rI06JhJCa5vPYS5ReemkvEeIw8U7sVe1dtLvG9b/v27UNBkKA9FKpPYHxzJs3b96MmM8nnybTybe6ehFH9pWCGDbBU2FrL4q0IS+lZAHfH58RGaO/F7bBx49Ce3rVee2EPH7yFAoh8w5UfL+B03idaS7pWdjNKMH12YCrS0UvQsEJx2j2xIbEB13hmVSNVzYBNtymT8WBCRAZLwMoqRk9xcKFLVX80ZCTvC7ZlS1lBZscmToUtBS7LIUqu9ImjyTZKLJ1mIJ3Iytx04juZQhUlowNZCQT79lpwBW8EmLgZ9apLv8VzZM1eMkjRXqIXolioEcckNUiHk3pSra7eLQO4VFq6yo0MKUGYfxTEkjFv3RVV/tFQgHUUq865ZmWzi7FhXavmKpd7Pyd2aSWwLXDhOyRSUrIuMxAKWhrZpPFdD65gi++QDTO33ICCIy6Bq1kqatjluKDgP+t9e9Y6/Mbdwp4fXEtfm2oGPmklZxwo0bZiUHBSbJS2IfUB2cBjXblsna/o/i0a7evAaMEYhwmLBVQqimkm8wA9CI5941dbzVWm/dau/54a0qrxKizFMb0gdYS35u442XZjXjYzVJMDssPkwHeheLWXyL25tT93seAG4hjqfQcW+lJ18thRyXtRGeZ2jkxAZtxyG0X0fAWxEhvpYDTENfGOLAcIC67pm9Hh+1tnhuOSW7wkv7GbaS4/TMpDpU4cvzGrohM+mUbubHhtbK4Tx4GO0NTPZPZLrVk7+E6yErjHu3kXeJGYrK4w5mtk92DbRhHLmyE6aS/O1d6H9iFffHvju3OWeKvO/z7xF/7ggkHFKV3kuJSxcZDHEBX+fRp3O+f4VR5S3TE3J/5R/E8ZROVhwNURquHiIcPEzllvyaLxW8=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [id = _t, metric = _t, order = _t, show_hide = _t, definition = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"id", Int64.Type}, {"metric", type text}, {"order", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Exception
+

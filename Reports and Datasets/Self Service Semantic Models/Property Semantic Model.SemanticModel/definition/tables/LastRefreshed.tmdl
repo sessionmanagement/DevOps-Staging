@@ -1,0 +1,33 @@
+/// Single-row helper table used by reports to display the semantic model refresh timestamp in New Zealand time.
+table LastRefreshed
+	lineageTag: 8182a198-788f-4719-b73a-3430106821f8
+
+	/// Data refresh date and time formatted for display.
+	measure RefreshedAt_forDisplay =
+			"Data Last Refreshed: "
+			    & FORMAT (
+			        LASTDATE ( LastRefreshed[Date Last Refreshed] ),
+			        "dd/MM/yyyy - hh:mm AM/PM"
+			    )
+		lineageTag: 9c3dcf06-bd4c-4ed0-8ed3-a1d5dce83ec2
+
+	/// Date and time that the model was refreshed, converted to New Zealand time.
+	column 'Date Last Refreshed'
+		dataType: dateTime
+		formatString: d/mm/yyyy h:nn:ss AM/PM
+		lineageTag: ad4854ae-fe3f-4110-bc97-d610a0ddb0ce
+		summarizeBy: none
+		sourceColumn: Date Last Refreshed
+
+		annotation SummarizationSetBy = Automatic
+
+	partition LastRefreshed = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT DISTINCT#(lf)CONVERT(datetime, SWITCHOFFSET(CONVERT(datetimeoffset, GETDATE()), DATEPART(TZOFFSET, GETDATE() AT TIME ZONE 'New Zealand Standard Time'))) AS [Date Last Refreshed]#(lf)FROM information_schema.columns"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+

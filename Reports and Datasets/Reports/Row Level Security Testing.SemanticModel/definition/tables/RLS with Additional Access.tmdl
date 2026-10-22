@@ -1,0 +1,264 @@
+table 'RLS with Additional Access'
+	lineageTag: da2ffe19-4c4e-4c35-9b79-4d67a05ddf06
+
+	measure 'Count of Services AA' =
+			COALESCE(
+				CALCULATE(
+					DISTINCTCOUNTNOBLANK('RLS with Additional Access'[service_name]),
+					KEEPFILTERS('RLS with Additional Access'[RLS_type] = "Service")
+				),
+				0
+			)
+		formatString: 0
+		lineageTag: 3b7cb851-a778-4900-b9e5-ee8fbd7e7e62
+
+	measure 'Count of Teams AA' =
+			COALESCE(
+				CALCULATE(
+					DISTINCTCOUNTNOBLANK('RLS with Additional Access'[client_team_name]),
+					KEEPFILTERS('RLS with Additional Access'[RLS_type] = "Recordbase")
+				),
+				0
+			)
+		formatString: 0
+		lineageTag: 41818cae-8a3b-4acb-82a7-97617513a135
+
+	column row_level_security_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 952c45c3-7e62-4b6b-bd11-4584f18ff4b9
+		summarizeBy: sum
+		sourceColumn: row_level_security_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column RLS_type
+		dataType: string
+		lineageTag: e1dadac1-6fb0-4308-9596-dd3003a3ca4c
+		summarizeBy: none
+		sourceColumn: RLS_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_employee_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 84b040b4-5f81-4660-b573-68bb457a2554
+		summarizeBy: sum
+		sourceColumn: dim_employee_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column employee_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 56c53c40-eefd-4dc3-bc28-3b750d3d359d
+		summarizeBy: sum
+		sourceColumn: employee_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_company_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 07462fd9-671a-47af-bc22-a3a72815ba9e
+		summarizeBy: sum
+		sourceColumn: dim_company_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_service_key
+		dataType: int64
+		formatString: 0
+		lineageTag: c98e46d5-b814-48e8-8334-8467f1625085
+		summarizeBy: sum
+		sourceColumn: dim_service_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column service_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 4366a6e8-a4b7-4487-9d5d-075bf8a8c096
+		summarizeBy: sum
+		sourceColumn: service_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_property_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 9b6a0b44-0afc-4094-81b6-69576cdde271
+		summarizeBy: sum
+		sourceColumn: dim_property_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column property_id
+		dataType: string
+		lineageTag: 0070608c-d4d5-4e6e-99f3-9410245ccf73
+		summarizeBy: none
+		sourceColumn: property_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_property_tenancy_key
+		dataType: int64
+		formatString: 0
+		lineageTag: bd763cee-ab46-4f96-ad8d-ed518c248db5
+		summarizeBy: sum
+		sourceColumn: dim_property_tenancy_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column property_tenancy_id
+		dataType: string
+		lineageTag: 34e78bc9-c68c-46a2-adca-cd7ec7a38d7e
+		summarizeBy: none
+		sourceColumn: property_tenancy_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_client_team_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 3954cd5d-2cc6-47cf-84c9-5aaa72a4493c
+		summarizeBy: sum
+		sourceColumn: dim_client_team_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column client_team_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 333c0b67-553c-4dd1-8821-7df6169aad6b
+		summarizeBy: sum
+		sourceColumn: client_team_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column employee_level_for_exclusion
+		dataType: int64
+		formatString: 0
+		lineageTag: afca70cf-dee9-4b9e-b7da-506f89a48853
+		summarizeBy: sum
+		sourceColumn: employee_level_for_exclusion
+
+		annotation SummarizationSetBy = Automatic
+
+	column mapped_employee_name
+		dataType: string
+		lineageTag: d6c17a73-1d3d-4c33-b33b-8a2c693edc0a
+		summarizeBy: none
+		sourceColumn: mapped_employee_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column employee_name
+		dataType: string
+		lineageTag: e26a4f9b-a999-486e-84a3-0451adc6e96a
+		summarizeBy: none
+		sourceColumn: employee_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column client_team_name
+		dataType: string
+		lineageTag: a38619a9-3fcd-43e0-a858-37f10cfea336
+		summarizeBy: none
+		sourceColumn: client_team_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column service_name
+		dataType: string
+		lineageTag: f86c6a83-1724-474a-b3d3-24b0465b9b05
+		summarizeBy: none
+		sourceColumn: service_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column property_name
+		dataType: string
+		lineageTag: fc47aab5-76ee-42e5-93f6-f810fed6f150
+		summarizeBy: none
+		sourceColumn: property_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column property_tenancy_tenancy_name
+		dataType: string
+		lineageTag: 8304ae39-84a0-480b-b506-e31e10e7462f
+		summarizeBy: none
+		sourceColumn: property_tenancy_tenancy_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column email2
+		dataType: string
+		lineageTag: ff1e4e95-fe3d-425f-8109-7465c15e46cd
+		summarizeBy: none
+		sourceColumn: email2
+
+		annotation SummarizationSetBy = Automatic
+
+	column email
+		dataType: string
+		lineageTag: fa24b122-5e35-4555-8f83-0cdcd34f54e6
+		summarizeBy: none
+		sourceColumn: email
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'RLS with Additional Access' = m
+		mode: import
+		source =
+				let
+				    // Source tables
+				    RowLevelSecurity = #"RLS Data Table",
+				    AdditionalAccess = #"Additional Access",
+				
+				    // Normalise the owner email (lowercase + trim) so all matching is case-insensitive
+				    BaseNorm = Table.TransformColumns(
+				        RowLevelSecurity, {{"email", each Text.Lower(Text.Trim(_)), type text}}
+				    ),
+				
+				    // 1) Every owner can see their own rows: email2 = own email
+				    OwnRows = Table.AddColumn(BaseNorm, "email2", each [email], type text),
+				
+				    // 2) Delegated access. Additional Access already filters to non-expired, approved grants
+				    //    and lowercases the emails. Normalise again defensively, then keep distinct grant pairs.
+				    Grants = Table.SelectColumns(AdditionalAccess, {"Requester Email", "Person to Impersonate Email"}),
+				    GrantsNorm = Table.TransformColumns(
+				        Grants,
+				        {
+				            {"Requester Email", each Text.Lower(Text.Trim(_)), type text},
+				            {"Person to Impersonate Email", each Text.Lower(Text.Trim(_)), type text}
+				        }
+				    ),
+				    GrantsClean = Table.Distinct(
+				        Table.SelectRows(
+				            GrantsNorm,
+				            each [Requester Email] <> null and [Requester Email] <> ""
+				                and [Person to Impersonate Email] <> null and [Person to Impersonate Email] <> ""
+				        )
+				    ),
+				
+				    // 3) Requester inherits every row owned by the person they may impersonate.
+				    //    Inner join on the (now lowercased) impersonated person = owner email.
+				    Delegated = Table.Join(
+				        GrantsClean, "Person to Impersonate Email", BaseNorm, "email", JoinKind.Inner
+				    ),
+				    DelegatedTagged = Table.AddColumn(Delegated, "email2", each [Requester Email], type text),
+				    DelegatedClean = Table.SelectColumns(DelegatedTagged, Table.ColumnNames(OwnRows)),
+				
+				    // 4) Union own + delegated rows and remove exact duplicates
+				    Combined = Table.Combine({OwnRows, DelegatedClean}),
+				    Result = Table.Distinct(Combined)
+				in
+				    Result
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

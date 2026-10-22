@@ -1,0 +1,164 @@
+table 'Measures Table'
+	lineageTag: 8a31dd62-64ec-48e5-90a1-997ec0676603
+
+	measure 'Total GL Amount' =
+			
+			SUM ( 'General Ledger Table'[GL Amount] )
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		lineageTag: 9dcee175-0e87-4c8d-96a8-10d8f7e2e8b8
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	measure 'Total Budget Amount' =
+			
+			SUM ( 'Budget Table'[Budget Amount] )
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		lineageTag: b505cb08-d304-4cce-b60c-0ebd794e7f41
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	measure 'GL to Budget Variance' =
+			
+			CALCULATE (
+			    [Total Budget Amount] - [Total GL Amount],
+			    KEEPFILTERS ( 'GL Account'[GL Account Category Description] = "Expense" )
+			)
+			    + CALCULATE (
+			        [Total GL Amount] - [Total Budget Amount],
+			        KEEPFILTERS ( 'GL Account'[GL Account Category Description] <> "Expense" )
+			    )
+			/*[Total GL Amount] - [Total Budget Amount]*/
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		lineageTag: d5a3fea3-696e-45b1-bf02-d94cbe36a612
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	measure 'Percent Variance' =
+			
+			DIVIDE ( [GL to Budget Variance], [Total Budget Amount], 0 )
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: c6f37bff-4453-4406-95c0-7cfb61362586
+
+	measure 'Total GL Amount YTD' =
+			
+			TOTALYTD (
+			    SUM ( 'General Ledger Table'[GL Amount] ),
+			    'Date Table'[Calendar Date],
+			    "06/30"
+			)
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		lineageTag: 63d31ba9-0cd2-443b-9c40-80b0906553a7
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	measure 'Total Budget Amount YTD' =
+			
+			TOTALYTD (
+			    SUM ( 'Budget Table'[Budget Amount] ),
+			    'Date Table'[Calendar Date],
+			    "06/30"
+			)
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		lineageTag: 787dcff4-c66c-44b0-a3be-82ef0d12660f
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	measure 'GL to Budget Variance YTD' =
+			
+			CALCULATE (
+			    [Total Budget Amount YTD] - [Total GL Amount YTD],
+			    KEEPFILTERS ( 'GL Account'[GL Account Category Description] = "Expense" )
+			)
+			    + CALCULATE (
+			        [Total GL Amount YTD] - [Total Budget Amount YTD],
+			        KEEPFILTERS ( 'GL Account'[GL Account Category Description] <> "Expense" )
+			    )
+			/*[Total GL Amount YTD] - [Total Budget Amount YTD]*/
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		lineageTag: 6067d140-2090-42fc-984f-4c17513ffcb7
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	measure 'Percent Variance YTD' =
+			
+			DIVIDE ( [GL to Budget Variance YTD], [Total Budget Amount YTD], 0 )
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: e3a905ff-e2b2-4bcf-9231-f1cb756d7469
+
+		changedProperty = IsHidden
+
+	measure 'Total Full Year Budget' =
+			
+			CALCULATE (
+			    SUM ( 'Budget Table'[Budget Amount] ),
+			    FILTER (
+			        ALL ( 'Date Table' ),
+			        'Date Table'[Financial Year] = SELECTEDVALUE ( 'Date Table'[Financial Year] )
+			    )
+			)
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		lineageTag: 5d854664-49d3-423e-ac83-5bcb9e83af5a
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	measure 'Total GL Amount SPLY' =
+			
+			CALCULATE (
+			    [Total GL Amount],
+			    SAMEPERIODLASTYEAR ( 'Date Table'[Calendar Date] )
+			)
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		lineageTag: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	measure 'Total GL Amount YTD SPLY' =
+			
+			CALCULATE (
+			    [Total GL Amount YTD],
+			    SAMEPERIODLASTYEAR ( 'Date Table'[Calendar Date] )
+			)
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		lineageTag: b2c3d4e5-f6a7-8901-bcde-f23456789012
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	measure 'Previous Month Actual' =
+			
+			CALCULATE ( [Total GL Amount], PREVIOUSMONTH ( 'Date Table'[Calendar Date] ) )
+		lineageTag: c1e75267-8f3e-4478-9b8e-a3bd3f2a9a6c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Previous Month Budget' =
+			
+			CALCULATE (
+			    [Total Budget Amount],
+			    PREVIOUSMONTH ( 'Date Table'[Calendar Date] )
+			)
+		lineageTag: caa8e18e-d596-46e5-90a0-e7fac6d879dd
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Measures Table' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,34 @@
+table LastRefreshed
+	lineageTag: c2b6a792-d3ac-4081-a801-911dd70771d1
+
+	measure 'BI and Reporting Team URL' = "https://emergeaotearoaltd.sharepoint.com/sites/ITS2/SitePages/Reporting.aspx"
+		lineageTag: fedaf571-ad58-4183-8bb7-c0a1150f25d8
+
+	measure 'Data Last Refreshed' = "Data Last Refreshed: " & FORMAT(LASTDATE(LastRefreshed[Date Last Refreshed]), "dd/MM/YYYY - hh:mm am/pm")
+		lineageTag: 4055bdda-b9cc-483a-af5b-06a451df4a9a
+
+	measure 'Help Button URL' = "https://ealservicedesk.freshservice.com/support/solutions/articles/75000104496"
+		lineageTag: 5e5f4554-3924-4872-9c21-13d67ca8b16f
+
+	column 'Date Last Refreshed'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 79c20f43-a274-41ff-9f16-94f733121aee
+		summarizeBy: none
+		sourceColumn: Date Last Refreshed
+
+		annotation SummarizationSetBy = Automatic
+
+	partition LastRefreshed = m
+		mode: import
+		queryGroup: 'Common Components'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT DISTINCT#(lf)CONVERT(datetime, SWITCHOFFSET(CONVERT(datetimeoffset, GETDATE()), DATEPART(TZOFFSET,GETDATE() AT TIME ZONE 'New Zealand Standard Time'))) AS [Date Last Refreshed]#(lf)FROM information_schema.columns"])
+				in
+				    Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

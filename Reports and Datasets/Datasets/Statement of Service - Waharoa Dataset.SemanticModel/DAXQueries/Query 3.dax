@@ -1,0 +1,21 @@
+
+  // Find properties with unexpected ownership types in FY 2021
+  EVALUATE
+  CALCULATETABLE(
+      ADDCOLUMNS(
+          SUMMARIZE(
+              PropertyOwnershipDaysByFY,
+              PropertyOwnershipDaysByFY[zav_propertyid],
+              PropertyOwnershipDaysByFY[PropertyAddress],
+              PropertyOwnershipDaysByFY[OwnedOrLeased]
+          ),
+          "Ownership Type", PropertyOwnershipDaysByFY[OwnedOrLeased],
+          "Is Owned?", PropertyOwnershipDaysByFY[OwnedOrLeased] = "Owned",
+          "Is Leased?", PropertyOwnershipDaysByFY[OwnedOrLeased] = "Leased",
+          "Is Management?", PropertyOwnershipDaysByFY[OwnedOrLeased] = "Management"
+      ),
+      PropertyOwnershipDaysByFY[FinancialYear] = 2021,
+      PropertyOwnershipDaysByFY[OwnedOrLeased] <> "Owned",
+      PropertyOwnershipDaysByFY[OwnedOrLeased] <> "Leased",
+      NOT(PropertyOwnershipDaysByFY[OwnedOrLeased] IN {"Owned", "Leased", "Management"})
+  )

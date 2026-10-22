@@ -1,0 +1,120 @@
+table 'Dim Service'
+	lineageTag: 9277859d-b52b-4021-89ec-02a00ed0aa0a
+
+	column 'Dim Service KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 6bcb3734-0b4e-4655-b82d-907af29fcd3b
+		summarizeBy: none
+		sourceColumn: Dim Service KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Name'
+		dataType: string
+		lineageTag: 7b525a7e-0bdd-416e-aa14-e8cf68a7bcb0
+		summarizeBy: none
+		sourceColumn: Service Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Type Name'
+		dataType: string
+		lineageTag: 11c1abc5-b26c-4c18-b2ba-b5934013d962
+		summarizeBy: none
+		sourceColumn: Service Type Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'District Name'
+		dataType: string
+		lineageTag: 88d73734-7b43-45f7-b032-a3654bd9de7a
+		summarizeBy: none
+		sourceColumn: District Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Region Name'
+		dataType: string
+		lineageTag: 04dffd80-e408-474c-9606-5fbf7758351b
+		summarizeBy: none
+		sourceColumn: Region Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Is Current'
+		dataType: int64
+		formatString: 0
+		lineageTag: c7524be0-ed5a-4cd1-b29c-c5461de5a876
+		summarizeBy: sum
+		sourceColumn: DWH Is Current
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company Name'
+		dataType: string
+		lineageTag: fd3a9bf7-b9d6-471e-99fc-cba64fee9cea
+		summarizeBy: none
+		sourceColumn: Company Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company Short Code'
+		dataType: string
+		lineageTag: b689e13c-3588-47bd-9e4b-7a1f143cfdb0
+		summarizeBy: none
+		sourceColumn: Company Short Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Code'
+		dataType: string
+		lineageTag: 3b4300d4-7390-4e1c-8ad2-2ec1cc14c5f1
+		summarizeBy: none
+		sourceColumn: Service Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Department Name'
+		dataType: string
+		lineageTag: e9d3ed63-2e25-4db0-811f-d06384fe099d
+		summarizeBy: none
+		sourceColumn: Department Name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Service' = m
+		mode: import
+		queryGroup: Dim
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)    [dim_service_key],#(lf)    [service_code],#(lf)    [service_name],#(lf)    [service_type_name],#(lf)    [district_name],#(lf)    [region_name],#(lf)    [company_name],#(lf)    [department_name],#(lf)    [DWHIsCurrent]#(lf)FROM [edw].[vw_dim_service]#(lf)WHERE ([DWHDMLOperation] <> 'D');"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				    #"Added Conditional Column" = Table.AddColumn(#"Transformed Column Names", "Company Short Code", each if [Company Name] = "Mind and Body Consultants Ltd" then "MBC" else if [Company Name] = "Emerge Aotearoa Housing Trust" then "EAHT" else if [Company Name] = "Ignite Aotearoa Limited" then "IGN" else "EAL", type text)
+				in
+				    #"Added Conditional Column"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,185 @@
+table 'Dim KPI'
+	lineageTag: 967034d9-5eae-480e-aa64-0beba8f143e1
+
+	column 'Dim KPI Key'
+		dataType: int64
+		formatString: 0
+		lineageTag: 545f9f75-4d15-4325-9161-3a4f63dea6a8
+		summarizeBy: none
+		sourceColumn: Dim KPI Key
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'SFA Rollup Areas.lookupValue'
+		dataType: string
+		lineageTag: f60cf538-a128-4f66-b6d1-bffd21c1b225
+		summarizeBy: none
+		sourceColumn: SFA Rollup Areas.lookupValue
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'SFA Rollup Areas: Strategic Focus Area (SFA)'
+		dataType: string
+		lineageTag: a6ef0315-827f-46be-80f9-f61c9e82e4e3
+		summarizeBy: none
+		sourceColumn: SFA Rollup Areas: Strategic Focus Area (SFA)
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Related KPI outcome.lookupValue'
+		dataType: string
+		lineageTag: b305391c-c52e-4ce1-a714-fdd4145ba853
+		summarizeBy: none
+		sourceColumn: Related KPI outcome.lookupValue
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'What is measured?'
+		dataType: string
+		lineageTag: cd17f316-a075-41c8-b055-568a9506b9f8
+		summarizeBy: none
+		sourceColumn: What is measured?
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Call to action'
+		dataType: string
+		lineageTag: 1c808273-0391-4aa9-827c-aa3b9b78ad9a
+		summarizeBy: none
+		sourceColumn: Call to action
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Specific measure'
+		dataType: string
+		lineageTag: 49714ef8-ed20-4f93-9eee-33a37ccef018
+		summarizeBy: none
+		sourceColumn: Specific measure
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'KPI Target - Green'
+		dataType: string
+		lineageTag: b81aaad2-4d83-45ad-94dc-2937e742eb71
+		summarizeBy: none
+		sourceColumn: KPI Target - Green
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'KPI Target - Amber'
+		dataType: string
+		lineageTag: 6ceb5b78-e7c5-4f46-a7c2-7011ed10b824
+		summarizeBy: none
+		sourceColumn: KPI Target - Amber
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'KPI Target - Rollup - Green'
+		dataType: string
+		lineageTag: a0342fa0-eaed-4a29-b703-744763d9a117
+		summarizeBy: none
+		sourceColumn: KPI Target - Rollup - Green
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'KPI Target - Rollup - Amber'
+		dataType: string
+		lineageTag: 53484232-6959-48a9-b32f-2649f0d41418
+		summarizeBy: none
+		sourceColumn: KPI Target - Rollup - Amber
+
+		annotation SummarizationSetBy = Automatic
+
+	column Status
+		dataType: string
+		lineageTag: 596fe424-eefe-4704-949b-d6e65f191fe7
+		summarizeBy: none
+		sourceColumn: Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Gap analysis status'
+		dataType: string
+		lineageTag: a57f8693-b1e5-4f49-9b79-19faa49942f3
+		summarizeBy: none
+		sourceColumn: Gap analysis status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Gap analysis notes'
+		dataType: string
+		lineageTag: 673d5390-3546-44d0-b36b-003ba37b6c40
+		summarizeBy: none
+		sourceColumn: Gap analysis notes
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'BI Devops Ref'
+		dataType: string
+		lineageTag: 79463347-6fcb-4f37-9be6-172eeafa22bb
+		summarizeBy: none
+		sourceColumn: BI Devops Ref
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'BI Notes'
+		dataType: string
+		lineageTag: 445e998d-82d8-465d-997c-e8511cc04198
+		summarizeBy: none
+		sourceColumn: BI Notes
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'SFA Rollup Area'
+		dataType: string
+		lineageTag: d58a79bc-e64f-4791-8d96-b40b8a7589e9
+		summarizeBy: none
+		sourceColumn: SFA Rollup Area
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Related Outcome'
+		dataType: string
+		lineageTag: 49494ad1-88f6-44bd-8181-d583f8e52b32
+		summarizeBy: none
+		sourceColumn: Related Outcome
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'SFA Rollup Areas: Rollup ID'
+		dataType: string
+		lineageTag: 081573ba-4377-4973-b2ab-500b1964fe24
+		summarizeBy: none
+		sourceColumn: SFA Rollup Areas: Rollup ID
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'SFA Rollup Areas: Strategic Focus Area (SFA) Hierarchy'
+		lineageTag: 16b5a4a3-b67b-4f9f-b35b-02d20cc99604
+
+		level 'Strategic Focus Area'
+			lineageTag: 51873463-3c04-4bdb-bb12-a0d0a9d936fa
+			column: 'SFA Rollup Areas: Strategic Focus Area (SFA)'
+
+		level 'Strategic Focus Rollup Area'
+			lineageTag: faa7b42d-3604-493d-9df2-6ac866d339ec
+			column: 'SFA Rollup Areas.lookupValue'
+
+		level 'What is measured?'
+			lineageTag: f37b082c-8e42-42d7-b1fa-fd3d1126f646
+			column: 'What is measured?'
+
+	partition 'Dim KPI' = m
+		mode: import
+		queryGroup: 'EDW Dim Tables'
+		source =
+				let
+				    Source = #"KPI SharePoint List",
+				    #"Removed Other Columns" = Table.SelectColumns(Source,{"SFA Rollup Areas.lookupValue", "SFA Rollup Areas: Rollup ID", "SFA Rollup Areas: Strategic Focus Area (SFA)", "Related KPI outcome.lookupValue", "What is measured?", "Call to action", "Specific measure", "KPI Target - Green", "KPI Target - Amber", "KPI Target - Rollup - Green", "KPI Target - Rollup - Amber", "Status", "Dim KPI Key", "Gap analysis status", "Gap analysis notes", "BI Devops Ref", "BI Notes", "SFA Rollup Area", "Related Outcome"})
+				in
+				    #"Removed Other Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

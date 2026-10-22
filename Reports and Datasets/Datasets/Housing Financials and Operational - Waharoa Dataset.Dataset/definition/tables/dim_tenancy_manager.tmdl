@@ -1,0 +1,33 @@
+table dim_tenancy_manager
+	lineageTag: 16dcc17a-8932-4701-9ee7-5329db05b452
+
+	column tenancymanagerid
+		dataType: string
+		isHidden
+		lineageTag: 4226395c-261c-4471-b295-28a777ae3335
+		summarizeBy: none
+		sourceColumn: tenancymanagerid
+
+		annotation SummarizationSetBy = Automatic
+
+	column fullname
+		dataType: string
+		isHidden
+		lineageTag: 080e97e9-e0ba-4e93-a2a3-c3a3f795c59a
+		summarizeBy: none
+		sourceColumn: fullname
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_tenancy_manager-1fcce6f9-9257-49f4-abc6-2720ef41d6a9 = m
+		mode: import
+		queryGroup: dimensions
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="WITH RecentSystemUsers AS (#(lf)    SELECT#(lf)        systemuserid,#(lf)        fullname,#(lf)        SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (PARTITION BY systemuserid ORDER BY SinkModifiedOn DESC) AS rn#(lf)    FROM#(lf)        [Zavanti].[vw_systemuser]#(lf))#(lf)SELECT#(lf)    systemuserid,#(lf)    fullname#(lf)FROM#(lf)    RecentSystemUsers#(lf)WHERE#(lf)    rn = 1"]),
+				    #"Renamed Columns" = Table.RenameColumns(Source,{{"systemuserid", "tenancymanagerid"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+

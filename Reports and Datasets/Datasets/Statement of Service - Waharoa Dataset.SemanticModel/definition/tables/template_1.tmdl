@@ -1,0 +1,133 @@
+table template_1
+	lineageTag: 08df5cef-b028-4688-a0c6-d823b6be43a5
+
+	measure 'DV - Template1' = ```
+			
+			    IFERROR(
+			        SWITCH(
+			            SELECTEDVALUE(template_1[id]),
+			            4,IF(ISBLANK([YoY Growth in Housing Portfolio %]),"No data",FORMAT([YoY Growth in Housing Portfolio %],"Percent")),
+			            7,IF(ISBLANK([YoY Growth in Housing Portfolio #]),"No data",FORMAT([YoY Growth in Housing Portfolio #],"0,0")),
+			            5,IF(ISBLANK([Average Age of Housing (Days)]),"No data",FORMAT([Average Age of Housing (Days)],"0.0"))/365,
+			            6,IF(ISBLANK([Average Property Ownership Length (All)]),"No data",FORMAT([Average Property Ownership Length (All)],"0,0"))/365,
+			            8,IF(ISBLANK([Housing Portfolio Count (by Year)]),"No data",FORMAT([Housing Portfolio Count (by Year)],"0,0")),
+			            9,IF(ISBLANK([Number of properties owned in FY]),"No data",FORMAT([Number of properties owned in FY],"0,0")),
+			            10,IF(ISBLANK([Number of properties leased in FY]),"No data",FORMAT([Number of properties leased in FY],"0,0"))
+			        ),
+			        "No Data"
+			    )
+			```
+		isHidden
+		lineageTag: a78170f3-e99c-4d0a-8ed5-35f8952f3486
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'DV - Template1 - Prev Year' =
+			
+			VAR _year = SELECTEDVALUE(dim_date[financial_year_num])-1
+			RETURN
+			IFERROR(
+			    CALCULATE(
+			        [DV - Template1],
+			        ALL(dim_date),
+			        dim_date[financial_year_num] = _year
+			    ),
+			    "No Data"
+			)
+		isHidden
+		lineageTag: d4226d4f-4105-43b8-b74d-4d258af66928
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Template 1 Difference %' = ```
+			
+			IFERROR(
+			    IF(SELECTEDVALUE(template_1[id]) IN {4}, BLANK(),
+			        ([DV - Template1 - Prev Year] - template_1[DV - Template1]) / [DV - Template1 - Prev Year])
+			    * -1,
+			    0
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		isHidden
+		lineageTag: f199e252-0470-45ba-862b-e56d5e2779aa
+
+		changedProperty = IsHidden
+
+	column id
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 550f599e-daed-4100-bc96-df0bf8506ea3
+		summarizeBy: sum
+		sourceColumn: id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column metric
+		dataType: string
+		lineageTag: 1dd38b67-8563-4368-8811-2ac9794066d6
+		summarizeBy: none
+		sourceColumn: metric
+		sortByColumn: order
+
+		changedProperty = SortByColumn
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column order
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 2e79b477-14f9-4cf6-b54b-477ff054d88f
+		summarizeBy: sum
+		sourceColumn: order
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column show_hide
+		dataType: string
+		isHidden
+		lineageTag: e4a594b1-49bc-46d1-a7cf-f7c9d44c1219
+		summarizeBy: none
+		sourceColumn: show_hide
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column definition
+		dataType: string
+		lineageTag: 6085cd18-c1e1-4203-9f3b-b96312ac2005
+		summarizeBy: none
+		sourceColumn: definition
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition template_1-c6d98a50-6661-4b89-ad63-cb2adf21cc2e = m
+		mode: import
+		queryGroup: helpers
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("tZRNb9swDIb/CuGhQAoUQb+7HjN0RU+7LDsEaQ+qTdsCFCmT5Bj+9yNpO10SJ033cQhsK9LLlw9JzefJRXKWTIyBqBcIaoVeFQgGbRFLcDlEtMqmDYwy1YRT2sv7n3SG9Phhq4BZ8nI2Ty5ZZe/h3PnuXWOAWKoIaDPMQFt4nL1pXw5qX31UO0Tl46761aD6NX3O3AwK72pSpjOlq4K2BSydj7kz2sHoBNJSWYqfe7eApcfVmKRZ9I5+30tX02Na6gC5LiqPEGiJ3SA0qDw4st++HQqjAihYok/RRk5W29SjCl1UFuPIms6J1lj83/xGh3+ExtWWsh9I4+vkaQrOmuYUCBOxoSrAiAE6giQo08p7Cs/ZwYijCLr797JUmw54ieNTRVoznFqUZQ7Z7QhoMOVCPWqpnzIwE1q9Id3u6z3l622Cknz0CmOY0j7yv6iMAonLB58T0ftSaROfE1gpU8kuwizuKAxkGNEvtCXcMbD/FuvtcNPxkOyCLSm9V0TbJUsBDNct+yDli/NjMW85om4Skbb9qYe8ozaKzbYx+urQ/7cqsOvdMkzSn5X2FONBRdyoRNvVrd2W/N0xA/lp70B+/tcDaavFK3bDxuLf5Jvpdb753hk8LvcPnbh+z5IdkmxLRhoHirTZ96mzge4331Nn2NCjJ+qKit6tPuiwdEFWpRZhpxhbs5Fv/lmr9WRTw9mG71yqRlZ5RnDIsXC838dxnbSAu/kjcDIENR4HUOzI4A366ea4N3T7V4bexA47evkF", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [id = _t, metric = _t, order = _t, show_hide = _t, definition = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"id", Int64.Type}, {"metric", type text}, {"order", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Exception
+

@@ -1,0 +1,261 @@
+/// Extracted timeline of meaningful status changes for work items. Compares each revision to its predecessor and shows only revisions where Board Column, MoSCoW, Start Date, or Target Date changed. Includes creation event (Rev 1) for every work item.
+table StatusChangeHistory
+	lineageTag: b7565a41-8176-4fcd-814c-5841c1cc5856
+
+	/// Unique identifier of the work item this change belongs to.
+	column WorkItemId
+		lineageTag: cc15792a-5972-4b2f-9e0d-a727e85c9c6d
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [WorkItemId]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Title of the work item at the time of this change.
+	column Title
+		lineageTag: bc663c94-870a-4033-b382-9640e39183c4
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Title]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Type of work item (e.g., Epic, Feature, User Story).
+	column WorkItemType
+		lineageTag: 41a7ddaf-4b52-40b4-a81c-3ac47fc33cca
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [WorkItemType]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Revision number of the work item when this change occurred.
+	column Revision
+		lineageTag: 51997506-ef8f-4b82-a651-6f0b23424d0b
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Revision]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date and time when this change was recorded.
+	column EventDate
+		formatString: dd/MM/yyyy
+		lineageTag: 3783082e-fb71-4922-867d-313f52f7513e
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [EventDate]
+
+		variation Variation
+			isDefault
+			relationship: d5216372-a3ef-419a-a93b-7f01813fe4de
+			defaultHierarchy: LocalDateTable_9035f0eb-83c0-46dc-837c-40d4013cce62.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// MoSCoW priority value after this change.
+	column MoSCoW
+		lineageTag: 6b00b7e3-f5fa-4f78-8288-10bf45c621b4
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [MoSCoW]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// MoSCoW priority value before this change. Blank on the first revision.
+	column PreviousMoSCoW
+		lineageTag: b1d64cc5-bd42-4b24-a4a0-afb6915cb46a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [PreviousMoSCoW]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Scheduled start date after this change.
+	column StartDate
+		formatString: dd/MM/yyyy
+		lineageTag: 295b43d7-6bd8-4bf9-8336-7c928a3db41d
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [StartDate]
+
+		variation Variation
+			isDefault
+			relationship: 38570a19-b171-4685-b683-1a49b9399988
+			defaultHierarchy: LocalDateTable_ee23073e-304a-4af3-92b0-6b2a14cca26b.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Scheduled start date before this change.
+	column PreviousStartDate
+		formatString: dd/MM/yyyy
+		lineageTag: bd1a53e3-3ee8-450e-a7bd-72f34c2bf17a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [PreviousStartDate]
+
+		variation Variation
+			isDefault
+			relationship: 4347f36d-017d-438f-a9d8-56785657eee3
+			defaultHierarchy: LocalDateTable_828ddb63-219a-43fa-9a77-c957c6f516de.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Target completion date after this change.
+	column TargetDate
+		formatString: dd/MM/yyyy
+		lineageTag: a578046d-cf72-4699-b3de-b4a1b6b2cd9a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [TargetDate]
+
+		variation Variation
+			isDefault
+			relationship: 82cf0580-4568-497d-b829-44a3bfbb4ace
+			defaultHierarchy: LocalDateTable_68627915-f573-4745-9de0-849efe8c8c2b.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Target completion date before this change.
+	column PreviousTargetDate
+		formatString: dd/MM/yyyy
+		lineageTag: c5c3a0d5-0c95-42a6-842b-53aa5cda4940
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [PreviousTargetDate]
+
+		variation Variation
+			isDefault
+			relationship: f53c71f1-c4c5-4c49-9f51-e5b0a4af0c42
+			defaultHierarchy: LocalDateTable_a438e725-0955-43f0-9a68-12d3f2d6ea33.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Summary of what changed in this revision (e.g., board column, MoSCoW, dates).
+	column ChangeDescription
+		lineageTag: e6393130-4065-41d8-903b-11f66d144e62
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [ChangeDescription]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Board column value after this change. Looked up from BoardColumnChangeHistory at the revision date.
+	column BoardColumn
+		lineageTag: 40c82308-abbd-43db-ac40-e006a3c2f878
+		isNameInferred
+		sourceColumn: [BoardColumn]
+
+	/// Board column value before this change. Blank on the first revision or if no board column data exists for that date.
+	column PreviousBoardColumn
+		lineageTag: 6e4ca6f4-5142-4d20-8045-3d0056665d57
+		isNameInferred
+		sourceColumn: [PreviousBoardColumn]
+
+	partition StatusChangeHistory = calculated
+		mode: import
+		source =
+				VAR _Revisions =
+				    ADDCOLUMNS(
+				        FILTER(WorkItemRevisions, WorkItemRevisions[State] <> "Removed"),
+				        "CurrBoardColumn",
+				            VAR _id = WorkItemRevisions[WorkItemId]
+				            VAR _dt = DATEVALUE(WorkItemRevisions[ChangedDate])
+				            RETURN CALCULATE(
+				                MAX(BoardColumnChangeHistory[BoardColumn]),
+				                REMOVEFILTERS(),
+				                BoardColumnChangeHistory[WorkItemId] = _id,
+				                BoardColumnChangeHistory[ChangeDate] <= _dt,
+				                TOPN(1,
+				                    FILTER(ALL(BoardColumnChangeHistory),
+				                        BoardColumnChangeHistory[WorkItemId] = _id
+				                        && BoardColumnChangeHistory[ChangeDate] <= _dt),
+				                    BoardColumnChangeHistory[ChangeDate], DESC)
+				            ),
+				        "PrevBoardColumn",
+				            VAR _id = WorkItemRevisions[WorkItemId]
+				            VAR _rev = WorkItemRevisions[Revision]
+				            VAR _prevRevDate = CALCULATE(
+				                MAX(WorkItemRevisions[ChangedDate]),
+				                REMOVEFILTERS(),
+				                WorkItemRevisions[WorkItemId] = _id,
+				                WorkItemRevisions[Revision] = _rev - 1
+				            )
+				            RETURN
+				                IF(NOT ISBLANK(_prevRevDate),
+				                    VAR _prevDt = DATEVALUE(_prevRevDate)
+				                    RETURN CALCULATE(
+				                        MAX(BoardColumnChangeHistory[BoardColumn]),
+				                        REMOVEFILTERS(),
+				                        BoardColumnChangeHistory[WorkItemId] = _id,
+				                        BoardColumnChangeHistory[ChangeDate] <= _prevDt,
+				                        TOPN(1,
+				                            FILTER(ALL(BoardColumnChangeHistory),
+				                                BoardColumnChangeHistory[WorkItemId] = _id
+				                                && BoardColumnChangeHistory[ChangeDate] <= _prevDt),
+				                            BoardColumnChangeHistory[ChangeDate], DESC)
+				                    )
+				                ),
+				        "PrevMoSCoW",
+				            VAR _id = WorkItemRevisions[WorkItemId]
+				            VAR _rev = WorkItemRevisions[Revision]
+				            RETURN CALCULATE(
+				                MAX(WorkItemRevisions[Custom_RPGMoSCoW]),
+				                REMOVEFILTERS(),
+				                WorkItemRevisions[WorkItemId] = _id,
+				                WorkItemRevisions[Revision] = _rev - 1
+				            ),
+				        "PrevStartDate",
+				            VAR _id = WorkItemRevisions[WorkItemId]
+				            VAR _rev = WorkItemRevisions[Revision]
+				            RETURN CALCULATE(
+				                MAX(WorkItemRevisions[StartDate]),
+				                REMOVEFILTERS(),
+				                WorkItemRevisions[WorkItemId] = _id,
+				                WorkItemRevisions[Revision] = _rev - 1
+				            ),
+				        "PrevTargetDate",
+				            VAR _id = WorkItemRevisions[WorkItemId]
+				            VAR _rev = WorkItemRevisions[Revision]
+				            RETURN CALCULATE(
+				                MAX(WorkItemRevisions[TargetDate]),
+				                REMOVEFILTERS(),
+				                WorkItemRevisions[WorkItemId] = _id,
+				                WorkItemRevisions[Revision] = _rev - 1
+				            )
+				    )
+				VAR _Changes =
+				    FILTER(
+				        _Revisions,
+				        [Revision] = 1
+				        || IFERROR([CurrBoardColumn] <> [PrevBoardColumn], TRUE)
+				        || IFERROR([Custom_RPGMoSCoW] <> [PrevMoSCoW], TRUE)
+				        || IFERROR([StartDate] <> [PrevStartDate], TRUE)
+				        || IFERROR([TargetDate] <> [PrevTargetDate], TRUE)
+				    )
+				RETURN
+				    SELECTCOLUMNS(
+				        _Changes,
+				        "WorkItemId", [WorkItemId],
+				        "Title", [Title],
+				        "WorkItemType", [WorkItemType],
+				        "Revision", [Revision],
+				        "EventDate", [ChangedDate],
+				        "BoardColumn", [CurrBoardColumn],
+				        "PreviousBoardColumn", [PrevBoardColumn],
+				        "MoSCoW", [Custom_RPGMoSCoW],
+				        "PreviousMoSCoW", [PrevMoSCoW],
+				        "StartDate", [StartDate],
+				        "PreviousStartDate", [PrevStartDate],
+				        "TargetDate", [TargetDate],
+				        "PreviousTargetDate", [PrevTargetDate],
+				        "ChangeDescription",
+				            VAR _parts =
+				                IF([Revision] = 1, "Created", "")
+				                & IF(IFERROR([CurrBoardColumn] <> [PrevBoardColumn], TRUE) && [Revision] > 1, " | Board Column: " & IF(ISBLANK([PrevBoardColumn]), "(blank)", [PrevBoardColumn]) & " " & UNICHAR(8594) & " " & IF(ISBLANK([CurrBoardColumn]), "(blank)", [CurrBoardColumn]), "")
+				                & IF(IFERROR([Custom_RPGMoSCoW] <> [PrevMoSCoW], TRUE) && [Revision] > 1, " | MoSCoW: " & IF(ISBLANK([PrevMoSCoW]), "(blank)", [PrevMoSCoW]) & " " & UNICHAR(8594) & " " & IF(ISBLANK([Custom_RPGMoSCoW]), "(blank)", [Custom_RPGMoSCoW]), "")
+				                & IF(IFERROR([StartDate] <> [PrevStartDate], TRUE) && [Revision] > 1, " | Start Date set", "")
+				                & IF(IFERROR([TargetDate] <> [PrevTargetDate], TRUE) && [Revision] > 1, " | Target Date set", "")
+				            RETURN TRIM(_parts)
+				    )
+

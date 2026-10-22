@@ -1,0 +1,517 @@
+table 'Core Dataset Measures'
+	lineageTag: 90eae8c9-0ea2-4b3a-ae8e-24b08f9f6b2f
+
+	measure 'Head Count' =
+			
+			CALCULATE (
+			   DISTINCTCOUNT('FactKaimahi'[person_id])
+			    ,'FactKaimahi'[companyStartDate] < TODAY ()
+			)
+		formatString: 0
+		lineageTag: dd7312e0-68c8-4f4a-b4c6-c6b374da3c07
+
+		changedProperty = FormatString
+
+	measure _CurrentStaff = ```
+			
+			VAR Currentdate =
+			    MAX( Dates[Date] )
+			VAR MinDate =
+			    MIN( Dates[Date] )
+			RETURN
+			    CALCULATE(
+			        SUMX(
+			            'FactKaimahi',
+			            IF(
+			                'FactKaimahi'[companyStartDate] <= Currentdate
+			                    && OR(
+			                        'FactKaimahi'[companyEndDate] >= MinDate,
+			                        ISBLANK( 'FactKaimahi'[companyEndDate] )
+			                    ),
+			                1,
+			                BLANK()
+			            )
+			        ),
+			        ALLCROSSFILTERED( Dates )
+			    )
+			
+			```
+		formatString: 0
+		lineageTag: 3e9fc369-e1af-41c3-a9c2-09074bebbf5a
+
+	measure SelectedDate = FORMAT(FIRSTDATE('Dates'[Date]), "dd/MM/YYYY") & " - " & FORMAT(LASTDATE('Dates'[Date]), "dd/MM/YYYY")
+		displayFolder: Filter Notes
+		lineageTag: 639e4d16-b46c-45cd-b86c-fba8e3645bb3
+
+	measure PreviousYearStaff = CALCULATE([_CurrentStaff], SAMEPERIODLASTYEAR(Dates[Date]))
+		formatString: 0
+		lineageTag: e9022133-b0d1-4cb6-906b-575809dd5895
+
+	measure _ActiveStaffEOM = ```
+			
+			VAR Currentdate =
+			    MAX( Dates[Date] )
+			RETURN
+			    CALCULATE(
+			        SUMX(
+			            'FactKaimahi',
+			            IF(
+			                'FactKaimahi'[companyStartDate] <= Currentdate
+			                    && OR(
+			                        'FactKaimahi'[companyEndDate] >= Currentdate,
+			                        ISBLANK( 'FactKaimahi'[companyEndDate] )
+			                    ),
+			                1,
+			                BLANK()
+			            )
+			        ),
+			        ALLCROSSFILTERED( Dates )
+			    )
+			
+			```
+		formatString: 0
+		lineageTag: 1bf7045d-01fe-42df-9b90-bb382739cfd5
+
+	measure _ActiveStaffSOM = ```
+			
+			VAR Currentdate =
+			    MIN( Dates[Date] )
+			RETURN
+			    CALCULATE(
+			        SUMX(
+			            'FactKaimahi',
+			            IF(
+			                'FactKaimahi'[companyStartDate] <= Currentdate
+			                    && OR(
+			                        'FactKaimahi'[companyEndDate] >= Currentdate,
+			                        ISBLANK( 'FactKaimahi'[companyEndDate] )
+			                    ),
+			                1,
+			                BLANK()
+			            )
+			        ),
+			        ALLCROSSFILTERED( Dates )
+			    )
+			
+			```
+		formatString: 0
+		lineageTag: c2d6e32d-4d33-4e7f-bb4b-028a436e3568
+
+	measure 'Attrition Rate' = DIVIDE([_ActiveStaffSOM]+[_ActiveStaffEOM],2,0)
+		lineageTag: 8f6acf50-53be-4659-849a-e2f60e884cd2
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure EndedDuringMonth = [StaffEntering] - [StaffLeaving]
+		formatString: 0
+		lineageTag: 7228939f-3baa-4a33-83bc-bcec1979f6d0
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure _MonthlyAttritionPercentage =
+			
+			DIVIDE(
+			    CALCULATE(
+			        [StaffLeaving]
+			    ),
+			    [Attrition Rate],
+			    0
+			)
+		lineageTag: cae4fa9d-44bd-4268-802e-05b471f465a0
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure TotalJobTitle =
+			
+			CALCULATE(
+			    COUNT( 'FactKaimahi'[Job Title] ),
+			    ALLCROSSFILTERED( Dates )
+			)
+		formatString: 0
+		lineageTag: 0c3548b8-5289-463e-937e-5b40df0f7bda
+
+	measure StaffLeaving = ```
+			
+			CALCULATE (
+			    DISTINCTCOUNT('FactKaimahi'[person_id]),
+			    USERELATIONSHIP ( Dates[Date], 'FactKaimahi'[companyEndDate])
+			   ,FILTER('FactKaimahi', 
+			        'FactKaimahi'[LatestJobRank] = 1
+			        )
+			)
+			```
+		formatString: 0
+		lineageTag: 2f55e095-6c20-4999-9817-f71a289f7799
+
+	measure StaffEntering =
+			
+			CALCULATE (
+			    COUNTA('FactKaimahi'[Kaimahi Name]),
+			    USERELATIONSHIP ( Dates[Date], 'FactKaimahi'[companyStartDate] )
+			)
+		formatString: 0
+		lineageTag: da20af3d-0688-4cda-885f-a1f8a31d878c
+
+	measure StaffLeavingNegative =
+			
+			CALCULATE (
+			   [Head Count],
+			    USERELATIONSHIP ( Dates[Date], 'FactKaimahi'[companyEndDate] ),
+			    FILTER ( 'FactKaimahi', 'FactKaimahi'[companyEndDate] >= MIN ( Dates[Date] ) )
+			) * -1
+		formatString: 0
+		lineageTag: 5e65f2de-7a2e-4b9f-b417-3e7f46f46244
+
+	measure 'Moving 12 month sum' = CALCULATE(sum('FactPeople'[people_id]),DATESINPERIOD(Dates[Date],MAX(Dates[Date]),-12,MONTH))
+		formatString: 0
+		lineageTag: bfd4ec92-81f5-4bcd-a3e5-ea27a09e979f
+
+		changedProperty = FormatString
+
+	measure 'Annual Turnover Rate' =
+			
+			VAR sd =
+			    LASTDATE(
+			        DATEADD(
+			            Dates[Date],
+			            -1,
+			            YEAR
+			        )
+			    )
+			RETURN
+			    CALCULATE(
+			        SUMX(
+			            SUMMARIZE(
+			                'FactKaimahi',
+			                "AnnualAttrition", [_MonthlyAttritionPercentage]
+			            ),
+			            [_MonthlyAttritionPercentage]
+			        ),
+			        FILTER(
+			            ALL( Dates ),
+			            Dates[Date] > sd
+			                && Dates[Date]
+			                    <= MAX( Dates[Date] )
+			        )
+			        --,CROSSFILTER(Dates[Date],'intellihr jobs'[companyStartDate],None),CROSSFILTER(Dates[Date],'intellihr jobs'[companyEndDate],None)
+			    )
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 23d52c19-99eb-4dfd-9e23-df3e3e1b29fe
+
+		changedProperty = FormatString
+
+	measure RefreshedAt_forDisplay = "Date Last Refreshed: " & FORMAT( LASTDATE( 'Last Refreshed Date'[Date Last Refreshed] ), "dd/MM/YYYY" )
+		lineageTag: 04891d79-1145-4e52-a3a3-d8b03ffc2dec
+
+	measure _HeadCount = ```
+			
+			CALCULATE (
+			    COUNTROWS ( 'FactKaimahi' ),
+			    FILTER (
+			        'FactKaimahi',
+			        'FactKaimahi'[companyStartDate] < TODAY ()
+			            --&& 'intellihr jobs'[jobStatus] = "Current Job"
+			            --|| 'intellihr jobs'[jobStatus] = "Ending Job"
+			    ),ALLCROSSFILTERED(Dates)
+			)
+			
+			```
+		formatString: 0
+		lineageTag: ce31a72a-e4f6-45f5-9049-45b9f0ef535b
+
+	measure 'Turnover Weighted Average' = [Head Count] * [_MonthlyAttritionPercentage]/100
+		formatString: 0%;-0%;0%
+		lineageTag: 6f686abc-82bb-45f4-aebb-f357397814b3
+
+		changedProperty = FormatString
+
+	measure AverageTenureYears = CALCULATE(AVERAGE('FactKaimahi'[TenureYears]),ALLCROSSFILTERED(Dates))
+		formatString: 0.00
+		lineageTag: 56687a02-2fff-4c86-924d-de374eaa7815
+
+		changedProperty = FormatString
+
+	measure TotalFTE =
+			
+			CALCULATE(
+			    SUM( 'FactKaimahi'[fte] ),
+			    /*'intellihr jobs'[companyStartDate] < TODAY ()
+			         && 'intellihr jobs'[jobStatus] = "Current Job"
+			         || 'intellihr jobs'[jobStatus] = "Ending Job",*/
+			    ALLCROSSFILTERED( Dates )
+			)
+		lineageTag: 0b18b520-2c0b-4f07-8a85-8cdecbcc4e2f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure AverageAge = CALCULATE(AVERAGE(FactKaimahi[Age]))
+		formatString: 0
+		lineageTag: 5e6684b0-a2a8-4e7b-b12e-3ec69be8057e
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure '% Another' = ```
+			
+			    CALCULATE(
+			        DISTINCTCOUNT( FactKaimahi[person_id] ),
+			        FactKaimahi[Gender] = "Other"
+			            || FactKaimahi[Gender] = "Non-binary"
+			    )
+			        / CALCULATE(
+			            DISTINCTCOUNT(FactKaimahi[person_id] )
+			        ) + 0
+			
+			```
+		displayFolder: Gender Ratios
+		lineageTag: 913bd868-cfce-4a10-a840-2fbc3f007395
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Female' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT( FactKaimahi[person_id] ),
+			    FactKaimahi[Gender] = "Female"
+			)
+			    / CALCULATE(
+			        DISTINCTCOUNT( FactKaimahi[person_id] )
+			    ) + 0
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Gender Ratios
+		lineageTag: b822d984-e0ca-49e6-ba16-3cee42e65021
+
+		changedProperty = FormatString
+
+	measure '% Male' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT( FactKaimahi[person_id] ),
+			    FactKaimahi[Gender] = "Male"
+			)
+			    / CALCULATE(
+			        DISTINCTCOUNT( FactKaimahi[person_id] )
+			    ) + 0
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Gender Ratios
+		lineageTag: f9374485-e961-4d40-948a-9a63cce74c76
+
+		changedProperty = FormatString
+
+	measure '% Undisclosed' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT( 'intellihr jobs'[person_id] ),
+			    'intellihr people'[gender] = "Undisclosed"
+			    ,ALLCROSSFILTERED(Dates)
+			)
+			    / CALCULATE(
+			        DISTINCTCOUNT( 'intellihr jobs'[person_id] )
+			        ,ALLCROSSFILTERED(Dates)
+			    ) + 0
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Gender Ratios
+		lineageTag: 4ca31684-8c26-4083-8dd8-8eeb9de69f8f
+
+		changedProperty = FormatString
+
+	measure TurnoverNote = "All numbers exclude Involuntary, Unpaid/Student and Casual Separations by default and are based around the timeframe set for Company Start Dates and End Dates on the front page ( " & [SelectedDate] & ")"
+		displayFolder: Filter Notes
+		lineageTag: 40a6542c-c12f-4e12-b2aa-123848790cdc
+
+	measure DemographicsNote = "All demographics numbers are based on current kaimahi only and are not affected by the date range ( " & [SelectedDate] & " )"
+		displayFolder: Filter Notes
+		lineageTag: f5119ba2-c420-4c2d-bdf4-3d0cb20ee181
+
+	measure TotalStaffDemographics =
+			
+			CALCULATE (
+			    COUNTROWS ( 'FactKaimahi' )
+			    ,'FactKaimahi'[companyStartDate] < TODAY ()
+			         && 'FactKaimahi'[jobStatus] = "Current Job"
+			         || 'FactKaimahi'[jobStatus] = "Ending Job"
+			    ,ALLCROSSFILTERED(Dates)
+			)
+		formatString: 0
+		lineageTag: 57756a8a-b33e-433d-8c2b-e4f9eec78b85
+
+	measure dummyStaffLeaving =
+			
+			VAR AllStaff = [Head Count]
+			RETURN
+			    AllStaff
+		formatString: 0
+		lineageTag: a147baab-76ed-48b3-86a3-8e1b06a7ff42
+
+	measure StaffLeaving2 = ```
+			
+			CALCULATE (
+			    DISTINCTCOUNT('FactKaimahi'[person_id]),
+			    USERELATIONSHIP ( Dates[Date], 'FactKaimahi'[companyEndDate]),
+			    FILTER('FactKaimahi',
+			    'FactKaimahi'[NewRank] = 1
+			       -- && RELATED('intellihr people'[employmentStatus]) <> "Current Staff"  
+			       -- && 'intellihr jobs'[positionStartDate] > TODAY()
+			    )
+			    
+			)
+			```
+		formatString: 0
+		lineageTag: 8a99f86d-fdd2-4e31-95d0-c95bb4e88848
+
+	measure Location = CALCULATE(FILTER('intellihr jobs', 'intellihr jobs'[location_name]))
+		lineageTag: a73d23c3-78ec-4ec5-a851-992bb77a8efc
+
+	measure 'Average Hourly Female Pay' = ```
+			CALCULATE(AVERAGE(FactKaimahi[HourlyPay]), FactKaimahi[Gender] = "Female")
+			
+			
+			```
+		displayFolder: Gender Pay Gap
+		lineageTag: 31a09ed2-6735-4e7d-80b9-dc1c773cdecb
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Average Hourly Male Pay' = CALCULATE(AVERAGE(FactKaimahi[HourlyPay]), FactKaimahi[Gender] = "Male")
+		displayFolder: Gender Pay Gap
+		lineageTag: 9d4068fe-adad-46bf-8d6f-c8d49f86c049
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Average Gender Pay Gap' = ```
+			
+			// Threshold for how many employees need to count for each Gender for the Pay Gap calculation to matter - i.e if only 1 employee then there's no point and if only 2, grain is too small
+			VAR Threshold = [PayGapThreshold] // How many males are in the selected population
+			VAR TotalMales = [Number of Males]
+			     // How many females are in the selected population
+			VAR TotalFemales = [Number of Females]
+			    // Calculate Gender Pay Gap
+			VAR GenderPayGap =
+			    IF (
+			        // Calculate the Gender Pay gap only if the amount of males or females exceeds the threshold set by the PX team
+			        TotalMales < Threshold
+			            || TotalFemales < Threshold,
+			        0,
+			        ( [Average Hourly Male Pay] - [Average Hourly Female Pay] )
+			            / [Average Hourly Male Pay]
+			    )
+			RETURN
+			    GenderPayGap
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Gender Pay Gap
+		lineageTag: c322b4ac-20ac-48d4-887c-9d5c9be5e459
+
+	measure PayGapThreshold = 5
+		formatString: 0
+		displayFolder: Gender Pay Gap
+		lineageTag: 13eb96ed-2a10-49e1-b364-c26842968ce6
+
+	measure 'Median Gender Pay Gap' = ```
+			
+			// Threshold for how many employees need to count for each Gender for the Pay Gap calculation to matter - i.e if only 1 employee then there's no point and if only 2, grain is too small
+			VAR Threshold = [PayGapThreshold] // How many males are in the selected population
+			VAR TotalMales = [Number of Males]
+			     // How many females are in the selected population
+			VAR TotalFemales = [Number of Females] // Calculate Gender Pay Gap
+			VAR GenderPayGap =
+			    IF (
+			        // Calculate the Gender Pay gap only if the amount of males or females exceeds the threshold set by the PX team
+			        TotalMales < Threshold
+			            || TotalFemales < Threshold,
+			        0,
+			       ( [Median Male Pay Ratio] - [Median Female Pay Ratio])
+			       / [Median Male Pay Ratio]
+			
+			    )
+			RETURN
+			    GenderPayGap
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: fb41e549-1063-4b26-bf5f-a45ec6df2fce
+
+	measure 'Median Female Pay Ratio' = CALCULATE(MEDIAN(FactKaimahi[HourlyPay]), FactKaimahi[Gender] = "Female")
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: cbf98987-fdf9-4c90-9ed7-2ab138bbade7
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure 'Median Male Pay Ratio' = CALCULATE(MEDIAN(FactKaimahi[HourlyPay]), FactKaimahi[Gender] = "Male")
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 19258900-f4c0-45f1-ade2-597ae0d6e64a
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	measure '# of Males' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT( FactKaimahi[person_id] ),
+			    FactKaimahi[Gender] = "Male"
+			)
+		displayFolder: Gender Ratios
+		lineageTag: 7c43ab70-4348-4dc3-a325-006ebff7c7be
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '# of Females' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT( FactKaimahi[person_id] ),
+			    FactKaimahi[Gender] = "Female"
+			)
+		displayFolder: Gender Ratios
+		lineageTag: 85dd17c6-f88f-4ab9-9732-3623a6a4554b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Number of Males' =
+			CALCULATE (
+			        DISTINCTCOUNT(FactKaimahi[person_id]),
+			        FILTER (
+			            'FactKaimahi',
+			            'FactKaimahi'[Gender] = "Male"
+			        )
+			    )
+		formatString: 0
+		lineageTag: b8e4745b-5510-4102-b9c0-aeaee035390c
+
+	measure 'Number of Females' =
+			CALCULATE (
+			        DISTINCTCOUNT(FactKaimahi[person_id]),
+			        FILTER (
+			            'FactKaimahi',
+			            'FactKaimahi'[Gender] = "Female"
+			        )
+			    )
+		formatString: 0
+		lineageTag: 311cfc8f-7fda-445a-a8a6-7719f10abd1d
+
+	measure 'Median Pay Ratio' = CALCULATE(MEDIAN(FactKaimahi[HourlyPay]), FactKaimahi[Gender] = "Female" || FactKaimahi[Gender] = "Male")
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 5e0e8d3a-ef73-4970-8c64-d432df57272d
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	partition 'Core Dataset Measures-8bd62485-053c-4c32-ab40-82e03b126e9f' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [_TotalStaff = _t, asdf = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"_TotalStaff", type text}, {"asdf", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"asdf", "_TotalStaff"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,33 @@
+table 'Last Refreshed'
+	lineageTag: 4019b531-c898-426b-9a44-7f96c989147c
+
+	column 'Date Last Refreshed'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 1cd8f9d0-cd72-46c9-82b2-2b161992b522
+		summarizeBy: none
+		sourceColumn: Date Last Refreshed
+
+		variation Variation
+			isDefault
+			relationship: d776d58e-b4d0-41ed-a9f2-e5578707d7a6
+			defaultHierarchy: LocalDateTable_a744e85e-f557-4d7b-a9d5-bde80d57a23a.'Date Hierarchy'
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Last Refreshed' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(#"Server", #"Database", [Query="SELECT DISTINCT#(lf)CONVERT(datetime, SWITCHOFFSET(CONVERT(datetimeoffset, GETDATE()), DATEPART(TZOFFSET,GETDATE() AT TIME ZONE 'New Zealand Standard Time'))) AS [Date Last Refreshed]#(lf)FROM information_schema.columns"])
+				in
+				    Source
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,66 @@
+table template_3
+	lineageTag: 8d10fcb1-a1c8-43c0-b832-de02f3014b4a
+
+	measure 'DV - Template3' = ```
+			
+			    IFERROR(
+			        SWITCH(
+			            SELECTEDVALUE(template_3[id]),
+			            1, LASTNONBLANK(fact_tenancy[FullAddress],1),
+			            2, LASTNONBLANK(dim_tenancy[name],1),
+			            3, LASTNONBLANK(fact_inspection[zav_name],1),
+			            4, LASTNONBLANK(fact_tenancy[tenancy_manager_name],1),
+			            5, LASTNONBLANK(fact_inspection[zav_inspectedbyname],1),
+			            6, LASTNONBLANK(fact_inspection[zav_inspectiondate],1),
+			            7, CONCATENATE(LASTNONBLANK(dim_inspection_category_type[zav_inspectioncategoryname],1) & " - ", LASTNONBLANK(dim_inspection_category_type[zav_inspectiontypename],1)),
+			            8, LASTNONBLANK(fact_inspection[average_score],1),
+			            9, FORMAT([% undamaged assets],"percent"),
+			            10, FORMAT([% working assets],"percent"),
+			            11, FORMAT([% clean assets],"percent")
+			        ),
+			        "No Data"
+			    )
+			```
+		formatString: 0.0
+		lineageTag: af060814-13e0-43ef-8eff-de203ef47274
+
+		changedProperty = IsHidden
+
+	column id
+		dataType: int64
+		formatString: 0
+		lineageTag: 0fe83038-9e61-4c57-af01-1627430906ab
+		summarizeBy: sum
+		sourceColumn: id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column name
+		dataType: string
+		lineageTag: 8ea34ece-198d-4cd8-b844-f7e5f94bc69e
+		summarizeBy: none
+		sourceColumn: name
+		sortByColumn: id
+
+		changedProperty = SortByColumn
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition template_3 = m
+		mode: import
+		queryGroup: helpers
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("Vc9NC8IwDIDhvxJ63sH5rTfx5M2D4mHsENswhls60iL03xtpYez6PoEkTWNqU5m7+IkkJkDnhEI4m7ZqzFrlQYxsUw7bOcCIjB1Jhp3CjcNENpKDdxnfz7X3DA4jZdgsgXEscFhCTFOBo8LlS6IrIVgvJZ80P9nhqN0BhkCx3F6vlF5ePj13S/j/ex0Iec7tDw==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [id = _t, name = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"id", Int64.Type}, {"name", type text}})
+				in
+				    #"Changed Type"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+

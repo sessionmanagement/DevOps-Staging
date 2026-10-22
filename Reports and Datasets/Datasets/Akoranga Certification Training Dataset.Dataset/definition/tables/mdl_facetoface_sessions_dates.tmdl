@@ -1,0 +1,106 @@
+table mdl_facetoface_sessions_dates
+	lineageTag: 2572cfbd-d068-49f4-9399-461cd89c02d4
+
+	measure Measure
+		lineageTag: c2a90237-39a4-4892-b4ed-66cdd37a23c3
+
+		annotation 43dbc3e8-3a1c-4b6f-9923-b49ff7d6691c = True
+
+	column id
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b724207-3dbf-4152-8837-3f2fc2ad4934
+		summarizeBy: sum
+		sourceColumn: id
+
+		annotation SummarizationSetBy = Automatic
+
+	column sessionid
+		dataType: int64
+		formatString: 0
+		lineageTag: d3f7f314-a0d1-4fca-a6f7-797568683e44
+		summarizeBy: none
+		sourceColumn: sessionid
+
+		annotation SummarizationSetBy = Automatic
+
+	column startdate
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: cc3215cc-78a0-4bd8-8202-024263b0d4ca
+		summarizeBy: none
+		sourceColumn: startdate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column finishdate
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: e0bc2182-c85f-4126-967a-0cc69607f36c
+		summarizeBy: none
+		sourceColumn: finishdate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column sessiontimezone
+		dataType: string
+		lineageTag: 62817fa5-aa50-4658-b83e-8cdd8d294775
+		summarizeBy: none
+		sourceColumn: sessiontimezone
+
+		annotation SummarizationSetBy = Automatic
+
+	partition mdl_facetoface_sessions_dates-99161039-b325-4682-802b-7f073de788be = m
+		mode: import
+		queryGroup: Akoranga
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT [id] AS [id]#(lf)      ,[session_id] AS [sessionid]#(lf)      ,[session_timezone] AS [sessiontimezone]#(lf)      ,[time_start] AS [timestart]#(lf)      ,[time_finish] AS [timefinish]#(lf)      ,[ODSIsCurrent] AS [ODSIsCurrent]#(lf)      ,[ODSEffectiveFrom] AS [ODSEffectiveFrom]#(lf)      ,[ODSEffectiveTo] AS [ODSEffectiveTo]#(lf)      ,[ODSDMLOperation] AS [ODSDMLOperation]#(lf)      ,[ODSBatchId] AS [ODSBatchId]#(lf)      ,[ODSSourceSystem] AS [ODSSourceSystem]#(lf)  FROM [Akoranga].[mdl_facetoface_sessions_dates]#(lf)  WHERE [ODSIsCurrent] = 1#(lf)  AND [ODSDMLOperation] <> 'D'#(lf)"]),
+				    // Adding custom column for startdate
+				    #"Added Custom" = Table.AddColumn(Source, "Custom", each #date(1970, 1, 1) + #duration(0, 0, 0, [timestart] + 46800)),
+				
+				    // Removing timestart column
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Custom",{"timestart"}),
+				
+				    // Renaming custom column to startdate
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"Custom", "startdate"}}),
+				
+				    // Changing column type for startdate
+				    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns",{{"startdate", type date}}),
+				
+				    // Adding custom column for finishdate
+				    #"Added Custom1" = Table.AddColumn(#"Changed Type", "finishdate", each #date(1970, 1, 1) + #duration(0, 0, 0, [timefinish] + 46800)),
+				
+				    // Removing unwanted columns
+				    #"Removed Columns1" = Table.RemoveColumns(#"Added Custom1",{"timefinish", "ODSIsCurrent", "ODSEffectiveFrom", "ODSEffectiveTo", "ODSDMLOperation", "ODSBatchId", "ODSSourceSystem"}),
+				
+				    // Changing column type for finishdate
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Removed Columns1",{{"finishdate", type date}}),
+				
+				    // Sorting rows by ID
+				    #"Sorted Rows" = Table.Sort(#"Changed Type1",{{"id", Order.Ascending}})
+				in
+				    #"Sorted Rows"
+				
+				/*
+				let
+				    Source = PowerBI.Dataflows(null),
+				    #"3c01db72-9e98-4fb4-aa15-55049acf117e" = Source{[workspaceId="3c01db72-9e98-4fb4-aa15-55049acf117e"]}[Data],
+				    #"85c6f243-1766-4790-8734-9df2391a34dd" = #"3c01db72-9e98-4fb4-aa15-55049acf117e"{[dataflowId="85c6f243-1766-4790-8734-9df2391a34dd"]}[Data],
+				    #"totaraem_prod-totara mdl_facetoface_sessions_dates1" = #"85c6f243-1766-4790-8734-9df2391a34dd"{[entity="totaraem_prod-totara mdl_facetoface_sessions_dates"]}[Data]
+				in
+				    #"totaraem_prod-totara mdl_facetoface_sessions_dates1"
+				*/
+
+	annotation PBI_QueryRelationships = {"columnCount":5,"keyColumnNames":[],"queryRelationships":[],"columnIdentities":["Section1/mdl_facetoface_sessions_dates/totaraem_prod-totara mdl_facetoface_sessions_dates1.{id,0}","Section1/mdl_facetoface_sessions_dates/totaraem_prod-totara mdl_facetoface_sessions_dates1.{sessionid,1}","Section1/mdl_facetoface_sessions_dates/totaraem_prod-totara mdl_facetoface_sessions_dates1.{roomid,4}","Section1/mdl_facetoface_sessions_dates/Changed Type.{startdate,4}","Section1/mdl_facetoface_sessions_dates/Changed Type1.{finishdate,4}"],"ColumnCount":5,"KeyColumnNames":[],"ColumnIdentities":["Section1/mdl_facetoface_sessions_dates/totaraem_prod-totara mdl_facetoface_sessions_dates1.{id,0}","Section1/mdl_facetoface_sessions_dates/totaraem_prod-totara mdl_facetoface_sessions_dates1.{sessionid,1}","Section1/mdl_facetoface_sessions_dates/totaraem_prod-totara mdl_facetoface_sessions_dates1.{roomid,4}","Section1/mdl_facetoface_sessions_dates/Changed Type.{startdate,4}","Section1/mdl_facetoface_sessions_dates/Changed Type1.{finishdate,4}"],"RelationshipInfo":[]}
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,71 @@
+table 'Measures Group'
+	lineageTag: 6edf3a50-fa5b-47ec-a472-407207ed128b
+
+	measure 'Staff Count' = DISTINCTCOUNT(mdl_certif_completion_LastCompletions[userid])
+		formatString: #,0
+		lineageTag: 310ac389-3c77-4d81-9f11-657e2f38ecbe
+
+	measure 'Active Certificates' = SUM(mdl_certif_completion_LastCompletions[IsCertificationNotExpired])
+		formatString: #,0
+		lineageTag: 910607d2-0d10-46f0-821e-73118aab0786
+
+	measure '% Staff Certified' = DIVIDE([Active Certificates],[Staff Count],0)
+		formatString: 0%;-0%;0%
+		lineageTag: 2848f8f0-c2a7-404e-bdaa-a12561eb1703
+
+	measure 'Expired Certificates' = SUM(mdl_certif_completion_LastCompletions[IsCertificationExpired])
+		formatString: 0
+		lineageTag: a7c54763-ef4e-400a-9d63-6d4640d254d0
+
+	measure '% Total Staff Certified' = ```
+			
+			VAR _notcomplete = 
+			SUMX ( 
+			    SUMMARIZE (
+			        mdl_certif_completion_LastCompletions,
+			        mdl_certif_completion_LastCompletions[userid],
+			        mdl_certif_completion_LastCompletions[IsCertificationExpired],
+			        "TotalSum", CALCULATE(DISTINCTCOUNT(mdl_certif_completion_LastCompletions[userid]), mdl_certif_completion_LastCompletions[IsCertificationExpired] > 0) 
+			    ), [TotalSum]
+			    
+			)
+			
+			VAR _complete =  [Staff Count] - _notcomplete
+			
+			RETURN
+			 DIVIDE(_complete,[Staff Count])
+			```
+		formatString: 0%;-0%;0%
+		lineageTag: 9ec56916-33e0-4cc7-ac2a-002ca2716b27
+
+	measure 'Certif comp target' = 0.95
+		formatString: 0%;-0%;0%
+		lineageTag: bda70ba0-8e2f-4d6e-bb81-393cef7684f5
+
+	measure '% Staff Certified Overall' =
+			
+			VAR Active_Certificates = SUM(mdl_certif_completion_LastCompletions[IsCertificationNotExpired])
+			VAR Staff_Count = DISTINCTCOUNT(mdl_certif_completion_LastCompletions[userid])
+			VAR Cert_Count = DISTINCTCOUNT(mdl_certif_completion_LastCompletions[certifid])
+			VAR Total_Possible_Certifications = Staff_Count * Cert_Count
+			RETURN
+			DIVIDE(Active_Certificates, Total_Possible_Certifications, 0)
+		formatString: 0%;-0%;0%
+		lineageTag: e6812e04-571c-4a1d-81f6-e0d63afbb0cd
+
+	measure CountRowsBUfilter = COUNTROWS(mdl_user)
+		formatString: 0
+		lineageTag: 32642181-893c-4122-8e94-b50c79fd1740
+
+	partition 'Measures Group-1e0651d7-3e6b-4f8a-a6f2-a225346d5bf9' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+

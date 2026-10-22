@@ -1,0 +1,49 @@
+table 'Dim PRIMHD Review Accommodation Status'
+	lineageTag: 7d80f73b-9f1d-4f13-b607-9c9eefeb379f
+
+	column ParentPRIMHDReviewAccommodationStatusText
+		dataType: string
+		lineageTag: fc5a6421-1658-45e9-b988-5840842f2afd
+		summarizeBy: none
+		sourceColumn: ParentPRIMHDReviewAccommodationStatusText
+
+		annotation SummarizationSetBy = Automatic
+
+	column PRIMHDReviewAccommodationStatusText
+		dataType: string
+		lineageTag: e1d8c571-1bc9-4944-ac7a-c42219e212cb
+		summarizeBy: none
+		sourceColumn: PRIMHDReviewAccommodationStatusText
+
+		annotation SummarizationSetBy = Automatic
+
+	column PRIMHDReviewAccommodationStatusValue
+		dataType: string
+		lineageTag: 385f9aae-df5f-4ecb-8435-9f316353a340
+		summarizeBy: none
+		sourceColumn: PRIMHDReviewAccommodationStatusValue
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim PRIMHD Review Accommodation Status Unique KEY'
+		dataType: string
+		isHidden
+		lineageTag: 877b22a5-a05d-4951-bdbe-baaeb7c568b2
+		summarizeBy: none
+		sourceColumn: Dim PRIMHD Review Accommodation Status Unique KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim PRIMHD Review Accommodation Status' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ods", [Query="SELECT CAST(t1.[PRIMHDReviewAccommodationStatusID] AS nvarchar(20)) + '-1' AS [Dim PRIMHD Review Accommodation Status Unique KEY] #(lf)      ,t2.[PRIMHDReviewAccommodationStatusText] AS [ParentPRIMHDReviewAccommodationStatusText]#(lf)#(tab)  ,t1.[PRIMHDReviewAccommodationStatusText]#(lf)      ,t1.[PRIMHDReviewAccommodationStatusValue]#(lf)  FROM#(lf)  [RBMNB].[dlDimPRIMHDReviewAccommodationStatus] t1#(lf)  LEFT OUTER JOIN #(lf)  [RBEAL].[dlDimPRIMHDReviewAccommodationStatus] t2 ON t1.PRIMHDReviewAccommodationStatusParentId = t2.PRIMHDReviewAccommodationStatusID#(lf)  WHERE t1.[PRIMHDReviewAccommodationStatusIsActive] = 1#(lf)  #(lf)  UNION ALL#(lf)#(lf)  SELECT CAST(t1.[PRIMHDReviewAccommodationStatusID] AS nvarchar(20)) + '-5' AS [PRIMHD Review Accommodation Status Unique KEY] #(lf)      ,t2.[PRIMHDReviewAccommodationStatusText] AS [ParentPRIMHDReviewAccommodationStatusText]#(lf)#(tab)  ,t1.[PRIMHDReviewAccommodationStatusText]#(lf)      ,t1.[PRIMHDReviewAccommodationStatusValue]#(lf)  FROM#(lf)  [RBMNB].[dlDimPRIMHDReviewAccommodationStatus] t1#(lf)  LEFT OUTER JOIN #(lf)  [RBMNB].[dlDimPRIMHDReviewAccommodationStatus] t2 ON t1.PRIMHDReviewAccommodationStatusParentId = t2.PRIMHDReviewAccommodationStatusID#(lf)  WHERE t1.[PRIMHDReviewAccommodationStatusIsActive] = 1"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,34 @@
+table dim_day
+	lineageTag: b7da51f0-2c5e-4a9a-a9d4-c6fbe26e2bb1
+
+	column DayNum
+		dataType: int64
+		formatString: 0
+		lineageTag: 20cbfb73-8371-4d32-85be-8be8a06012e9
+		summarizeBy: none
+		sourceColumn: DayNum
+
+		annotation SummarizationSetBy = Automatic
+
+	column Day
+		dataType: string
+		lineageTag: 47202a59-7b11-4bc9-bc6b-ce05061a552e
+		summarizeBy: none
+		sourceColumn: Day
+		sortByColumn: DayNum
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_day = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WMlTSUQouzUtJrFSK1YlWMgJyffPhXGMgN6Q0tRjGNwHyw1NT8hAipiAVGaVFcAEzoIBbUSaMaw4yP7GktAgsEAsA", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [DayNum = _t, Day = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"DayNum", Int64.Type}, {"Day", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

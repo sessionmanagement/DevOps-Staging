@@ -1,0 +1,36 @@
+table dim_property_status
+	lineageTag: 423fa5b9-024d-45e8-b155-71c7795d9dec
+
+	column statuscode
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 39a2698c-3c52-4053-9a19-0bdbbed9ef8a
+		summarizeBy: none
+		sourceColumn: statuscode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column statuscodename
+		dataType: string
+		lineageTag: 511be108-83f4-474f-976e-abf495b914fb
+		summarizeBy: none
+		sourceColumn: statuscodename
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_property_status-0d3abb71-2ecc-45bc-8fad-7ad786268036 = m
+		mode: import
+		queryGroup: dimensions
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="WITH optionHashTable AS #(lf)(#(lf)    SELECT#(lf)        [OptionSetName],#(lf)        [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', [OptionSetName] + CAST([Option] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_GlobalOptionsetMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        [OptionSetName],#(lf)        [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', [OptionSetName] + CAST([Option] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_OptionsetMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        'statuscodename' AS [OptionSetName],#(lf)        [status] AS [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', 'statuscodename' + CAST([status] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_StatusMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        'statecodename' AS [OptionSetName],#(lf)        [state] AS [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', 'statecodename' + CAST([state] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_StateMetadata]#(lf)),#(lf)RecentZavProperty AS (#(lf)    SELECT#(lf)        statuscode,#(lf)        SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (PARTITION BY statuscode ORDER BY SinkModifiedOn DESC) AS rn#(lf)    FROM#(lf)        [Zavanti].[vw_zav_property]#(lf))#(lf)SELECT DISTINCT#(lf)    rzp.statuscode,#(lf)    oht.LocalizedLabel AS statuscodename#(lf)FROM #(lf)    RecentZavProperty rzp#(lf)LEFT OUTER JOIN #(lf)    optionHashTable oht #(lf)ON #(lf)    oht.optionHash = HASHBYTES('MD5', 'statuscodename' + CAST(rzp.statuscode AS nvarchar(100)) + 'zav_property')#(lf)WHERE#(lf)    rzp.rn = 1#(lf)and statuscode is not null"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

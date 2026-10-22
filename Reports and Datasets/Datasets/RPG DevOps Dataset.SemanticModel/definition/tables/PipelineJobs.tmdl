@@ -1,0 +1,110 @@
+/// Pipeline job definitions that group tasks within a pipeline stage. Source: OData PipelineJobs entity.
+table PipelineJobs
+	lineageTag: a3959fbe-d279-4ab8-bf5f-ad27af4a74f2
+
+	/// Surrogate key linking to the Projects dimension table
+	column ProjectSK
+		dataType: string
+		isHidden
+		lineageTag: 412032e4-ab61-4df2-bb70-291c70645f63
+		summarizeBy: none
+		sourceColumn: ProjectSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key uniquely identifying the pipeline job
+	column PipelineJobSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 75db9bd0-d68e-4b1a-b050-f3427bb60594
+		summarizeBy: none
+		sourceColumn: PipelineJobSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Numeric identifier of the parent pipeline
+	column PipelineId
+		dataType: int64
+		formatString: 0
+		lineageTag: 27901120-497a-45a6-9b71-d614e3ddf028
+		summarizeBy: count
+		sourceColumn: PipelineId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to the Pipelines dimension table
+	column PipelineSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 54b6656c-3324-4073-887a-26191c15b21c
+		summarizeBy: none
+		sourceColumn: PipelineSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Name of the pipeline stage containing this job
+	column StageName
+		dataType: string
+		lineageTag: 89236bab-2668-402c-9f69-03f5f71b2c5a
+		summarizeBy: none
+		sourceColumn: StageName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Short name of the pipeline job
+	column JobName
+		dataType: string
+		lineageTag: 4e7ad664-8abe-4a55-a76e-83a9a99edf02
+		summarizeBy: none
+		sourceColumn: JobName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Fully qualified name of the pipeline job including stage context
+	column FullJobName
+		dataType: string
+		lineageTag: 39013fab-7208-4130-b8ba-4d43a8881348
+		summarizeBy: none
+		sourceColumn: FullJobName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// JSON attributes describing the job execution strategy (e.g., matrix variables)
+	column StrategyAttributes
+		dataType: string
+		lineageTag: 0b34d817-085a-4135-b53e-2b5c8a0add07
+		summarizeBy: none
+		sourceColumn: StrategyAttributes
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unique identifier for the pipeline stage
+	column StageId
+		dataType: string
+		lineageTag: 23270566-6a3f-4363-baae-4fffd4344f77
+		summarizeBy: none
+		sourceColumn: StageId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unique identifier for the pipeline job
+	column JobId
+		dataType: string
+		lineageTag: c0feb4bc-fbea-420a-809b-5a92c351ba82
+		summarizeBy: none
+		sourceColumn: JobId
+
+		annotation SummarizationSetBy = Automatic
+
+	partition PipelineJobs = m
+		mode: import
+		queryGroup: 'DevOps Tables'
+		source =
+				let
+				    Source = OData.Feed("https://analytics.dev.azure.com/EmergeAotearoa/Data%20and%20Analytics/_odata/v3.0-preview/", null, [Implementation="2.0",OmitValues = ODataOmitValues.Nulls,ODataVersion = 4, Headers=[Authorization=fnGetToken()]]),
+				    PipelineJobs_table = Source{[Name="PipelineJobs",Signature="table"]}[Data]
+				in
+				    PipelineJobs_table
+

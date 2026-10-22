@@ -1,0 +1,52 @@
+table fact_position_roster
+	lineageTag: 2b2dc224-a554-4e18-952b-ed458cce86dc
+
+	column position_description
+		dataType: string
+		lineageTag: ff913462-b770-408a-a2e7-25e69ed6c91b
+		summarizeBy: none
+		sourceColumn: position_description
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_service_key
+		dataType: int64
+		formatString: 0
+		lineageTag: beed79b6-4094-4108-ac2a-d91c1d718386
+		summarizeBy: none
+		sourceColumn: dim_service_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column fte_pa
+		dataType: double
+		lineageTag: fdedcf9a-59db-4099-b1d8-c2e90505c9ee
+		summarizeBy: sum
+		sourceColumn: fte_pa
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hours_pw
+		dataType: string
+		lineageTag: 03fd4c60-16a8-4db3-8ccf-a1e681867f3d
+		summarizeBy: none
+		sourceColumn: hours_pw
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_position_roster = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="-- ============================================================#(lf)-- Model:  Payrun Dataset#(lf)-- Table:  fact_position_roster#(lf)-- Source: native query  FROM [edw].[vw_fact_sixdegree_positionroster]#(lf)-- Used columns: 4 (mapped 4, unmapped 0)#(lf)-- Auto-generated from pbi_complete_dump.csv + model M + EDW/ODS schema.#(lf)-- Review before use; verify joins/filters against the model.#(lf)-- ============================================================#(lf)SELECT#(lf)    [position_description],#(lf)    [dim_service_key],#(lf)    [fte_pa],#(lf)    [hours_pw]#(lf)FROM [edw].[vw_fact_sixdegree_positionroster];#(lf)"])
+				in
+				    Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

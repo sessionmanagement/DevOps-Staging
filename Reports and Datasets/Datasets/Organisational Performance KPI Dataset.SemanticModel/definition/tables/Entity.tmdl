@@ -1,0 +1,264 @@
+table Entity
+	lineageTag: 3ba2f185-6ea9-4359-818a-d25058f84e26
+
+	measure EntityRowDepth =
+			
+			MAX ( Entity[Depth] )
+		formatString: 0
+		lineageTag: 156498ac-debd-4c9b-9603-965c750d067d
+
+	measure EntityBrowseDepth = ```
+			
+			    ISINSCOPE ( Entity[Level 1] )
+			    + ISINSCOPE ( Entity[Level 2] )
+			    + ISINSCOPE ( Entity[Level 3] )
+			    + ISINSCOPE ( Entity[Level 4] )
+			    + ISINSCOPE ( Entity[Level 5] )
+			    + ISINSCOPE ( Entity[Level 6] )
+			    + ISINSCOPE ( Entity[Level 7] )
+			```
+		formatString: 0
+		lineageTag: 5ea88af3-454a-4d23-9048-f5349c1070d4
+
+	column EntityPath = PATH ( 'Entity'[EntityKey], 'Entity'[ParentEntityKey] )
+		dataType: string
+		lineageTag: 2087ae2f-c2e1-48cf-8d5a-b4202842508c
+		summarizeBy: none
+		isDataTypeInferred
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Level 1' =
+			
+			VAR LevelNumber = 1
+			VAR LevelKey = PATHITEM ( Entity[EntityPath], LevelNumber, TEXT )
+			VAR LevelName = LOOKUPVALUE ( Entity[EntityName], Entity[EntityKey], LevelKey )
+			VAR Result = LevelName
+			RETURN
+			    Result
+		dataType: string
+		lineageTag: 3e59580b-82a7-4cae-85b4-0d0ad437f0ae
+		summarizeBy: none
+		isDataTypeInferred
+
+		annotation SummarizationSetBy = Automatic
+
+	column EntityName
+		dataType: string
+		lineageTag: 86d382ef-d656-4493-9498-b550d7d85627
+		summarizeBy: none
+		sourceColumn: EntityName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ParentEntityKey
+		dataType: string
+		lineageTag: 5ff75b5d-9d83-463f-b1d9-fb80595bc35e
+		summarizeBy: none
+		sourceColumn: ParentEntityKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column EntityKey
+		dataType: string
+		lineageTag: 7ae41888-d8b7-469d-80f1-1b968b3b314c
+		summarizeBy: none
+		sourceColumn: EntityKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Level 2' =
+			
+			VAR LevelNumber = 2
+			VAR LevelKey = PATHITEM ( Entity[EntityPath], LevelNumber, TEXT )
+			VAR LevelName = LOOKUPVALUE ( Entity[EntityName], Entity[EntityKey], LevelKey )
+			VAR Result = LevelName
+			RETURN
+			    Result
+		dataType: string
+		lineageTag: 182a1bf4-fcb6-4a43-a609-0cd608aa64ab
+		summarizeBy: none
+		isDataTypeInferred
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Level 3' =
+			
+			VAR LevelNumber = 3
+			VAR LevelKey = PATHITEM ( Entity[EntityPath], LevelNumber, TEXT )
+			VAR LevelName = LOOKUPVALUE ( Entity[EntityName], Entity[EntityKey], LevelKey )
+			VAR Result = LevelName
+			RETURN
+			    Result
+		dataType: string
+		lineageTag: 10fb6187-5870-4f29-9fa2-954130389c61
+		summarizeBy: none
+		isDataTypeInferred
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Level 4' =
+			
+			VAR LevelNumber = 4
+			VAR LevelKey = PATHITEM ( Entity[EntityPath], LevelNumber, TEXT )
+			VAR LevelName = LOOKUPVALUE ( Entity[EntityName], Entity[EntityKey], LevelKey )
+			VAR Result = LevelName
+			RETURN
+			    Result
+		dataType: string
+		lineageTag: ad2e21fc-6a63-4090-a803-c9e5f30a8531
+		summarizeBy: none
+		isDataTypeInferred
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Level 5' =
+			
+			VAR LevelNumber = 5
+			VAR LevelKey = PATHITEM ( Entity[EntityPath], LevelNumber, TEXT )
+			VAR LevelName = LOOKUPVALUE ( Entity[EntityName], Entity[EntityKey], LevelKey )
+			VAR Result = LevelName
+			RETURN
+			    Result
+		dataType: string
+		lineageTag: f09d238e-9828-496d-8915-7821eb273890
+		summarizeBy: none
+		isDataTypeInferred
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Level 6' =
+			
+			VAR LevelNumber = 6
+			VAR LevelKey = PATHITEM ( Entity[EntityPath], LevelNumber, TEXT )
+			VAR LevelName = LOOKUPVALUE ( Entity[EntityName], Entity[EntityKey], LevelKey )
+			VAR Result = LevelName
+			RETURN
+			    Result
+		dataType: string
+		lineageTag: a9eb32b6-0d0b-4bc2-a9b5-07070bc13d18
+		summarizeBy: none
+		isDataTypeInferred
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Level 7' =
+			
+			VAR LevelNumber = 7
+			VAR LevelKey = PATHITEM ( Entity[EntityPath], LevelNumber, TEXT )
+			VAR LevelName = LOOKUPVALUE ( Entity[EntityName], Entity[EntityKey], LevelKey )
+			VAR Result = LevelName
+			RETURN
+			    Result
+		dataType: string
+		lineageTag: 0fa505d6-1c31-4b28-95e7-e1c57d149553
+		summarizeBy: none
+		isDataTypeInferred
+
+		annotation SummarizationSetBy = Automatic
+
+	column Depth =
+			
+			PATHLENGTH ( Entity[EntityPath] )
+		dataType: int64
+		formatString: 0
+		lineageTag: 15ef26f2-3f67-490c-aeea-c1b704f8be93
+		summarizeBy: none
+		isDataTypeInferred
+
+		annotation SummarizationSetBy = Automatic
+
+	column Type
+		dataType: string
+		lineageTag: 7800a213-f23c-4618-a508-763ee5f6e78a
+		summarizeBy: none
+		sourceColumn: Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column ServiceKeyForRLS =
+			
+			VAR EntityKeyTrimmed = IF(LEN(Entity[EntityKey]) > 2, MID(Entity[EntityKey], 3, LEN(Entity[EntityKey]) - 2), Entity[EntityKey])
+			VAR ParentEntityKeyTrimmed = IF(LEN(Entity[ParentEntityKey]) > 2, MID(Entity[ParentEntityKey], 3, LEN(Entity[ParentEntityKey]) - 2), Entity[ParentEntityKey])
+			
+			RETURN
+			IFERROR(
+			    IF(
+			        Entity[Type] = "Business Unit" || Entity[ParentEntityKey] = "EAHT",
+			        VALUE(EntityKeyTrimmed),
+			        VALUE(ParentEntityKeyTrimmed)
+			    ),
+			    BLANK()
+			)
+		dataType: double
+		lineageTag: a916482d-6778-42f9-b488-b097d0d10d6a
+		summarizeBy: none
+		isDataTypeInferred
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Service Name' = LOOKUPVALUE('Dim Service'[Service Name], 'Dim Service'[Dim Service KEY], VALUE(Entity[ServiceKeyForRLS]))
+		dataType: string
+		lineageTag: 99721c02-a06b-4ac6-a98e-1638bdb4e2ae
+		summarizeBy: none
+		isDataTypeInferred
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'Business Unit Hierarchy'
+		lineageTag: 596f1715-9b3e-4109-8152-6186dd8146cc
+
+		level 'Level 1'
+			lineageTag: f1e2ec9e-d903-4fa7-b37b-5b43c236277f
+			column: 'Level 1'
+
+		level 'Level 2'
+			lineageTag: 7833d4d6-cfab-406c-87aa-7e11292b50c0
+			column: 'Level 2'
+
+		level 'Level 3'
+			lineageTag: cc5ac963-4d0d-402d-9b9f-9e799799585c
+			column: 'Level 3'
+
+		level 'Level 4'
+			lineageTag: 0b15049c-3a63-4018-8490-55ccbe9f5800
+			column: 'Level 4'
+
+		level 'Level 5'
+			lineageTag: 931e15cb-bb97-41eb-a59d-bd1a995dfd81
+			column: 'Level 5'
+
+		level 'Level 6'
+			lineageTag: d99d46a7-0b5d-478e-8dc2-c9874e6b2ce4
+			column: 'Level 6'
+
+		level 'Level 7'
+			lineageTag: 3f343143-be15-492a-ac2f-cbead29d4c93
+			column: 'Level 7'
+
+	partition Entity = m
+		mode: import
+		queryGroup: 'EDW Dim Tables'
+		source = ```
+				let
+				    Source = Load_Entity_Data,
+				    #"Filtered Rows" = Table.SelectRows(Source, each ([EntityKey] <> null)),
+				    
+				    // Step 3: Create a list of all EntityKey values
+				    EntityKeys = #"Filtered Rows"[EntityKey],
+				    
+				    // Step 4: Filter rows where ParentEntityKey is null OR exists in EntityKeys
+				    #"Filtered ParentEntityKey" = Table.SelectRows(
+				        #"Filtered Rows", 
+				        each ([ParentEntityKey] = null) or List.Contains(EntityKeys, [ParentEntityKey])
+				    )
+				in
+				    #"Filtered ParentEntityKey"
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

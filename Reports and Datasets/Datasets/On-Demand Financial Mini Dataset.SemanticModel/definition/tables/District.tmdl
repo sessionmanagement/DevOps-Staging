@@ -1,0 +1,106 @@
+table District
+	lineageTag: 6330c5f4-76f1-4b7a-bb25-ac1bf79aefd8
+
+	column 'Dim District KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d29202ba-c7dd-481f-abf7-5198279f4dc8
+		summarizeBy: none
+		sourceColumn: Dim District KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'District Dimension Value ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 9294b13f-983d-4da3-bab8-831952fff1e0
+		summarizeBy: none
+		sourceColumn: District Dimension Value ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'District Code'
+		dataType: string
+		lineageTag: 748430ae-978f-4fde-9389-b649506e9fa6
+		summarizeBy: none
+		sourceColumn: District Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'District Name'
+		dataType: string
+		lineageTag: 05594127-ecde-45b0-ad3b-e5fb4abc6c6f
+		summarizeBy: none
+		sourceColumn: District Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'District Company Name'
+		dataType: string
+		lineageTag: 3ce61877-3484-4649-94d8-31ef5cac2a80
+		summarizeBy: none
+		sourceColumn: District Company Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'District Last Modified Date Time'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: bc4095c3-5856-4881-8539-f773e7c8f352
+		summarizeBy: none
+		sourceColumn: District Last Modified Date Time
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Is Current'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 15c4fb90-e5cb-4d4d-8277-068d12bebbd8
+		summarizeBy: none
+		sourceColumn: DWH Is Current
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition District = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database),
+				    dim_district = Source{[Schema = "edw", Item = "vw_dim_district"]}[Data],
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(dim_district, each ApplyNamingConventions(_)),
+				    #"Removed Columns" = Table.RemoveColumns(#"Transformed Column Names",{"DWH Source System", "DWH Dml Operation", "DWH Batch ID", "DWH Effective From", "DWH Effective To"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

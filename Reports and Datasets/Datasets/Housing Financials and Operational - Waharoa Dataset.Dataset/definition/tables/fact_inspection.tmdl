@@ -1,0 +1,131 @@
+table fact_inspection
+	lineageTag: 13e5621f-9454-4680-99fa-476e78250fc6
+
+	column zav_inspectionid
+		dataType: string
+		lineageTag: 4d024341-4a35-4d97-b5b2-b2079d7b45fe
+		summarizeBy: none
+		sourceColumn: zav_inspectionid
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_inspectiondate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 24e03cac-45b8-4412-8d8c-ff0d49297607
+		summarizeBy: none
+		sourceColumn: zav_inspectiondate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column zav_inspectionsummary
+		dataType: string
+		isHidden
+		lineageTag: d292243f-2d23-4679-8d99-3d1bc56ccff6
+		summarizeBy: none
+		sourceColumn: zav_inspectionsummary
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_property
+		dataType: string
+		isHidden
+		lineageTag: 8df69f4d-8087-465c-a704-cc89aedf3b0b
+		summarizeBy: none
+		sourceColumn: zav_property
+
+		annotation SummarizationSetBy = Automatic
+
+	column inspection_category_type_key
+		dataType: string
+		isHidden
+		lineageTag: 46a41a86-459c-4a0a-8cf8-2f7220af04be
+		summarizeBy: none
+		sourceColumn: inspection_category_type_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column average_score
+		dataType: double
+		formatString: 0.0
+		lineageTag: f82101c0-b983-4969-9cdc-49dc95d05f7a
+		summarizeBy: sum
+		sourceColumn: average_score
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_inspectedbyname
+		dataType: string
+		lineageTag: f9af2de0-c111-46d0-8df1-1ae73a87bac0
+		summarizeBy: none
+		sourceColumn: zav_inspectedbyname
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_vacateddate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: a6d238e5-116e-49d1-9534-bd58ad29ddbf
+		summarizeBy: none
+		sourceColumn: zav_vacateddate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column zav_name
+		dataType: string
+		isHidden
+		lineageTag: 2866a38f-fa92-495d-a654-ec97cec3a376
+		summarizeBy: none
+		sourceColumn: zav_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_tenancymanagerid
+		dataType: string
+		isHidden
+		lineageTag: 67bb3d5a-ec9c-4b01-b721-af9aa504350e
+		summarizeBy: none
+		sourceColumn: zav_tenancymanagerid
+
+		annotation SummarizationSetBy = Automatic
+
+	column opportunityid
+		dataType: string
+		isHidden
+		lineageTag: 25f22e79-9f32-4a0c-9d4d-4b81c8e7e088
+		summarizeBy: none
+		sourceColumn: opportunityid
+
+		annotation SummarizationSetBy = Automatic
+
+	column inspection_url =
+			
+			CONCATENATE("https://emergeaotearoa.crm6.dynamics.com/main.aspx?appid=cf3d4408-7345-453c-8775-1e5538c40ddf&forceUCI=1&pagetype=entityrecord&etn=zav_inspection&id=",fact_inspection[zav_inspectionid])
+		isHidden
+		lineageTag: 713d77d8-2108-4857-b8ba-831215a6ea91
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_inspection = m
+		mode: import
+		queryGroup: facts
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="WITH RecentInspections AS (#(lf)    SELECT#(lf)        zav_inspectionid,#(lf)        zav_name,#(lf)        zav_inspectioncategory,#(lf)        zav_inspectiondate,#(lf)        zav_inspectionsummary,#(lf)        zav_inspectiontype,#(lf)        zav_property,#(lf)        zav_inspectedbyname,#(lf)        zav_tenant,#(lf)        SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (PARTITION BY zav_inspectionid ORDER BY SinkModifiedOn DESC) AS rn#(lf)    FROM#(lf)        [Zavanti].[vw_zav_inspection]#(lf)),#(lf)RecentOpportunities AS (#(lf)    SELECT#(lf)        opportunityid,#(lf)        zav_vacateddate,#(lf)        zav_tenancymanagerid,#(lf)        SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (PARTITION BY opportunityid ORDER BY SinkModifiedOn DESC) AS rn#(lf)    FROM#(lf)        [Zavanti].[vw_opportunity]#(lf))#(lf)SELECT#(lf)    ri.zav_inspectionid,#(lf)    ri.zav_name,#(lf)    ri.zav_inspectioncategory,#(lf)    ri.zav_inspectiondate,#(lf)    ri.zav_inspectionsummary,#(lf)    ri.zav_inspectiontype,#(lf)    ri.zav_property,#(lf)    ri.zav_inspectedbyname,#(lf)    ro.opportunityid,#(lf)    ro.zav_vacateddate,#(lf)    ro.zav_tenancymanagerid#(lf)FROM #(lf)    RecentInspections ri#(lf)LEFT OUTER JOIN #(lf)    RecentOpportunities ro ON ri.zav_tenant = ro.opportunityid#(lf)WHERE#(lf)    ri.rn = 1 AND ro.rn = 1"]),
+				    #"Changed Type1" = Table.TransformColumnTypes(Source,{{"zav_vacateddate", type date}}),
+				    #"Added Custom" = Table.AddColumn(#"Changed Type1", "inspection_category_type_key", each Text.Combine({Text.From([zav_inspectioncategory], "en-NZ"), ":", Text.From([zav_inspectiontype], "en-NZ")})),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Custom",{"zav_inspectioncategory", "zav_inspectiontype"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Removed Columns",{{"zav_inspectiondate", type date}}),
+				    #"Merged Queries" = Table.NestedJoin(#"Changed Type", {"zav_inspectionid"}, work_inspection_avg_score, {"zav_inspectionid"}, "work_inspection_avg_score", JoinKind.LeftOuter),
+				    #"Expanded work_inspection_avg_score" = Table.ExpandTableColumn(#"Merged Queries", "work_inspection_avg_score", {"average_score"}, {"average_score"})
+				in
+				    #"Expanded work_inspection_avg_score"
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,85 @@
+/// Source code repository branches used in pipelines and version control. Source: OData Branches entity.
+table Branches
+	lineageTag: 74761050-9bd0-4162-b9f5-551493a1adde
+
+	/// Surrogate key linking to Projects dimension
+	column ProjectSK
+		dataType: string
+		lineageTag: 0e2edc72-a457-4768-8373-890fbe0d9f13
+		summarizeBy: none
+		sourceColumn: ProjectSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key uniquely identifying this branch
+	column BranchSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 05efb845-b280-41ab-ae03-af3d10a97a71
+		summarizeBy: none
+		sourceColumn: BranchSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unique identifier of the repository
+	column RepositoryId
+		dataType: string
+		lineageTag: ede487a7-f649-4d7b-a601-b88f52f92b95
+		summarizeBy: none
+		sourceColumn: RepositoryId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Name of the branch (e.g., refs/heads/main)
+	column BranchName
+		dataType: string
+		lineageTag: 4a84c863-0d0b-4ba7-a66d-141ffa9595e8
+		summarizeBy: none
+		sourceColumn: BranchName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Azure DevOps internal ID for the repository
+	column RepositoryVstsId
+		dataType: string
+		lineageTag: a961794b-8258-42d5-8459-6375b2a37716
+		summarizeBy: none
+		sourceColumn: RepositoryVstsId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Timestamp when this record was last updated in the Analytics service
+	column AnalyticsUpdatedDate
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: f3f4a31d-12b5-43fb-b5c2-363a968f466d
+		summarizeBy: none
+		sourceColumn: AnalyticsUpdatedDate
+
+		variation Variation
+			isDefault
+			relationship: de8ae9cb-cc14-4473-9498-89a826bb8155
+			defaultHierarchy: LocalDateTable_daaa515b-0f74-4dbd-9445-08a9a469df53.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// URL of the source repository
+	column RepositoryUrl
+		dataType: string
+		lineageTag: cdf0c6a6-35ed-4856-a9e8-4b19931aa1f5
+		summarizeBy: none
+		sourceColumn: RepositoryUrl
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Branches = m
+		mode: import
+		queryGroup: 'DevOps Tables'
+		source =
+				let
+				    Source = OData.Feed("https://analytics.dev.azure.com/EmergeAotearoa/Data%20and%20Analytics/_odata/v3.0-preview/", null, [Implementation="2.0",OmitValues = ODataOmitValues.Nulls,ODataVersion = 4, Headers=[Authorization=fnGetToken()]]),
+				    Branches_table = Source{[Name="Branches",Signature="table"]}[Data]
+				in
+				    Branches_table
+

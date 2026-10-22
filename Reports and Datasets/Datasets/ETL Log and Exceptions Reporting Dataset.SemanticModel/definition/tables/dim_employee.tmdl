@@ -1,0 +1,165 @@
+table dim_employee
+	lineageTag: 1730dbd5-c961-43eb-802a-dcf9cac070d0
+
+	column intelli_employee_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b2b54f4-b1d4-41bf-a774-48a95dffce59
+		summarizeBy: none
+		sourceColumn: intelli_employee_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column intelli_employee_employment_status
+		dataType: string
+		lineageTag: 569a0c2e-9c78-4b53-a3ff-bdbb7df0e7a7
+		summarizeBy: none
+		sourceColumn: intelli_employee_employment_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column intelli_employee_company_name
+		dataType: string
+		lineageTag: e41ce77c-7cd0-4318-b115-3431fb95a226
+		summarizeBy: none
+		sourceColumn: intelli_employee_company_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column intelli_employee_job_name
+		dataType: string
+		lineageTag: dc84b971-db5f-4e18-bcf3-bb07099f43e6
+		summarizeBy: none
+		sourceColumn: intelli_employee_job_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column intelli_CleanEmployeeName
+		dataType: string
+		lineageTag: a93e601e-f212-42df-932f-7d411f940358
+		summarizeBy: none
+		sourceColumn: intelli_CleanEmployeeName
+
+		annotation SummarizationSetBy = Automatic
+
+	column intelli_employee_people_manager_id
+		dataType: string
+		lineageTag: a6ac65b2-e99a-4f3c-abc8-a49d4bc8ece4
+		summarizeBy: none
+		sourceColumn: intelli_employee_people_manager_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column intelli_CleanPeopleManagerName
+		dataType: string
+		lineageTag: e919e007-0477-4db1-b825-9a14d2328907
+		summarizeBy: none
+		sourceColumn: intelli_CleanPeopleManagerName
+
+		annotation SummarizationSetBy = Automatic
+
+	column intelli_1up_CleanPeopleManagerName
+		dataType: string
+		lineageTag: 8956b277-a0f3-4d70-aa76-ac2472082bf2
+		summarizeBy: none
+		sourceColumn: intelli_1up_CleanPeopleManagerName
+
+		annotation SummarizationSetBy = Automatic
+
+	column intelli_1up_employee_people_manager_id
+		dataType: string
+		lineageTag: c8780637-3fac-4f8c-a7ff-5cff637c23d2
+		summarizeBy: none
+		sourceColumn: intelli_1up_employee_people_manager_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column intelli_business_unit_name
+		dataType: string
+		lineageTag: f8e9c7cf-c745-471a-94a9-698034977012
+		summarizeBy: none
+		sourceColumn: intelli_business_unit_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column intelli_employee_work_type
+		dataType: string
+		lineageTag: 335bda2f-cb3a-4305-99ba-9e1262965d05
+		summarizeBy: none
+		sourceColumn: intelli_employee_work_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_employee_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 2410fadc-789a-45f4-bd80-5eabf51653e8
+		summarizeBy: none
+		sourceColumn: dim_employee_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column employee_emergency_contact_name
+		dataType: string
+		lineageTag: ee9c4f3d-d1b0-43e7-8631-b3dfd864e897
+		summarizeBy: none
+		sourceColumn: employee_emergency_contact_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column employee_next_of_whanau_phone
+		dataType: string
+		lineageTag: 04aeed1f-8fe4-485a-84d6-0ed686fdb2ca
+		summarizeBy: none
+		sourceColumn: employee_next_of_whanau_phone
+
+		annotation SummarizationSetBy = Automatic
+
+	column employee_next_of_whanau_email
+		dataType: string
+		lineageTag: 387b665a-8cfc-47bc-af57-42ebfab83ce9
+		summarizeBy: none
+		sourceColumn: employee_next_of_whanau_email
+
+		annotation SummarizationSetBy = Automatic
+
+	column employee_next_of_whanau_relationship
+		dataType: string
+		lineageTag: ce702d2d-6946-46cd-a82f-8175df06de22
+		summarizeBy: none
+		sourceColumn: employee_next_of_whanau_relationship
+
+		annotation SummarizationSetBy = Automatic
+
+	column employee_primary_email_address
+		dataType: string
+		lineageTag: c6f6dd03-93d3-437e-b52b-3e3b7ce41361
+		summarizeBy: none
+		sourceColumn: employee_primary_email_address
+
+		annotation SummarizationSetBy = Automatic
+
+	column employee_end_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 22feb243-7d56-4414-a8f2-8b0c98d8a5f6
+		summarizeBy: none
+		sourceColumn: employee_end_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition dim_employee = m
+		mode: import
+		queryGroup: Personaverse
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT DISTINCT#(lf)       de1.employee_primary_email_address,#(lf)       de1.[dim_employee_key],#(lf)       de1.[employee_id],#(lf)       LTRIM(RTRIM(REPLACE(#(lf)           CASE#(lf)               WHEN CHARINDEX('(', de1.[employee_name]) > 0 THEN#(lf)                   STUFF(#(lf)                       de1.[employee_name],#(lf)                       CHARINDEX('(', de1.[employee_name]),#(lf)                       CHARINDEX(')', de1.[employee_name]) - CHARINDEX('(', de1.[employee_name]) + 1,#(lf)                       ''#(lf)                   )#(lf)               ELSE de1.[employee_name]#(lf)           END#(lf)       , '  ', ' '))) AS CleanEmployeeName,#(lf)       de1.[employee_employment_status],#(lf)       de1.[employee_company_name],#(lf)       de1.[employee_job_name],#(lf)       LTRIM(RTRIM(REPLACE(#(lf)           CASE#(lf)               WHEN CHARINDEX('(', de1.employee_people_manager_name) > 0 THEN#(lf)                   STUFF(#(lf)                       de1.employee_people_manager_name,#(lf)                       CHARINDEX('(', de1.employee_people_manager_name),#(lf)                       CHARINDEX(')', de1.employee_people_manager_name) - CHARINDEX('(', de1.employee_people_manager_name) + 1,#(lf)                       ''#(lf)                   )#(lf)               ELSE de1.employee_people_manager_name#(lf)           END#(lf)       , '  ', ' '))) AS CleanPeopleManagerName,#(lf)       de1.employee_people_manager_id,#(lf)       LTRIM(RTRIM(REPLACE(#(lf)           CASE#(lf)               WHEN CHARINDEX('(', de2.employee_people_manager_name) > 0 THEN#(lf)                   STUFF(#(lf)                       de2.employee_people_manager_name,#(lf)                       CHARINDEX('(', de2.employee_people_manager_name),#(lf)                       CHARINDEX(')', de2.employee_people_manager_name) - CHARINDEX('(', de2.employee_people_manager_name) + 1,#(lf)                       ''#(lf)                   )#(lf)               ELSE de2.employee_people_manager_name#(lf)           END#(lf)       , '  ', ' '))) AS [1up_CleanPeopleManagerName],#(lf)       de2.employee_people_manager_id AS [1up_employee_people_manager_id]#(lf)#(tab)   ,deh.employee_Business_unit_name#(lf)#(tab)   ,de1.employee_work_type#(lf)#(tab)   ,de1.employee_emergency_contact_name#(lf)#(tab)   ,de1.employee_next_of_whanau_phone#(lf)#(tab)   ,de1.employee_next_of_whanau_email#(lf)#(tab)   ,de1.employee_next_of_whanau_relationship#(lf)#(tab)   ,de1.employee_end_date#(lf)FROM [edw].[vw_dim_employee] de1#(lf)INNER JOIN [edw].[vw_dim_employee_hierarchy] deh ON deh.dim_employee_key = de1.dim_employee_key AND deh.DWHIsCurrent = 1#(lf)LEFT JOIN [edw].[vw_dim_employee] de2 #(lf)    ON de1.employee_people_manager_id = de2.employee_id #(lf)    AND de2.DWHIsCurrent = 1#(lf)WHERE de1.DWHIsCurrent = 1 #(lf)AND de1.employee_employment_status IN ('Current Staff', 'Exiting Staff')"]),
+				    #"Renamed Columns" = Table.RenameColumns(Source,{{"employee_id", "intelli_employee_id"}, {"CleanEmployeeName", "intelli_CleanEmployeeName"}, {"employee_employment_status", "intelli_employee_employment_status"}, {"employee_company_name", "intelli_employee_company_name"}, {"employee_job_name", "intelli_employee_job_name"}, {"CleanPeopleManagerName", "intelli_CleanPeopleManagerName"}, {"employee_people_manager_id", "intelli_employee_people_manager_id"}, {"1up_CleanPeopleManagerName", "intelli_1up_CleanPeopleManagerName"}, {"1up_employee_people_manager_id", "intelli_1up_employee_people_manager_id"}, {"employee_Business_unit_name", "intelli_business_unit_name"}, {"employee_work_type", "intelli_employee_work_type"}}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns",{{"employee_end_date", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

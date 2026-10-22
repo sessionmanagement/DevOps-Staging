@@ -1,0 +1,372 @@
+/// One row for every vacancy of every property record, so a table can show several vacancies for one property, each with its own ready to let day and void category. A vacancy begins the day after the tenancy in place was vacated, or on the acquisition date for a property that had not been tenanted, and ends the day before the next tenancy starts or on the disposal date, whichever comes first. It has no end date while the property is still empty. Rows are keyed on the property record rather than the address, because one address can be held as several property records and mixing them overstates a single property. The ready to let day, the original void category and the current void category come from the void checklists of that vacancy, on the same rules as the Period End void measures. The day counts held here cover the whole vacancy, and run to the date the data was last refreshed while it is still open; use the Vacancy measures in the Void Management folder for the days that fall inside a selected period. The table is rebuilt on every refresh, so vacancies restate after later updates in Waharoa, and it cannot respond to filters on tenancies or void checklists. A property with no acquisition date gets no vacancy row, because a vacancy cannot be dated without one. A placeholder acquisition date on a never tenanted property inflates the count, so a small number of rows run for many years.
+table 'Property Vacancy'
+	lineageTag: 4af53870-2b41-46fc-9607-aa9c0a2a547f
+
+	/// Property business key. Hidden; it carries the link to the Property table.
+	column 'Property ID'
+		dataType: string
+		isHidden
+		lineageTag: a08fd623-72f0-43b9-90e0-2657449d2b4b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Property ID]
+
+		annotation SummarizationSetBy = User
+
+	/// First day the property was empty: the day after the tenancy in place was vacated, or the acquisition date for a property that had not been tenanted.
+	column 'Vacancy Start Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 82824c98-b26b-4903-b550-006f27e06708
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Vacancy Start Date]
+
+		annotation SummarizationSetBy = User
+
+	/// Last day the property was empty: the day before the next tenancy started, or the disposal date. Blank while the property is still empty.
+	column 'Vacancy End Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: c33dfaa2-72b0-4853-b7e1-325c68a7d6ea
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Vacancy End Date]
+
+		annotation SummarizationSetBy = User
+
+	/// Day the property was made ready to let in this vacancy, taken from the void checklists of that vacancy or, where they carry none, from the checklists they replaced when the category was changed. A milestone on a void checklist marked as reverted to untenantable does not count. Blank while the property has not been made ready, and for a vacancy with no void checklist. The day recorded can fall outside the vacancy: one dated before the vacancy began leaves it no untenantable days and one dated after it ended leaves it untenantable throughout, both of which come from the way the milestone was recorded in the source system.
+	column 'Vacancy Relettable Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: da2eea89-3d0e-411e-9d85-d8a8712dd093
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Vacancy Relettable Date]
+
+		annotation SummarizationSetBy = User
+
+	/// Void category code first recorded for this vacancy, for example MAJD, so a later change of category does not alter it. PROV where only a provisional checklist was raised, and No checklist where none was raised, as in programs that do not use void checklists.
+	column 'Original Void Category'
+		dataType: string
+		lineageTag: 3dd7f6c4-1c8c-4037-bc8a-743fa6b6b60e
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Original Void Category]
+
+		annotation SummarizationSetBy = User
+
+	/// Void category code the vacancy carries now, which differs from the original only where the category was changed during the void. PROV and No checklist carry the same meaning as in Original Void Category.
+	column 'Current Void Category'
+		dataType: string
+		lineageTag: 4124f557-a1f9-4bd4-a2bf-ce323ee8bfb1
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Current Void Category]
+
+		annotation SummarizationSetBy = User
+
+	/// Days the vacancy lasted in total, counting the first and the last empty day, and counting to the date the data was last refreshed while the property is still empty. It ignores the selected period; use Vacancy Unoccupied Days (Period) for the days inside a period. A placeholder acquisition date on a never tenanted property inflates the count. A vacancy dated to start after the last refresh has no days yet and reads zero until the data catches up.
+	column 'Vacancy Days'
+		dataType: int64
+		formatString: #,0
+		lineageTag: a04c43d0-1b47-4dbb-a7b2-b062fd9c5076
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Vacancy Days]
+
+		annotation SummarizationSetBy = User
+
+	/// Days of the whole vacancy up to and including the day the property was made ready to let. Every day is untenantable where the vacancy has no void checklist or the property has not been made ready (a milestone on a void checklist marked as reverted to untenantable does not count), and none is where it was already ready when the vacancy began. A placeholder acquisition date on a never tenanted property inflates the count.
+	column 'Untenantable Days'
+		dataType: int64
+		formatString: #,0
+		lineageTag: d54d2013-ce9b-4266-bc6f-547729d948c0
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Untenantable Days]
+
+		annotation SummarizationSetBy = User
+
+	/// Days of the whole vacancy after the day the property was made ready to let, including days reserved but not yet moved into. With Untenantable Days it adds up to Vacancy Days.
+	column 'Tenantable Days'
+		dataType: int64
+		formatString: #,0
+		lineageTag: b54c57bb-2421-4f51-8b35-16db88ea1691
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tenantable Days]
+
+		annotation SummarizationSetBy = User
+
+	partition 'Property Vacancy' = calculated
+		mode: import
+		source =
+				VAR _FarFuture = DATE(9999, 12, 31)
+				VAR _RefreshedAt = MAXX('LastRefreshed', 'LastRefreshed'[Date Last Refreshed])
+				VAR _AsAt = COALESCE(DATE(YEAR(_RefreshedAt), MONTH(_RefreshedAt), DAY(_RefreshedAt)), TODAY())
+				VAR _Vacancies =
+				    GENERATE(
+				        FILTER('Property', NOT(ISBLANK('Property'[Property ID])) && NOT(ISBLANK('Property'[Acquired Date]))),
+				        VAR _Acquired = 'Property'[Acquired Date]
+				        VAR _Disposal = COALESCE('Property'[Confirmed Disposal Date], _FarFuture)
+				        VAR _Tenancies =
+				            SELECTCOLUMNS(
+				                FILTER(
+				                    RELATEDTABLE('Tenancy'),
+				                    'Tenancy'[Is Occupying Tenancy] = 1 &&
+				                    COALESCE('Tenancy'[Vacated Date], _FarFuture) >= 'Tenancy'[Tenancy Start Date]
+				                ),
+				                "@TenStart", 'Tenancy'[Tenancy Start Date],
+				                "@TenEnd", COALESCE('Tenancy'[Vacated Date], _FarFuture),
+				                "@TenVacated", 'Tenancy'[Vacated Date],
+				                "@TenID", 'Tenancy'[Property Tenancy ID]
+				            )
+				        VAR _Checklists =
+				            SELECTCOLUMNS(
+				                RELATEDTABLE('Void Checklist'),
+				                "@ChecklistID", 'Void Checklist'[Void Checklist ID],
+				                "@ExitTenancy", 'Void Checklist'[Void Checklist Vacated Tenancy ID],
+				                "@Category", 'Void Checklist'[Void Category],
+				                "@IsRealCategory",
+				                    LEN('Void Checklist'[Void Category]) > 0 && 'Void Checklist'[Void Category] <> "PROV",
+				                "@Status", 'Void Checklist'[Void Status],
+				                "@Created", 'Void Checklist'[Created On],
+				                "@Effective",
+				                    COALESCE('Void Checklist'[Date Tenancy Terminated], 'Void Checklist'[Created On]),
+				                "@Ready", 'Void Checklist'[Property Is Ready - Convert To Vacant: Tenantable]
+				            )
+				        VAR _PropertyChecklists =
+				            ADDCOLUMNS(
+				                _Checklists,
+				                "@ExitVacated", MAXX(FILTER(_Tenancies, [@TenID] = [@ExitTenancy]), [@TenVacated])
+				            )
+				        VAR _Anchors =
+				            UNION(
+				                SELECTCOLUMNS(
+				                    DISTINCT(
+				                        SELECTCOLUMNS(
+				                            FILTER(_Tenancies, NOT(ISBLANK([@TenVacated]))),
+				                            "@V", [@TenVacated]
+				                        )
+				                    ),
+				                    "@Event", [@V],
+				                    "@FirstDay", [@V] + 1,
+				                    "@Initial", 0
+				                ),
+				                ROW("@Event", _Acquired, "@FirstDay", _Acquired, "@Initial", 1)
+				            )
+				        VAR _Stretches =
+				            ADDCOLUMNS(
+				                _Anchors,
+				                "@Start", MAX([@FirstDay], _Acquired),
+				                "@NextStart", MINX(FILTER(_Tenancies, [@TenStart] >= [@FirstDay]), [@TenStart]),
+				                "@StillOccupied",
+				                    NOT(ISEMPTY(FILTER(_Tenancies, [@TenStart] <= [@FirstDay] && [@TenEnd] >= [@FirstDay])))
+				            )
+				        VAR _Valid =
+				            FILTER(
+				                ADDCOLUMNS(
+				                    _Stretches,
+				                    "@End", IF(ISBLANK([@NextStart]), _Disposal, MIN([@NextStart] - 1, _Disposal))
+				                ),
+				                NOT([@StillOccupied]) && [@End] >= [@Start]
+				            )
+				        VAR _Vacancies =
+				            FILTER(
+				                _Valid,
+				                VAR _ThisStart = [@Start]
+				                RETURN [@Event] = MINX(FILTER(_Valid, [@Start] = _ThisStart), [@Event])
+				            )
+				        RETURN
+				            ADDCOLUMNS(
+				                _Vacancies,
+				                "@Ready",
+				                    VAR _Event = [@Event]
+				                    VAR _NextStart = [@NextStart]
+				                    VAR _IsInitial = [@Initial] = 1
+				                    VAR _UseNearbyChecklists =
+				                        NOT(_IsInitial) &&
+				                        ISEMPTY(
+				                            FILTER(
+				                                _PropertyChecklists,
+				                                [@IsRealCategory] &&
+				                                ((_IsInitial && LEN([@ExitTenancy]) = 0 && (ISBLANK(_NextStart) || [@Created] <= _NextStart)) ||
+				                                (NOT(_IsInitial) && [@ExitVacated] = _Event))
+				                            )
+				                        )
+				                    VAR _EventChecklists =
+				                        FILTER(
+				                            _PropertyChecklists,
+				                            [@IsRealCategory] &&
+				                            (
+				                                (_UseNearbyChecklists &&
+				                                    LEN([@ExitTenancy]) = 0 &&
+				                                    [@Effective] >= _Event - 7 &&
+				                                    (ISBLANK(_NextStart) || [@Effective] < _NextStart)) ||
+				                                (NOT(_UseNearbyChecklists) &&
+				                                    ((_IsInitial && LEN([@ExitTenancy]) = 0 && (ISBLANK(_NextStart) || [@Created] <= _NextStart)) ||
+				                                (NOT(_IsInitial) && [@ExitVacated] = _Event)))
+				                            )
+				                        )
+				                    RETURN
+				                        COALESCE(
+				                            MAXX(FILTER(_EventChecklists, NOT([@Status] IN {"Void Category Change", "Reverted to Untenantable"})), [@Ready]),
+				                            MAXX(FILTER(_EventChecklists, [@Status] = "Void Category Change"), [@Ready])
+				                        ),
+				                "@OriginalCategory",
+				                    VAR _Event = [@Event]
+				                    VAR _NextStart = [@NextStart]
+				                    VAR _IsInitial = [@Initial] = 1
+				                    VAR _UseNearbyChecklists =
+				                        NOT(_IsInitial) &&
+				                        ISEMPTY(
+				                            FILTER(
+				                                _PropertyChecklists,
+				                                [@IsRealCategory] &&
+				                                ((_IsInitial && LEN([@ExitTenancy]) = 0 && (ISBLANK(_NextStart) || [@Created] <= _NextStart)) ||
+				                                (NOT(_IsInitial) && [@ExitVacated] = _Event))
+				                            )
+				                        )
+				                    VAR _EventChecklists =
+				                        FILTER(
+				                            _PropertyChecklists,
+				                            [@IsRealCategory] &&
+				                            (
+				                                (_UseNearbyChecklists &&
+				                                    LEN([@ExitTenancy]) = 0 &&
+				                                    [@Effective] >= _Event - 7 &&
+				                                    (ISBLANK(_NextStart) || [@Effective] < _NextStart)) ||
+				                                (NOT(_UseNearbyChecklists) &&
+				                                    ((_IsInitial && LEN([@ExitTenancy]) = 0 && (ISBLANK(_NextStart) || [@Created] <= _NextStart)) ||
+				                                (NOT(_IsInitial) && [@ExitVacated] = _Event)))
+				                            )
+				                        )
+				                    VAR _ProvisionalChecklists =
+				                        FILTER(
+				                            _PropertyChecklists,
+				                            [@Category] = "PROV" &&
+				                            ((_IsInitial && LEN([@ExitTenancy]) = 0 && (ISBLANK(_NextStart) || [@Created] <= _NextStart)) ||
+				                                (NOT(_IsInitial) && [@ExitVacated] = _Event))
+				                        )
+				                    VAR _FirstCreatedOn = MINX(_EventChecklists, [@Created])
+				                    VAR _FirstDayChecklists =
+				                        ADDCOLUMNS(
+				                            FILTER(_EventChecklists, [@Created] = _FirstCreatedOn),
+				                            "@RecordedAt", MID([@ChecklistID], 18, 1) & MID([@ChecklistID], 15, 2) &
+				                            MID([@ChecklistID], 12, 2) & MID([@ChecklistID], 10, 2) &
+				                            MID([@ChecklistID], 7, 2) & MID([@ChecklistID], 5, 2) &
+				                            MID([@ChecklistID], 3, 2) & MID([@ChecklistID], 1, 2)
+				                        )
+				                    VAR _FirstRecord =
+				                        TOPN(1, FILTER(_FirstDayChecklists, [@Status] <> "Void Category Change"), [@RecordedAt], ASC)
+				                    VAR _FirstRecordAt = MAXX(_FirstRecord, [@RecordedAt])
+				                    VAR _FirstRecordIsNoticeStage = MAXX(_FirstRecord, [@Status]) = "Tenant Vacated"
+				                    VAR _NextRecordAt =
+				                        MINX(
+				                            FILTER(
+				                                _FirstDayChecklists,
+				                                [@Status] <> "Void Category Change" && [@RecordedAt] > _FirstRecordAt
+				                            ),
+				                            [@RecordedAt]
+				                        )
+				                    VAR _FirstRecordSnapshots =
+				                        FILTER(
+				                            _FirstDayChecklists,
+				                            [@Status] = "Void Category Change" &&
+				                            [@RecordedAt] > _FirstRecordAt &&
+				                            (NOT(_FirstRecordIsNoticeStage) || ISBLANK(_NextRecordAt) || [@RecordedAt] < _NextRecordAt)
+				                        )
+				                    VAR _OriginalCategory =
+				                        IF(
+				                            ISEMPTY(_FirstRecordSnapshots),
+				                            MAXX(_FirstRecord, [@Category]),
+				                            MAXX(TOPN(1, _FirstRecordSnapshots, [@RecordedAt], ASC), [@Category])
+				                        )
+				                    RETURN
+				                        IF(
+				                            NOT(ISEMPTY(_EventChecklists)),
+				                            _OriginalCategory,
+				                            IF(NOT(ISEMPTY(_ProvisionalChecklists)), "PROV", "No checklist")
+				                        ),
+				                "@CurrentCategory",
+				                    VAR _Event = [@Event]
+				                    VAR _NextStart = [@NextStart]
+				                    VAR _IsInitial = [@Initial] = 1
+				                    VAR _UseNearbyChecklists =
+				                        NOT(_IsInitial) &&
+				                        ISEMPTY(
+				                            FILTER(
+				                                _PropertyChecklists,
+				                                [@IsRealCategory] &&
+				                                ((_IsInitial && LEN([@ExitTenancy]) = 0 && (ISBLANK(_NextStart) || [@Created] <= _NextStart)) ||
+				                                (NOT(_IsInitial) && [@ExitVacated] = _Event))
+				                            )
+				                        )
+				                    VAR _EventChecklists =
+				                        FILTER(
+				                            _PropertyChecklists,
+				                            [@IsRealCategory] &&
+				                            (
+				                                (_UseNearbyChecklists &&
+				                                    LEN([@ExitTenancy]) = 0 &&
+				                                    [@Effective] >= _Event - 7 &&
+				                                    (ISBLANK(_NextStart) || [@Effective] < _NextStart)) ||
+				                                (NOT(_UseNearbyChecklists) &&
+				                                    ((_IsInitial && LEN([@ExitTenancy]) = 0 && (ISBLANK(_NextStart) || [@Created] <= _NextStart)) ||
+				                                (NOT(_IsInitial) && [@ExitVacated] = _Event)))
+				                            )
+				                        )
+				                    VAR _ProvisionalChecklists =
+				                        FILTER(
+				                            _PropertyChecklists,
+				                            [@Category] = "PROV" &&
+				                            ((_IsInitial && LEN([@ExitTenancy]) = 0 && (ISBLANK(_NextStart) || [@Created] <= _NextStart)) ||
+				                                (NOT(_IsInitial) && [@ExitVacated] = _Event))
+				                        )
+				                    VAR _HasSurvivor =
+				                        NOT(ISEMPTY(FILTER(_EventChecklists, [@Status] <> "Void Category Change")))
+				                    VAR _LatestSet =
+				                        FILTER(_EventChecklists, NOT(_HasSurvivor) || [@Status] <> "Void Category Change")
+				                    VAR _LatestCreatedOn = MAXX(_LatestSet, [@Created])
+				                    VAR _LatestDay =
+				                        ADDCOLUMNS(
+				                            FILTER(_LatestSet, [@Created] = _LatestCreatedOn),
+				                            "@RecordedAt", MID([@ChecklistID], 18, 1) & MID([@ChecklistID], 15, 2) &
+				                            MID([@ChecklistID], 12, 2) & MID([@ChecklistID], 10, 2) &
+				                            MID([@ChecklistID], 7, 2) & MID([@ChecklistID], 5, 2) &
+				                            MID([@ChecklistID], 3, 2) & MID([@ChecklistID], 1, 2)
+				                        )
+				                    VAR _CurrentCategory = MAXX(TOPN(1, _LatestDay, [@RecordedAt], DESC), [@Category])
+				                    RETURN
+				                        IF(
+				                            NOT(ISEMPTY(_EventChecklists)),
+				                            _CurrentCategory,
+				                            IF(NOT(ISEMPTY(_ProvisionalChecklists)), "PROV", "No checklist")
+				                        )
+				            )
+				    )
+				RETURN
+				SELECTCOLUMNS(
+				    _Vacancies,
+				    "Property ID", 'Property'[Property ID],
+				    "Vacancy Start Date", [@Start],
+				    "Vacancy End Date", IF([@End] = _FarFuture, BLANK(), [@End]),
+				    "Vacancy Relettable Date", [@Ready],
+				    "Original Void Category", [@OriginalCategory],
+				    "Current Void Category", [@CurrentCategory],
+				    "Vacancy Days",
+				        VAR _CountEnd = IF([@End] = _FarFuture, _AsAt, [@End])
+				        RETURN IF(_CountEnd < [@Start], 0, DATEDIFF([@Start], _CountEnd, DAY) + 1),
+				    "Untenantable Days",
+				        VAR _CountEnd = IF([@End] = _FarFuture, _AsAt, [@End])
+				        VAR _UntenantableEnd = IF(ISBLANK([@Ready]), _CountEnd, MIN(_CountEnd, [@Ready]))
+				        RETURN IF(_UntenantableEnd < [@Start], 0, DATEDIFF([@Start], _UntenantableEnd, DAY) + 1),
+				    "Tenantable Days",
+				        VAR _CountEnd = IF([@End] = _FarFuture, _AsAt, [@End])
+				        VAR _Days = IF(_CountEnd < [@Start], 0, DATEDIFF([@Start], _CountEnd, DAY) + 1)
+				        VAR _UntenantableEnd = IF(ISBLANK([@Ready]), _CountEnd, MIN(_CountEnd, [@Ready]))
+				        VAR _Untenantable = IF(_UntenantableEnd < [@Start], 0, DATEDIFF([@Start], _UntenantableEnd, DAY) + 1)
+				        RETURN _Days - _Untenantable
+				)
+

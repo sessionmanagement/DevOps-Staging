@@ -1,0 +1,488 @@
+table _Measures
+	lineageTag: ed0c1696-2b27-484e-aa11-546df4b7b894
+
+	measure RefreshedAt_forDisplay = "Data last refreshed: " & FORMAT(LASTDATE(LastRefreshed[Date Last Refreshed]), "dd/MM/YYYY - hh:mm AM/PM")
+		displayFolder: 2. Helpers
+		lineageTag: 248b571d-3bcd-456e-b75b-d38ee1c280ec
+
+	measure 'Total Cost' =
+			
+			SUM(
+			    fact_costs[total_costs]
+			)
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		displayFolder: 1. Measures
+		lineageTag: 955f7fb9-9186-499f-9fa5-6abe647e2689
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	measure 'Cumulative Monthly Cost by Resource' = ```
+			
+			VAR CumulativeCosts = 
+			CALCULATE(
+			    SUM(fact_costs[total_costs]),
+			        ALL(dim_date),
+			        dim_date[calendar_date] <= MAX(dim_date[calendar_date]),
+			        dim_date[month_offset] = SELECTEDVALUE(dim_date[month_offset])
+			    )
+			RETURN
+			IF(
+			    SELECTEDVALUE(dim_date[calendar_date]) > TODAY(), BLANK(),
+			    CumulativeCosts
+			)
+			```
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		displayFolder: 1. Measures
+		lineageTag: 44527bcc-8d90-422b-930d-3990fa5121ac
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	measure 'Total Cost Last Month' =
+			
+			CALCULATE(
+			    [Total Cost],
+			    ALL(dim_date),
+			    dim_date[month_offset] = SELECTEDVALUE(dim_date[month_offset])-1
+			)
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		displayFolder: 1. Measures
+		lineageTag: 435b4ffe-fedb-4640-827e-996120939761
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	measure 'Total Cost YTD' =
+			
+			CALCULATE(
+			    [Total Cost],
+			    ALL(dim_date),
+			    dim_date[year_offset] = 0,
+			    dim_date[calendar_date] <= MAX(dim_date[calendar_date])
+			)
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		displayFolder: 1. Measures
+		lineageTag: 25de3f3e-58fa-49a0-a667-0583e6c81e9e
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	measure 'Percentage Change Month-over-Month' =
+			
+			DIVIDE(
+			    [Total Cost] - [Total Cost Last Month],
+			    [Total Cost Last Month],
+			    0
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: 1. Measures
+		lineageTag: 485b0b09-7726-4339-8a58-344686b91d8e
+
+	measure 'Percentage Change YTD' =
+			
+			DIVIDE(
+			    [Total Cost YTD] - [Cumulative Costs Previous Year],
+			    [Cumulative Costs Previous Year],
+			    0
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: 1. Measures
+		lineageTag: 50a6a756-bdb2-49bb-8a35-cebfc2b9d617
+
+	measure 'Show in outliers' =
+			
+			IF([Total Costs per Resource per Month] > 0.1 && [(Parameter) Rolling Average Monthly Costs by Resource] > 0.1, 1, 0)
+		formatString: 0
+		displayFolder: 1. Measures
+		lineageTag: 69d69e11-44d7-4d85-8e95-22c536512cef
+
+	measure 'Three Month Average Cost' =
+			
+			CALCULATE(
+			    AVERAGEX(
+			        VALUES(dim_date[calendar_date]),
+			        CALCULATE(SUM(ResourceDailyCostsSummary[Total Costs]))
+			    ),
+			    FILTER(
+			        ALL(dim_date),
+			        dim_date[calendar_date] <= MAX(dim_date[calendar_date]) &&
+			        dim_date[calendar_date] > EDATE(MAX(dim_date[calendar_date]), -3)
+			    )
+			)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 1. Measures
+		lineageTag: baafeab0-a058-4383-ae98-92ed6da808bb
+
+	measure 'Upper Bound Daily Cost' = [(Parameter) Rolling Average Monthly Costs] + 1.5 * [(Parameter) N Month StdDev Daily Cost]
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 1. Measures
+		lineageTag: bc50d673-695d-4685-8030-5bc966cfd43e
+
+	measure 'Lower Bound Daily Cost' = [(Parameter) Rolling Average Monthly Costs] - 1.5 * [(Parameter) N Month StdDev Daily Cost]
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 1. Measures
+		lineageTag: 05089905-d07c-4298-8e4c-3b3b279e3456
+
+	measure 'Is Daily Cost Outlier' =
+			
+			IF(
+			    SUM(ResourceDailyCostsSummary[Total Costs]) > [Upper Bound Daily Cost] ||
+			    SUM(ResourceDailyCostsSummary[Total Costs]) < [Lower Bound Daily Cost],
+			    "Outlier",
+			    "Normal"
+			)
+		displayFolder: 1. Measures
+		lineageTag: cea3f98d-5cf0-41bf-bb78-906fea4ebe46
+
+	measure 'Title: Selected Date' =
+			
+			MAX(dim_date[calendar_date])
+		formatString: Long Date
+		displayFolder: 2. Helpers
+		lineageTag: 4736ff04-1db0-4a80-ac4b-473a6fa37eb8
+
+	measure 'Monthly Percentage Change' = ```
+			
+			VAR CurrentMonthCost = 
+			    CALCULATE(
+			        [Total Cost],
+			        DATESINPERIOD(
+			            dim_date[calendar_date],
+			            LASTDATE(dim_date[calendar_date]),
+			            -1,
+			            MONTH
+			        )
+			    )
+			VAR PreviousMonthCost = 
+			    CALCULATE(
+			        [Total Cost],
+			        DATESINPERIOD(
+			            dim_date[calendar_date],
+			            DATEADD(LASTDATE(dim_date[calendar_date]), -1, MONTH),
+			            -1,
+			            MONTH
+			        )
+			    )
+			RETURN 
+			IF(
+			    NOT(ISBLANK(PreviousMonthCost)),
+			    DIVIDE(CurrentMonthCost - PreviousMonthCost, PreviousMonthCost),
+			    BLANK()
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: 1. Measures
+		lineageTag: 21454ca7-edc0-4d92-a4e6-020629c535de
+
+	measure 'Weighted Average Percentage Change (3 Months)' = ```
+			
+			VAR WeightSum = 
+			    SUMX(
+			        DATESINPERIOD(
+			            dim_date[calendar_date],
+			            TODAY(),
+			            -3,
+			            MONTH
+			        ),
+			        CALCULATE([Total Cost], ALLSELECTED(dim_resource[dim_resource_key]), REMOVEFILTERS(dim_date))
+			    )
+			VAR WeightedChangeSum = 
+			    SUMX(
+			        DATESINPERIOD(
+			            dim_date[calendar_date],
+			            TODAY(),
+			            -3,
+			            MONTH
+			        ),
+			        [Monthly Percentage Change] * CALCULATE([Total Cost], ALLSELECTED(dim_resource[dim_resource_key]), REMOVEFILTERS(dim_date))
+			    )
+			RETURN
+			DIVIDE(WeightedChangeSum, WeightSum)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: 1. Measures
+		lineageTag: bb1bc599-0ce9-4be8-9ec4-b48a6bc80f69
+
+	measure 'Weighted Average Percentage Change (12 Months)' = ```
+			
+			VAR WeightSum = 
+			    SUMX(
+			        DATESINPERIOD(
+			            dim_date[calendar_date],
+			            TODAY(),
+			            -12,
+			            MONTH
+			        ),
+			        CALCULATE([Total Cost], ALLSELECTED(dim_resource[dim_resource_key]), REMOVEFILTERS(dim_date))
+			    )
+			VAR WeightedChangeSum = 
+			    SUMX(
+			        DATESINPERIOD(
+			            dim_date[calendar_date],
+			            TODAY(),
+			            -12,
+			            MONTH
+			        ),
+			        [Monthly Percentage Change] * CALCULATE([Total Cost], ALLSELECTED(dim_resource[dim_resource_key]), REMOVEFILTERS(dim_date))
+			    )
+			RETURN
+			DIVIDE(WeightedChangeSum, WeightSum)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: 1. Measures
+		lineageTag: 91f72c00-6536-4a33-88da-e654d78cbf91
+
+	measure '12 Month Weighted Average Percentage Change is Increasing' =
+			
+			IF(
+			    [Weighted Average Percentage Change (12 Months)] > 0,
+			    1,
+			    0
+			)
+		formatString: 0
+		displayFolder: 1. Measures
+		lineageTag: 8fc759ec-cdc2-4334-86dc-06634aeda6b7
+
+	measure 'Filters Applied' =
+			
+			VAR dim_date_calendar_year_month = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_date'[calendar_year_month]), NOT(ISBLANK('dim_date'[calendar_year_month]))), 'dim_date'[calendar_year_month], ASC),
+			    "calendar_year_month_display", 'dim_date'[calendar_year_month]
+			)
+			VAR dim_date_calendar_year_monthCount = IF(ISFILTERED('dim_date'[calendar_year_month]), COUNTROWS(VALUES('dim_date'[calendar_year_month])), 0)
+			VAR More_dim_date_calendar_year_month = IF(dim_date_calendar_year_monthCount > 5, " and " & (dim_date_calendar_year_monthCount - 5) & " more", "")
+			VAR FC_dim_date_calendar_year_month = IF(dim_date_calendar_year_monthCount > 0, "MONTHS CHOSEN: " & CONCATENATEX(dim_date_calendar_year_month, [calendar_year_month_display], ", "), BLANK()) & More_dim_date_calendar_year_month
+			
+			VAR dim_date_financial_year_num = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_date'[financial_year_num]), NOT(ISBLANK('dim_date'[financial_year_num]))), 'dim_date'[financial_year_num], ASC),
+			    "financial_year_num_display", 'dim_date'[financial_year_num]
+			)
+			VAR dim_date_financial_year_numCount = IF(ISFILTERED('dim_date'[financial_year_num]), COUNTROWS(VALUES('dim_date'[financial_year_num])), 0)
+			VAR More_dim_date_financial_year_num = IF(dim_date_financial_year_numCount > 5, " and " & (dim_date_financial_year_numCount - 5) & " more", "")
+			VAR FC_dim_date_financial_year_num = IF(dim_date_financial_year_numCount > 0, "FINANCIAL YEAR CHOSEN: " & CONCATENATEX(dim_date_financial_year_num, [financial_year_num_display], ", "), BLANK()) & More_dim_date_financial_year_num
+			
+			VAR FC_dim_date_calendar_date = IF(ISFILTERED('dim_date'[calendar_date]), "DATE CHOSEN: " & FORMAT(MAX('dim_date'[calendar_date]), "dd/MM/yyyy"), BLANK())
+			
+			VAR dim_resource_subscription_name = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_resource'[subscription_name]), NOT(ISBLANK('dim_resource'[subscription_name]))), 'dim_resource'[subscription_name], ASC),
+			    "subscription_name_display", 'dim_resource'[subscription_name]
+			)
+			VAR dim_resource_subscription_nameCount = IF(ISFILTERED('dim_resource'[subscription_name]), COUNTROWS(VALUES('dim_resource'[subscription_name])), 0)
+			VAR More_dim_resource_subscription_name = IF(dim_resource_subscription_nameCount > 5, " and " & (dim_resource_subscription_nameCount - 5) & " more", "")
+			VAR FC_dim_resource_subscription_name = IF(dim_resource_subscription_nameCount > 0, "SUBSCRIPTIONS CHOSEN: " & CONCATENATEX(dim_resource_subscription_name, [subscription_name_display], ", "), BLANK()) & More_dim_resource_subscription_name
+			
+			VAR dim_resource_servicefamily = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_resource'[servicefamily]), NOT(ISBLANK('dim_resource'[servicefamily]))), 'dim_resource'[servicefamily], ASC),
+			    "servicefamily_display", 'dim_resource'[servicefamily]
+			)
+			VAR dim_resource_servicefamilyCount = IF(ISFILTERED('dim_resource'[servicefamily]), COUNTROWS(VALUES('dim_resource'[servicefamily])), 0)
+			VAR More_dim_resource_servicefamily = IF(dim_resource_servicefamilyCount > 5, " and " & (dim_resource_servicefamilyCount - 5) & " more", "")
+			VAR FC_dim_resource_servicefamily = IF(dim_resource_servicefamilyCount > 0, "SERVICES CHOSEN: " & CONCATENATEX(dim_resource_servicefamily, [servicefamily_display], ", "), BLANK()) & More_dim_resource_servicefamily
+			
+			VAR dim_resource_resource_group = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_resource'[resource_group]), NOT(ISBLANK('dim_resource'[resource_group]))), 'dim_resource'[resource_group], ASC),
+			    "resource_group_display", 'dim_resource'[resource_group]
+			)
+			VAR dim_resource_resource_groupCount = IF(ISFILTERED('dim_resource'[resource_group]), COUNTROWS(VALUES('dim_resource'[resource_group])), 0)
+			VAR More_dim_resource_resource_group = IF(dim_resource_resource_groupCount > 5, " and " & (dim_resource_resource_groupCount - 5) & " more", "")
+			VAR FC_dim_resource_resource_group = IF(dim_resource_resource_groupCount > 0, "RESOURCE GROUPS CHOSEN: " & CONCATENATEX(dim_resource_resource_group, [resource_group_display], ", "), BLANK()) & More_dim_resource_resource_group
+			
+			VAR dim_resource_resource = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_resource'[resource]), NOT(ISBLANK('dim_resource'[resource]))), 'dim_resource'[resource], ASC),
+			    "resource_display", 'dim_resource'[resource]
+			)
+			VAR dim_resource_resourceCount = IF(ISFILTERED('dim_resource'[resource]), COUNTROWS(VALUES('dim_resource'[resource])), 0)
+			VAR More_dim_resource_resource = IF(dim_resource_resourceCount > 5, " and " & (dim_resource_resourceCount - 5) & " more", "")
+			VAR FC_dim_resource_resource = IF(dim_resource_resourceCount > 0, "RESOURCES CHOSEN: " & CONCATENATEX(dim_resource_resource, [resource_display], ", "), BLANK()) & More_dim_resource_resource
+			
+			VAR Rolling_Average_No__Of_Months_Rolling_Average_No__Of_Months = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('Rolling Average No. Of Months'[Rolling Average No. Of Months]), NOT(ISBLANK('Rolling Average No. Of Months'[Rolling Average No. Of Months]))), 'Rolling Average No. Of Months'[Rolling Average No. Of Months], ASC),
+			    "Rolling Average No. Of Months_display", 'Rolling Average No. Of Months'[Rolling Average No. Of Months]
+			)
+			VAR Rolling_Average_No__Of_Months_Rolling_Average_No__Of_MonthsCount = IF(ISFILTERED('Rolling Average No. Of Months'[Rolling Average No. Of Months]), COUNTROWS(VALUES('Rolling Average No. Of Months'[Rolling Average No. Of Months])), 0)
+			VAR More_Rolling_Average_No__Of_Months_Rolling_Average_No__Of_Months = IF(Rolling_Average_No__Of_Months_Rolling_Average_No__Of_MonthsCount > 5, " and " & (Rolling_Average_No__Of_Months_Rolling_Average_No__Of_MonthsCount - 5) & " more", "")
+			VAR FC_Rolling_Average_No__Of_Months_Rolling_Average_No__Of_Months = IF(Rolling_Average_No__Of_Months_Rolling_Average_No__Of_MonthsCount > 0, "NO. OF MONTHS FOR ROLLING AVG: " & CONCATENATEX(Rolling_Average_No__Of_Months_Rolling_Average_No__Of_Months, [Rolling Average No. Of Months_display], ", "), BLANK()) & More_Rolling_Average_No__Of_Months_Rolling_Average_No__Of_Months
+			
+			VAR Yearly_Budget_Yearly_Budget = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('Yearly Budget'[Yearly Budget]), NOT(ISBLANK('Yearly Budget'[Yearly Budget]))), 'Yearly Budget'[Yearly Budget], ASC),
+			    "Yearly Budget_display", 'Yearly Budget'[Yearly Budget]
+			)
+			VAR Yearly_Budget_Yearly_BudgetCount = IF(ISFILTERED('Yearly Budget'[Yearly Budget]), COUNTROWS(VALUES('Yearly Budget'[Yearly Budget])), 0)
+			VAR More_Yearly_Budget_Yearly_Budget = IF(Yearly_Budget_Yearly_BudgetCount > 5, " and " & (Yearly_Budget_Yearly_BudgetCount - 5) & " more", "")
+			VAR FC_Yearly_Budget_Yearly_Budget = IF(Yearly_Budget_Yearly_BudgetCount > 0, "YEARLY BUDGET: " & CONCATENATEX(Yearly_Budget_Yearly_Budget, [Yearly Budget_display], ", "), BLANK()) & More_Yearly_Budget_Yearly_Budget
+			
+			RETURN
+			IF(
+			    (ISBLANK(FC_dim_date_calendar_year_month) || FC_dim_date_calendar_year_month = "") && (ISBLANK(FC_dim_date_financial_year_num) || FC_dim_date_financial_year_num = "") && (ISBLANK(FC_dim_date_calendar_date) || FC_dim_date_calendar_date = "") && (ISBLANK(FC_dim_resource_subscription_name) || FC_dim_resource_subscription_name = "") && (ISBLANK(FC_dim_resource_servicefamily) || FC_dim_resource_servicefamily = "") && (ISBLANK(FC_dim_resource_resource_group) || FC_dim_resource_resource_group = "") && (ISBLANK(FC_dim_resource_resource) || FC_dim_resource_resource = "") && (ISBLANK(FC_Rolling_Average_No__Of_Months_Rolling_Average_No__Of_Months) || FC_Rolling_Average_No__Of_Months_Rolling_Average_No__Of_Months = "") && (ISBLANK(FC_Yearly_Budget_Yearly_Budget) || FC_Yearly_Budget_Yearly_Budget = ""),
+			    "No filters are currently applied to this page.",
+			    "Please note that the following filters are currently applied to this page: " &
+			    CONCATENATEX(FILTER({ FC_dim_date_calendar_year_month, FC_dim_date_financial_year_num, FC_dim_date_calendar_date, FC_dim_resource_subscription_name, FC_dim_resource_servicefamily, FC_dim_resource_resource_group, FC_dim_resource_resource, FC_Rolling_Average_No__Of_Months_Rolling_Average_No__Of_Months, FC_Yearly_Budget_Yearly_Budget }, [Value] <> BLANK()), [Value], " | ")
+			)
+		displayFolder: 2. Helpers
+		lineageTag: 6c002e01-5b8c-469a-a013-1fe6b9464c25
+
+	measure 'Cost Difference to Last Month' =
+			
+			[Total Cost] - [Total Cost Last Month]
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 1. Measures
+		lineageTag: 49d9cbad-a94e-4b7b-b11c-aaef5134c1f8
+
+	measure 'Cost Difference to Last YTD' =
+			
+			[Total Cost YTD] - [Cumulative Costs Previous Year]
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 1. Measures
+		lineageTag: 38e8a707-06b9-4206-89a5-d213810511d5
+
+	measure '(Parameter) Rolling Average Monthly Costs' =
+			
+			VAR RollingMonths = SELECTEDVALUE('Rolling Average No. of Months'[Rolling Average No. of Months], 12)
+			RETURN
+			CALCULATE(
+			    AVERAGEX(
+			        VALUES(dim_date[calendar_year_month]),
+			        CALCULATE([Total Cost])
+			    ),
+			    FILTER(
+			        ALL(dim_date),
+			        dim_date[month_offset] <= MAX(dim_date[month_offset]) &&
+			        dim_date[month_offset] > MAX(dim_date[month_offset]) - RollingMonths
+			    )
+			)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 1. Measures
+		lineageTag: c14ca901-b772-4467-8047-668fd4a7c12d
+
+	measure '(Parameter) Rolling Daily Average Total Cost' =
+			
+			VAR RollingMonths = SELECTEDVALUE('Rolling Average No. of Months'[Rolling Average No. of Months], 12)  -- Default to 12 months if none selected
+			VAR EndDate = MAX(dim_date[calendar_date])
+			VAR StartDate = EDATE(EndDate, -RollingMonths)
+			RETURN
+			CALCULATE(
+			    AVERAGEX(
+			        VALUES(dim_date[calendar_date]),
+			        CALCULATE(
+			            [Total Cost],
+			            FILTER(
+			                fact_costs,
+			                fact_costs[date] = dim_date[calendar_date]
+			            )
+			        )
+			    ),
+			    FILTER(
+			        ALL(dim_date),
+			        dim_date[calendar_date] >= StartDate &&
+			        dim_date[calendar_date] <= EndDate
+			    )
+			)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: 1. Measures
+		lineageTag: ab61fb69-4113-4ae6-8392-f3db9a89ef59
+
+	measure 'Dynamic Average Monthly Percentage Change' = ```
+			
+			VAR RollingMonths = SELECTEDVALUE('Rolling Average No. of Months'[Rolling Average No. of Months], 12)  -- Default to 12 months if none selected
+			RETURN
+			AVERAGEX(
+			    DATESINPERIOD(
+			        dim_date[calendar_date], 
+			        LASTDATE(dim_date[calendar_date]), 
+			        -RollingMonths, 
+			        MONTH
+			    ),
+			    [Monthly Percentage Change]
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: 1. Measures
+		lineageTag: c0ebd06a-669f-4e54-ac20-5564b05e32ca
+
+	measure 'Maxx Daily Cost * 1.05 (for upper bound on Y Axis)' = ```
+			
+			VAR _Max = 
+			CALCULATE(
+			    MAXX(
+			        SUMMARIZE(
+			            fact_costs, 
+			            dim_date[calendar_date],
+			            "DailyTotal", SUM(fact_costs[total_costs])
+			        ),
+			        [DailyTotal]
+			    ),
+			    REMOVEFILTERS()
+			)
+			RETURN
+			_Max * 1.05
+			```
+		displayFolder: 1. Measures
+		lineageTag: c196da9e-9fec-432c-a317-3dad14d60089
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Max Monthly Cost * 1.2 (for upper bound on Y Axis)' = ```
+			
+			VAR _Max = 
+			    CALCULATE(
+			        MAXX(
+			            SUMMARIZE(
+			                fact_costs, 
+			                dim_date[calendar_year_month],
+			                "MonthlyTotal", SUM(fact_costs[total_costs])
+			            ),
+			            [MonthlyTotal]
+			        ),
+			        REMOVEFILTERS()
+			    )
+			RETURN
+			_Max * 1.2
+			
+			```
+		displayFolder: 1. Measures
+		lineageTag: 175ac16d-1ebc-429c-ab17-3028b20c9345
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Cost Same Period Last Year' =
+			
+			CALCULATE(
+			    [Total Cost],
+			    ALL(dim_date),
+			    SAMEPERIODLASTYEAR(dim_date[calendar_date])
+			)
+		displayFolder: 1. Measures
+		lineageTag: 1537a8da-5548-4f17-9c6f-e6d02d99cead
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Cost FYTD' =
+			
+			CALCULATE(
+			    [Total Cost],
+			    ALL(dim_date),
+			    SELECTEDVALUE(dim_date[financial_year_num]) = dim_date[financial_year_num],
+			    dim_date[calendar_date] <= MAX(dim_date[calendar_date])
+			)
+		displayFolder: 1. Measures
+		lineageTag: dc88fbba-f85c-4ec7-b2f2-56e23e11cccd
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Title: Selected Month' =
+			
+			SELECTEDVALUE(dim_date[calendar_year_month])
+		displayFolder: 2. Helpers
+		lineageTag: c1ac670d-0027-4386-9970-74695497623f
+
+	partition _Measures-0ee86b1b-a58d-4d7a-aaf2-e12618900831 = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,70 @@
+table Dim_Date
+	lineageTag: a65f38f5-6324-42be-b82f-964657f74ddc
+
+	column calendar_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: cf85a959-4b69-4556-b8e1-6c9ba63c81ad
+		summarizeBy: none
+		sourceColumn: calendar_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_month_num
+		dataType: int64
+		formatString: 0
+		lineageTag: 3ec0180e-184a-4697-80d5-2152c7d7357c
+		summarizeBy: none
+		sourceColumn: calendar_month_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_year_month
+		dataType: string
+		lineageTag: f5813bca-5280-4cd6-a7b2-8bc1e74b9f5d
+		summarizeBy: none
+		sourceColumn: calendar_year_month
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_year
+		dataType: int64
+		formatString: 0
+		lineageTag: 48dda408-e156-4c5b-9c34-eeb0afe718b7
+		summarizeBy: none
+		sourceColumn: calendar_year
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_date_rolling_year_offset
+		dataType: int64
+		formatString: 0
+		lineageTag: ec4a5f88-503f-41e0-95ba-cedb594d5c5f
+		summarizeBy: none
+		sourceColumn: current_date_rolling_year_offset
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_month_name_short
+		dataType: string
+		lineageTag: 7e65078f-117b-4aa3-87fa-62c0d0384eda
+		summarizeBy: none
+		sourceColumn: calendar_month_name_short
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Date = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT calendar_date,#(lf)calendar_month_num,#(lf)calendar_year,#(lf)calendar_year_month,#(lf)current_date_rolling_year_offset,#(lf)calendar_month_name_short#(lf)FROM edw.dim_date#(lf)WHERE dim_date_key <> 0;"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

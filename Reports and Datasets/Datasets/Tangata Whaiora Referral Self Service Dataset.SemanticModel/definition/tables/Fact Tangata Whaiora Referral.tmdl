@@ -1,0 +1,1881 @@
+table 'Fact Tangata Whaiora Referral'
+	lineageTag: f92170af-d604-493a-8a10-0dfb559c8095
+
+	measure __Bednightspermonth = [__TotalBednightsDuringMonth]
+		formatString: #,0
+		lineageTag: 651d26a0-ab52-44e3-879a-f3e9ffa7d460
+
+		changedProperty = IsHidden
+
+	measure __TotalReferrals =
+			
+			
+			calculate(sum('Fact Tangata Whaiora Referral'[Accepted])+sum('Fact Tangata Whaiora Referral'[Pending])+sum('Fact Tangata Whaiora Referral'[Waitlist])
+			
+			)
+		lineageTag: ce56d44a-03b7-4868-9cea-87ebbb9bf8b4
+
+		changedProperty = IsHidden
+
+	measure ReportingDate = ```
+			UTCTODAY() 
+			```
+		formatString: dddd\, mmmm d\, yyyy
+		lineageTag: 6d6daa36-caaf-4fc5-8d69-a1f16fdb158c
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsCurrentAccepted =
+			
+			calculate(countrows('Fact Tangata Whaiora Referral'),'Fact Tangata Whaiora Referral'[Referral Status]="Accepted"&&'Fact Tangata Whaiora Referral'[Calendar Date]=TODAY()-1)
+		formatString: #,0
+		lineageTag: 09cd1c91-b8a1-49a9-98b1-fd63e0ef76eb
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsCurrentPending =
+			
+			
+			calculate(countrows('Fact Tangata Whaiora Referral'),'Fact Tangata Whaiora Referral'[Referral Status]="Pending"&&'Fact Tangata Whaiora Referral'[Calendar Date]=TODAY()-1)
+		lineageTag: 053c247e-40be-4774-901b-f6226232659d
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsCurrentWaitlisted =
+			
+			
+			calculate(countrows('Fact Tangata Whaiora Referral'),'Fact Tangata Whaiora Referral'[Referral Status]="Waitlisted"&&'Fact Tangata Whaiora Referral'[Calendar Date]=TODAY()-1)
+		lineageTag: c38ff94d-d7db-4dd2-94ff-7cc5a07f4f97
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsMonthEndAccepted =
+			
+			Var EndofMonthAccepted= calculate(max('Dim Date'[Calendar Date]),'Dim Date'[Calendar Last Day Of Month Flag]=1)
+			Return
+			calculate(countrows('Fact Tangata Whaiora Referral'),'Fact Tangata Whaiora Referral'[Referral Status]="Accepted"&&'Fact Tangata Whaiora Referral'[Calendar Date]=EndofMonthAccepted)
+		lineageTag: a3c6b012-f2ef-4dd0-b474-22e4f06e9df6
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsMonthEndPending =
+			
+			Var EndofMonthPending =  calculate(max('Dim Date'[Calendar Date]),'Dim Date'[Calendar Last Day Of Month Flag]=1)
+			Return
+			calculate(countrows('Fact Tangata Whaiora Referral'),'Fact Tangata Whaiora Referral'[Referral Status]="Pending"&&'Fact Tangata Whaiora Referral'[Calendar Date]=EndofMonthPending)
+		lineageTag: 7dd8dd9d-adcd-4283-b02c-5a720cbfc112
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsMonthEndWaitlisted =
+			
+			Var EndofMonthWaitlisted= calculate(max('Dim Date'[Calendar Date]),'Dim Date'[Calendar Last Day Of Month Flag]=1)
+			Return
+			calculate(countrows('Fact Tangata Whaiora Referral'),'Fact Tangata Whaiora Referral'[Referral Status]="Waitlisted"&&'Fact Tangata Whaiora Referral'[Calendar Date]=EndofMonthWaitlisted)
+		lineageTag: efff2fa8-2d78-4a19-885f-42eff8113b51
+
+		changedProperty = IsHidden
+
+	measure __DeclineMaori = ```
+			
+			calculate(SUM('Fact Tangata Whaiora Referral'[Declined]),'Dim Tangata Whaiora'[Latest Tangata Whaiora Maori]="Māori")
+			
+			```
+		lineageTag: a50a7495-a5c4-47a5-870f-ee2a7e69cee1
+
+		changedProperty = IsHidden
+
+	measure __DeclineALL =
+			
+			sum('Fact Tangata Whaiora Referral'[Declined])
+		lineageTag: d6739fea-53d3-4acd-9975-0cd39b1cbe3b
+
+		changedProperty = IsHidden
+
+	measure __BedDaysperMonthCapacity =
+			VAR MonthsInContext = VALUES('Dim Date'[Calendar First Day Of Month Date])
+			RETURN
+			SUMX(
+			    MonthsInContext,
+			    VAR MonthDays = CALCULATE(MAX('Dim Date'[Calendar Days In Month Num]))
+			    VAR MonthBeds =
+			        CALCULATE(
+			            SUM('Dim Tangata Whaiora Team'[Tangata Whaiora Team Bed Number]),
+			            KEEPFILTERS('Dim Date'[Calendar Last Day Of Month Flag] = 1)
+			        )
+			    RETURN
+			        COALESCE(MonthBeds, 0) * COALESCE(MonthDays, 0)
+			)
+		lineageTag: df42971e-70e9-479f-b62f-43c5e8f27a4e
+
+		changedProperty = IsHidden
+
+	measure __DeclinePasifika =
+			
+			calculate(sum('Fact Tangata Whaiora Referral'[Declined]),'Dim Tangata Whaiora'[Latest Tangata Whaiora Pasifika] = "Pasifika")
+		lineageTag: 0ac82b2d-f754-48d3-8396-853a915b74a9
+
+		changedProperty = IsHidden
+
+	measure __%DeclineMaori =
+			
+			
+			iferror(([__DeclineMaori]/[__DeclineALL]),Blank())
+		formatString: 0.0\ %;-0.0\ %;0.0\ %
+		lineageTag: ef6f6a24-f0d9-46db-87ac-cc1536509ed8
+
+		changedProperty = IsHidden
+
+	measure __%DeclinePasifika =
+			
+			
+			iferror(([__DeclinePasifika]/[__DeclineALL]),Blank())
+		formatString: 0.0\ %;-0.0\ %;0.0\ %
+		lineageTag: 12a42c3d-0844-4e6a-bef7-b85ecba0263e
+
+		changedProperty = IsHidden
+
+	measure __CurrentAccReferralsMāori =
+			
+			
+			calculate(countrows('Fact Tangata Whaiora Referral'),'Fact Tangata Whaiora Referral'[Referral Status]="Accepted",'Fact Tangata Whaiora Referral'[Calendar Date]=TODAY()-1,'Dim Tangata Whaiora'[Latest Tangata Whaiora Maori]="Māori")
+		lineageTag: e885108b-bc9e-4731-82b0-fbd90baa6a84
+
+		changedProperty = IsHidden
+
+	measure __CurrentAccReferralsPasifika =
+			
+			
+			calculate(countrows('Fact Tangata Whaiora Referral'),'Fact Tangata Whaiora Referral'[Referral Status]="Accepted",'Fact Tangata Whaiora Referral'[Calendar Date]=TODAY()-1,'Dim Tangata Whaiora'[Latest Tangata Whaiora Pasifika]="Pasifika")
+		lineageTag: fbb8792d-791a-4076-81cd-9eae481252b4
+
+		changedProperty = IsHidden
+
+	measure __CurrentAccReferralsGenderD =
+			
+			if (isblank(
+			calculate(countrows('Fact Tangata Whaiora Referral'),'Fact Tangata Whaiora Referral'[Referral Status]="Accepted",'Fact Tangata Whaiora Referral'[Calendar Date]=TODAY()-1,'Dim Tangata Whaiora'[Latest Tangata Whaiora Gender]="Gender Diverse / He ira kē anō")),0)
+		lineageTag: 4bb97a27-4614-4ecc-8781-5083862ec944
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsDischarged = ```
+			
+			
+			calculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Ref Tangata Whaiora Relationsip KEY]),'Fact Tangata Whaiora Referral'[Referral Discharged Date]='Fact Tangata Whaiora Referral'[Calendar Date])
+			
+			```
+		formatString: #,0
+		lineageTag: c80bb6a8-149b-4a09-8abc-575138adca7e
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsReceived =
+			
+			
+			calculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Ref Tangata Whaiora Relationsip KEY]),'Fact Tangata Whaiora Referral'[Referral Received Date]='Fact Tangata Whaiora Referral'[Calendar Date])
+		formatString: #,0
+		lineageTag: 005c4801-f1e4-404d-98cd-4029107ab724
+
+		changedProperty = IsHidden
+
+	measure __TotalClientsActiveDuringMonth =
+			
+			
+			calculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Ref Tangata Whaiora Unique KEY]),'Fact Tangata Whaiora Referral'[Referral Status]in {"Accepted","Accepted and Discharged", "Discharged"})
+		formatString: #,0
+		lineageTag: 04fd8479-0efc-4543-a05f-7f5cef275481
+
+		changedProperty = IsHidden
+
+	measure '__Active Maori Clients in Month' = calculate([__TotalClientsActiveDuringMonth],'Dim Tangata Whaiora'[Latest Tangata Whaiora Ethnicity Group] = "Maori")
+		lineageTag: 9c49bd6a-c456-406d-80e5-4ca1658332b1
+
+		changedProperty = IsHidden
+
+	measure '__Active Pasifika Clients in Month' = calculate([__TotalClientsActiveDuringMonth],'Dim Tangata Whaiora'[Latest Tangata Whaiora Ethnicity Group] = "Pasifika")
+		formatString: #,0
+		lineageTag: bd6c78b4-f27e-4790-b92c-48ad80dc3596
+
+		changedProperty = IsHidden
+
+	measure __TotalClientsCurrentAccepted =
+			
+			/*calculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Tangata Whaiora ID]),'Fact Tangata Whaiora Referral'[Referral Status]="Accepted"&&'Fact Tangata Whaiora Referral'[Calendar Date]=TODAY()-1)*/
+			CALCULATE (
+			    DISTINCTCOUNT ( 'Fact Tangata Whaiora Referral'[Ref Tangata Whaiora Unique KEY] ),
+			    'Fact Tangata Whaiora Referral'[Referral Status] IN { "Accepted", "Accepted and Discharged" },
+			    'Fact Tangata Whaiora Referral'[Calendar Date] = TODAY() - 1
+			)
+		formatString: #,0
+		lineageTag: fb91539a-8752-44c9-bc63-6c31908034fe
+
+		changedProperty = IsHidden
+
+	measure __LengthofStay_Discharged = ```
+			
+			DATEDIFF(
+			 FIRSTDATE('Fact Tangata Whaiora Referral'[Referral Accepted Date]),lastdate('Fact Tangata Whaiora Referral'[Referral Discharged Date]),DAY)
+			
+			```
+		formatString: #,0
+		lineageTag: d0a72d4d-b8a6-4101-8136-ffe6b523ad54
+
+		changedProperty = IsHidden
+
+	measure __PendingDays = calculate(sum('Fact Tangata Whaiora Referral'[Lengthofpending]),'Fact Tangata Whaiora Referral'[Lengthofpending]<999)
+		lineageTag: 930ba4e6-f41f-4b63-ab94-42b43e66dc9a
+
+		changedProperty = IsHidden
+
+	measure __TotalBednightsDuringMonth =
+			
+			
+			calculate(sum('Fact Tangata Whaiora Referral'[Active Accepted Flag]))
+		formatString: #,0
+		lineageTag: dd4f2b80-e942-4e0a-bb8c-01dc1660dc43
+
+		changedProperty = IsHidden
+
+	measure %Bednights_Capacity = DIVIDE([__Bednightspermonth], [__BedDaysperMonthCapacity])
+		formatString: 0.0\ %;-0.0\ %;0.0\ %
+		lineageTag: e90b683e-3693-4ec1-80b1-35b2a652a8b1
+
+		changedProperty = IsHidden
+
+	measure __BednightCapacitypermonth = ```
+			
+			--VAR TotalBeds = summarize('Dim Tangata Whaiora Team','Dim Tangata Whaiora Team'[Tangata Whaiora Team Name],'Dim Date'[Financial Year]'Dim Tangata --Whaiora Team'[Tangata Whaiora Team Bed Number])
+			
+			
+			--VAR DaysinMonth = max('Dim Date'[Calendar Days In Month Num])
+			
+			--RETURN TotalBeds*DaysinMonth
+			
+			--Total Beds by Month =
+			
+			--VAR _Summary = SUMMARIZE(
+			  --  'Fact Tangata Whaiora Referral',
+			 --   'Dim Date'[Calendar Month Name Long],
+			  --  "Total Beds", SUM('Fact Tangata Whaiora Referral'[Active Accepted Flag])
+			--)
+			 
+			--RETURN
+			--SUMX(_Summary, [Total Beds])
+			[__TotalDayspermonth]
+			 
+			```
+		lineageTag: 06fa45c6-200c-4fe8-ad2f-946f425410fc
+
+		changedProperty = IsHidden
+
+	measure __TotalBedspermonth =
+			SUMX(
+			    VALUES('Dim Date'[Calendar First Day Of Month Date]),
+			    CALCULATE(
+			        SUM('Dim Tangata Whaiora Team'[Tangata Whaiora Team Bed Number]),
+			        KEEPFILTERS('Dim Date'[Calendar Last Day Of Month Flag] = 1)
+			    )
+			)
+		formatString: #,0
+		lineageTag: 39df1931-6540-4527-97b5-e5b1a7d46b88
+
+		changedProperty = IsHidden
+
+	measure __TotalDayspermonth =
+			SUMX(
+			    VALUES('Dim Date'[Calendar First Day Of Month Date]),
+			    CALCULATE(MAX('Dim Date'[Calendar Days In Month Num]))
+			)
+		lineageTag: df1cd01d-6e67-448b-b7fe-3f18dbf46faf
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsActiveDuringMonth_CRM =
+			
+			
+			/*calculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Tangata Whaiora ID]),'Fact Tangata Whaiora Referral'[Referral Status] = "Accepted",filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-1),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))*/
+			calculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Ref Tangata Whaiora Relationsip KEY]),'Fact Tangata Whaiora Referral'[Referral Status] in {"Accepted","Accepted and Discharged","Discharged"},filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-1),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))
+		formatString: #,0
+		displayFolder: Board Report
+		lineageTag: 94aef9ba-3a13-4cc4-9825-25d3627d3ff2
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsActiveDuringMonth_CRM_LY =
+			
+			
+			/*calculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Tangata Whaiora ID]),'Fact Tangata Whaiora Referral'[Referral Status] = "Accepted",filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-1),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))*/
+			calculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Ref Tangata Whaiora Relationsip KEY]),'Fact Tangata Whaiora Referral'[Referral Status] in {"Accepted","Accepted and Discharged","Discharged"}
+			,filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-13),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))
+		formatString: #,0
+		displayFolder: Board Report
+		lineageTag: 77522213-ad77-490a-a5e9-4853a0a6cd2c
+
+		changedProperty = IsHidden
+
+	measure '__TotalReferralsActive Change' =
+			
+			--(divide([__TotalReferralsActiveDuringMonth_CRM],[__TotalReferralsActiveDuringMonth_CRM_LY],""))-1
+			
+			--(divide([__TotalReferralsAcceptedDuringMonth_CRM],[__TotalReferralsAcceptedDuringMonth_CRM_LY],""))-1
+			VAR current_R = [__TotalReferralsActiveDuringMonth_CRM]
+			VAR previous = [__TotalReferralsActiveDuringMonth_CRM_LY]
+			RETURN
+			
+			IF(
+			    ISBLANK(current_r) || ISBLANK(previous),
+			    BLANK(),
+			    DIVIDE(current_r, previous) - 1
+			)
+		formatString: 0\ %;-0\ %;0\ %
+		lineageTag: 8d62737e-6764-4155-b430-a94528dbb79c
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsDischargedDuringMonth_CRM =
+			
+			
+			calculate([__TotalReferralsDischarged],filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-1),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))
+		formatString: #,0
+		displayFolder: Board Report
+		lineageTag: fd48e8bf-b45f-47c4-a384-d63a897b3096
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsDischargedDuringMonth_CRM_LY =
+			
+			
+			calculate([__TotalReferralsDischarged],filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-13),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))
+		formatString: #,0
+		displayFolder: Board Report
+		lineageTag: cf85a63c-3557-451f-ad80-a47d1d58add7
+
+		changedProperty = IsHidden
+
+	measure '__TotalReferralsDischarged Change' =
+			
+			--(divide([__TotalReferralsDischargedDuringMonth_CRM],[__TotalReferralsDischargedDuringMonth_CRM_LY],""))-1
+			
+			VAR current_R = [__TotalReferralsDischargedDuringMonth_CRM]
+			VAR previous = [__TotalReferralsDischargedDuringMonth_CRM_LY]
+			RETURN
+			
+			IF(
+			    ISBLANK(current_r) || ISBLANK(previous),
+			    BLANK(),
+			    DIVIDE(current_r, previous) - 1
+			)
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: eb48c4e1-b56d-47d3-b46a-3e59097f103f
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsAcceptedDuringMonth_CRM = ```
+			
+			CALCULATE(
+			    COUNTROWS(
+			        FILTER(
+			            'Fact Tangata Whaiora Referral',
+			            'Fact Tangata Whaiora Referral'[Accepted] = 1
+			        )
+			    ),
+			    FILTER(
+			        'Dim Date',
+			        'Dim Date'[Current Date Rolling Month Offset] = -1
+			    ),
+			    USERELATIONSHIP(
+			        'Fact Tangata Whaiora Referral'[Dim Date KEY],
+			        'Dim Date'[Dim Date KEY]
+			    )
+			)
+			
+			
+			```
+		formatString: 0
+		displayFolder: Board Report
+		lineageTag: c0fe1673-1f8a-4eac-8ec6-1094d7692f19
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsAcceptedDuringMonth_CRM_LY = ```
+			
+			CALCULATE(
+			    COUNTROWS(
+			        FILTER(
+			            'Fact Tangata Whaiora Referral',
+			            'Fact Tangata Whaiora Referral'[Accepted] = 1
+			        )
+			    ),
+			    FILTER(
+			        'Dim Date',
+			        'Dim Date'[Current Date Rolling Month Offset] = -13
+			    ),
+			    USERELATIONSHIP(
+			        'Fact Tangata Whaiora Referral'[Dim Date KEY],
+			        'Dim Date'[Dim Date KEY]
+			    )
+			)
+			
+			```
+		formatString: #,0
+		displayFolder: Board Report
+		lineageTag: 66c67191-5de2-46da-ae01-7fa2af2b6cbf
+
+		changedProperty = IsHidden
+
+	measure '__TotalReferralsAccepted Change' =
+			
+			--(divide([__TotalReferralsAcceptedDuringMonth_CRM],[__TotalReferralsAcceptedDuringMonth_CRM_LY],""))-1
+			VAR current_R = [__TotalReferralsAcceptedDuringMonth_CRM]
+			VAR previous = [__TotalReferralsAcceptedDuringMonth_CRM_LY]
+			RETURN
+			
+			IF(
+			    ISBLANK(current_r) || ISBLANK(previous),
+			    BLANK(),
+			    DIVIDE(current_r, previous) - 1
+			)
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: e9439d9a-541f-4bfd-8711-1a01a74332e3
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsDeclinedDuringMonth_CRM = ```
+			
+			CALCULATE(
+			    COUNTROWS(
+			        FILTER(
+			            'Fact Tangata Whaiora Referral',
+			            'Fact Tangata Whaiora Referral'[Declined] = 1
+			        )
+			    ),
+			    FILTER(
+			        'Dim Date',
+			        'Dim Date'[Current Date Rolling Month Offset] = -1
+			    ),
+			    USERELATIONSHIP(
+			        'Fact Tangata Whaiora Referral'[Dim Date KEY],
+			        'Dim Date'[Dim Date KEY]
+			    )
+			)
+			
+			```
+		formatString: 0
+		displayFolder: Board Report
+		lineageTag: cda069d9-313e-4d0d-bde6-f31f01d85772
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsDeclinedDuringMonth_CRM_LY = ```
+			
+			CALCULATE(
+			    COUNTROWS(
+			        FILTER(
+			            'Fact Tangata Whaiora Referral',
+			            'Fact Tangata Whaiora Referral'[Declined] = 1
+			        )
+			    ),
+			    FILTER(
+			        'Dim Date',
+			        'Dim Date'[Current Date Rolling Month Offset] = -13
+			    ),
+			    USERELATIONSHIP(
+			        'Fact Tangata Whaiora Referral'[Dim Date KEY],
+			        'Dim Date'[Dim Date KEY]
+			    )
+			)
+			
+			```
+		formatString: 0
+		displayFolder: Board Report
+		lineageTag: 45c0ce6a-8fb6-4b2e-9f21-fcbb2fe4f0b1
+
+		changedProperty = IsHidden
+
+	measure '__TotalReferralsDeclined Change' =
+			
+			--(divide([__TotalReferralsDeclinedDuringMonth_CRM],[__TotalReferralsDeclinedDuringMonth_CRM_LY],""))-1
+			
+			VAR current_R = [__TotalReferralsDeclinedDuringMonth_CRM]
+			VAR previous = [__TotalReferralsDeclinedDuringMonth_CRM_LY]
+			RETURN
+			
+			IF(
+			    ISBLANK(current_r) || ISBLANK(previous),
+			    BLANK(),
+			    DIVIDE(current_r, previous) - 1
+			)
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: 9a9fa30a-a7f7-432e-91ae-20d2d1c3dad2
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsReceivedDuringMonth_CRM =
+			
+			
+			calculate([__TotalReferralsReceived],filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-1),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))
+		formatString: 0
+		displayFolder: Board Report
+		lineageTag: 05a61147-3144-4224-8b4e-23266b019b9a
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsReceivedDuringMonth_CRM_LY =
+			
+			
+			calculate([__TotalReferralsReceived],filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-13),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))
+		formatString: 0
+		displayFolder: Board Report
+		lineageTag: e9b9c987-ddf4-4811-a03b-451a6c6e53aa
+
+		changedProperty = IsHidden
+
+	measure '__TotalReferralsReceived Change' = ```
+			
+			-- (divide([__TotalReferralsReceivedDuringMonth_CRM],[__TotalReferralsReceivedDuringMonth_CRM_LY],""))-1
+			
+			VAR current_R = [__TotalReferralsReceivedDuringMonth_CRM]
+			VAR previous = [__TotalReferralsReceivedDuringMonth_CRM_LY]
+			
+			RETURN 
+			IF(
+			    ISBLANK(current_r) || ISBLANK(previous),
+			    BLANK(),
+			    DIVIDE(current_r, previous) - 1
+			)
+			```
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: 25b8623d-1e65-4090-8339-853fb86126c4
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsPendingEOM_CRM =
+			
+			
+			calculate([__TotalReferralsMonthEndPending],filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-1),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))
+		formatString: 0
+		displayFolder: Board Report
+		lineageTag: 259a34cd-40c5-4efd-adb5-10d6397c882b
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsPendingEOM_CRM_LY =
+			
+			
+			calculate([__TotalReferralsMonthEndPending],filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-13),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))
+		formatString: 0
+		displayFolder: Board Report
+		lineageTag: 4d6b5027-36a7-4f8f-9613-5b0e6073ff29
+
+		changedProperty = IsHidden
+
+	measure '__TotalReferralsPending EOM Change' =
+			
+			--(divide([__TotalReferralsPendingEOM_CRM],[__TotalReferralsPendingEOM_CRM_LY],""))-1
+			
+			VAR current_R = [__TotalReferralsPendingEOM_CRM]
+			VAR previous = [__TotalReferralsPendingEOM_CRM_LY]
+			RETURN
+			
+			IF(
+			    ISBLANK(current_r) || ISBLANK(previous),
+			    BLANK(),
+			    DIVIDE(current_r, previous) - 1
+			)
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Board Report
+		lineageTag: 2c804237-3509-4f3b-9863-60291f2c683f
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsWaitlistedEOM_CRM =
+			
+			
+			calculate([__TotalReferralsMonthEndWaitlisted],filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-1),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))
+		formatString: 0
+		displayFolder: Board Report
+		lineageTag: c294dc58-e1e7-43d6-9b63-7fccb447b0ca
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsWaitlistedEOM_CRM_LY =
+			
+			
+			calculate([__TotalReferralsMonthEndWaitlisted],filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-13),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))
+		formatString: 0
+		displayFolder: Board Report
+		lineageTag: 06e03813-6a40-4df4-843d-5c37abfc5bd1
+
+		changedProperty = IsHidden
+
+	measure '__TotalReferralsWaiting EOM Change' =
+			
+			--(divide([__TotalReferralsWaitlistedEOM_CRM],[__TotalReferralsWaitlistedEOM_CRM_LY],""))-1
+			
+			VAR current_R = [__TotalReferralsWaitlistedEOM_CRM]
+			VAR previous = [__TotalReferralsWaitlistedEOM_CRM_LY]
+			RETURN
+			
+			IF(
+			    ISBLANK(current_r) || ISBLANK(previous),
+			    BLANK(),
+			    DIVIDE(current_r, previous) - 1
+			)
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		displayFolder: Board Report
+		lineageTag: fcc01825-4fbb-4471-bf10-435fee9e712c
+
+		changedProperty = IsHidden
+
+	measure __TotalBedNightsDuringMonth_CRM =
+			
+			
+			calculate([__TotalBednightsDuringMonth],filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-1),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))
+		formatString: #,0
+		displayFolder: Board Report
+		lineageTag: 418b6cc1-9ba8-4b0d-9ce4-f334e21f0edf
+
+		changedProperty = IsHidden
+
+	measure __TotalBedNightsDuringMonth_CRM_LY =
+			
+			
+			calculate([__TotalBednightsDuringMonth],filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-13),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))
+		formatString: 0
+		displayFolder: Board Report
+		lineageTag: 02902a89-49e8-47d6-be3a-209e23e28fd6
+
+		changedProperty = IsHidden
+
+	measure '_TotalBednights Change' =
+			
+			VAR current_R = [__TotalBedNightsDuringMonth_CRM]
+			VAR previous = [__TotalBedNightsDuringMonth_CRM_LY]
+			RETURN
+			
+			IF(
+			    ISBLANK(current_r) || ISBLANK(previous),
+			    BLANK(),
+			    DIVIDE(current_r, previous) - 1
+			)
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: 33a51acc-b029-4d5c-845e-73d7a6a8eb7d
+
+		changedProperty = IsHidden
+
+	measure __TotalClientsCurrentAccepted2 = ```
+			
+			CALCULATE (
+			    DISTINCTCOUNT ( 'Fact Tangata Whaiora Referral'[Ref Tangata Whaiora Unique KEY] ),
+			    'Fact Tangata Whaiora Referral'[Referral Status] IN { "Accepted", "Accepted and Discharged" },
+			    'Fact Tangata Whaiora Referral'[Calendar Date] = TODAY() - 1
+			)
+			
+			```
+		lineageTag: 74e27775-4e75-4946-b37c-738e18367508
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsActiveDuringQTR_CRM =
+			
+			
+			/*calculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Tangata Whaiora ID]),'Fact Tangata Whaiora Referral'[Referral Status] = "Accepted",filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-1),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))*/
+			calculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Ref Tangata Whaiora Relationsip KEY]),'Fact Tangata Whaiora Referral'[Referral Status] in {"Accepted","Accepted and Discharged","Discharged"},filter('Dim Date','Dim Date'[Current Financial Year Quarter Offset]=-1),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))
+		formatString: #,0
+		displayFolder: Board Report
+		lineageTag: 781598c5-864a-4fae-a7f4-90fb316127fc
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsActiveDuringQTR_CRM_LY =
+			
+			
+			/*calculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Tangata Whaiora ID]),'Fact Tangata Whaiora Referral'[Referral Status] = "Accepted",filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-1),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))*/
+			calculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Ref Tangata Whaiora Relationsip KEY]),'Fact Tangata Whaiora Referral'[Referral Status] in {"Accepted","Accepted and Discharged","Discharged"},filter('Dim Date','Dim Date'[Current Financial Year Quarter Offset]=-5),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))
+		formatString: #,0
+		displayFolder: Board Report
+		lineageTag: d2755b4e-2278-4a84-94a4-685eeaf8dcbc
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsActiveDuringQTR_CRM_Prev =
+			
+			
+			/*calculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Tangata Whaiora ID]),'Fact Tangata Whaiora Referral'[Referral Status] = "Accepted",filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-1),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))*/
+			calculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Ref Tangata Whaiora Relationsip KEY]),'Fact Tangata Whaiora Referral'[Referral Status] in {"Accepted","Accepted and Discharged","Discharged"},filter('Dim Date','Dim Date'[Current Financial Year Quarter Offset]=-2),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))
+		formatString: #,0
+		displayFolder: Board Report
+		lineageTag: 1d6699ff-3279-435f-bf2a-ace6593cce93
+
+		changedProperty = IsHidden
+
+	measure '%Change QTR Now to Prev' =
+			
+			
+			--(divide([__TotalReferralsActiveDuringMonth_CRM],[__TotalReferralsActiveDuringMonth_CRM_LY],""))-1
+			
+			--(divide([__TotalReferralsAcceptedDuringMonth_CRM],[__TotalReferralsAcceptedDuringMonth_CRM_LY],""))-1
+			VAR current_R = [__TotalReferralsActiveDuringQTR_CRM]
+			VAR previous = [__TotalReferralsActiveDuringQTR_CRM_Prev]
+			RETURN
+			
+			IF(
+			    ISBLANK(current_r) || ISBLANK(previous),
+			    BLANK(),
+			    DIVIDE(current_r, previous) - 1
+			)
+		formatString: 0.0\ %;-0.0\ %;0.0\ %
+		displayFolder: Board Report
+		lineageTag: 9090b6e3-6d67-4f65-a005-4e6d36f84f1d
+
+		changedProperty = IsHidden
+
+	measure '%Change QTR Now to Last Year QTR FY' =
+			
+			
+			--(divide([__TotalReferralsActiveDuringMonth_CRM],[__TotalReferralsActiveDuringMonth_CRM_LY],""))-1
+			
+			--(divide([__TotalReferralsAcceptedDuringMonth_CRM],[__TotalReferralsAcceptedDuringMonth_CRM_LY],""))-1
+			VAR current_R = [__TotalReferralsActiveDuringQTR_CRM]
+			VAR previous = [__TotalReferralsActiveDuringQTR_CRM_LY]
+			RETURN
+			
+			IF(
+			    ISBLANK(current_r) || ISBLANK(previous),
+			    BLANK(),
+			    DIVIDE(current_r, previous) - 1
+			)
+		formatString: 0.0\ %;-0.0\ %;0.0\ %
+		displayFolder: Board Report
+		lineageTag: 375d58e8-d443-4a25-8c18-2dfedd03f4db
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsDischargedDuringQTR_CRM = ```
+			
+			
+			calculate([__TotalReferralsDischarged],filter('Dim Date','Dim Date'[Current Financial Year Quarter Offset]=-1),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))
+			
+			
+			```
+		formatString: #,0
+		displayFolder: Board Report
+		lineageTag: f006bcc3-770a-47c3-8d26-bbdd87608ee6
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsDischargedDuringQTR_PRM = ```
+			
+			
+			calculate([__TotalReferralsDischarged],filter('Dim Date','Dim Date'[Current Financial Year Quarter Offset]=-2),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))
+			
+			```
+		formatString: #,0
+		displayFolder: Board Report
+		lineageTag: c6c4a9c1-cbe1-4f83-909d-33222924daf1
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsDischargedDuringQTR_CRM_LY = ```
+			
+			
+			calculate([__TotalReferralsDischarged],filter('Dim Date','Dim Date'[Current Financial Year Quarter Offset]=-5),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))
+			
+			```
+		formatString: #,0
+		displayFolder: Board Report
+		lineageTag: 40f88d42-7b73-4ac8-add8-fb5975844ec8
+
+		changedProperty = IsHidden
+
+	measure '%Change QTR Now to Last Year QTR FY Dis' =
+			
+			
+			--(divide([__TotalReferralsActiveDuringMonth_CRM],[__TotalReferralsActiveDuringMonth_CRM_LY],""))-1
+			
+			--(divide([__TotalReferralsAcceptedDuringMonth_CRM],[__TotalReferralsAcceptedDuringMonth_CRM_LY],""))-1
+			VAR current_R = [__TotalReferralsDischargedDuringQTR_CRM]
+			VAR previous = [__TotalReferralsDischargedDuringQTR_CRM_LY]
+			RETURN
+			
+			IF(
+			    ISBLANK(current_r) || ISBLANK(previous),
+			    BLANK(),
+			    DIVIDE(current_r, previous) - 1
+			)
+		formatString: 0.0\ %;-0.0\ %;0.0\ %
+		displayFolder: Board Report
+		lineageTag: 81956c72-380c-4b1c-bd1f-d37386decb48
+
+		changedProperty = IsHidden
+
+	measure '%Change QTR Now to Prev QTR Dis' =
+			
+			
+			--(divide([__TotalReferralsActiveDuringMonth_CRM],[__TotalReferralsActiveDuringMonth_CRM_LY],""))-1
+			
+			--(divide([__TotalReferralsAcceptedDuringMonth_CRM],[__TotalReferralsAcceptedDuringMonth_CRM_LY],""))-1
+			VAR current_R = [__TotalReferralsDischargedDuringQTR_CRM]
+			VAR previous = [__TotalReferralsDischargedDuringQTR_PRM]
+			RETURN
+			
+			IF(
+			    ISBLANK(current_r) || ISBLANK(previous),
+			    BLANK(),
+			    DIVIDE(current_r, previous) - 1
+			)
+		formatString: 0.0\ %;-0.0\ %;0.0\ %
+		displayFolder: Board Report
+		lineageTag: 722432c2-e2a3-4fb6-8e8d-9ff81d401b1b
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsDeclinedDuringQTR_CRM = ```
+			
+			CALCULATE(
+			    COUNTROWS(
+			        FILTER(
+			            'Fact Tangata Whaiora Referral',
+			            'Fact Tangata Whaiora Referral'[Declined] = 1
+			        )
+			    ),
+			    FILTER(
+			        'Dim Date',
+			        'Dim Date'[Current Financial Year Quarter Offset] = -1
+			    ),
+			    USERELATIONSHIP(
+			        'Fact Tangata Whaiora Referral'[Dim Date KEY],
+			        'Dim Date'[Dim Date KEY]
+			    )
+			)
+			
+			```
+		formatString: #,0
+		displayFolder: Board Report
+		lineageTag: a11d42f6-51c0-47ff-ad69-97ef1b664793
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsDeclinedDuringQTR_PRM = ```
+			
+			CALCULATE(
+			    COUNTROWS(
+			        FILTER(
+			            'Fact Tangata Whaiora Referral',
+			            'Fact Tangata Whaiora Referral'[Declined] = 1
+			        )
+			    ),
+			    FILTER(
+			        'Dim Date',
+			        'Dim Date'[Current Financial Year Quarter Offset] = -2
+			    ),
+			    USERELATIONSHIP(
+			        'Fact Tangata Whaiora Referral'[Dim Date KEY],
+			        'Dim Date'[Dim Date KEY]
+			    )
+			)
+			
+			```
+		formatString: #,0
+		displayFolder: Board Report
+		lineageTag: 3f8d6750-c453-43d1-ba7a-4a2f3baffe4c
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsDeclinedDuringQTR_LY = ```
+			
+			CALCULATE(
+			    COUNTROWS(
+			        FILTER(
+			            'Fact Tangata Whaiora Referral',
+			            'Fact Tangata Whaiora Referral'[Declined] = 1
+			        )
+			    ),
+			    FILTER(
+			        'Dim Date',
+			        'Dim Date'[Current Financial Year Quarter Offset] = -5
+			    ),
+			    USERELATIONSHIP(
+			        'Fact Tangata Whaiora Referral'[Dim Date KEY],
+			        'Dim Date'[Dim Date KEY]
+			    )
+			)
+			
+			```
+		formatString: #,0
+		displayFolder: Board Report
+		lineageTag: 7211cf9a-8c45-4153-be9a-4ef8d5a21061
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsAcceptedDuringQTR_CRM = ```
+			
+			CALCULATE(
+			    COUNTROWS(
+			        FILTER(
+			            'Fact Tangata Whaiora Referral',
+			            'Fact Tangata Whaiora Referral'[Accepted] = 1
+			        )
+			    ),
+			    FILTER(
+			        'Dim Date',
+			        'Dim Date'[Current Financial Year Quarter Offset] = -1
+			    ),
+			    USERELATIONSHIP(
+			        'Fact Tangata Whaiora Referral'[Dim Date KEY],
+			        'Dim Date'[Dim Date KEY]
+			    )
+			)
+			
+			```
+		formatString: #,0
+		displayFolder: Board Report
+		lineageTag: 17cb65ba-f6b6-4ed0-9d1a-597070ec7752
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsAcceptedDuringQTR_PRM =
+			
+			CALCULATE(
+			    COUNTROWS(
+			        FILTER(
+			            'Fact Tangata Whaiora Referral',
+			            'Fact Tangata Whaiora Referral'[Accepted] = 1
+			        )
+			    ),
+			    FILTER(
+			        'Dim Date',
+			        'Dim Date'[Current Financial Year Quarter Offset] = -2
+			    ),
+			    USERELATIONSHIP(
+			        'Fact Tangata Whaiora Referral'[Dim Date KEY],
+			        'Dim Date'[Dim Date KEY]
+			    )
+			)
+		formatString: #,0
+		displayFolder: Board Report
+		lineageTag: 5d001918-5f2f-4030-b6a6-e0cfaa5e71f0
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsAcceptedDuringQTR_LYRM =
+			
+			CALCULATE(
+			    COUNTROWS(
+			        FILTER(
+			            'Fact Tangata Whaiora Referral',
+			            'Fact Tangata Whaiora Referral'[Accepted] = 1
+			        )
+			    ),
+			    FILTER(
+			        'Dim Date',
+			        'Dim Date'[Current Financial Year Quarter Offset] = -5
+			    ),
+			    USERELATIONSHIP(
+			        'Fact Tangata Whaiora Referral'[Dim Date KEY],
+			        'Dim Date'[Dim Date KEY]
+			    )
+			)
+		formatString: #,0
+		displayFolder: Board Report
+		lineageTag: 9b4ff8a6-f3ac-4a7e-b6c6-b1a52c516e0e
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsReceivedDuringQTR_CRM =
+			
+			
+			calculate([__TotalReferralsReceived],filter('Dim Date','Dim Date'[Current Financial Year Quarter Offset]=-1),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))
+		formatString: #,0
+		displayFolder: Board Report
+		lineageTag: 48a9c3eb-2421-4052-bc03-7c7872444557
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsReceivedDuringQTR_LYRM =
+			
+			
+			calculate([__TotalReferralsReceived],filter('Dim Date','Dim Date'[Current Financial Year Quarter Offset]=-5),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))
+		formatString: #,0
+		displayFolder: Board Report
+		lineageTag: 1045a391-1587-4707-ab6f-9cc0b663f839
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsReceivedDuringQTR_PrevCRM =
+			
+			
+			calculate([__TotalReferralsReceived],filter('Dim Date','Dim Date'[Current Financial Year Quarter Offset]=-2),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))
+		formatString: #,0
+		displayFolder: Board Report
+		lineageTag: 8cbc919e-1ac9-4812-ab53-68bb2b6a593a
+
+		changedProperty = IsHidden
+
+	measure '%Change QTR Now to Last Year QTR FY Received' =
+			
+			
+			--(divide([__TotalReferralsActiveDuringMonth_CRM],[__TotalReferralsActiveDuringMonth_CRM_LY],""))-1
+			
+			--(divide([__TotalReferralsAcceptedDuringMonth_CRM],[__TotalReferralsAcceptedDuringMonth_CRM_LY],""))-1
+			VAR current_R = [__TotalReferralsReceivedDuringQTR_CRM]
+			VAR previous = [__TotalReferralsReceivedDuringQTR_LYRM]
+			RETURN
+			
+			IF(
+			    ISBLANK(current_r) || ISBLANK(previous),
+			    BLANK(),
+			    DIVIDE(current_r, previous) - 1
+			)
+		formatString: 0.0\ %;-0.0\ %;0.0\ %
+		displayFolder: Board Report
+		lineageTag: dcb0fb53-599c-461e-a82f-0bedbf72627c
+
+		changedProperty = IsHidden
+
+	measure '%Change QTR Now to Last Year QTR Prev Received' =
+			
+			
+			--(divide([__TotalReferralsActiveDuringMonth_CRM],[__TotalReferralsActiveDuringMonth_CRM_LY],""))-1
+			
+			--(divide([__TotalReferralsAcceptedDuringMonth_CRM],[__TotalReferralsAcceptedDuringMonth_CRM_LY],""))-1
+			VAR current_R = [__TotalReferralsReceivedDuringQTR_CRM]
+			VAR previous = [__TotalReferralsReceivedDuringQTR_PrevCRM]
+			RETURN
+			
+			IF(
+			    ISBLANK(current_r) || ISBLANK(previous),
+			    BLANK(),
+			    DIVIDE(current_r, previous) - 1
+			)
+		formatString: 0.0\ %;-0.0\ %;0.0\ %
+		displayFolder: Board Report
+		lineageTag: 6057bb12-016c-4d70-bb17-175ca7c142ff
+
+		changedProperty = IsHidden
+
+	measure '%Change QTR Now to Last Year QTR FY Accepted' =
+			
+			
+			--(divide([__TotalReferralsActiveDuringMonth_CRM],[__TotalReferralsActiveDuringMonth_CRM_LY],""))-1
+			
+			--(divide([__TotalReferralsAcceptedDuringMonth_CRM],[__TotalReferralsAcceptedDuringMonth_CRM_LY],""))-1
+			VAR current_R = [__TotalReferralsAcceptedDuringQTR_CRM]
+			VAR previous = [__TotalReferralsAcceptedDuringQTR_LYRM]
+			RETURN
+			
+			IF(
+			    ISBLANK(current_r) || ISBLANK(previous),
+			    BLANK(),
+			    DIVIDE(current_r, previous) - 1
+			)
+		formatString: 0.0\ %;-0.0\ %;0.0\ %
+		displayFolder: Board Report
+		lineageTag: bc084461-be0e-4a6c-b229-f545d567117e
+
+		changedProperty = IsHidden
+
+	measure '%Change QTR Now to Last Year QTR Prev Accepted' =
+			
+			
+			--(divide([__TotalReferralsActiveDuringMonth_CRM],[__TotalReferralsActiveDuringMonth_CRM_LY],""))-1
+			
+			--(divide([__TotalReferralsAcceptedDuringMonth_CRM],[__TotalReferralsAcceptedDuringMonth_CRM_LY],""))-1
+			VAR current_R = [__TotalReferralsAcceptedDuringQTR_CRM]
+			VAR previous = [__TotalReferralsAcceptedDuringQTR_PRM]
+			RETURN
+			
+			IF(
+			    ISBLANK(current_r) || ISBLANK(previous),
+			    BLANK(),
+			    DIVIDE(current_r, previous) - 1
+			)
+		formatString: 0.0\ %;-0.0\ %;0.0\ %
+		displayFolder: Board Report
+		lineageTag: bd1d2995-f40f-43e7-ab1d-dc4544a7cf6b
+
+		changedProperty = IsHidden
+
+	measure '%Change QTR Now to Prev QTR Decline' =
+			
+			
+			--(divide([__TotalReferralsActiveDuringMonth_CRM],[__TotalReferralsActiveDuringMonth_CRM_LY],""))-1
+			
+			--(divide([__TotalReferralsAcceptedDuringMonth_CRM],[__TotalReferralsAcceptedDuringMonth_CRM_LY],""))-1
+			VAR current_R = [__TotalReferralsDeclinedDuringQTR_CRM]
+			VAR previous = [__TotalReferralsDeclinedDuringQTR_PRM]
+			RETURN
+			
+			IF(
+			    ISBLANK(current_r) || ISBLANK(previous),
+			    BLANK(),
+			    DIVIDE(current_r, previous) - 1
+			)
+		formatString: 0.0\ %;-0.0\ %;0.0\ %
+		displayFolder: Board Report
+		lineageTag: b9094953-192f-4b4b-b915-30afa3b35218
+
+		changedProperty = IsHidden
+
+	measure '%Change QTR Now to Prev QTR Declined LY' =
+			
+			
+			--(divide([__TotalReferralsActiveDuringMonth_CRM],[__TotalReferralsActiveDuringMonth_CRM_LY],""))-1
+			
+			--(divide([__TotalReferralsAcceptedDuringMonth_CRM],[__TotalReferralsAcceptedDuringMonth_CRM_LY],""))-1
+			VAR current_R = [__TotalReferralsDeclinedDuringQTR_CRM]
+			VAR previous = [__TotalReferralsDeclinedDuringQTR_LY]
+			RETURN
+			
+			IF(
+			    ISBLANK(current_r) || ISBLANK(previous),
+			    BLANK(),
+			    DIVIDE(current_r, previous) - 1
+			)
+		formatString: 0.0\ %;-0.0\ %;0.0\ %
+		displayFolder: Board Report
+		lineageTag: 347eab35-e63b-49ea-9fb8-2f351bd8772e
+
+		changedProperty = IsHidden
+
+	measure '__LOS Active' = ```
+			
+			max('Fact Tangata Whaiora Referral'[Current Days In Service])
+			
+			
+			
+			
+			
+			
+			
+			
+			```
+		lineageTag: b1edc357-eb04-4445-bb75-860cd30c6343
+
+		changedProperty = IsHidden
+
+	measure __%Decline =
+			
+			
+			iferror(([__DeclineOverall]/[__TotalReferralsReceived]),Blank())
+		formatString: 0.0\ %;-0.0\ %;0.0\ %
+		lineageTag: 762f01c2-7a63-4294-b1d2-3dfe9b661eb0
+
+		changedProperty = IsHidden
+
+	measure __DeclineOverall = ```
+			
+			calculate(sum('Fact Tangata Whaiora Referral'[Pending]), filter('Dim Tangata Whaiora Referral', 'Dim Tangata Whaiora Referral'[Tangata Whaiora Referral status]="Declined"),'Fact Tangata Whaiora Referral'[Calendar Date] = 'Fact Tangata Whaiora Referral'[Referral Received Date])
+			
+			```
+		lineageTag: ceae6e14-c3b1-4710-a059-4a0709b4e4aa
+
+		changedProperty = IsHidden
+
+	measure __AcceptedOverall = ```
+			
+			calculate(sum('Fact Tangata Whaiora Referral'[Pending]), filter('Dim Tangata Whaiora Referral', 'Dim Tangata Whaiora Referral'[Tangata Whaiora Referral status]in 
+			{"Accepted","Discharged"}),'Fact Tangata Whaiora Referral'[Calendar Date] = 'Fact Tangata Whaiora Referral'[Referral Received Date])
+			```
+		lineageTag: 2d88af5c-e50b-4188-a493-837574d57550
+
+		changedProperty = IsHidden
+
+	measure '__%Accepted Overall' =
+			
+			
+			iferror(([__AcceptedOverall]/[__TotalReferralsReceived]),Blank())
+		formatString: 0.0\ %;-0.0\ %;0.0\ %
+		lineageTag: 50466046-178a-4919-b6e2-dc932e7fcd75
+
+		changedProperty = IsHidden
+
+	measure '__%Discharged Overall' =
+			
+			divide
+			(
+			    [__TotalReferralsDischarged],
+			    calculate([__TotalReferralsDischarged],
+			    removefilters('Dim Tangata Whaiora Referral'[Tangata Whaiora Referral Discharge Reason])
+			    )
+			)
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: 6c488a84-29dc-42f4-a9c9-7bcce230dd36
+
+		changedProperty = IsHidden
+
+	measure '%Maori Decline Overall' = ```
+			
+			var totalall = 
+			CALCULATE([__DeclineMaori],REMOVEFILTERS('Dim Tangata Whaiora Referral'[Tangata Whaiora Referral Declined Reason (groups)]))
+			return
+			divide([__DeclineMaori],totalall)
+			```
+		formatString: 0.0\ %;-0.0\ %;0.0\ %
+		lineageTag: 7249dcbb-3868-46ac-a7ae-1cb9123c11ab
+
+		changedProperty = IsHidden
+
+	measure '%Pasifika Decline Overall' = ```
+			
+			var totalall = 
+			CALCULATE([__DeclinePasifika],REMOVEFILTERS('Dim Tangata Whaiora Referral'[Tangata Whaiora Referral Declined Reason (groups)]))
+			return
+			divide([__DeclinePasifika],totalall)
+			```
+		formatString: 0.0\ %;-0.0\ %;0.0\ %
+		lineageTag: c1f334ad-aa76-40c0-87d6-0e84b8fd1282
+
+		changedProperty = IsHidden
+
+	measure '%Asian Decline Overall' = ```
+			
+			var totalall = 
+			CALCULATE([__DeclineAsian],REMOVEFILTERS('Dim Tangata Whaiora Referral'[Tangata Whaiora Referral Declined Reason (groups)]))
+			return
+			divide([__DeclineAsian],totalall)
+			```
+		formatString: 0.00\ %;-0.00\ %;0.00\ %
+		lineageTag: 55531988-9d22-417c-8bb6-53eea938c4d7
+
+		changedProperty = IsHidden
+
+	measure __DeclineAsian =
+			
+			calculate(SUM('Fact Tangata Whaiora Referral'[Declined]),'Dim Tangata Whaiora'[Asian Flag]="Asian")
+		lineageTag: 0af1b9a7-2558-4150-b771-2a2e27ea205b
+
+		changedProperty = IsHidden
+
+	measure __DeclineEuropean =
+			
+			calculate(SUM('Fact Tangata Whaiora Referral'[Declined]),'Dim Tangata Whaiora'[European Flag]="European")
+		lineageTag: 5174965c-39d7-480f-a926-1bee0290425c
+
+		changedProperty = IsHidden
+
+	measure '%European Decline Overall' = ```
+			
+			var totalall = 
+			CALCULATE([__DeclineEuropean],REMOVEFILTERS('Dim Tangata Whaiora Referral'[Tangata Whaiora Referral Declined Reason (groups)]))
+			return
+			divide([__DeclineEuropean],totalall)
+			```
+		formatString: 0.0\ %;-0.0\ %;0.0\ %
+		lineageTag: fcf22337-8563-4f69-b869-0ff93b53d476
+
+		changedProperty = IsHidden
+
+	measure __TotalReferralsActive =
+			
+			/*calculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Tangata Whaiora ID]),'Fact Tangata Whaiora Referral'[Referral Status] = "Accepted",filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-1),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))*/
+			calculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Ref Tangata Whaiora Relationsip KEY]),'Fact Tangata Whaiora Referral'[Referral Status] in {"Accepted","Accepted and Discharged","Discharged"},userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))
+		formatString: #,0
+		lineageTag: 4d8f608b-78e4-476e-8697-4bff0bb86196
+
+	measure '__Number of Tangata Whaiora Active' =
+			
+			calculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Fact Tangata Whaiora Referral Unique KEY]),userelationship('Dim Date'[Dim Date KEY],'Fact Tangata Whaiora Referral'[Dim Date KEY]))
+		formatString: 0
+		lineageTag: 10a09171-c54a-47db-8efe-93a79eddfceb
+
+	measure __TotalReferrals_Whanau_Involvement =
+			
+			COALESCE(
+			    CALCULATE(
+			        DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Ref Tangata Whaiora Relationsip KEY]),
+			        'Fact Tangata Whaiora Referral'[Referral Status] IN {
+			            "Accepted",
+			            "Accepted and Discharged",
+			            "Discharged"
+			        },
+			        'Fact Tangata Whaiora Referral'[Tangata Whaiora Activity Whanau Involvement] = 1,
+			        USERELATIONSHIP(
+			            'Fact Tangata Whaiora Referral'[Dim Date KEY],
+			            'Dim Date'[Dim Date KEY]
+			        )
+			    ),
+			    0
+			)
+		formatString: 0
+		lineageTag: 5925329d-d0de-4ae6-b918-790a0e32240b
+
+	measure '__%Whanau Involvement' = divide([__TotalReferrals_Whanau_Involvement],[__TotalReferralsActive])
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: e00fb5a4-3dd1-4bf9-b495-4806c1239724
+
+	column 'Fact Tangata Whaiora Referral KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 081fdfe5-2685-4765-b0de-7aae7f7cbf8b
+		summarizeBy: none
+		sourceColumn: Fact Tangata Whaiora Referral KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column 'Fact Tangata Whaiora Referral Unique KEY'
+		dataType: string
+		lineageTag: bde9854d-d912-4f10-8250-f8c69e941a92
+		summarizeBy: none
+		sourceColumn: Fact Tangata Whaiora Referral Unique KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Company KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 7f6e9dda-7ef4-4ade-9373-027c2f3b3d85
+		summarizeBy: none
+		sourceColumn: Dim Company KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Employee KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 4e847d59-ca1b-465b-b45a-5d905606d794
+		summarizeBy: none
+		sourceColumn: Dim Employee KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Tangata Whaiora Referral KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 7c0e7aff-e6cc-4fec-a331-df510c667dca
+		summarizeBy: none
+		sourceColumn: Dim Tangata Whaiora Referral KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Tangata Whaiora Team KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 115c8987-615f-4faa-8de5-3aa8ac2e9c51
+		summarizeBy: none
+		sourceColumn: Dim Tangata Whaiora Team KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column 'Dim Service KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 54af12cd-e3e2-4360-839e-6c06c6cfbe20
+		summarizeBy: none
+		sourceColumn: Dim Service KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column 'Tangata Whaiora ID'
+		dataType: int64
+		lineageTag: eeb16600-c780-4355-b50d-ca10e1754ee6
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Tangata Whaiora Referral ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 42ed8351-819e-4132-b73c-7f637bb91f36
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column 'Tangata Whaiora Team ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 14327514-110a-4962-9d24-d1131bf1d630
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Team ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column 'Calendar Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 6ad654ae-fc06-4d8f-ba73-2701d03f9a33
+		summarizeBy: none
+		sourceColumn: Calendar Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Referral Received Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: d9c22eb2-ea7d-4c23-a0ad-aff9227a058c
+		summarizeBy: none
+		sourceColumn: Referral Received Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Referral Pending Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 4282e66d-2bc2-400d-9726-5a83a4b603c7
+		summarizeBy: none
+		sourceColumn: Referral Pending Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Referral Waitlisted Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: b2dc6d5a-1644-4395-bb33-373f383e9c13
+		summarizeBy: none
+		sourceColumn: Referral Waitlisted Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Referral Declined Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 4a0ff781-91f5-4953-aae0-aa798dda786d
+		summarizeBy: none
+		sourceColumn: Referral Declined Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Referral Accepted Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: c2c5d98b-fa47-4fb0-8016-7c1d2a874ab6
+		summarizeBy: none
+		sourceColumn: Referral Accepted Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Referral Discharged Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: e908661a-a37d-41f3-afa7-f7c92fcf8b59
+		summarizeBy: none
+		sourceColumn: Referral Discharged Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Referral Endded Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: fd19740a-0e7e-46c5-9a12-87132abae062
+		summarizeBy: none
+		sourceColumn: Referral Endded Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Referral Status'
+		dataType: string
+		lineageTag: 0aba610a-d4ad-415c-8de3-c1de088d63e2
+		summarizeBy: none
+		sourceColumn: Referral Status
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Pending
+		dataType: int64
+		formatString: #,0
+		lineageTag: a85f3fa6-4f8d-4e0e-bd2d-19d3b9cc4c5d
+		summarizeBy: sum
+		sourceColumn: Pending
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Waitlist
+		dataType: int64
+		formatString: #,0
+		lineageTag: e2bcac0b-8b38-4284-aec2-a89513a76017
+		summarizeBy: sum
+		sourceColumn: Waitlist
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Accepted
+		dataType: int64
+		formatString: #,0
+		lineageTag: 9823306a-ac1e-47f3-9d7f-4956178c6ee4
+		summarizeBy: sum
+		sourceColumn: Accepted
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Declined
+		dataType: int64
+		formatString: #,0
+		lineageTag: 5837cb4a-6773-41ec-9ce6-75fe950a2b89
+		summarizeBy: sum
+		sourceColumn: Declined
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Discharged
+		dataType: int64
+		formatString: #,0
+		lineageTag: 500a9c02-3719-4556-a015-a1f76943e999
+		summarizeBy: sum
+		sourceColumn: Discharged
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Age On Day'
+		dataType: double
+		lineageTag: bd5b4ca0-7826-45ae-851c-879c506d3b62
+		summarizeBy: none
+		sourceColumn: Age On Day
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Active Accepted Flag'
+		dataType: int64
+		formatString: #,0
+		lineageTag: b7247312-11df-4806-b6b4-cd7269ac9d1e
+		summarizeBy: sum
+		sourceColumn: Active Accepted Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Active Pending Flag'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 95c460cb-06b8-4a5c-9084-7916080b3640
+		summarizeBy: sum
+		sourceColumn: Active Pending Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Active Waitlisted Flag'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 081bc6ea-4c15-4c66-b6fd-08c178b41908
+		summarizeBy: sum
+		sourceColumn: Active Waitlisted Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Inactive Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: 85cb71f2-4efd-4042-ad1f-260f10895a73
+		summarizeBy: none
+		sourceColumn: Inactive Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column 'Dim Date KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 6650a571-2f3a-4227-b358-30bb53c44d2d
+		summarizeBy: none
+		sourceColumn: Dim Date KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Tangata Whaiora KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 162f95bc-d205-4c47-a7c0-afa20defea3f
+		summarizeBy: none
+		sourceColumn: Dim Tangata Whaiora KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team Is Accommodation Based'
+		dataType: int64
+		formatString: 0
+		lineageTag: 99b4b462-7522-433a-a089-b529de48f3a8
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Team Is Accommodation Based
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column 'Tangata Whaiora Team Bed Number'
+		dataType: int64
+		formatString: 0
+		lineageTag: 8d38c714-3ddf-4124-bfdb-94cd3c71dd4a
+		summarizeBy: sum
+		sourceColumn: Tangata Whaiora Team Bed Number
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Absence Start Date Time'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: d315a753-dfe8-4484-8497-2df265c2469f
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Absence Start Date Time
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Absence End Date Time'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 8ae34657-fcde-4477-a8fe-3fa2d4b24144
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Absence End Date Time
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Daily Absent'
+		dataType: int64
+		formatString: #,0
+		lineageTag: ddfa2a48-f366-4c46-a777-1fb3e8db2a68
+		summarizeBy: sum
+		sourceColumn: Daily Absent
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Absence Type'
+		dataType: string
+		lineageTag: f3b2d42f-d203-4705-8cc3-851135dcbbec
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Absence Type
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Absence Reason'
+		dataType: string
+		lineageTag: c46d6719-7493-4dad-839b-888b5960935a
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Absence Reason
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Actual Bed Night'
+		dataType: int64
+		formatString: #,0
+		lineageTag: e28b5567-4963-4658-aade-b6c50b6cc5e3
+		summarizeBy: sum
+		sourceColumn: Actual Bed Night
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Tangata Whaiora Team Unique KEY'
+		dataType: string
+		lineageTag: e46f88aa-b5fe-45d3-88d2-2e8c4d151ef4
+		summarizeBy: none
+		sourceColumn: Dim Tangata Whaiora Team Unique KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Lengthofstay
+		dataType: int64
+		formatString: 0
+		lineageTag: e143e403-0a97-4610-b889-016967f1588f
+		summarizeBy: sum
+		sourceColumn: Lengthofstay
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Lengthofpending
+		dataType: int64
+		formatString: 0
+		lineageTag: b8539448-f4e9-47bb-8a80-47e66a132f1b
+		summarizeBy: sum
+		sourceColumn: Lengthofpending
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Status By Day'
+		dataType: string
+		lineageTag: 19969851-5a5a-4f6d-9272-201367015cf2
+		summarizeBy: none
+		sourceColumn: Referral Status By Day
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Current Days In Service'
+		dataType: int64
+		formatString: 0
+		lineageTag: e57de9af-aaa8-4609-838d-37f59f972402
+		summarizeBy: sum
+		sourceColumn: Current Days In Service
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 652ca8fb-375d-450c-842c-f31356eb3470
+		summarizeBy: none
+		sourceColumn: Service ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Daily Pending Days'
+		dataType: int64
+		formatString: 0
+		lineageTag: 65c5ff5a-746a-4ba0-b2cf-9d7cabb25079
+		summarizeBy: sum
+		sourceColumn: Daily Pending Days
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Activity Whanau Involvement'
+		dataType: int64
+		formatString: 0
+		lineageTag: 8b54bf31-0ca0-43bf-8fcb-5d64ced3c843
+		summarizeBy: sum
+		sourceColumn: Tangata Whaiora Activity Whanau Involvement
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ref Tangata Whaiora Unique KEY'
+		dataType: string
+		lineageTag: 4f7c2e1a-9b3d-4e6f-8a2c-1d5b9e7f3a68
+		summarizeBy: none
+		sourceColumn: Ref Tangata Whaiora Unique KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ref Tangata Whaiora Relationsip KEY'
+		dataType: string
+		lineageTag: 6d2a8f4e-3c7b-4a1d-9e5f-2b8c6d4a7f19
+		summarizeBy: none
+		sourceColumn: Ref Tangata Whaiora Relationsip KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Fact Tangata Whaiora Referral' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="--====created temporary tables 1/ 9/2026 - speeds up the data processing#(lf)#(lf)if object_id ('tempdb..#date_table') is not null drop table #date_table #(lf)if object_id ('tempdb..#referrals_1') is not null drop table #referrals_1#(lf)if object_id ('tempdb..#referrals_2') is not null drop table #referrals_2#(lf)if object_id ('tempdb..#client_absences_cal') is not null drop table #client_absences_cal  #(lf)if object_id ('tempdb..#referrals_with_absence') is not null drop table #referrals_with_absence #(lf)if object_id ('tempdb..#dates') is not null drop table #dates#(lf)if object_id ('tempdb..#client_whanau_0') is not null drop table #client_whanau_0#(lf)if object_id ('tempdb..#client_whanau') is not null drop table #client_whanau#(lf)if object_id ('tempdb..#absences') is not null drop table #absences#(lf)if object_id ('tempdb..#absences_0') is not null drop table #absences_0#(lf)if object_id ('tempdb..#testing') is not null drop table #testing #(lf)#(lf)#(lf)#(tab)SELECT dim_date_key,#(lf)#(tab)#(tab)calendar_date#(lf)#(tab)#(tab)into #date_table #(lf)#(tab)FROM edw.dim_date#(lf)#(tab)WHERE calendar_date BETWEEN '2022-07-01'#(lf)#(tab)#(tab)#(tab)AND dateadd(day, 1, getdate())#(lf)#(lf)SELECT fact_client_referral_key,#(lf)#(tab)#(tab)fact_client_referral_unique_key,#(lf)#(tab)#(tab)fact_client_referral_v2.dim_client_referral_key,#(lf)#(tab)#(tab)dim_company_key,#(lf)#(tab)#(tab)fact_client_referral_v2.dim_service_key,#(lf)#(tab)#(tab)fact_client_referral_v2.dim_client_team_key,#(lf)#(tab)#(tab)fact_client_referral_v2.dim_client_key,#(lf)#(tab)#(tab)fact_client_referral_v2.dim_employee_key,#(lf)#(tab)#(tab)fact_client_referral_v2.client_referral_id,#(lf)#(tab)#(tab)fact_client_referral_v2.client_id,#(lf)#(tab)#(tab)fact_client_referral_v2.client_team_id,#(lf)#(tab)#(tab)CASE #(lf)#(tab)#(tab)#(tab)WHEN client_referral_received_date_key IS NOT NULL#(lf)#(tab)#(tab)#(tab)#(tab)THEN cast(CONCAT (#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)left(client_referral_received_date_key, 4),#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)'-',#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)substring(cast(client_referral_received_date_key AS NVARCHAR(8)), 5, 2),#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)'-',#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)right(client_referral_received_date_key, 2)#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)) AS DATE)#(lf)#(tab)#(tab)#(tab)END referral_received_date,#(lf)#(tab)#(tab)CASE #(lf)#(tab)#(tab)#(tab)WHEN client_referral_pending_date_key IS NOT NULL#(lf)#(tab)#(tab)#(tab)#(tab)THEN cast(CONCAT (#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)left(client_referral_pending_date_key, 4),#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)'-',#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)substring(cast(client_referral_pending_date_key AS NVARCHAR(8)), 5, 2),#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)'-',#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)right(client_referral_pending_date_key, 2)#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)) AS DATE)#(lf)#(tab)#(tab)#(tab)END AS referral_pending_date,#(lf)#(tab)#(tab)CASE #(lf)#(tab)#(tab)#(tab)WHEN client_referral_waitlist_date_key IS NOT NULL#(lf)#(tab)#(tab)#(tab)#(tab)THEN cast(CONCAT (#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)left(client_referral_waitlist_date_key, 4),#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)'-',#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)substring(cast(client_referral_waitlist_date_key AS NVARCHAR(8)), 5, 2),#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)'-',#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)right(client_referral_waitlist_date_key, 2)#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)) AS DATE)#(lf)#(tab)#(tab)#(tab)END AS referral_waitlisted_date,#(lf)#(tab)#(tab)CASE #(lf)#(tab)#(tab)#(tab)WHEN client_referral_decline_date_key IS NOT NULL#(lf)#(tab)#(tab)#(tab)#(tab)THEN cast(CONCAT (#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)left(client_referral_decline_date_key, 4),#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)'-',#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)substring(cast(client_referral_decline_date_key AS NVARCHAR(8)), 5, 2),#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)'-',#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)right(client_referral_decline_date_key, 2)#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)) AS DATE)#(lf)#(tab)#(tab)#(tab)END AS referral_declined_date,#(lf)#(tab)#(tab)CASE #(lf)#(tab)#(tab)#(tab)WHEN client_referral_accepted_date_key IS NOT NULL#(lf)#(tab)#(tab)#(tab)#(tab)THEN cast(CONCAT (#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)left(client_referral_accepted_date_key, 4),#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)'-',#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)substring(cast(client_referral_accepted_date_key AS NVARCHAR(8)), 5, 2),#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)'-',#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)right(client_referral_accepted_date_key, 2)#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)) AS DATE)#(lf)#(tab)#(tab)#(tab)END AS referral_accepted_date,#(lf)#(tab)#(tab)CASE #(lf)#(tab)#(tab)#(tab)WHEN client_referral_discharge_date_key IS NOT NULL#(lf)#(tab)#(tab)#(tab)#(tab)THEN cast(CONCAT (#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)left(client_referral_discharge_date_key, 4),#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)'-',#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)substring(cast(client_referral_discharge_date_key AS NVARCHAR(8)), 5, 2),#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)'-',#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)right(client_referral_discharge_date_key, 2)#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)) AS DATE)#(lf)#(tab)#(tab)#(tab)END AS referral_discharged_date,#(lf)#(tab)#(tab)--======there must have been a cull in 2017 declined date and discharge date have been entered but no end date#(lf)#(tab)#(tab)--=======calculated here#(lf)#(tab)#(tab)CASE #(lf)#(tab)#(tab)#(tab)WHEN client_referral_end_date_key IS NULL#(lf)#(tab)#(tab)#(tab)#(tab)AND client_referral_decline_date_key IS NOT NULL#(lf)#(tab)#(tab)#(tab)#(tab)THEN cast(CONCAT (#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)left(client_referral_decline_date_key, 4),#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)'-',#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)substring(cast(client_referral_decline_date_key AS NVARCHAR(8)), 5, 2),#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)'-',#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)right(client_referral_decline_date_key, 2)#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)) AS DATE)#(lf)#(tab)#(tab)#(tab)WHEN client_referral_end_date_key IS NULL#(lf)#(tab)#(tab)#(tab)#(tab)AND client_referral_discharge_date_key IS NOT NULL#(lf)#(tab)#(tab)#(tab)#(tab)THEN cast(CONCAT (#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)left(client_referral_discharge_date_key, 4),#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)'-',#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)substring(cast(client_referral_discharge_date_key AS NVARCHAR(8)), 5, 2),#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)'-',#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)right(client_referral_discharge_date_key, 2)#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)) AS DATE)#(lf)#(tab)#(tab)#(tab)WHEN client_referral_end_date_key IS NOT NULL#(lf)#(tab)#(tab)#(tab)#(tab)THEN cast(CONCAT (#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)left(client_referral_end_date_key, 4),#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)'-',#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)substring(cast(client_referral_end_date_key AS NVARCHAR(8)), 5, 2),#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)'-',#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)right(client_referral_end_date_key, 2)#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)) AS DATE)#(lf)#(tab)#(tab)#(tab)END AS referral_endded_date,#(lf)#(tab)#(tab)client_date_of_birth,#(lf)#(tab)#(tab)client_referral_type,#(lf)#(tab)#(tab)dim_client_team.client_team_is_accommodation_based,#(lf)#(tab)#(tab)dim_client_team.client_team_bed_number,#(lf)#(tab)#(tab)dim_client_team.dim_client_team_unique_key#(lf)#(tab)#(tab)into #referrals_1#(lf)#(tab)FROM edw.fact_client_referral_v2#(lf)#(tab)#(lf)#(tab)LEFT JOIN edw.dim_client ON fact_client_referral_V2.client_id = dim_client.client_id#(lf)#(tab)#(tab)AND fact_client_referral_v2.dim_company_key = dim_client.company_id#(lf)#(tab)#(tab)AND dim_client.DWHIsCurrent = 1#(lf)#(tab)#(tab)AND dim_client.DWHDMLOperation <> 'd'#(lf)#(lf)#(tab)LEFT JOIN edw.dim_client_team ON fact_client_referral_V2.dim_client_team_key = dim_client_team.dim_client_team_Key#(lf)#(tab)#(tab)AND dim_client_team.DWHDMLOperation <> 'd'#(lf)#(tab)INNER JOIN edw.dim_client_referral ON fact_client_referral_V2.dim_client_referral_key = dim_client_referral.dim_client_referral_key#(lf)#(tab)WHERE fact_client_referral_V2.dwhdmloperation <> 'd'#(lf)#(tab)#(tab)AND client_referral_type = 'inboundreferral'#(lf)#(lf)SELECT  #date_table.dim_date_key,#(lf)#(tab)#(tab)#date_table.calendar_date,#(lf)#(tab)#(tab)fact_client_referral_key,#(lf)#(tab)#(tab)fact_client_referral_unique_key,#(lf)#(tab)#(tab)dim_client_referral_key,#(lf)#(tab)#(tab)dim_client_key,#(lf)#(tab)#(tab)dim_company_key,#(lf)#(tab)#(tab)dim_service_key,#(lf)#(tab)#(tab)dim_client_team_key,#(lf)#(tab)#(tab)dim_client_team_unique_key,#(lf)#(tab)#(tab)client_team_is_accommodation_based,#(lf)#(tab)#(tab)client_team_bed_number,#(lf)#(tab)#(tab)#referrals_1.dim_employee_key,#(lf)#(tab)#(tab)client_referral_id,#(lf)#(tab)#(tab)client_id,#(lf)#(tab)#(tab)client_team_id,#(lf)#(tab)#(tab)referral_received_date,#(lf)#(tab)#(tab)referral_pending_date,#(lf)#(tab)#(tab)referral_waitlisted_date,#(lf)#(tab)#(tab)referral_declined_date,#(lf)#(tab)#(tab)referral_accepted_date,#(lf)#(tab)#(tab)referral_discharged_date,#(lf)#(tab)#(tab)isnull(referral_endded_date, getutcdate()) AS referral_endded_date,#(lf)#(tab)#(tab)CASE #(lf)#(tab)#(tab)#(tab)WHEN referral_discharged_date = referral_accepted_date#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'Accepted and Discharged'#(lf)#(tab)#(tab)#(tab)WHEN calendar_date = referral_declined_date#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'Declined'#(lf)#(tab)#(tab)#(tab)WHEN calendar_date = referral_discharged_date#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'Discharged'#(lf)#(tab)#(tab)#(tab)WHEN calendar_date = referral_accepted_date#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'Accepted'#(lf)#(tab)#(tab)#(tab)WHEN calendar_date = referral_waitlisted_date#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'Waitlisted'#(lf)#(tab)#(tab)#(tab)WHEN calendar_date = referral_pending_date#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'Pending'#(lf)#(tab)#(tab)#(tab)WHEN calendar_date BETWEEN referral_pending_date#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)AND referral_declined_date#(lf)#(tab)#(tab)#(tab)#(tab)AND referral_waitlisted_date IS NULL#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'Pending'#(lf)#(tab)#(tab)#(tab)WHEN calendar_date BETWEEN referral_pending_date#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)AND referral_accepted_date#(lf)#(tab)#(tab)#(tab)#(tab)AND referral_waitlisted_date IS NULL#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'Pending'#(lf)#(tab)#(tab)#(tab)WHEN calendar_date BETWEEN referral_pending_date#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)AND referral_waitlisted_date#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'Pending'#(lf)#(tab)#(tab)#(tab)WHEN calendar_date BETWEEN referral_waitlisted_date#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)AND referral_declined_date#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'Waitlisted'#(lf)#(tab)#(tab)#(tab)WHEN calendar_date BETWEEN referral_waitlisted_date#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)AND referral_accepted_date#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'Waitlisted'#(lf)#(tab)#(tab)#(tab)WHEN calendar_date >= referral_waitlisted_date#(lf)#(tab)#(tab)#(tab)#(tab)AND referral_accepted_date IS NULL#(lf)#(tab)#(tab)#(tab)#(tab)AND referral_discharged_date IS NULL#(lf)#(tab)#(tab)#(tab)#(tab)AND referral_declined_date IS NULL#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'Waitlisted'#(lf)#(tab)#(tab)#(tab)WHEN calendar_date >= referral_pending_date#(lf)#(tab)#(tab)#(tab)#(tab)AND referral_accepted_date IS NULL#(lf)#(tab)#(tab)#(tab)#(tab)AND referral_discharged_date IS NULL#(lf)#(tab)#(tab)#(tab)#(tab)AND referral_declined_date IS NULL#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'Pending'#(lf)#(tab)#(tab)#(tab)WHEN calendar_date BETWEEN referral_accepted_date#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)AND isnull(referral_endded_date, getutcdate())#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'Accepted'#(lf)#(tab)#(tab)#(tab)ELSE ''#(lf)#(tab)#(tab)#(tab)END AS Referral_status,#(lf)#(tab)#(tab)--=====setting up count columns#(lf)#(tab)#(tab)CASE #(lf)#(tab)#(tab)#(tab)WHEN calendar_date = referral_received_date#(lf)#(tab)#(tab)#(tab)#(tab)THEN 1#(lf)#(tab)#(tab)#(tab)ELSE 0#(lf)#(tab)#(tab)#(tab)END AS pending,#(lf)#(tab)#(tab)CASE #(lf)#(tab)#(tab)#(tab)WHEN calendar_date = referral_waitlisted_date#(lf)#(tab)#(tab)#(tab)#(tab)THEN 1#(lf)#(tab)#(tab)#(tab)ELSE 0#(lf)#(tab)#(tab)#(tab)END AS waitlist,#(lf)#(tab)#(tab)CASE #(lf)#(tab)#(tab)#(tab)WHEN calendar_date = referral_accepted_date#(lf)#(tab)#(tab)#(tab)#(tab)THEN 1#(lf)#(tab)#(tab)#(tab)ELSE 0#(lf)#(tab)#(tab)#(tab)END AS accepted,#(lf)#(tab)#(tab)CASE #(lf)#(tab)#(tab)#(tab)WHEN calendar_date = referral_declined_date#(lf)#(tab)#(tab)#(tab)#(tab)THEN 1#(lf)#(tab)#(tab)#(tab)ELSE 0#(lf)#(tab)#(tab)#(tab)END AS declined,#(lf)#(tab)#(tab)CASE #(lf)#(tab)#(tab)#(tab)WHEN calendar_date = referral_discharged_date#(lf)#(tab)#(tab)#(tab)#(tab)THEN 1#(lf)#(tab)#(tab)#(tab)ELSE 0#(lf)#(tab)#(tab)#(tab)END AS discharged,#(lf)#(tab)#(tab)client_date_of_birth,#(lf)#(tab)#(tab)--===for some reason doesn't work for the actual birthday so I've put in a case statement#(lf)#(tab)#(tab)CASE #(lf)#(tab)#(tab)#(tab)WHEN month(client_date_of_birth) = month(calendar_date)#(lf)#(tab)#(tab)#(tab)#(tab)AND day(client_date_of_birth) = day(calendar_date)#(lf)#(tab)#(tab)#(tab)#(tab)THEN datediff(year, cast(client_date_of_birth AS DATE), cast(calendar_date AS DATE))#(lf)#(tab)#(tab)#(tab)ELSE floor(datediff(day, cast(client_date_of_birth AS DATE), cast(calendar_date AS DATE)) / 365.250000)#(lf)#(tab)#(tab)#(tab)END AS age_on_day#(lf)#(tab)#(tab)#(tab)into #referrals_2#(lf)#(tab)FROM #referrals_1#(lf)#(tab)--=====creating an explosion table#(lf)#(tab)CROSS JOIN #date_table#(lf)#(tab)WHERE #date_table.calendar_date BETWEEN referral_received_date#(lf)#(tab)#(tab)#(tab)AND isnull(referral_endded_date, getutcdate())#(lf)#(lf)  SELECT calendar_date#(lf)  into #dates#(lf)#(tab)FROM #date_table#(lf)#(lf)SELECT#(lf)row_number () over (partition by company_id, client_id, client_absence_start_date_time  #(lf)order by company_id, client_id, client_absence_start_date_time ) as client_absence_count,#(lf)#(lf)#(lf)client_id,#(lf)#(tab)#(tab)company_id,#(lf)#(tab)#(tab)CAST([client_absence_start_date_time] AS DATE) AS client_absence_start_date_time ,#(lf)#(tab)#(tab)CAST([client_absence_end_date_time] AS DATE) AS CLIENT_absence_end_date_time,#(lf)#(tab)#(tab)[client_absence_type],#(lf)#(tab)#(tab)[client_absence_reason]#(lf)#(tab)#(tab)into #absences_0#(lf)#(tab)FROM [edw].[dim_client_absence]#(lf)#(tab)WHERE dwhiscurrent = 1#(lf)#(tab)and dwhdmloperation <> 'd'#(lf)#(lf)#(tab)order by 3 #(lf)#(lf)#(tab)SELECT#(lf)row_number () over (partition by company_id, client_id, client_absence_start_date_time  #(lf)order by company_id, client_id, client_absence_start_date_time ) as client_absence_count,#(lf)#(lf)#(lf)client_id,#(lf)#(tab)#(tab)company_id,#(lf)#(tab)#(tab)CAST([client_absence_start_date_time] AS DATE) AS client_absence_start_date_time ,#(lf)#(tab)#(tab)CAST([client_absence_end_date_time] AS DATE) AS CLIENT_absence_end_date_time,#(lf)#(tab)#(tab)[client_absence_type],#(lf)#(tab)#(tab)[client_absence_reason]#(lf)#(tab)#(tab)into #absences#(lf)#(tab)FROM #absences_0#(lf)#(tab)WHERE client_absence_count = 1 #(lf)  #(tab)order by 4#(lf)#(lf)SELECT client_id,#(lf)#(tab)#(tab)company_id,#(lf)#(tab)#(tab)datediff(day, client_absence_start_date_time, client_absence_end_date_time) totalabsences,#(lf)#(tab)#(tab)calendar_date,#(lf)#(tab)#(tab)client_absence_start_date_time,#(lf)#(tab)#(tab)client_absence_end_date_time,#(lf)#(tab)#(tab)client_absence_type,#(lf)#(tab)#(tab)client_absence_reason,#(lf)#(tab)#(tab)--===hard coding in a counter#(lf)#(tab)#(tab)1 AS absent_night#(lf)#(tab)#(tab)into #client_absences_cal#(lf)#(tab)FROM #dates#(lf)#(tab)CROSS JOIN #absences#(lf)#(tab)WHERE calendar_date > cast(client_absence_start_date_time AS DATE)#(lf)#(tab)#(tab)AND calendar_date <= cast(client_absence_end_date_time AS DATE)#(lf)#(tab)#(tab)#(lf)#(lf)SELECT #referrals_2.*, --===I know we shouldn't use the *#(lf)#(tab)#(tab)CASE #(lf)#(tab)#(tab)#(tab)WHEN referral_status = 'accepted'#(lf)#(tab)#(tab)#(tab)#(tab)THEN 1#(lf)#(tab)#(tab)#(tab)ELSE 0#(lf)#(tab)#(tab)#(tab)END AS active_accepted_flag,#(lf)#(tab)#(tab)CASE #(lf)#(tab)#(tab)#(tab)WHEN referral_status = 'pending'#(lf)#(tab)#(tab)#(tab)#(tab)THEN 1#(lf)#(tab)#(tab)#(tab)ELSE 0#(lf)#(tab)#(tab)#(tab)END AS active_pending_flag,#(lf)#(tab)#(tab)CASE #(lf)#(tab)#(tab)#(tab)WHEN referral_status = 'waitlisted'#(lf)#(tab)#(tab)#(tab)#(tab)THEN 1#(lf)#(tab)#(tab)#(tab)ELSE 0#(lf)#(tab)#(tab)#(tab)END AS active_waitlisted_flag,#(lf)#(tab)#(tab)CASE #(lf)#(tab)#(tab)#(tab)WHEN referral_status IN (#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)'discharged',#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)'declined'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab))#(lf)#(tab)#(tab)#(tab)#(tab)THEN 1#(lf)#(tab)#(tab)#(tab)ELSE 0#(lf)#(tab)#(tab)#(tab)END AS inactive_flag,#(lf)#(tab)#(tab)#client_absences_cal.client_absence_start_date_time,#(lf)#(tab)#(tab)#client_absences_cal.client_absence_end_date_time,#(lf)#(tab)#(tab)#client_absences_cal.absent_night AS daily_absent,#(lf)#(tab)#(tab)#client_absences_cal.client_absence_type,#(lf)#(tab)#(tab)#client_absences_cal.client_absence_reason#(lf)#(tab)#(tab)into #referrals_with_absence#(lf)#(tab)FROM #referrals_2#(lf)#(tab)LEFT JOIN #client_absences_cal ON #referrals_2.calendar_date = #client_absences_cal.calendar_date#(lf)#(tab)#(tab)AND #referrals_2.client_id = #client_absences_cal.client_id#(lf)#(tab)#(tab)AND #referrals_2.dim_company_key = #client_absences_cal.company_id#(lf)#(tab)#(tab)AND #referrals_2.client_team_is_accommodation_based = 1#(lf)#(tab)WHERE #referrals_2.calendar_date >= '2020-07-01'#(lf)#(tab)#(lf)#(lf)#(lf)select #(lf)row_number () over (partition by dim_client_referral_unique_key, cast(client_activity_start_date as date) order by dim_client_referral_unique_key,cast(client_activity_start_date as date))#(lf)as client_whanau_number,#(lf)cast(client_activity_start_date as date) as activity_date,#(lf)CONVERT(int, FORMAT(client_activity_start_date, 'yyyyMMdd')) AS dim_activity_start_date_key,#(lf)dim_company_key,#(lf)dim_client_team_key,#(lf)dim_service_key,#(lf)fact_client_activity_breakdown.dim_client_key,#(lf)fact_client_activity_breakdown.dim_client_referral_key,#(lf)client_activity_whanau_involvement,#(lf)fact_client_activity_breakdown.client_id,#(lf)dim_client.dim_client_unique_key,#(lf)dim_client_referral.dim_client_referral_unique_key#(lf)into #client_whanau_0#(lf)from edw.fact_client_activity_breakdown#(lf)inner join edw.dim_client on fact_client_activity_breakdown.dim_client_key = dim_client.dim_client_key#(lf)inner join edw.dim_client_referral on fact_client_activity_breakdown.dim_client_referral_key = dim_client_referral.dim_client_referral_key#(lf)where client_activity_start_date >='2022-07-01'#(lf)and fact_client_activity_breakdown.DWHDMLOperation <> 'd'#(lf)and fact_client_activity_breakdown.dim_client_key <> 0#(lf)and client_activity_whanau_involvement = 1#(lf)#(lf)--====noticed there were duplicates.  added defensive code 1/9/2026#(lf)select *#(lf)into #client_whanau#(lf)from #client_whanau_0 #(lf)where client_whanau_number = 1#(lf)#(lf)#(lf)#(lf)SELECT#(lf)    dim_date_key,#(lf)#(tab)calendar_date,#(lf)#(tab)fact_client_referral_key,#(lf)#(tab)fact_client_referral_unique_key,#(lf)#(tab)#referrals_with_absence.dim_client_referral_key,#(lf)#(tab)#referrals_with_absence.dim_client_key,#(lf)#(tab)dim_service.dim_company_key,#(lf)#(tab)dim_service.dim_service_key,#(lf)#(tab)dim_service.service_id,#(lf)#(tab)#referrals_with_absence.dim_client_team_key,#(lf)#(tab)dim_client_team_unique_key,#(lf)#(tab)client_team_is_accommodation_based,#(lf)#(tab)client_team_bed_number,#(lf)#(tab)dim_employee_key,#(lf)#(tab)client_referral_id,#(lf)#(tab)#referrals_with_absence.client_id,#(lf)#(tab)client_team_id,#(lf)#(tab)referral_received_date,#(lf)#(tab)referral_pending_date,#(lf)#(tab)referral_waitlisted_date,#(lf)#(tab)referral_declined_date,#(lf)#(tab)referral_accepted_date,#(lf)#(tab)referral_discharged_date,#(lf)#(tab)referral_endded_date,#(lf)#(tab)Referral_status,#(lf)#(tab)pending,#(lf)#(tab)waitlist,#(lf)#(tab)accepted,#(lf)#(tab)declined,#(lf)#(tab)discharged,#(lf)#(tab)--client_date_of_birth,#(lf)#(tab)age_on_day,#(lf)#(tab)active_accepted_flag,#(lf)#(tab)active_pending_flag,#(lf)#(tab)active_waitlisted_flag,#(lf)#(tab)inactive_flag,#(lf)#(tab)client_absence_start_date_time,#(lf)#(tab)client_absence_end_date_time,#(lf)#(tab)daily_absent,#(lf)#(tab)client_absence_type,#(lf)#(tab)client_absence_reason,#(lf)#(tab)CASE #(lf)#(tab)#(tab)WHEN daily_absent IS NULL#(lf)#(tab)#(tab)#(tab)THEN active_accepted_flag#(lf)#(tab)#(tab)ELSE active_accepted_flag - daily_absent#(lf)#(tab)#(tab)END AS actual_bed_night,#(lf)#(tab)CASE #(lf)#(tab)#(tab)WHEN referral_discharged_date IS NOT NULL#(lf)#(tab)#(tab)#(tab)AND calendar_date = referral_discharged_date#(lf)#(tab)#(tab)#(tab)THEN datediff(day, referral_accepted_date, referral_discharged_date)#(lf)#(tab)#(tab)END AS lengthofStay,#(lf)#(tab)CASE #(lf)#(tab)#(tab)WHEN accepted = 1#(lf)#(tab)#(tab)#(tab)THEN datediff(day, referral_pending_date, referral_accepted_date)#(lf)#(tab)#(tab)when declined = 1 THEN datediff(day, referral_pending_date, referral_declined_date)#(lf)#(tab)#(tab)END AS lengthofPending,#(lf)#(tab)CASE #(lf)#(tab)#(tab)WHEN referral_received_date = calendar_date#(lf)#(tab)#(tab)#(tab)AND accepted = 1#(lf)#(tab)#(tab)#(tab)THEN 'Received and Accepted'#(lf)#(tab)#(tab)WHEN referral_accepted_date = referral_discharged_date#(lf)#(tab)#(tab)#(tab)THEN 'Accepted and Discharged'#(lf)#(tab)#(tab)WHEN accepted = 1#(lf)#(tab)#(tab)#(tab)THEN 'Accepted'#(lf)#(tab)#(tab)WHEN declined = 1#(lf)#(tab)#(tab)#(tab)THEN 'Declined'#(lf)#(tab)#(tab)WHEN discharged = 1#(lf)#(tab)#(tab)#(tab)THEN 'Discharged'#(lf)#(tab)#(tab)WHEN referral_received_date = calendar_date#(lf)#(tab)#(tab)#(tab)THEN 'Received'#(lf)#(tab)#(tab)END AS Referral_Status_By_Day,#(lf)#(tab)case when active_accepted_flag = 1 then #(lf)#(tab)datediff(day, referral_accepted_date, calendar_date) #(lf)#(tab)else 0 end #(lf)#(tab)AS current_days_in_service,#(lf)#(lf)#(tab)case when active_pending_flag = 1 then datediff(day, referral_pending_date, calendar_DATE) #(lf)#(tab)else 0 end #(lf)#(tab)as daily_pending_days,#(lf)#(tab)#(lf)#(tab)#client_whanau.client_activity_whanau_involvement,#(lf)#(tab)CONCAT(CAST(#referrals_with_absence.client_id AS VARCHAR(50)), '-', RIGHT(CAST(fact_client_referral_unique_key AS VARCHAR(50)), 1)) AS ref_client_unique_key,#(lf)#(tab)CONCAT(CAST(#referrals_with_absence.client_id AS VARCHAR(50)), '-', RIGHT(CAST(fact_client_referral_unique_key AS VARCHAR(50)), 1), '-', CAST(client_referral_id AS VARCHAR(50))) AS ref_client_relationsip_key#(lf)--into #testing #(lf)FROM #referrals_with_absence#(lf)left join edw.dim_service on #referrals_with_absence.dim_service_key = dim_service.dim_service_key#(lf)left join #client_whanau on #referrals_with_absence.dim_client_referral_key = #client_whanau.dim_client_referral_key#(lf)and #referrals_with_absence.calendar_date = #client_whanau.activity_date#(lf)", CreateNavigationProperties=false]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transform Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Transform Column Names",{{"Calendar Date", type date}, {"Referral Received Date", type date}, {"Referral Pending Date", type date}, {"Referral Waitlisted Date", type date}, {"Referral Declined Date", type date}, {"Referral Accepted Date", type date}, {"Referral Discharged Date", type date}, {"Referral Endded Date", type date}, {"Tangata Whaiora Absence Start Date Time", type datetime}, {"Tangata Whaiora Absence End Date Time", type datetime}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

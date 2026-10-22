@@ -1,0 +1,122 @@
+table _Measures
+	lineageTag: de17d4e0-d9ac-48cf-ba43-2b582a36e03d
+
+	measure PayslipReport_FiltersApplied = ```
+			
+			VAR __Year = IF(ISFILTERED(dim_date[calendar_year]), CONCATENATEX(FILTERS(dim_date[calendar_year]), dim_date[calendar_year], ", "), BLANK())
+			VAR __Month = IF(ISFILTERED(dim_date[calendar_month_name_short]), CONCATENATEX(FILTERS(dim_date[calendar_month_name_short]), dim_date[calendar_month_name_short], ", "), BLANK())
+			
+			VAR __ContractType = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_people[Work Type]), NOT(ISBLANK(dim_people[Work Type]))), dim_people[Work Type], ASC),
+			    "ContractType_Display", dim_people[Work Type]
+			)
+			
+			VAR __ContractTypeCount = IF(ISFILTERED(dim_people[Work Type]), COUNTROWS(VALUES(dim_people[Work Type])), 0)
+			
+			VAR __PayPeriods = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(fact_pay_slips[pay_period_start_date]), NOT(ISBLANK(fact_pay_slips[pay_period_start_date]))), fact_pay_slips[pay_period_start_date], ASC),
+			    "PayPeriods_Display", fact_pay_slips[pay_period_start_date]
+			)
+			VAR __PayPeriodCount = IF(ISFILTERED(fact_pay_slips[pay_period_start_date]), COUNTROWS(VALUES(fact_pay_slips[pay_period_start_date])), 0)
+			
+			
+			VAR __Region = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(Dim_Service[Region Name]), NOT(ISBLANK(Dim_Service[Region Name]))), Dim_Service[Region Name], ASC),
+			    "Region_display", Dim_Service[Region Name]
+			)
+			
+			VAR __RegionCount = IF(ISFILTERED(Dim_Service[Region Name]), COUNTROWS(VALUES(Dim_Service[Region Name])), 0)
+			
+			VAR __District = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(Dim_Service[District Name]), NOT(ISBLANK(Dim_Service[District Name]))), Dim_Service[District Name], ASC),
+			    "District_display", Dim_Service[District Name]
+			)
+			
+			VAR __DistrictCount = IF(ISFILTERED(Dim_Service[District Name]), COUNTROWS(VALUES(Dim_Service[District Name])), 0)
+			
+			VAR __Services = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(Dim_Service[Service Name]), NOT(ISBLANK(Dim_Service[Service Name]))), Dim_Service[Service Name], ASC),
+			    "Service_display", Dim_Service[Service Name]
+			)
+			
+			VAR __ServiceCount = IF(ISFILTERED(Dim_Service[Service Name]), COUNTROWS(VALUES(Dim_Service[Service Name])), 0)
+			
+			
+			VAR _FC_Year = IF(ISBLANK(__Year), BLANK(), "| YEAR(S) CHOSEN: " & __Year)
+			VAR _FC_Month = IF(ISBLANK(__Month), BLANK(), "| MONTH(S) CHOSEN: " & __Month)
+			
+			VAR _FC_Regions = IF(__RegionCount > 0, "| REGIONS CHOSEN: " & CONCATENATEX(__Region, [Region_display], ", "), BLANK())
+			VAR _FC_MoreRegions = IF(__RegionCount > 10, " and " & (__RegionCount - 10) & " more", "")
+			
+			VAR _FC_Districts = IF(__DistrictCount > 0, "| DISTRICTS CHOSEN: " & CONCATENATEX(__District, [District_display], ", "), BLANK())
+			VAR _FC_MoreDistricts = IF(__DistrictCount > 10, " and " & (__DistrictCount - 10) & " more", "")
+			
+			VAR _FC_Services = IF(__ServiceCount > 0, "| SERVICES CHOSEN: " & CONCATENATEX(__Services, [Service_display], ", "), BLANK())
+			VAR _FC_MoreServices = IF(__ServiceCount > 10, " and " & (__ServiceCount - 10) & " more", "")
+			
+			VAR _FC_ContractType = IF(__ContractTypeCount > 0, "| CONTRACT TYPES CHOSEN: " & CONCATENATEX(__ContractType, [ContractType_Display], ", "), BLANK())
+			
+			VAR _FC_PayPeriods = IF(__PayPeriodCount > 0, "| PAY PERIODS CHOSEN: " & CONCATENATEX(__PayPeriods, [PayPeriods_Display], ", "), BLANK())
+			VAR _FC_MorePayPeriods = IF(__PayPeriodCount > 7, " and " & (__PayPeriodCount - 7) & " more", "")
+			
+			
+			VAR _FirstDate = MIN(dim_date[calendar_date])
+			VAR _LastDate = MAX(dim_date[calendar_date])
+			
+			RETURN
+			 "Please note that all data shown is based on the following date range: " & FORMAT(_FirstDate, "dd/MM/YYYY") & " - " & FORMAT(_LastDate, "dd/MM/YYYY") 
+			& " " &
+			IF(
+			    ISBLANK(_FC_Year) && ISBLANK(_FC_Month) && ISBLANK(_FC_Regions) && ISBLANK(_FC_Districts) && ISBLANK(_FC_Services),
+			    "",
+			    "-- Summary of filters applied to page: " & " " & _FC_Year & " " & _FC_Month & " " & _FC_Regions & _FC_MoreRegions & " " & _FC_Districts & _FC_MoreDistricts & " " & _FC_Services & _FC_MoreServices
+			) & _FC_PayPeriods & _FC_MorePayPeriods & _FC_ContractType
+			
+			```
+		lineageTag: f415113a-b111-4821-9994-8066c370df66
+
+	measure 'Avg FTE' = ```
+			
+			VAR _num_pay_cycles = DISTINCTCOUNT('fact_pay_slips'[pay_period_start_date]) 
+			VAR _FTE = SUM('fact_pay_slips'[FTE])
+			
+			RETURN
+			
+			DIVIDE(_FTE, _num_pay_cycles)
+			```
+		formatString: 0.0
+		lineageTag: c5e7ed38-c808-4510-9688-8a3f29b74016
+
+	measure 'Avg weekly FTE' =
+			
+			VAR _num_days = NETWORKDAYS(MIN('fact_pay_slips'[pay_period_start_date]), MAX('fact_pay_slips'[pay_period_end_date]), 1)
+			VAR _hours = DIVIDE(SUM('fact_pay_slips'[allocated_hours]), _num_days) * 5
+			RETURN
+			
+			DIVIDE(_hours, 40)
+		formatString: 0.0
+		lineageTag: d5bf4894-3021-433a-b74e-322fd6b8a78a
+
+	measure 'NEWAvg weekly hours' =
+			
+			VAR _num_days = NETWORKDAYS(MIN('fact_pay_slips'[pay_period_start_date]), MAX( 'fact_pay_slips'[pay_period_end_date]), 1)
+			
+			RETURN
+			DIVIDE(SUM('fact_pay_slips'[allocated_hours]), _num_days) * 5
+		formatString: #,0.0
+		lineageTag: ed8b09df-d8a6-4d39-9c64-2afd8c6abbdb
+
+	partition _Measures = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,89 @@
+table DimDate
+	lineageTag: b339110d-5e14-40cf-a44c-7e490dc47fbd
+
+	column calendar_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: a3dfd666-fe92-4ce5-9d76-e4c34bfd70eb
+		summarizeBy: none
+		sourceColumn: calendar_date
+
+		variation Variation
+			isDefault
+			relationship: 8a221286-eaa4-4636-8dd0-2d33c0f54975
+			defaultHierarchy: LocalDateTable_fbb9aed8-14a6-4389-a102-5f20ffd976a6.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column calendar_year
+		dataType: int64
+		formatString: 0
+		lineageTag: d3462021-2310-4c76-86c8-bb60d1bfd924
+		summarizeBy: sum
+		sourceColumn: calendar_year
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_month_num
+		dataType: int64
+		formatString: 0
+		lineageTag: ef7bab8a-ad2a-4ab4-bdf1-336e4d71a8b5
+		summarizeBy: sum
+		sourceColumn: calendar_month_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column Today = TODAY()
+		formatString: General Date
+		lineageTag: 3d8f20eb-7788-461b-b20e-9627c9505e5d
+		summarizeBy: none
+
+		variation Variation
+			isDefault
+			relationship: 8f30fa18-9525-4330-882d-2e1fd8209da3
+			defaultHierarchy: LocalDateTable_247d0417-0cc5-4609-a95a-d19b81dd3b87.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_year_num
+		dataType: string
+		lineageTag: 156885f1-d31c-488c-9d75-324905953af6
+		summarizeBy: none
+		sourceColumn: financial_year_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_date_rolling_month_offset
+		dataType: int64
+		formatString: 0
+		lineageTag: 0b14e2a4-3afa-42d3-b813-f78b613d9304
+		summarizeBy: sum
+		sourceColumn: current_date_rolling_month_offset
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_financial_year_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: df787634-dfd6-4b6b-ba58-8283503d3978
+		summarizeBy: sum
+		sourceColumn: current_financial_year_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimDate-e72f2ef8-d11c-4b4d-b699-53a2fcb54032 = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="  SELECT calendar_year,#(lf)  calendar_month_num, #(lf)  calendar_date,#(lf)  financial_year_num,#(lf)  current_date_rolling_month_offset,#(lf)  current_financial_year_flag#(lf)  FROM edw.dim_date#(lf)WHERE dim_date_key <> 0"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"calendar_date", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

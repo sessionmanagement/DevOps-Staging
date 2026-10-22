@@ -1,0 +1,70 @@
+table dim_ethnicity
+	lineageTag: 0123c419-e9fa-4d66-973d-d55fbaa366cb
+
+	column EthnicityID
+		dataType: string
+		lineageTag: 3a470cd0-2185-494b-a343-ac183c0300d8
+		summarizeBy: none
+		sourceColumn: EthnicityID
+
+		annotation SummarizationSetBy = Automatic
+
+	column EthnicityText
+		dataType: string
+		lineageTag: ab90a7a9-d2a2-4fdb-8094-544fe62de2c9
+		summarizeBy: none
+		sourceColumn: EthnicityText
+
+		annotation SummarizationSetBy = Automatic
+
+	column EthnicityBucket
+		dataType: string
+		lineageTag: d8b270a7-dea1-4476-a218-840340a3a5d1
+		summarizeBy: none
+		sourceColumn: EthnicityBucket
+
+		annotation SummarizationSetBy = Automatic
+
+	column CompanyIdentifier
+		dataType: string
+		lineageTag: 099e1350-1cba-488a-9938-f17531f6d9f7
+		summarizeBy: none
+		sourceColumn: CompanyIdentifier
+
+		annotation SummarizationSetBy = Automatic
+
+	column EthnicityValue
+		dataType: string
+		lineageTag: f3cd2db9-5088-4c5e-89f6-3215ce0948dc
+		summarizeBy: none
+		sourceColumn: EthnicityValue
+
+		annotation SummarizationSetBy = Automatic
+
+	column EthnicityParentID
+		dataType: string
+		lineageTag: 539f096c-552c-4646-8ac7-14018b71c050
+		summarizeBy: none
+		sourceColumn: EthnicityParentID
+
+		annotation SummarizationSetBy = Automatic
+
+	column EthnicityIsActive
+		dataType: int64
+		formatString: 0
+		lineageTag: 46ac8770-03d1-46b7-bebe-d28442c8df33
+		summarizeBy: sum
+		sourceColumn: EthnicityIsActive
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_ethnicity-521be4c4-abe8-4592-95df-8b8ebff26023 = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="-- ============================================================#(lf)-- Model:  Smoking Cessation Dataset#(lf)-- Table:  dim_ethnicity#(lf)-- Source: native query (complex CTE/window) - emitted in full#(lf)-- Used columns: 2 (mapped 2, unmapped 0)  [full query, not trimmed]#(lf)-- Auto-generated from pbi_complete_dump.csv + model M + EDW/ODS schema.#(lf)-- Review before use; verify joins/filters against the model.#(lf)-- ============================================================#(lf)-- USED model columns: EthnicityBucket; EthnicityID#(lf)#(lf)SELECT#(lf)'EAL' AS CompanyIdentifier,#(lf)CASE WHEN t1.[EthnicityID] IS NOT NULL THEN CONCAT('E',t1.EthnicityID) ELSE NULL END AS EthnicityID,#(lf)t1.[EthnicityValue],#(lf)t1.[EthnicityText],#(lf)'E' + CAST(t1.[EthnicityParentId] AS VARCHAR(10)) AS EthnicityParentID,#(lf)t1.[EthnicityIsActive],#(lf)CASE#(lf)WHEN t1.EthnicityParentID IS NOT NULL THEN t2.EthnicityText#(lf)WHEN t1.EthnicityText like 'Maori%'  THEN 'Māori'#(lf)WHEN t1.EthnicityText like '%cook island maori%' THEN 'Pasifika'#(lf)WHEN t1.EthnicityText like '%Samoan%' #(lf)OR t1.EthnicityText like '%Tokelauan%' #(lf)OR t1.EthnicityText like '%Cook Island%'#(lf)OR t1.EthnicityText like '%Niuean%'#(lf)OR t1.EthnicityText like '%Tongan%' #(lf)OR t1.EthnicityText like '%Pacific People%'#(lf)OR t1.EthnicityText like '%Fijian%' THEN 'Pasifika'#(lf)WHEN t1.EthnicityText like  '%Indian%' #(lf)OR t1.EthnicityText like  '%Chinese%' #(lf)OR t1.EthnicityText like  '%%sian%' #(lf)OR t1.EthnicityText like  '%cambodian%'#(lf)OR t1.EthnicityText like  '%Vietnam%' #(lf)OR t1.EthnicityText like  '%Filipino%'#(lf)OR t1.EthnicityText like  '%Japanese%' #(lf)OR t1.EthnicityText like  '%Korean%'#(lf)OR t1.EthnicityText like  '%sri lank%'#(lf)THEN 'Asian'#(lf)WHEN t1.EthnicityText like '%African%' #(lf)OR t1.EthnicityText like '%Latin Amer%'  #(lf)OR t1.EthnicityText like '%Middle East%'#(lf)--THEN 'Middle Eastern, Latin American, African'#(lf)THEN 'MELAA'#(lf)WHEN t1.EthnicityText like '%new zealand%European%' THEN 'European'#(lf)WHEN t1.EthnicityText like '%European%' OR t1.EthnicityText like '%Greek%'#(lf)OR t1.EthnicityText like '%British%' OR t1.EthnicityText like '%Australian%'#(lf)OR t1.EthnicityText like '%German' OR t1.EthnicityText like '%Italian%'#(lf)OR t1.EthnicityText like '%polish%' OR t1.EthnicityText like '%Dutch%'#(lf)OR t1.EthnicityText like '%yugoslav%'  OR t1.EthnicityText like '%German%'#(lf)THEN 'European'#(lf)WHEN t1.EthnicityText like '%Other%' THEN 'Other'#(lf)WHEN t1.EthnicityText like '%Not Stated%'  #(lf)OR t1.EthnicityText like '%response uniden%'#(lf)OR t1.EthnicityText like '%refused to answer%'#(lf)THEN 'Unknown' #(lf)ELSE NULL END AS EthnicityBucket#(lf)FROM [RBEAL].[dlDimEthnicity] t1#(lf)LEFT OUTER JOIN [RBEAL].[dlDimEthnicity] t2 ON t1.EthnicityParentId = t2.EthnicityID#(lf)WHERE t1.EthnicityIsActive = 1#(lf)#(lf)UNION ALL#(lf)#(lf)SELECT#(lf)'MNB' AS CompanyIdentifier,#(lf)CASE WHEN t1.[EthnicityID] IS NOT NULL THEN CONCAT('M',t1.EthnicityID) ELSE NULL END AS EthnicityID,#(lf)t1.[EthnicityValue],#(lf)t1.[EthnicityText],#(lf)'M' + CAST(t1.[EthnicityParentId] AS VARCHAR(10)) AS EthnicityParentID,#(lf)t1.[EthnicityIsActive],#(lf)CASE#(lf)WHEN t1.EthnicityParentID IS NOT NULL THEN t2.EthnicityText#(lf)WHEN t1.EthnicityText like 'Maori%'  THEN 'Māori'#(lf)WHEN t1.EthnicityText like '%cook island maori%' THEN 'Pasifika'#(lf)WHEN t1.EthnicityText like '%Samoan%' #(lf)OR t1.EthnicityText like '%Tokelauan%' #(lf)OR t1.EthnicityText like '%Cook Island%'#(lf)OR t1.EthnicityText like '%Niuean%'#(lf)OR t1.EthnicityText like '%Tongan%' #(lf)OR t1.EthnicityText like '%Pacific People%'#(lf)OR t1.EthnicityText like '%Fijian%' THEN 'Pasifika'#(lf)WHEN t1.EthnicityText like  '%Indian%' #(lf)OR t1.EthnicityText like  '%Chinese%' #(lf)OR t1.EthnicityText like  '%%sian%' #(lf)OR t1.EthnicityText like  '%cambodian%'#(lf)OR t1.EthnicityText like  '%Vietnam%' #(lf)OR t1.EthnicityText like  '%Filipino%'#(lf)OR t1.EthnicityText like  '%Japanese%' #(lf)OR t1.EthnicityText like  '%Korean%'#(lf)OR t1.EthnicityText like  '%sri lank%'#(lf)THEN 'Asian'#(lf)WHEN t1.EthnicityText like '%African%' #(lf)OR t1.EthnicityText like '%Latin Amer%'  #(lf)OR t1.EthnicityText like '%Middle East%'#(lf)--THEN 'Middle Eastern, Latin American, African'#(lf)THEN 'MELAA'#(lf)WHEN t1.EthnicityText like '%new zealand%European%' THEN 'European'#(lf)WHEN t1.EthnicityText like '%European%' OR t1.EthnicityText like '%Greek%'#(lf)OR t1.EthnicityText like '%British%' OR t1.EthnicityText like '%Australian%'#(lf)OR t1.EthnicityText like '%German' OR t1.EthnicityText like '%Italian%'#(lf)OR t1.EthnicityText like '%polish%' OR t1.EthnicityText like '%Dutch%'#(lf)OR t1.EthnicityText like '%yugoslav%'  OR t1.EthnicityText like '%German%'#(lf)THEN 'European'#(lf)WHEN t1.EthnicityText like '%Other%' THEN 'Other'#(lf)WHEN t1.EthnicityText like '%Not Stated%'  #(lf)OR t1.EthnicityText like '%response uniden%'#(lf)OR t1.EthnicityText like '%refused to answer%'#(lf)THEN 'Unknown' #(lf)ELSE NULL END AS EthnicityBucket#(lf)FROM [RBMNB].[dlDimEthnicity] t1#(lf)LEFT OUTER JOIN [RBMNB].[dlDimEthnicity] t2 ON t1.EthnicityParentId = t2.EthnicityID#(lf)WHERE t1.EthnicityIsActive = 1;#(lf)"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+

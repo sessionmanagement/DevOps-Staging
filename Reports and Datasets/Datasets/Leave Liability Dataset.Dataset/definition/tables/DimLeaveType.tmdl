@@ -1,0 +1,68 @@
+table DimLeaveType
+	isHidden
+	lineageTag: 22c0c96e-28d2-4065-90e9-e7355319c570
+
+	column 'Leave Name'
+		dataType: string
+		isHidden
+		lineageTag: 641f6b6e-a29b-41f7-8790-7271fb74ea58
+		summarizeBy: none
+		sourceColumn: Leave Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column leave_type_id
+		dataType: string
+		isHidden
+		lineageTag: 7cc87c4e-88b4-4ed6-9964-025c476fa9e4
+		summarizeBy: none
+		sourceColumn: leave_type_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column DimLeaveTypeKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 5d7c3e90-1f6d-4800-bec3-f7ac1907c66d
+		summarizeBy: count
+		sourceColumn: DimLeaveTypeKey
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsPaid
+		dataType: string
+		isHidden
+		lineageTag: 53451f16-a282-4717-ab91-c6f016804884
+		summarizeBy: none
+		sourceColumn: IsPaid
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimLeaveType-56db2922-2b44-42d7-a975-5a8fdbf86b09 = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT [leave_type_id]#(lf)      ,[name] AS ""Leave Name""#(lf)      --,[type] AS ""Leave Type""#(lf)      --,[paygroup_id]#(lf)      ,[company_id]#(lf)  FROM [Datapay].[leave_types]#(lf)  WHERE ODSIsCurrent = 1"]),
+				    #"Added Index" = Table.AddIndexColumn(Source, "DimLeaveTypeKey", 1, 1, Int64.Type),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Index",{"company_id"}),
+				    #"Removed Duplicates" = Table.Distinct(#"Removed Columns", {"leave_type_id"}),
+				    #"Added Conditional Column" = Table.AddColumn(#"Removed Duplicates", "IsPaid", each if [Leave Name] = "Annual Leave" then 1 else if [Leave Name] = "Long Service Leave" then 1 else if [Leave Name] = "Alternative Holidays" then 1 else if [Leave Name] = "Sick Leave" then 2 else if [Leave Name] = "Well Being LEave" then 2 else 0)
+				in
+				    #"Added Conditional Column"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

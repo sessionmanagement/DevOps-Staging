@@ -1,0 +1,92 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/reportExtension/1.0.0/schema.json",
+  "name": "extension",
+  "entities": [
+    {
+      "name": "Measures Table",
+      "measures": [
+        {
+          "name": "ROnly Non Missing Percent Legal Status_blank_column",
+          "dataType": "Double",
+          "expression": "\nIF (\n    OR (\n        ISBLANK (\n            SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Legal Status Missing Flag] ) \n        ),\n        CONTAINSSTRING(MAX ( 'Dim Service'[Company Name] ),  \"Mind\")||\n        CONTAINSSTRING( MAX ( 'Dim Service'[Region Name] ), \"Housing\" )||\n\tCONTAINSSTRING( MAX ( 'Dim Service'[Region Name] ), \"Peer Service\" )\n    ),\n    BLANK (),\n    1\n   - SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Legal Status Missing Flag] ) / [Number of Tangata Whaiora]\n)",
+          "formatString": "0\\ %;-0\\ %;0\\ %",
+          "displayFolder": "MORe Measures",
+          "references": {
+            "measures": [
+              {
+                "entity": "Measures Table",
+                "name": "Number of Tangata Whaiora"
+              }
+            ]
+          }
+        },
+        {
+          "name": "ROnly Non Missing Percent Mental Health_blank_column",
+          "dataType": "Double",
+          "expression": "\nIF (\n    OR (\n        ISBLANK (\n            SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Mental Health Condition Missing Flag] ) \n        ),\n        CONTAINSSTRING(MAX ( 'Dim Service'[Company Name] ),  \"Mind\")||\n       \tCONTAINSSTRING( MAX ( 'Dim Service'[Region Name] ), \"Peer Service\" )\n    ),\n    BLANK (),\n    1\n   - SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Mental Health Condition Missing Flag] ) / [Number of Tangata Whaiora]\n)",
+          "formatString": "0\\ %;-0\\ %;0\\ %",
+          "displayFolder": "MORe Measures",
+          "references": {
+            "measures": [
+              {
+                "entity": "Measures Table",
+                "name": "Number of Tangata Whaiora"
+              }
+            ]
+          }
+        },
+        {
+          "name": "ROnly Non Missing Percent Physical Health Status_blank_column",
+          "dataType": "Double",
+          "expression": "\r\nIF (\r\n    OR (\r\n        ISBLANK (\r\n            SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Physical Condition Missing Flag] ) \r\n        ),\r\n        CONTAINSSTRING(MAX ( 'Dim Service'[Company Name] ),  \"Mind\")||\r\n     \r\n\tCONTAINSSTRING( MAX ( 'Dim Service'[Region Name] ), \"Peer Service\" )\r\n    ),\r\n    BLANK (),\r\n    1\r\n   - SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Physical Condition Missing Flag] ) / [Number of Tangata Whaiora]\r\n)",
+          "formatString": "0\\ %;-0\\ %;0\\ %",
+          "displayFolder": "MORe Measures",
+          "references": {
+            "measures": [
+              {
+                "entity": "Measures Table",
+                "name": "Number of Tangata Whaiora"
+              }
+            ]
+          }
+        },
+        {
+          "name": "ROnly Non Missing Percent Substance Use Status_blank_column",
+          "dataType": "Double",
+          "expression": "\r\nIF (\r\n    OR (\r\n        ISBLANK (\r\n            SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Substance Condition Missing Flag] ) \r\n        ),\r\n        CONTAINSSTRING(MAX ( 'Dim Service'[Company Name] ),  \"Mind\")||\r\n\r\n\tCONTAINSSTRING( MAX ( 'Dim Service'[Region Name] ), \"Peer Service\" )\r\n    ),\r\n    BLANK (),\r\n    1\r\n   - SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Substance Condition Missing Flag] ) / [Number of Tangata Whaiora]\r\n)",
+          "formatString": "0\\ %;-0\\ %;0\\ %",
+          "displayFolder": "MORe Measures",
+          "references": {
+            "measures": [
+              {
+                "entity": "Measures Table",
+                "name": "Number of Tangata Whaiora"
+              }
+            ]
+          }
+        },
+        {
+          "name": "ROnly Non Missing Percent PrimHD Status_blank_column",
+          "dataType": "Double",
+          "expression": "\r\nIF (\r\n    OR (\r\n        ISBLANK (\r\n            SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Primhd Review Missing Flag] ) \r\n        ),\r\n       \r\n        CONTAINSSTRING( MAX ( 'Dim Service'[Region Name] ), \"Housing\" )\r\n    ),\r\n    BLANK (),\r\n    1\r\n   - SUM ( 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Primhd Review Missing Flag] ) / [Number of Tangata Whaiora]\r\n)",
+          "formatString": "0\\ %;-0\\ %;0\\ %",
+          "displayFolder": "MORe Measures",
+          "references": {
+            "measures": [
+              {
+                "entity": "Measures Table",
+                "name": "Number of Tangata Whaiora"
+              }
+            ]
+          }
+        },
+        {
+          "name": "ROnly Non Missing Legal Status blank_column",
+          "dataType": "Double",
+          "expression": "\r\n/*IF (\r\n    OR (\r\n        ISBLANK(SELECTEDVALUE('Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Legal Status Missing Flag] )),\r\n        CONTAINSSTRING(SELECTEDVALUE('Dim Service'[Company Name] ), \"Mind\") ||\r\n        CONTAINSSTRING(SELECTEDVALUE('Dim Service'[Region Name] ), \"Peer Service\")\r\n    ),\r\n    BLANK(),\r\n    SELECTEDVALUE('Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Legal Status Missing Flag])\r\n)*/\r\n\r\nCalculate( sum('Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Legal Status Missing Flag] ),\r\n        'Dim Service'[Company Name] <>  \"Mind and Body\"\r\n        )\r\n        \r\n        \r\n    \r\n",
+          "displayFolder": "MORe Measures"
+        }
+      ]
+    }
+  ]
+}

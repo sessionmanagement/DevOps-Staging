@@ -1,0 +1,49 @@
+table Teams
+	lineageTag: b1ffc08b-7625-4b65-96a7-9a3072e33d14
+
+	column 'Team Name'
+		dataType: string
+		lineageTag: e792548e-d928-471e-8853-ace8ff850c40
+		summarizeBy: none
+		sourceColumn: Team Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column teamfunctionname
+		dataType: string
+		lineageTag: b1e8ef3d-d8f3-4c61-89e0-a721bd5a4ae2
+		summarizeBy: none
+		sourceColumn: teamfunctionname
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamRegion
+		dataType: string
+		lineageTag: 08eec1fa-1898-4237-98e1-4d35577dba00
+		summarizeBy: none
+		sourceColumn: TeamRegion
+
+		annotation SummarizationSetBy = Automatic
+
+	column team_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 11ca4218-0452-456f-ab73-e30f8a6868b5
+		summarizeBy: none
+		sourceColumn: team_id
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Teams-419fd425-1a35-4b43-b600-3dceefbe96a1 = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("eal-sql01.database.windows.net", "Recordbase_EmergeAotearoa_Elite", [Query="select teamname , teamfunctionname , teamid as team_id,#(lf)case when teamname like '%adhb%' then 'Auckland'#(lf)when teamname like '%wdhb%' then 'Waitemata'#(lf)when teamname like 'easeup%west%' then 'Waitemata'#(lf)when teamname like 'easeup%north%' then 'Waitemata'#(lf)when teamname like '%waikato%' then 'Waikato'#(lf)else 'Other Region'#(lf)end as TeamRegion#(lf)#(lf)from dl.dimteam#(lf)#(lf)inner join dl.DimTeamFunction on dimteam.TeamFunctionID = DimTeamFunction.TeamFunctionID#(lf)where teamname like '%ease%up%'"]),
+				    #"Renamed Columns" = Table.RenameColumns(Source,{{"teamname", "Team Name"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

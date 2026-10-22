@@ -1,0 +1,338 @@
+table fact_speed_details
+	excludeFromModelRefresh
+	lineageTag: d35e87da-0ec4-45f3-8693-a4c5a3c8735e
+
+	column 'Asset Name'
+		dataType: string
+		lineageTag: 73fdbf21-af9d-46f4-9149-27af365772c9
+		summarizeBy: none
+		sourceColumn: Asset Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Start Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 8cbcb479-946a-447a-bd34-4424f1e48dd2
+		summarizeBy: none
+		sourceColumn: Start Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Start Time'
+		dataType: dateTime
+		formatString: Long Time
+		lineageTag: b9713d71-e9a1-49c8-845a-be3940af93da
+		summarizeBy: none
+		sourceColumn: Start Time
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Time
+
+	column 'End Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 805b65e1-1420-4903-8ee0-6a9183595b65
+		summarizeBy: none
+		sourceColumn: End Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'End Time'
+		dataType: dateTime
+		formatString: Long Time
+		lineageTag: 3015c6a2-0841-45d5-9853-1302d3b76db2
+		summarizeBy: none
+		sourceColumn: End Time
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Time
+
+	column 'Start Road'
+		dataType: string
+		lineageTag: 0f39a3c0-59e7-450e-8486-884b1788a435
+		summarizeBy: none
+		sourceColumn: Start Road
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'End Road'
+		dataType: string
+		lineageTag: a6af0578-c03c-4653-8153-649e3275e9e9
+		summarizeBy: none
+		sourceColumn: End Road
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Min Speed (km/h)'
+		dataType: int64
+		formatString: 0
+		lineageTag: bef23034-4691-46ef-ba82-e49f4d7bdecc
+		summarizeBy: sum
+		sourceColumn: Min Speed (km/h)
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Max Speed (km/h)'
+		dataType: int64
+		formatString: 0
+		lineageTag: 9b7469d2-2788-47ae-a653-cfd33463b6c3
+		summarizeBy: sum
+		sourceColumn: Max Speed (km/h)
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Average Speed (km/h)'
+		dataType: double
+		lineageTag: 81b3ff2b-726a-457a-a03d-6e7bf20931fa
+		summarizeBy: sum
+		sourceColumn: Average Speed (km/h)
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Limit (km/h)'
+		dataType: int64
+		formatString: 0
+		lineageTag: 850603fa-84c8-498e-af2c-cac24b715369
+		summarizeBy: sum
+		sourceColumn: Limit (km/h)
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Distance (km)'
+		dataType: double
+		lineageTag: 28e201e9-0a37-4944-a13c-19701884cefb
+		summarizeBy: sum
+		sourceColumn: Distance (km)
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Driver/Operator List'
+		dataType: string
+		lineageTag: 0b272465-d61c-4711-ba6f-56333dd7bc3e
+		summarizeBy: none
+		sourceColumn: Driver/Operator List
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_asset_key
+		dataType: double
+		lineageTag: 247eb8a6-3a4a-47f5-8fb0-58f4dc275559
+		summarizeBy: none
+		sourceColumn: dim_asset_key
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column dim_driver_key
+		dataType: double
+		lineageTag: f62f69aa-a1ee-41c9-8dea-0efb5506cbfa
+		summarizeBy: none
+		sourceColumn: dim_driver_key
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Start DateTime'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 72655f75-3891-49f1-8524-a95cfce587f4
+		summarizeBy: none
+		sourceColumn: Start DateTime
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'End DateTime'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: f9146abd-b04e-4b6f-9e41-e8f87d672c6d
+		summarizeBy: none
+		sourceColumn: End DateTime
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Trip Duration'
+		dataType: string
+		lineageTag: b4e467da-b023-487a-8ef7-055de28161c8
+		summarizeBy: none
+		sourceColumn: Trip Duration
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Trip Duration Seconds'
+		dataType: int64
+		formatString: 0
+		lineageTag: a7754dfa-b618-4e63-a1de-869de8f2f880
+		summarizeBy: sum
+		sourceColumn: Trip Duration Seconds
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Severity Score' = ```
+			
+			VAR SpeedExcess = 
+			    ([Max Speed (km/h)] - [Limit (km/h)]) / [Limit (km/h)] * 100
+			
+			VAR DurationFactor = 
+			    SWITCH(
+			        TRUE(),
+			        [Trip Duration Seconds] <= TIME(0, 0, 30), 1.0,
+			        [Trip Duration Seconds] <= TIME(0, 1, 0), 1.2,
+			        [Trip Duration Seconds] <= TIME(0, 2, 0), 1.5,
+			        2.0
+			    )
+			
+			VAR SpeedLimitFactor = 
+			    SWITCH(
+			        TRUE(),
+			        [Limit (km/h)] >= 100, 1.0,
+			        [Limit (km/h)] >= 80, 1.2,
+			        [Limit (km/h)] >= 50, 1.5,
+			        2.0
+			    )
+			
+			VAR AverageSpeedFactor = 
+			    IF(
+			        [Average Speed (km/h)] > [Limit (km/h)],
+			        ([Average Speed (km/h)] - [Limit (km/h)]) / ([Max Speed (km/h)] - [Limit (km/h)]),
+			        0.5
+			    )
+			
+			VAR RawScore = SpeedExcess * DurationFactor * SpeedLimitFactor * AverageSpeedFactor
+			
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        RawScore <= 50, "Low",
+			        RawScore <= 100, "Moderate",
+			        RawScore <= 200, "High",
+			        "Extreme"
+			    )
+			```
+		lineageTag: 0a025f8d-7d5e-4b57-b0c2-cffb8ad744e1
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Severity Raw Score' = ```
+			
+			VAR SpeedExcess = 
+			    ([Max Speed (km/h)] - [Limit (km/h)]) / [Limit (km/h)] * 100
+			
+			VAR DurationFactor = 
+			    SWITCH(
+			        TRUE(),
+			        [Trip Duration Seconds] <= TIME(0, 0, 30), 1.0,
+			        [Trip Duration Seconds] <= TIME(0, 1, 0), 1.2,
+			        [Trip Duration Seconds] <= TIME(0, 2, 0), 1.5,
+			        2.0
+			    )
+			
+			VAR SpeedLimitFactor = 
+			    SWITCH(
+			        TRUE(),
+			        [Limit (km/h)] >= 100, 1.0,
+			        [Limit (km/h)] >= 80, 1.2,
+			        [Limit (km/h)] >= 50, 1.5,
+			        2.0
+			    )
+			
+			VAR AverageSpeedFactor = 
+			    IF(
+			        [Average Speed (km/h)] > [Limit (km/h)],
+			        ([Average Speed (km/h)] - [Limit (km/h)]) / ([Max Speed (km/h)] - [Limit (km/h)]),
+			        0.5
+			    )
+			
+			RETURN
+			    SpeedExcess * DurationFactor * SpeedLimitFactor * AverageSpeedFactor
+			```
+		lineageTag: 54c3e7c5-9eb0-4717-8a4b-f83ad42531ba
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column fact_speed_details_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 2650a5ec-5da7-42b0-94cb-fe33cad2b288
+		summarizeBy: sum
+		sourceColumn: fact_speed_details_key
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_speed_details = m
+		mode: import
+		queryGroup: Facts
+		source = ```
+				let
+				    Source = #"Speed and Trip Sample",
+				    #"Changed Type1" = Table.TransformColumnTypes(Source,{{"Asset Name", type text}, {"Start Date", type datetime}, {"Start Time", type datetime}, {"End Date", type datetime}, {"End Time", type datetime}, {"Start Road", type text}, {"End Road", type text}, {"Min Speed (km/h)", Int64.Type}, {"Max Speed (km/h)", Int64.Type}, {"Average Speed (km/h)", type number}, {"Limit (km/h)", Int64.Type}, {"Distance (km)", type number}, {"Driver/Operator List", type text}, {"Column14", type any}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type1",{"Column14"}),
+				    #"Merged Queries" = Table.NestedJoin(#"Removed Columns", {"Asset Name"}, dim_team_asset, {"asset_name"}, "dim_team_asset", JoinKind.LeftOuter),
+				    #"Expanded dim_team_asset" = Table.ExpandTableColumn(#"Merged Queries", "dim_team_asset", {"dim_asset_key"}, {"dim_asset_key"}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Expanded dim_team_asset",null,0,Replacer.ReplaceValue,{"dim_asset_key"}),
+				    #"Merged Queries1" = Table.NestedJoin(#"Replaced Value", {"Driver/Operator List"}, dim_driver, {"driver_name"}, "dim_driver", JoinKind.LeftOuter),
+				    #"Expanded dim_driver" = Table.ExpandTableColumn(#"Merged Queries1", "dim_driver", {"dim_driver_key"}, {"dim_driver_key"}),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Expanded dim_driver",null,0,Replacer.ReplaceValue,{"dim_driver_key"}),
+				    #"Changed Type2" = Table.TransformColumnTypes(#"Replaced Value1",{{"Start Date", type date}}),
+				    #"Duplicated Column" = Table.DuplicateColumn(#"Changed Type2", "Start Time", "Start Time - Copy"),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Duplicated Column",{"Asset Name", "Start Date", "Start Time", "Start Time - Copy", "End Date", "End Time", "Start Road", "End Road", "Min Speed (km/h)", "Max Speed (km/h)", "Average Speed (km/h)", "Limit (km/h)", "Distance (km)", "Driver/Operator List", "dim_asset_key", "dim_driver_key"}),
+				    #"Changed Type3" = Table.TransformColumnTypes(#"Reordered Columns",{{"Start Time", type time}}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type3",{{"Start Time - Copy", "Start DateTime"}}),
+				    #"Duplicated Column1" = Table.DuplicateColumn(#"Renamed Columns", "End Time", "End Time - Copy"),
+				    #"Reordered Columns1" = Table.ReorderColumns(#"Duplicated Column1",{"Asset Name", "Start Date", "Start Time", "Start DateTime", "End Date", "End Time", "End Time - Copy", "Start Road", "End Road", "Min Speed (km/h)", "Max Speed (km/h)", "Average Speed (km/h)", "Limit (km/h)", "Distance (km)", "Driver/Operator List", "dim_asset_key", "dim_driver_key"}),
+				    #"Changed Type4" = Table.TransformColumnTypes(#"Reordered Columns1",{{"End Date", type date}, {"End Time", type time}}),
+				    #"Renamed Columns1" = Table.RenameColumns(#"Changed Type4",{{"End Time - Copy", "End DateTime"}}),
+				    #"Added Custom" = Table.AddColumn(#"Renamed Columns1", "Trip Duration", each 
+				        try
+				            let 
+				                duration = [End DateTime] - [Start DateTime],
+				                totalMinutes = Number.RoundDown(Duration.TotalMinutes(duration)),
+				                hours = Number.RoundDown(totalMinutes / 60),
+				                minutes = Number.Mod(totalMinutes, 60),
+				                seconds = Number.RoundDown(Duration.Seconds(duration)),
+				                formatted = 
+				                    (if hours > 0 then Text.From(hours) & " hr " else "") &
+				                    Text.From(minutes) & " min " & 
+				                    Text.PadStart(Text.From(seconds), 2, "0") & " sec"
+				            in 
+				                formatted
+				        otherwise
+				            null
+				    ),
+				    #"Added Custom1" = Table.AddColumn(#"Added Custom", "Trip Duration Seconds", each 
+				        try
+				            let 
+				                duration = [End DateTime] - [Start DateTime],
+				                totalSeconds = Number.RoundDown(Duration.TotalSeconds(duration))
+				            in 
+				                totalSeconds
+				        otherwise
+				            null,
+				        Int64.Type),
+				    #"Added Index" = Table.AddIndexColumn(#"Added Custom1", "Index", 1, 1, Int64.Type),
+				    #"Renamed Columns2" = Table.RenameColumns(#"Added Index",{{"Index", "fact_speed_details_key"}}),
+				    #"Reordered Columns2" = Table.ReorderColumns(#"Renamed Columns2",{"fact_speed_details_key", "Asset Name", "Start Date", "Start Time", "Start DateTime", "End Date", "End Time", "End DateTime", "Start Road", "End Road", "Min Speed (km/h)", "Max Speed (km/h)", "Average Speed (km/h)", "Limit (km/h)", "Distance (km)", "Driver/Operator List", "dim_asset_key", "dim_driver_key", "Trip Duration", "Trip Duration Seconds"})
+				in
+				    #"Reordered Columns2"
+				```
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

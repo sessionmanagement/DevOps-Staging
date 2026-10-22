@@ -1,0 +1,37 @@
+table PayBuckets
+	lineageTag: 77a351af-d6a5-4703-884c-e15f6a35194c
+
+	column Bucket
+		dataType: string
+		lineageTag: ba0f9460-0eb6-49ec-89a7-8e1ea3557f8b
+		summarizeBy: none
+		sourceColumn: Bucket
+		sortByColumn: Index
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Index
+		dataType: int64
+		formatString: 0
+		lineageTag: 60070e5d-65a5-4d43-b100-9236cec43609
+		summarizeBy: none
+		sourceColumn: Index
+
+		annotation SummarizationSetBy = Automatic
+
+	partition PayBuckets-2528a3b3-e57b-4a34-a41c-fc1846886620 = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("LcnLDQAhCAXAXgi31YTlo8UY+m/DR/A4mXOIVSZr0KCfcpRjsgmsbcNbvT3jvd7bjvf6eMZH/WqHfMCmzAs=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Bucket = _t, Index = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Bucket", type text}, {"Index", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

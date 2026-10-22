@@ -1,0 +1,70 @@
+table dim_subprogram
+	lineageTag: cd0c9173-a594-423e-85d3-ed0564608def
+
+	column program_name
+		dataType: string
+		isHidden
+		lineageTag: 9ac2ec34-33f6-4932-af73-43403093ccc9
+		summarizeBy: none
+		sourceColumn: program_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column subprogram_name
+		dataType: string
+		isHidden
+		lineageTag: ffe3a43f-b51f-4cc1-86bd-53508417f18e
+		summarizeBy: none
+		sourceColumn: subprogram_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column subprogramid
+		dataType: string
+		isHidden
+		lineageTag: 7a021db6-ad86-4023-86f4-ec0a0e104e17
+		summarizeBy: none
+		sourceColumn: zav_subprogramid
+
+		changedProperty = Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column commercial_yn
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d23c0055-a23b-4c65-8b1f-b595b4d2dc44
+		summarizeBy: none
+		sourceColumn: commercial_yn
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'Program Hierarchy'
+		lineageTag: 54ecf067-3930-4971-8d65-a2f50fd1772f
+
+		level Program
+			lineageTag: dc69c79c-0d53-4050-ba68-effee8d1668b
+			column: program_name
+
+		level Subprogram
+			lineageTag: bf42be72-b207-4047-89a7-9bb73c9127ab
+			column: subprogram_name
+
+	partition dim_subprogram-7a345b4d-81ba-44ca-b9df-ce8a500788bf = m
+		mode: import
+		queryGroup: dimensions
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT property_subprogram_id AS zav_subprogramid, property_subprogram_name AS subprogram_name, property_program_name AS program_name FROM [edw].[dim_property_program] WHERE [DWHIsCurrent] = 1 AND [DWHDMLOperation] <> 'D' AND property_subprogram_id IS NOT NULL AND property_subprogram_name NOT IN ('N/A','Unknown')"]),
+				    #"Removed Duplicates" = Table.Distinct(Source, {"subprogram_name"}),
+				    #"Added commercial_yn" = Table.AddColumn(#"Removed Duplicates", "commercial_yn", each if Text.Contains([program_name], "Commercial") then 1 else 0),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Added commercial_yn",{{"commercial_yn", Int64.Type}}),
+				    #"Replaced Errors" = Table.ReplaceErrorValues(#"Changed Type", {{"commercial_yn", 0}})
+				in
+				    #"Replaced Errors"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,43 @@
+table template1
+	lineageTag: 5ab24cfe-f88a-449e-bf7b-1594994cfe29
+
+	column measure
+		dataType: string
+		lineageTag: 7fae128d-01d2-4629-82c2-de35b9303837
+		summarizeBy: none
+		sourceColumn: measure
+		sortByColumn: order
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column order
+		dataType: int64
+		formatString: 0
+		lineageTag: 095a9e01-fa30-49a8-a6c9-063e62b92070
+		summarizeBy: sum
+		sourceColumn: order
+
+		annotation SummarizationSetBy = Automatic
+
+	column id
+		dataType: int64
+		formatString: 0
+		lineageTag: 8fb35807-6b63-4f5b-beda-4d5c54ba7fdc
+		summarizeBy: sum
+		sourceColumn: id
+
+		annotation SummarizationSetBy = Automatic
+
+	partition template1-3e56a2bf-76fd-44d6-b883-c6a568039b83 = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("tVPLTutADP0VqxISSF1QHgV+4q7urnQxTZzGIhkHzyTV/ftrT0JJKKUqiIVdxarPOfbxrFazvxxdBb6tNyjABYSaX8hvwYWAIdToYwDy0KAQ57P5bJFiPV/N/ux7xv/dlSgIGyHUet5RhrBzAbbUodfWmxSn2kPbNCwRAoohaNmqXBT6YyJuU0xRWk+vLapQbirlpFgeneEuxaftWUWDDobSdQhUN8Id5qbMQ8Z141QDRIZYIgk0gh1xG0Zkin6f4iSD4Fa06Vz0ZYop+hi2djmCZ8hK57d4HvZDipPKkyHJ1AGtIAlxCvWY4rjXBQtkrYh+pLNDOXo+nuP+hJ5SGOxFGnxAOHAOO6UsXQ5uf9QhuqgDC2Ysue5i88/Uv50ZmNOUo9iJX/fpK5qAULMOrXBvI4xIaMSjE0wHfbZBFos+HXC8L2MYZYO6537bk9Wol68t6dojVOhUCnutUvIEKissVaKPZTCmmz6dRacWCeqzGy5H32JwkdgfPtHPWOHSjFMfqCBbQ6aULuIcWt2diuadB6HwcmXKbvv04ax/x927Pp3k+oHFxnDfp+88AVO+Kx2xuPQCjrgwbN94ln1ar/8D", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [measure = _t, order = _t, id = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"measure", type text}, {"order", Int64.Type}, {"id", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

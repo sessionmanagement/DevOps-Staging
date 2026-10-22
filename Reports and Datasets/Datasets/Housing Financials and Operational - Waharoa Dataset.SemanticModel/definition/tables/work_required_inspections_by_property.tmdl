@@ -1,0 +1,45 @@
+table work_required_inspections_by_property
+	lineageTag: 84d86d0d-b994-44f1-b5ac-beba770f5bd8
+
+	column number_of_required_inspections =
+			
+			FLOOR(
+			    work_required_inspections_by_property[days_property_active_in_previous_12_months] / 91,1)
+		formatString: 0
+		lineageTag: dcb2ef39-4148-4310-b120-5b98e8245596
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_propertyid
+		lineageTag: 923e5907-5e49-4bee-afb3-f0155fb1074b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: work_property_dates[zav_propertyid]
+
+		annotation SummarizationSetBy = Automatic
+
+	column days_property_active_in_previous_12_months
+		formatString: 0
+		lineageTag: ba14066f-df4b-49bb-adb4-e74e59ced245
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [days_property_active_in_previous_12_months]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition work_required_inspections_by_property = calculated
+		mode: import
+		source = ```
+				
+				SUMMARIZECOLUMNS(
+				    work_property_dates[zav_propertyid],
+				    "days_property_active_in_previous_12_months", 
+				    CALCULATE(MAX(work_property_dates[days_from_explosion_to_property_disposal_date_or_today]), 
+				        work_property_dates[days_from_explosion_to_today] <= 365
+				    )
+				)
+				```
+
+	annotation PBI_Id = fac326295f36451cad3a2c843de7e558
+

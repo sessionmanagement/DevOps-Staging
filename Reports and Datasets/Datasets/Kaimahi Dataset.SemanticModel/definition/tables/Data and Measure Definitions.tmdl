@@ -1,0 +1,95 @@
+table 'Data and Measure Definitions'
+	lineageTag: 681b88ff-36c7-4385-a268-61b5c7aa9349
+
+	column 'Field name'
+		dataType: string
+		lineageTag: 3a654fc6-a8b6-40a9-8cd4-a43fb45e1db6
+		summarizeBy: none
+		sourceColumn: Field name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: 8f8f0ac7-9001-4186-81de-35c4aea8e7b6
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column Report
+		dataType: string
+		lineageTag: 89160138-16b8-44f9-a67e-cecfc9acd9b0
+		summarizeBy: none
+		sourceColumn: Report
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Business Approval'
+		dataType: string
+		lineageTag: 9ffceba3-c5d1-41ce-9d54-bcfe27f6fdbe
+		summarizeBy: none
+		sourceColumn: Business Approval
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Business Approver'
+		dataType: string
+		lineageTag: d7b84a2f-cded-4bc3-b558-c13bd3c74de5
+		summarizeBy: none
+		sourceColumn: Business Approver
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Approved Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: b8ab81a9-6d20-4c67-82cf-f6970d9d8c2a
+		summarizeBy: none
+		sourceColumn: Approved Date
+
+		variation Variation
+			isDefault
+			relationship: e0fabc3a-2170-4cb3-a8df-893a60ea9e05
+			defaultHierarchy: LocalDateTable_6da7f05f-ab31-4a25-99a8-9f8e79911e96.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Comments
+		dataType: string
+		lineageTag: 15a15653-afdf-4860-92f6-52ad2c5a09d6
+		summarizeBy: none
+		sourceColumn: Comments
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sensitivity Rating'
+		dataType: string
+		lineageTag: 06212d07-5b03-45b2-9254-2c5c4f96de7f
+		summarizeBy: none
+		sourceColumn: Sensitivity Rating
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Data and Measure Definitions' = m
+		mode: import
+		source =
+				let
+				    Source = SharePoint.Tables("https://emergeaotearoaltd.sharepoint.com/sites/ITS2/", [Implementation="2.0", ViewMode="All"]),
+				    #"4c7bcf33-881e-47e1-ac62-ad0c8cdf2806" = Source{[Id="4c7bcf33-881e-47e1-ac62-ad0c8cdf2806"]}[Items],
+				    #"Filtered Rows" = Table.SelectRows(#"4c7bcf33-881e-47e1-ac62-ad0c8cdf2806", each ([Dataset] = "Kaimahi Dataset")),
+				    #"Removed Other Columns" = Table.SelectColumns(#"Filtered Rows",{"Field name", "Description", "Report", "Business Approval", "Business Approver", "Approved Date", "Comments", "Sensitivity Rating"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Removed Other Columns",{{"Approved Date", type date}}),
+				    #"Expanded Business Approver" = Table.ExpandListColumn(#"Changed Type", "Business Approver"),
+				    #"Expanded Business Approver1" = Table.ExpandRecordColumn(#"Expanded Business Approver", "Business Approver", {"title"}, {"Business Approver.title"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Expanded Business Approver1",{{"Business Approver.title", "Business Approver"}}),
+				    #"Expanded Report" = Table.ExpandListColumn(#"Renamed Columns", "Report")
+				in
+				    #"Expanded Report"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

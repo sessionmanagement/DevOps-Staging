@@ -1,0 +1,177 @@
+table 'Ref Tangata Whaiora Personal Goal Action Status'
+	lineageTag: cb257d9c-d49a-4528-b30d-5efc5fdf254f
+
+	column 'Personal Goal Action Status ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d5c979f4-1a52-4722-85c7-54bfc8022b5a
+		summarizeBy: none
+		sourceColumn: Personal Goal Action Status ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Personal Goal Action Status Code'
+		dataType: string
+		lineageTag: 83e6714a-5432-498c-9430-4658c8b415b2
+		summarizeBy: none
+		sourceColumn: Personal Goal Action Status Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Personal Goal Action Status Text'
+		dataType: string
+		lineageTag: f3fa5a9c-817f-4ad6-afea-ff21c0e1055a
+		summarizeBy: none
+		sourceColumn: Personal Goal Action Status Text
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Personal Goal Action Status Is Completed Status'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 69f541bf-11ec-4548-b05b-42a6be5d259f
+		summarizeBy: none
+		sourceColumn: Personal Goal Action Status Is Completed Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Personal Goal Action Status Is Cancelled Status'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 40cef26b-a2d5-4780-9b10-ff32c2a42f62
+		summarizeBy: none
+		sourceColumn: Personal Goal Action Status Is Cancelled Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Personal Goal Action Status Sort Index'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: f6bef565-a633-4aff-a59d-96792d1b7797
+		summarizeBy: none
+		sourceColumn: Personal Goal Action Status Sort Index
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 085c5be7-9907-4429-9a5d-8f77a9f63d5b
+		summarizeBy: none
+		sourceColumn: Company ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Tangata Whaiora Personal Goal Action Status KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: ae0eaf82-6ec6-4c83-8d2e-c94d7c9e1fb2
+		summarizeBy: none
+		sourceColumn: Dim Tangata Whaiora Personal Goal Action Status KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Tangata Whaiora Personal Goal Action Status Unique KEY'
+		dataType: string
+		isHidden
+		lineageTag: 830ebdcf-94d9-4555-824a-e16683dd17e8
+		summarizeBy: none
+		sourceColumn: Dim Tangata Whaiora Personal Goal Action Status Unique KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Batch ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: f4d011d9-8320-4a06-9154-f520a0846474
+		summarizeBy: none
+		sourceColumn: DWH Batch ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Modified On'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: f192cba6-41df-47b2-934d-a17ed6ef2dc7
+		summarizeBy: none
+		sourceColumn: DWH Modified On
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Created At'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: fc3c19c0-9e6d-4874-ba9f-feeb1dfcfd6a
+		summarizeBy: none
+		sourceColumn: DWH Created At
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Ref Tangata Whaiora Personal Goal Action Status' = m
+		mode: import
+		queryGroup: 'Reference Tables'
+		source =
+				// Initialize the SQL Database source
+				let
+				    Source = Sql.Database(Server, Database),
+				    // Extract the table "dim_client_personal_goal_action_status" from the "edw" schema
+				    edw_dim_client_personal_goal_action_status = Source{[Schema="edw",Item="vw_dim_client_personal_goal_action_status"]}[Data],
+				    // Function to apply naming conventions to column names
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            // Replace 'client_' with 'Tangata_Whaiora_'
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            // Replace underscores with spaces
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            // Rename 'DWHBatchId' to 'DWH Batch Id'
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            // Rename 'DWHCreatedAt' to 'DWH Created At'
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            // Rename 'DWHDMLOperation' to 'DWH DML Operation'
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            // Rename 'DWHEffectiveFrom' to 'DWH Effective From'
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            // Rename 'DWHEffectiveTo' to 'DWH Effective To'
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            // Rename 'DWHIsCurrent' to 'DWH Is Current'
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            // Rename 'DWHModifiedOn' to 'DWH Modified On'
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            // Rename 'DWHSourceSystem' to 'DWH Source System'
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            // Capitalize the first letter of each word
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            // Capitalize 'ID'
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            // Capitalize 'KEY'
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            // Capitalize 'DWH'
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            // Return the fully transformed column name
+				            capitaliseDWH,
+				    // Apply the naming conventions to each column name in the table
+				    #"Transformed Column Names" = Table.TransformColumnNames(edw_dim_client_personal_goal_action_status, each ApplyNamingConventions(_)),
+				    #"Filtered Rows" = Table.SelectRows(#"Transformed Column Names", each ([DWH Dml Operation] <> "D")),
+				    // Remove columns "DWH Source System" and "DWH Dml Operation" from the table
+				    #"Removed Columns" = Table.RemoveColumns(#"Filtered Rows",{"DWH Source System", "DWH Dml Operation"})
+				in
+				    // Return the final table after transformations
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+

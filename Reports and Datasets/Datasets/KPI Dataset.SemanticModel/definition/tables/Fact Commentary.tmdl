@@ -1,0 +1,161 @@
+table 'Fact Commentary'
+	lineageTag: aec9fbda-d0cc-4d24-8935-e2189eaa0195
+
+	column 'Dim Kpi KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 7f58931e-ad8a-434d-a746-8b2567db9048
+		summarizeBy: none
+		sourceColumn: Dim Kpi KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Company KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 98de8f38-7921-47e3-a794-5536e3cbf011
+		summarizeBy: none
+		sourceColumn: Dim Company KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Kaimahi KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 25b1a259-bcd9-4941-b726-6b4670f89440
+		summarizeBy: sum
+		sourceColumn: Dim Kaimahi KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Service KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: e2624f66-8c7b-4665-b6cf-9d7562350fd3
+		summarizeBy: none
+		sourceColumn: Dim Service KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Response ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 62302c32-cba4-4f62-b18b-8ee035066caf
+		summarizeBy: count
+		sourceColumn: Response ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Commentary
+		dataType: string
+		lineageTag: 873edf29-ecfd-4d3a-b063-61d468a16daa
+		summarizeBy: none
+		sourceColumn: Commentary
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: cb663d19-57d5-4698-9ee8-f0fb84fbfd04
+		summarizeBy: count
+		sourceColumn: Service ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Kpi ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: a0348377-8313-49c6-a034-f3bb24f59f0d
+		summarizeBy: count
+		sourceColumn: Kpi ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Responder
+		dataType: string
+		lineageTag: 3fc1af11-7daf-4c8c-8907-fbec82da798b
+		summarizeBy: none
+		sourceColumn: Responder
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Submitted Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 97c1859e-0b62-4712-af74-e54e2b4ff26b
+		summarizeBy: none
+		sourceColumn: Submitted Date
+
+		variation Variation
+			isDefault
+			relationship: b369c77c-069a-4523-8c1d-0c6e1bbb819a
+			defaultHierarchy: LocalDateTable_401a8f22-659b-495f-88e1-bfbd935e8f79.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Property KEY'
+		dataType: string
+		lineageTag: ea49b9da-1684-4674-8c0b-917ecb414af9
+		summarizeBy: none
+		sourceColumn: Property KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column Property_Tenancy_Key
+		dataType: string
+		lineageTag: 1ab6d576-60a1-4b8e-8675-1d4d441a619e
+		summarizeBy: none
+		sourceColumn: Property_Tenancy_Key
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fact Kaimahi Kpi Commentary KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: bfc1af8d-5ca9-4afc-b572-d79aa0735b37
+		summarizeBy: sum
+		sourceColumn: Fact Kaimahi Kpi Commentary KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Fact Commentary' = m
+		mode: import
+		queryGroup: 'Dataset Fact Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)    [fact_employee_kpi_commentary_key],#(lf)    [dim_kpi_key],#(lf)    [dim_company_key],#(lf)    [dim_employee_key],#(lf)    [dim_service_key],#(lf)    [response_id],#(lf)    [commentary],#(lf)    [service_id],#(lf)    [kpi_id],#(lf)    [responder],#(lf)    [submitted_date]#(lf)FROM [edw].[fact_employee_kpi_commentary]"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceKaimahi = Text.Replace(columnName, "employee_", "Kaimahi_"),
+				            replaceClient = Text.Replace(replaceKaimahi, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Transformed Column Names",{{"Submitted Date", type date}}),
+				    #"Filtered Rows" = Table.SelectRows(#"Changed Type", each [Submitted Date] > #date(2025, 10, 14)),
+				    #"Filtered Rows1" = Table.SelectRows(#"Filtered Rows", each ([Fact Kaimahi Kpi Commentary KEY] <> 45 and [Fact Kaimahi Kpi Commentary KEY] <> 80 and [Fact Kaimahi Kpi Commentary KEY] <> 128 and [Fact Kaimahi Kpi Commentary KEY] <> 129 and [Fact Kaimahi Kpi Commentary KEY] <> 130 and [Fact Kaimahi Kpi Commentary KEY] <> 335)),
+				    #"Added Custom" = Table.AddColumn(#"Filtered Rows1", "Property KEY", each 0),
+				    #"Added Custom1" = Table.AddColumn(#"Added Custom", "Property_Tenancy_Key", each 1)
+				in
+				    #"Added Custom1"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

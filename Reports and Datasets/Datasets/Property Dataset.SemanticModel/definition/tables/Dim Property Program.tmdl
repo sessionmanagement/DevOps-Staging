@@ -1,0 +1,51 @@
+table 'Dim Property Program'
+	lineageTag: 86be20cf-b112-43d1-9df3-448dc26c3d88
+
+	column 'Dim Property Program ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: a6d912be-48ef-41c4-a4f7-67aee2eb87d3
+		summarizeBy: none
+		sourceColumn: Dim Property Program ID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Property Program' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source = ```
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)    [dim_property_program_id]#(lf)FROM [edw].[vw_dim_property_program]"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				    
+				    // Step to remove columns that start with "DWH" if needed
+				    RemoveDWHColumns = Table.RemoveColumns(
+				        #"Transformed Column Names",
+				        List.Select(Table.ColumnNames(#"Transformed Column Names"), each Text.StartsWith(_, "DWH"))
+				    )
+				in
+				    RemoveDWHColumns
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

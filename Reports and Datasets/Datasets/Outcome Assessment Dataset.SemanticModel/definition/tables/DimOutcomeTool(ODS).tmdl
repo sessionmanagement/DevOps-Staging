@@ -1,0 +1,23 @@
+table DimOutcomeTool(ODS)
+	lineageTag: bf32ec07-26c8-47f3-89e8-0e8c3025d04e
+
+	column outcometooltitle
+		dataType: string
+		lineageTag: dc16033a-8278-4afa-aab9-a21279bb50b3
+		summarizeBy: none
+		sourceColumn: outcometooltitle
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimOutcomeTool(ODS)-154c14a1-1f42-4239-b917-42d64937788e = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="-- USED model columns: outcometooltitle#(lf)#(lf)--changed to EDW - pre-empting change - Timi - one less thing to change later on.  13/7/2026#(lf)#(lf)#(lf)select #(lf)distinct #(lf)client_outcome_tool_title as outcometooltitle#(lf)from edw.fact_client_assessment_outcome #(lf)#(lf)where client_outcome_tool_title in ('matrix','kessler 10','hua oranga - primary care');#(lf)#(lf)"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

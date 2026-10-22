@@ -1,0 +1,31 @@
+table DimEthnicGroup
+	lineageTag: 04fa53e5-2c0a-4968-9fd8-691336129002
+
+	column 'Ethnic Group'
+		dataType: string
+		lineageTag: 09a4c04c-4554-455f-9c9d-bdc42cdc928b
+		summarizeBy: none
+		sourceColumn: Ethnic Group
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sort order'
+		dataType: int64
+		formatString: 0
+		lineageTag: 1cd09f35-d35f-4242-8b89-cda2c89b57c0
+		summarizeBy: sum
+		sourceColumn: Sort order
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimEthnicGroup-11f1d29a-ac02-443f-8197-630e0fe55cd0 = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("Hcq9DsIwDEbRV4k8Z+F/ztCNChamKINFXWEVHOQE9fVrvPlcfznDiFUZIuygxAx3bDzzghb2HlJjFNPBNfI0vSkM2DqpxHDFzhLSh5SfaE6zH7Y/+n74af2Sh5OHW3+Rms6uhyxS1//3AqVs", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Ethnic Group" = _t, #"Sort order" = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Ethnic Group", type text}, {"Sort order", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

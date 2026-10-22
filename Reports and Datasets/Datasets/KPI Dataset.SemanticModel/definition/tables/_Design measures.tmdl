@@ -1,0 +1,89 @@
+table '_Design measures'
+	excludeFromModelRefresh
+	lineageTag: 63f0548c-de7f-488b-a05c-1131c1251402
+
+	measure 'Colour Formatting (Display Measure)' =
+			
+			VAR _DisplayMeasure = CALCULATE([Strategic Focus Area KPI], REMOVEFILTERS('Fact KPI'[KPI Status]))
+			//VAR _DisplayMeasure = [Display Measure]
+			RETURN
+			IF(_DisplayMeasure = "Achieving", "#478F8D",
+			IF(_DisplayMeasure = "Take Action", "#F1655A",
+			IF(_DisplayMeasure = "Review", "#FDE3BA"
+			)))
+		lineageTag: 4c470a79-03a3-4ec1-af91-1106f781af7c
+
+	measure 'Colour Formatting (NEW DESIGN-TEXT)' =
+			
+			VAR _DisplayMeasure = CALCULATE([Strategic Focus Area KPI], REMOVEFILTERS('Fact KPI'[KPI Status]))
+			//VAR _DisplayMeasure = [Display Measure]
+			RETURN
+			IF(_DisplayMeasure = "Take Action", "#E04747",
+			IF(_DisplayMeasure = "Review", "#C3862B",
+			IF(_DisplayMeasure = "Achieving", "#598184"
+			)))
+		lineageTag: 991bea50-c8c2-469a-9612-d0164cc2c42d
+
+	measure 'Info Icon' =
+			
+			"ⓘ"
+			//UNICHAR(128712)
+		lineageTag: 8c7418f9-76fd-4b01-b75b-076ca3d77151
+
+	measure Megaphone = ```
+			
+			Switch([Roll Up KPI Status],     
+			 "Take Action",
+			        "https://i.ibb.co/HfPb81Df/Mega-Phone-Action.png",
+			    "Review",
+			        "https://i.ibb.co/tM35f3bx/Mega-Phone-Review.png",
+			    "Achieving",
+			        "https://i.ibb.co/DDgyLTBz/Mega-Phone-Performing.png")
+			
+			```
+		lineageTag: 953d902b-e010-48f9-984f-bbd853c86364
+
+	measure 'Square indicator' = ```
+			
+			Switch([Roll Up KPI Status],     
+			 "Take Action",
+			        "https://i.ibb.co/NdzH3pjF/Rectangle-Action.png",
+			    "Review",
+			        "https://i.ibb.co/ktSBjzZ/Rectangle-review.png",
+			    "Achieving",
+			        "https://i.ibb.co/xt4DFhbH/Rectangle-Performing.png")
+			
+			
+			```
+		lineageTag: 521203c8-a731-4531-851c-84c9d12cc296
+
+	measure 'Table Indicator' = ```
+			
+			Switch([Roll Up KPI Status],     
+			 "Take Action",
+			        "https://i.ibb.co/8gx97jj3/Indicator-Action.png",
+			    "Review",
+			        "https://i.ibb.co/pv56Vf6P/Indicator-Review.png",
+			    "Achieving",
+			        "https://i.ibb.co/TBY19HVT/Indicator-Peforming.png")
+			
+			    
+			
+			
+			```
+		lineageTag: 594d101f-e764-4d64-b315-f4dc48fc00ff
+
+	partition '_Design measures' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

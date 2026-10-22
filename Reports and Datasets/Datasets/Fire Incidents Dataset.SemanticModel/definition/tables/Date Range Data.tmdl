@@ -1,0 +1,64 @@
+table 'Date Range Data'
+	lineageTag: b1e2807a-d162-43e6-975f-c5e55bc907bf
+
+	column DateRangeTypeId
+		dataType: int64
+		formatString: 0
+		lineageTag: f955cd05-3dfb-42c9-9163-6eb1a7f0f874
+		summarizeBy: count
+		sourceColumn: DateRangeTypeId
+
+		annotation SummarizationSetBy = Automatic
+
+	column DateRangeTypeName
+		dataType: string
+		lineageTag: fe839f51-0cbe-43fe-bc54-80095a198ece
+		summarizeBy: none
+		sourceColumn: DateRangeTypeName
+		sortByColumn: DateRangeTypeId
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column DateRangeId
+		dataType: int64
+		formatString: 0
+		lineageTag: acf486de-cc80-4b00-9d07-8937952b801f
+		summarizeBy: count
+		sourceColumn: DateRangeId
+
+		annotation SummarizationSetBy = Automatic
+
+	column DateRangeName
+		dataType: string
+		lineageTag: 5b1787e1-6aa8-42d4-9d19-c19622bd4815
+		summarizeBy: none
+		sourceColumn: DateRangeName
+		sortByColumn: DateRangeId
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_date_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 76a844c1-aec1-4cac-846c-3aa5ee2b27b5
+		summarizeBy: none
+		sourceColumn: incident_date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Date Range Data' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="-- ============================================================#(lf)-- Model:  Fire Incidents Dataset#(lf)-- Table:  Date Range Data#(lf)-- Source: native query (complex CTE/window) - emitted in full#(lf)-- Used columns: 5 (mapped 5, unmapped 0)  [full query, not trimmed]#(lf)-- Auto-generated from pbi_complete_dump.csv + model M + EDW/ODS schema.#(lf)-- Review before use; verify joins/filters against the model.#(lf)-- ============================================================#(lf)-- USED model columns: DateRangeId; DateRangeName; DateRangeTypeId; DateRangeTypeName; incident_date_key#(lf)#(lf)Select#(tab)#(tab)dd.dim_date_key As incident_date_key,#(lf)#(tab)#(tab)#(tab)10 As DateRangeTypeId,#(lf)#(tab)#(tab)#(tab)'Quarterly' As DateRangeTypeName,#(lf)#(tab)#(tab)#(tab)Replace(dd.calendar_year, -1, 1900) * 100 + Replace(dd.calendar_quarter_num, '*', 1) As DateRangeId,#(lf)#(tab)#(tab)#(tab)dd.calendar_quarter_full As DateRangeName#(lf)From#(tab)#(tab)edw.vw_dim_date dd#(lf)Where#(tab)#(tab)IsNull(dd.current_date_rolling_financial_year_offset, 0) Between -10 And 0#(lf)#(lf)Union All#(lf)#(lf)Select#(tab)#(tab)dd.dim_date_key As incident_date_key,#(lf)#(tab)#(tab)#(tab)20 As DateRangeTypeId,#(lf)#(tab)#(tab)#(tab)'Monthly' As DateRangeTypeName,#(lf)#(tab)#(tab)#(tab)Replace(dd.calendar_year, -1, 1900) * 100 + Abs(dd.calendar_month_num) As DateRangeId,#(lf)#(tab)#(tab)#(tab)dd.calendar_year_month As DateRangeName#(lf)From#(tab)#(tab)edw.vw_dim_date dd#(lf)Where#(tab)#(tab)IsNull(dd.current_date_rolling_financial_year_offset, 0) Between -10 And 0;#(lf)"])
+				in
+				    Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

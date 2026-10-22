@@ -1,0 +1,517 @@
+table _Measures
+	lineageTag: 4fd998cf-249f-4167-a99e-30ead6d6be61
+
+	measure 'Accrual (Hours)' = ```
+			
+			    CALCULATE(
+			        SUM(FactLeaveBalance[AccrualAtAnnivesary]),
+			        FILTER(
+			            FactLeaveBalance,
+			            FactLeaveBalance[leave_name] = "Annual Leave"
+			        )
+			    )
+			```
+		lineageTag: 823a9580-f0b7-4bde-9742-0828cf079a30
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Percentage of Kaimahi 160-200' = ```
+			
+			VAR Total160to200 = 
+			    CALCULATE (
+			        COUNTROWS ( 
+			            FILTER (
+			                SUMMARIZE (
+			                    FactLeaveBalance,
+			                    FactLeaveBalance[CompanyID+EmpID],
+			                    "Total Leave", [Total Leave]
+			                ),
+			                [Total Leave] > 160
+			                &&
+			                [Total Leave] < 200
+			            )
+			        )
+			    )
+			VAR TotalKaimahi = 
+			    DISTINCTCOUNT(FactLeaveBalance[CompanyID+EmpID])
+			VAR Total160to200Percentage =
+			    DIVIDE ( Total160to200, TotalKaimahi )
+			RETURN
+			    IF (
+			        ISBLANK ( TotalKaimahi ) || ISBLANK ( Total160to200 ),
+			        BLANK(),
+			        Total160to200Percentage
+			    )
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Annual Leave Thresholds
+		lineageTag: 48844209-8d7b-42eb-ac5f-714271dbbffd
+
+	measure 'All % of staff over 160' =
+			
+			0.15
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Annual Leave Thresholds
+		lineageTag: 7119c8ea-c41e-4a29-b6bb-091fb85a0fce
+
+	measure 'All % of staff over 200' =
+			
+			0.0
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Annual Leave Thresholds
+		lineageTag: 397f08c9-a22d-456e-9599-dd7d66a96862
+
+	measure 'Percentage of Kaimahi Over 200' = ```
+			
+			VAR TotalOver200 =
+			    CALCULATE (
+			        COUNTROWS (
+			            FILTER (
+			                SUMMARIZE (
+			                    FactLeaveBalance,
+			                    FactLeaveBalance[CompanyID+EmpID],
+			                    "Total Leave", [Total Leave]
+			                ),
+			                [Total Leave] > 200
+			            )
+			        )
+			    )
+			VAR TotalKaimahi =
+			    DISTINCTCOUNT ( FactLeaveBalance[CompanyID+EmpID] )
+			VAR TotalOver200Percentage =
+			    DIVIDE ( TotalOver200, TotalKaimahi )
+			RETURN
+			    IF (
+			        ISBLANK ( TotalKaimahi ) || ISBLANK ( TotalOver200 ),
+			        BLANK (),
+			        TotalOver200Percentage
+			    )
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Annual Leave Thresholds
+		lineageTag: 59d5eb82-98e6-4d8d-8459-2a2a24b418d7
+
+	measure 'Annual Leave Balance' = ```
+			
+			CALCULATE (
+			    SUM ( FactLeaveBalance[Hourly Balance] ),
+			    FILTER ( 
+			        FactLeaveBalance,
+			        FactLeaveBalance[leave_name] = "Annual Leave"
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Leave Balances
+		lineageTag: 9a1d7125-5e6a-4a49-93fe-04f0c6842cb2
+
+	measure 'Sick Leave Balance' =
+			CALCULATE(
+			                            SUM(FactLeaveBalance[Hourly Balance]),
+			                                FILTER(FactLeaveBalance,
+			                                    FactLeaveBalance[leave_name] = "Sick Leave"
+			                                )
+			                            )
+		formatString: #,0.00
+		displayFolder: Leave Balances
+		lineageTag: 762923a8-db40-47eb-874a-7ae39e42e792
+
+	measure 'Wellbeing Leave Balance' =
+			CALCULATE(
+			                            SUM(FactLeaveBalance[Hourly Balance]),
+			                                FILTER(FactLeaveBalance,
+			                                    FactLeaveBalance[leave_name] = "Well Being Leave"
+			                                )
+			                            )
+		formatString: #,0.00
+		displayFolder: Leave Balances
+		lineageTag: df7f6620-212b-49a8-ac79-550db450fef1
+
+	measure 'Alt Leave Balance' = ```
+			
+			CALCULATE (
+			    SUM ( FactLeaveBalance[Hourly Balance] ),
+			    FILTER ( FactLeaveBalance, FactLeaveBalance[leave_name] = "Alternative Holidays" )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Leave Balances
+		lineageTag: cfeaa021-77ee-4918-878e-85b19bc7f780
+
+	measure 'Long Service Leave Balance' =
+			CALCULATE(
+			                            SUM(FactLeaveBalance[balance]),
+			                                FILTER(FactLeaveBalance,
+			                                    FactLeaveBalance[leave_name] = "Long Service Leave"
+			                                )
+			                            )
+		formatString: #,0.00
+		displayFolder: Leave Balances
+		lineageTag: a717f245-4918-4e79-813b-21e134b50a2a
+
+	measure 'Kaimahi 160-200 hrs' = ```
+			
+			CALCULATE (
+			        COUNTROWS ( 
+			            FILTER (
+			                SUMMARIZE (
+			                    FactLeaveBalance,
+			                    FactLeaveBalance[CompanyID+EmpID],
+			                    "Total Leave", [Total Leave]
+			                ),
+			                [Total Leave] > 160
+			                &&
+			                [Total Leave] < 200
+			            )
+			        )
+			    )
+			```
+		formatString: 0
+		lineageTag: f10b678e-8c78-4ff3-a204-7c0ae745505a
+
+	measure 'Kaimahi Over 200 hrs' = ```
+			
+			CALCULATE (
+			        COUNTROWS ( 
+			            FILTER (
+			                SUMMARIZE (
+			                    FactLeaveBalance,
+			                    FactLeaveBalance[CompanyID+EmpID],
+			                    "Total Leave", [Total Leave]
+			                ),
+			                [Total Leave] > 200
+			            )
+			        )
+			    )
+			```
+		formatString: 0
+		lineageTag: 2b17fcdf-a13b-4134-99c2-5833836d59f4
+
+	measure 'Future Annual Leave Balance' = ([Annual Leave Balance] + [Accrual (Hours)])
+		lineageTag: 44244e6b-2f65-4c28-bbce-b548298dfc1a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Entitled Annual Leave Balance' = ```
+			
+			    VAR EntitledBalance = CALCULATE(
+			        SUMX(
+			            FILTER(
+			                FactLeaveBalance,
+			                FactLeaveBalance[leave_name] = "Annual Leave" &&
+			                FactLeaveBalance[Hourly Entitled Balance] >= 0
+			            ),
+			            FactLeaveBalance[Hourly Entitled Balance]
+			        )
+			    )
+			    RETURN
+			        IF(EntitledBalance < 0, BLANK(), EntitledBalance)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Leave Balances
+		lineageTag: 2685f2ea-b2c4-4e69-8181-899a9ac93e9f
+
+	measure 'Average Sick Leave' = ```
+			
+			/* What is the average balance of sick leave */ 
+			
+			DIVIDE(
+			    CALCULATE(
+			        SUM('FactLeaveBalance'[Hourly Balance]),
+			        FILTER(FactLeaveBalance,
+			            FactLeaveBalance[Leave_Name] = "Sick Leave"
+			        )
+			    ),
+			    CALCULATE(
+			        COUNTROWS('FactLeaveBalance'),
+			        FILTER(
+			            FactLeaveBalance,
+			            FactLeaveBalance[Leave_Name] = "Sick Leave"
+			        )
+			    )
+			)
+			
+			```
+		lineageTag: 97d7d320-ce1c-4f47-80ad-3ec0664fb3df
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Average Annual Leave' = ```
+			
+			/* What is the average balance of annual leave */ 
+			
+			DIVIDE(
+			    CALCULATE(
+			        SUM('FactLeaveBalance'[Hourly Balance]),
+			        FILTER(FactLeaveBalance,
+			            FactLeaveBalance[Leave_Name] = "Annual Leave"
+			        )
+			    ),
+			    CALCULATE(
+			        COUNTROWS('FactLeaveBalance'),
+			        FILTER(
+			            FactLeaveBalance,
+			            FactLeaveBalance[Leave_Name] = "Annual Leave"
+			        )
+			    )
+			)
+			
+			```
+		lineageTag: 5dd81917-2d0f-44cb-bdbd-54910d7d2102
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Average Well Being Leave' = ```
+			
+			/* What is the average balance of annual leave */ 
+			
+			DIVIDE(
+			    CALCULATE(
+			        SUM('FactLeaveBalance'[Hourly Balance]),
+			        FILTER(FactLeaveBalance,
+			            FactLeaveBalance[Leave_Name] = "Well Being Leave"
+			        )
+			    ),
+			    CALCULATE(
+			        COUNTROWS('FactLeaveBalance'),
+			        FILTER(
+			            FactLeaveBalance,
+			            FactLeaveBalance[Leave_Name] = "Well Being Leave"
+			        )
+			    )
+			)
+			
+			```
+		lineageTag: 2b79f94e-510c-4f16-bc3f-b90aa2a3b23c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Leave Anniversary' = ```
+			
+			VAR SelectedLeave = "Annual Leave"
+			RETURN
+			    FORMAT(
+			        CALCULATE(
+			            MAX(FactLeaveBalance[anniversary]),
+			            FactLeaveBalance[leave_name] = SelectedLeave
+			        ),
+			        "dd/mm/yyyy"
+			    )
+			
+			```
+		lineageTag: 77d8b067-5cba-4c46-81f6-f596c6fef20d
+
+	measure 'Average Entitled Annual Leave' = ```
+			
+			/* What is the average balance of annual leave */ 
+			
+			DIVIDE(
+			    CALCULATE(
+			        SUM('FactLeaveBalance'[Hourly Entitled Balance]),
+			        FILTER(FactLeaveBalance,
+			            FactLeaveBalance[Leave_Name] = "Annual Leave"
+			        )
+			    ),
+			    CALCULATE(
+			        COUNTROWS('FactLeaveBalance'),
+			        FILTER(
+			            FactLeaveBalance,
+			            FactLeaveBalance[Leave_Name] = "Annual Leave"
+			        )
+			    )
+			)
+			
+			```
+		lineageTag: 3d61c47c-b9db-43cc-b0da-805c91f8e42d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Average Long Service Leave' = ```
+			
+			/* What is the average balance of sick leave */ 
+			
+			DIVIDE(
+			    CALCULATE(
+			        SUM('FactLeaveBalance'[Hourly Balance]),
+			        FILTER(FactLeaveBalance,
+			            FactLeaveBalance[Leave_Name] = "Long Service Leave"
+			        )
+			    ),
+			    CALCULATE(
+			        COUNTROWS('FactLeaveBalance'),
+			        FILTER(
+			            FactLeaveBalance,
+			            FactLeaveBalance[Leave_Name] = "Long Service Leave"
+			        )
+			    )
+			)
+			
+			```
+		lineageTag: 3eaf0d94-4266-44cf-96c3-852caad0405a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Average Alt Holidays Leave' = ```
+			
+			/* What is the average balance of alt holiday leave */ 
+			
+			DIVIDE(
+			    CALCULATE(
+			        SUM('FactLeaveBalance'[Hourly Balance]),
+			        FILTER(FactLeaveBalance,
+			            FactLeaveBalance[Leave_Name] = "Alternative Holidays"
+			        )
+			    ),
+			    CALCULATE(
+			        COUNTROWS('FactLeaveBalance'),
+			        FILTER(
+			            FactLeaveBalance,
+			            FactLeaveBalance[Leave_Name] = "Alternative Holidays"
+			        )
+			    )
+			)
+			```
+		lineageTag: 9f9839b1-eca3-47bc-8205-660da101289d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Kaimahi Under 160 hrs' = ```
+			
+			CALCULATE (
+			        COUNTROWS ( 
+			            FILTER (
+			                SUMMARIZE (
+			                    FactLeaveBalance,
+			                    FactLeaveBalance[CompanyID+EmpID],
+			                    "Total Leave", [Total Leave]
+			                ),
+			                [Total Leave] < 160
+			            )
+			        )
+			    )
+			```
+		formatString: 0
+		lineageTag: 2bc5a1b6-2212-40f9-8c18-eb0341c8673b
+
+	measure 'Percentage of Kaimahi Under 160' = ```
+			
+			DIVIDE(
+			    CALCULATE(
+			        COUNTROWS('FactLeaveBalance'),
+			        FILTER(FactLeaveBalance,
+			        FactLeaveBalance[Leave_Name] = "Annual Leave"
+			                && [Hourly Balance] < 160
+			        )
+			    ),
+			    CALCULATE(
+			        COUNTROWS('FactLeaveBalance'),
+			        FILTER(FactLeaveBalance,
+			            FactLeaveBalance[leave_name] = "Annual Leave"
+			        )
+			    ) 
+			)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Annual Leave Thresholds
+		lineageTag: da6a1ac3-c438-47b4-9606-c93884c112c1
+
+	measure NewFiltersApplied =
+			
+			VAR __LeaveTypesCount = IF(ISFILTERED(MappingLeaveType[Leave Name]), COUNTROWS(VALUES(MappingLeaveType[Leave Name])), 0)
+			VAR __LeaveType = IF(__LeaveTypesCount > 0, "| LEAVE TYPES CHOSEN: " & CONCATENATEX(FILTERS(MappingLeaveType[Leave Name]), MappingLeaveType[Leave Name], ", "), BLANK())
+			
+			VAR __BusinessEntityCount = IF(ISFILTERED(DimCompany[Business Entity]), COUNTROWS(VALUES(DimCompany[Business Entity])), 0)
+			VAR __BusinessEntity = IF(__BusinessEntityCount > 0, "| BUSINESS ENTITIES CHOSEN: " & CONCATENATEX(FILTERS(DimCompany[Business Entity]), DimCompany[Business Entity], ", "), BLANK())
+			
+			VAR __KaimahiNames = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(DimPeople[Kaimahi Name]), NOT(ISBLANK(DimPeople[Kaimahi Name]))), DimPeople[Kaimahi Name], ASC),
+			    "KaimahiName_Display", DimPeople[Kaimahi Name]
+			)
+			VAR __KaimahiCount = IF(ISFILTERED(DimPeople[Kaimahi Name]), COUNTROWS(VALUES(DimPeople[Kaimahi Name])), 0)
+			
+			VAR __ParentAreas = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(DimBusinessUnits[business_unit_hierarchy_level1_name]), NOT(ISBLANK(DimBusinessUnits[business_unit_hierarchy_level1_name]))), DimBusinessUnits[business_unit_hierarchy_level1_name], ASC),
+			    "AreaParentName_display", DimBusinessUnits[business_unit_hierarchy_level1_name]
+			)
+			VAR __ParentAreasCount = IF(ISFILTERED(DimBusinessUnits[business_unit_hierarchy_level1_name]), COUNTROWS(VALUES(DimBusinessUnits[business_unit_hierarchy_level1_name])), 0)
+			VAR __MoreParentAreas = IF(__ParentAreasCount > 10, " and " & (__ParentAreasCount - 10) & " more", "")
+			
+			VAR __Areas = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(DimBusinessUnits[business_unit_hierarchy_level2_name]), NOT(ISBLANK(DimBusinessUnits[business_unit_hierarchy_level2_name]))), DimBusinessUnits[business_unit_hierarchy_level2_name], ASC),
+			    "AreaName_display", DimBusinessUnits[business_unit_hierarchy_level2_name]
+			)
+			VAR __AreasCount = IF(ISFILTERED(DimBusinessUnits[business_unit_hierarchy_level2_name]), COUNTROWS(VALUES(DimBusinessUnits[business_unit_hierarchy_level2_name])), 0)
+			VAR __MoreAreas = IF(__AreasCount > 10, " and " & (__AreasCount - 10) & " more", "")
+			
+			VAR __Services = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(DimBusinessUnits[business_unit_hierarchy_level3_name]), NOT(ISBLANK(DimBusinessUnits[business_unit_hierarchy_level3_name]))), DimBusinessUnits[business_unit_hierarchy_level3_name], ASC),
+			    "TeamName_display", DimBusinessUnits[business_unit_hierarchy_level3_name]
+			)
+			VAR __ServicesCount = IF(ISFILTERED(DimBusinessUnits[business_unit_hierarchy_level3_name]), COUNTROWS(VALUES(DimBusinessUnits[business_unit_hierarchy_level3_name])), 0)
+			VAR __MoreServices = IF(__ServicesCount > 10, " and " & (__ServicesCount - 10) & " more", "")
+			
+			VAR _FC_ParentAreas = IF(__ParentAreasCount > 0, "| PARENT AREAS CHOSEN: " & CONCATENATEX(__ParentAreas, [AreaParentName_display], ", "), BLANK())
+			VAR _FC_MoreParentAreas = IF(__ParentAreasCount > 10, " and " & (__ParentAreasCount - 10) & " more", "")
+			VAR _FC_Areas = IF(__AreasCount > 0, "| AREAS CHOSEN: " & CONCATENATEX(__Areas, [AreaName_display], ", "), BLANK())
+			VAR _FC_MoreAreas = IF(__AreasCount > 10, " and " & (__AreasCount - 10) & " more", "")
+			VAR _FC_Services = IF(__ServicesCount > 0, "| SERVICES CHOSEN: " & CONCATENATEX(__Services, [TeamName_display], ", "), BLANK())
+			VAR _FC_MoreServices = IF(__ServicesCount > 10, " and " & (__ServicesCount - 10) & " more", "")
+			VAR _FC_KaimahiNames = IF(__KaimahiCount > 0, "| KAIMAHI CHOSEN: " & CONCATENATEX(__KaimahiNames, [KaimahiName_Display], ", "), BLANK())
+			VAR _FC_MoreKaimahiNames = IF(__KaimahiCount > 10, " and " & (__KaimahiCount - 10) & " more", "")
+			
+			RETURN
+			IF(
+			    ISBLANK(_FC_ParentAreas) && ISBLANK(_FC_Areas) && ISBLANK(_FC_Services) && ISBLANK(__BusinessEntity) && ISBLANK(__LeaveType),
+			    "",
+			    "-- Summary of filters applied to page: " & _FC_ParentAreas & _FC_MoreParentAreas & _FC_Areas & _FC_MoreAreas & _FC_Services & _FC_MoreServices
+			) &__BusinessEntity  & __LeaveType & _FC_KaimahiNames & _FC_MoreKaimahiNames
+		displayFolder: Filters
+		lineageTag: ece8f0f2-ad20-4e99-b1ce-86e689f261f6
+
+	measure FactRowCount = COUNTROWS(FactLeaveBalance)
+		formatString: 0
+		lineageTag: 4549e97d-6be4-4d1d-b7c4-5baf5b715564
+
+	measure 'Total Leave' = ```
+			
+			CALCULATE (
+			    SUM ( FactLeaveBalance[Hourly Balance] ),
+			    FILTER ( 
+			        FactLeaveBalance,
+			        FactLeaveBalance[leave_name] = "Annual Leave"
+			        ||
+			        FactLeaveBalance[leave_name] = "Long Service Leave"
+			        ||
+			        FactLeaveBalance[leave_name] = "Alternative Holidays"
+			    )
+			)
+			
+			```
+		formatString: #,0.00
+		displayFolder: Leave Balances
+		lineageTag: a02d8b0f-6780-45b9-994b-5bc06b909761
+
+	measure 'Annual Leave Not Yet Entitled' = [Annual Leave Balance] - [Entitled Annual Leave Balance]
+		lineageTag: 3713056f-3023-40a9-ab07-e6587cdefeea
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition _Measures-e623075d-ac9c-4684-bd9d-abaeb809d26d = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

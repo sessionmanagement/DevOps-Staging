@@ -1,0 +1,270 @@
+table ALL_Work_ReferralDaysExplosion
+	isHidden
+	lineageTag: 5bdae379-a18c-4163-9169-7a0b739de90e
+
+	column AcceptedDate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 77252224-e6b7-4965-b3f8-e0bccefbd5b9
+		summarizeBy: none
+		sourceColumn: AcceptedDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column DischargeDate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 1b168fcc-bca6-41d3-93a1-ac804001d94d
+		summarizeBy: none
+		sourceColumn: DischargeDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column PersonID
+		dataType: string
+		isHidden
+		lineageTag: 6c25814c-99ba-4abb-bf3d-7b91d327bf1c
+		summarizeBy: none
+		sourceColumn: PersonID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Explosion
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: f63a90f7-4d45-468d-8c62-292e5fe880de
+		summarizeBy: none
+		sourceColumn: Explosion
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column FinancialYear =
+			
+			RELATED(Work_DimDate[financial_year_num])
+		isHidden
+		lineageTag: 6210064a-268d-4d49-b45a-04fabc3093e4
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FYEnd =
+			
+			RELATED(Work_DimDate[financial_last_day_of_year_date])
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: 7c4e5686-d702-4456-b355-2da8d0dc442e
+		summarizeBy: none
+
+		changedProperty = DataType
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column TeamID
+		dataType: string
+		isHidden
+		lineageTag: a5d31eb8-e3f2-40e9-bfda-32f0ca471a35
+		summarizeBy: none
+		sourceColumn: TeamID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionID
+		dataType: string
+		isHidden
+		lineageTag: 7abaea35-2ac5-4fe5-bad6-a2235401230e
+		summarizeBy: none
+		sourceColumn: TeamFunctionID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ID
+		dataType: string
+		isHidden
+		lineageTag: 214a6dbc-727f-4ee0-b470-dfa8870c9c4a
+		summarizeBy: none
+		sourceColumn: ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column CompanyIdentifier
+		dataType: string
+		isHidden
+		lineageTag: 7c29b9f0-1c06-4dd0-a6bb-25f9971799b7
+		summarizeBy: none
+		sourceColumn: CompanyIdentifier
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonDOB =
+			
+			RELATED(Work_ALL_DimPerson[PersonDateOfBirth])
+		isHidden
+		formatString: Short Date
+		lineageTag: 790dab86-a6e5-4369-9a41-403be135cc93
+		summarizeBy: none
+
+		changedProperty = DataType
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column AgeAtFYEnd =
+			
+			// This measure will get the age of the person at the end of the FY, or if the end of the FY is after today, it will get their age as of today (in the case of the in progress financial year).
+			IF(
+			    SELECTEDVALUE(ALL_Work_ReferralDaysExplosion[FYEnd]) < TODAY(),
+			    FLOOR(DATEDIFF(RELATED(Work_ALL_DimPerson[PersonDateOfBirth]),ALL_Work_ReferralDaysExplosion[FYEnd],DAY)/365,1),
+			    FLOOR(DATEDIFF(RELATED(Work_ALL_DimPerson[PersonDateOfBirth]),TODAY(),DAY)/365,1)
+			)
+		isHidden
+		formatString: 0
+		lineageTag: 589bb7e0-cbc0-4937-be5d-721cbace2f53
+		summarizeBy: sum
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column AgeAtFYEndBucket =
+			
+			IF(
+			ALL_Work_ReferralDaysExplosion[AgeAtFYEnd] < 21, "0-20",
+			IF(
+			ALL_Work_ReferralDaysExplosion[AgeAtFYEnd] < 31, "21-30",
+			IF(
+			ALL_Work_ReferralDaysExplosion[AgeAtFYEnd] < 41, "31-40",
+			IF(
+			ALL_Work_ReferralDaysExplosion[AgeAtFYEnd] < 51, "41-50",
+			IF(
+			ALL_Work_ReferralDaysExplosion[AgeAtFYEnd] < 61, "51-60",
+			IF(
+			ALL_Work_ReferralDaysExplosion[AgeAtFYEnd] > 60, "61 and Over"
+			))))))
+		isHidden
+		lineageTag: fe4bd5ea-d1a2-4e2c-bec5-ed65c168d0f1
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ethnicity = RELATED(Work_ALL_DimEthnicity[EthnicityBucket])
+		isHidden
+		lineageTag: a3f63be0-8ce9-4068-965b-9ce3e67867c8
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Gender =
+			
+			RELATED(Work_ALL_DimGender[GenderText])
+		isHidden
+		lineageTag: 8f4eddc1-fd2a-4979-9806-d1eca49cc4fe
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column EthnicityID = RELATED(Work_ALL_DimEthnicity[EthnicityID])
+		isHidden
+		lineageTag: fd05f7be-a455-4679-8b2b-03dadf2e9dcf
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderID =
+			
+			RELATED(Work_ALL_DimGender[GenderID])
+		isHidden
+		lineageTag: e0915fb2-39de-45e3-8b5f-be509060b1f6
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column DischargeDateTrue
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: d38fffba-3fdb-4b1d-abbd-2caa2f149de2
+		summarizeBy: none
+		sourceColumn: DischargeDateTrue
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column TeamKeyComposite
+		dataType: string
+		lineageTag: 8bf2c0cf-1330-4eae-ac55-bbea0783a55b
+		summarizeBy: none
+		sourceColumn: TeamKeyComposite
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ALL_Work_ReferralDaysExplosion-38cfc9f9-d94e-4c46-beba-8a9a08eec564 = m
+		mode: import
+		queryGroup: 'All (Unioned Data)'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT DISTINCT#(lf)'EAL' AS CompanyIdentifier,#(lf)CAST(lfr.AcceptedDate AS DATE) AS AcceptedDate,#(lf)CASE WHEN CAST(lfr.DischargeDate AS DATE) IS NULL THEN CAST(GETDATE() AS DATE) ELSE CAST(lfr.DischargeDate AS DATE) END AS DischargeDate,#(lf)CAST(lfr.DischargeDate AS DATE) AS DischargeDateTrue,#(lf)CASE WHEN lfr.ID IS NOT NULL THEN CONCAT('E',lfr.ID) ELSE NULL END AS ID,#(lf)CASE WHEN lfr.PersonID IS NOT NULL THEN CONCAT('E',lfr.PersonID) ELSE NULL END AS PersonID,#(lf)CASE WHEN lfr.TeamID IS NOT NULL THEN CONCAT('E',lfr.TeamID) ELSE NULL END AS TeamID,#(lf)CASE WHEN tf.TeamFunctionID IS NOT NULL THEN CONCAT('E',tf.TeamFunctionID) ELSE NULL END AS TeamFunctionID#(lf)FROM RBEAL.[legacyFactReferral] lfr#(lf)LEFT OUTER JOIN RBEAL.dlDimTeam t ON t.TeamID = lfr.TeamID#(lf)LEFT OUTER JOIN RBEAL.[dlDimTeamFunction] tf ON tf.TeamFunctionID = t.TeamFunctionID#(lf)WHERE ID IS NOT NULL#(lf)AND AcceptedDate IS NOT NULL"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"AcceptedDate", Int64.Type}, {"DischargeDate", Int64.Type}}),
+				    #"Appended Query" = Table.Combine({#"Changed Type", MNB_Work_ReferralDaysExplosion}),
+				    #"Filtered Rows" = Table.SelectRows(#"Appended Query", each true),
+				    #"Added Custom" = Table.AddColumn(#"Filtered Rows", "Explosion", each {[AcceptedDate]..[DischargeDate]}),
+				    #"Expanded Explosion" = Table.ExpandListColumn(#"Added Custom", "Explosion"),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Expanded Explosion",{{"AcceptedDate", type date}, {"DischargeDate", type date}, {"Explosion", type date}, {"DischargeDateTrue", type date}}),
+				    #"Inserted Merged Column" = Table.AddColumn(#"Changed Type1", "Merged", each Text.Combine({[TeamFunctionID], [TeamID]}), type text),
+				    #"Renamed Columns" = Table.RenameColumns(#"Inserted Merged Column",{{"Merged", "TeamKeyComposite"}})
+				in
+				    #"Renamed Columns"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

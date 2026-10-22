@@ -1,0 +1,82 @@
+table 'Dim Program'
+	lineageTag: fb0c9e66-46ca-4c55-a8d7-559cdc0c6360
+
+	column 'Dim Program KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 0133c445-4edd-4344-9014-7e035d224f0d
+		summarizeBy: sum
+		sourceColumn: Dim Program KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Program Full Name'
+		dataType: string
+		lineageTag: 3ab39918-c6ec-4706-a412-8ecd141e9870
+		summarizeBy: none
+		sourceColumn: Program Full Name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Program' = m
+		mode: import
+		queryGroup: Dim
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)    [dim_program_key],#(lf)    [program_full_name]#(lf)FROM [edw].[dim_program]#(lf)WHERE ([DWHDMLOperation] <> 'D')#(lf)AND DWHiscurrent=1#(lf)"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceKaimahi = Text.Replace(columnName, "employee_", "Kaimahi_"),
+				            replaceClient = Text.Replace(replaceKaimahi, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transform Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				    // New step to add and convert date key columns
+				    #"Added and Converted Date Columns" = List.Accumulate(
+				        List.Select(Table.ColumnNames(#"Transform Column Names"), each Text.EndsWith(_, " Date KEY")),
+				        #"Transform Column Names",
+				        (state, columnName) =>
+				            Table.AddColumn(
+				                state,
+				                Text.BeforeDelimiter(columnName, " KEY"),
+				                each
+				                    if Record.Field(_, columnName) <> null then
+				                        let
+				                            dateValue = Text.From(Record.Field(_, columnName)),
+				                            yearPart = Text.Start(dateValue, 4),
+				                            monthPart = Text.Middle(dateValue, 4, 2),
+				                            dayPart = Text.End(dateValue, 2),
+				                            formattedDate = yearPart & "-" & monthPart & "-" & dayPart
+				                        in
+				                            if Text.Length(dateValue) = 8 then
+				                                Date.FromText(formattedDate)
+				                            else
+				                                null
+				                    else
+				                        null,
+				                type date
+				            )
+				    )
+				in
+				    #"Added and Converted Date Columns"
+
+	annotation PBI_ResultType = Exception
+
+	annotation PBI_NavigationStepName = Navigation
+

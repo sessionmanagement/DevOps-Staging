@@ -1,0 +1,49 @@
+table 'Fact Position Roster'
+	lineageTag: ce4bf2fc-03f8-45cb-88d0-7dfce34d832a
+
+	column position_description
+		dataType: string
+		lineageTag: 550be66b-efa6-4ace-a304-0a311282bd80
+		summarizeBy: none
+		sourceColumn: position_description
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_service_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 68d500b9-1ac3-4c37-9679-9b9a6294d7dc
+		summarizeBy: none
+		sourceColumn: dim_service_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column fte_pa
+		dataType: string
+		lineageTag: 96c7bd7f-b83e-432d-8138-e7217c020fb1
+		summarizeBy: none
+		sourceColumn: fte_pa
+
+		annotation SummarizationSetBy = Automatic
+
+	column hours_pw
+		dataType: string
+		lineageTag: 9fd098ec-4ee8-401c-a58f-7f883a13bf86
+		summarizeBy: none
+		sourceColumn: hours_pw
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Fact Position Roster' = m
+		mode: import
+		queryGroup: Fact
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="#(lf)SELECT#(lf)    [position_description],#(lf)    [dim_service_key],#(lf)    [fte_pa],#(lf)    [hours_pw]#(lf)FROM [edw].[vw_fact_sixdegree_positionroster]#(lf)WHERE [DWHIsCurrent] = 1#(lf)  AND [DWHDMLOperation] <> 'D';#(lf)"])
+				in
+				    Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

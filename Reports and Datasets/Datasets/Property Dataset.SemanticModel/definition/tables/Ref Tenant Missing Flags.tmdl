@@ -1,0 +1,119 @@
+table 'Ref Tenant Missing Flags'
+	lineageTag: 597c71b0-5601-4fbe-a98f-dad5012fbb5b
+
+	column 'Dim Property Detail KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 2fe94dc1-e807-44fe-aa03-c82d2b656149
+		summarizeBy: none
+		sourceColumn: Dim Property Detail KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Healthy Homes KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 2f03bf7f-d622-455f-b259-58a998af5190
+		summarizeBy: none
+		sourceColumn: Dim Property Healthy Homes KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 8ac60c1f-b4f5-405e-85b8-ec9b9f013a21
+		summarizeBy: none
+		sourceColumn: Dim Property KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Flag Missing Gender'
+		dataType: string
+		lineageTag: e9e49d63-a4df-42c9-86e3-624e46ab3cea
+		summarizeBy: none
+		sourceColumn: Flag Missing Gender
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Flag Missing Ethnicity'
+		dataType: int64
+		formatString: 0
+		lineageTag: 7f114439-03c2-4be5-9ec8-1860abf74eea
+		summarizeBy: sum
+		sourceColumn: Flag Missing Ethnicity
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Flag Missing DOB'
+		dataType: int64
+		formatString: 0
+		lineageTag: 8d21c8d4-2e9d-49ee-9c7d-12d4b31b3286
+		summarizeBy: sum
+		sourceColumn: Flag Missing DOB
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Tenancy KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 42a33f5c-848f-44f4-abb0-ac7c358007c5
+		summarizeBy: none
+		sourceColumn: Dim Property Tenancy KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Ref Tenant Missing Flags' = m
+		mode: import
+		queryGroup: 'Ref Tables'
+		source = ```
+				let
+				    // 1. Reference the existing Fact Property Tenant table
+				    Source = #"Fact Property Tenant",
+				    
+				    // 2. Keep only the dimension keys and the three fields we need to check for missing data
+				    SelectedColumns = Table.SelectColumns(Source,{"Dim Property KEY", "Dim Property Detail KEY", "Dim Property Healthy Homes KEY", "Dim Property Tenancy KEY", "Occupant Gender Label", "Property Tenant Ethnicity Name", "Property Tenancy Tenant Date Of Birth" }),
+				    
+				    // 3. Add a flag indicating Gender is missing (null or blank => 1, else 0)
+				    AddedGenderFlag = Table.AddColumn(SelectedColumns, "Flag Missing Gender", each if [Occupant Gender Label] = null or [Occupant Gender Label] = "" 
+				             then 1 
+				             else 0),
+				    
+				    // 4. Add a flag indicating Ethnicity is missing (null or blank => 1, else 0)
+				    AddedEthnicityFlag = Table.AddColumn(
+				        AddedGenderFlag, 
+				        "Flag Missing Ethnicity", 
+				        each if [Property Tenant Ethnicity Name] = null or [Property Tenant Ethnicity Name] = "" 
+				             then 1 
+				             else 0,
+				        Int64.Type
+				    ),
+				    
+				    // 5. Add a flag indicating DOB is missing (null => 1, else 0)
+				    AddedDOBFlag = Table.AddColumn(
+				        AddedEthnicityFlag, 
+				        "Flag Missing DOB", 
+				        each if [Property Tenancy Tenant Date Of Birth] = null 
+				             then 1 
+				             else 0,
+				        Int64.Type
+				    ),
+				    
+				    // 6. Remove the original columns used to check missing values, 
+				    //    keeping only the dimension keys + the new flag columns
+				    RemovedExtraColumns = Table.RemoveColumns(
+				        AddedDOBFlag, 
+				        {
+				            "Occupant Gender Label",
+				            "Property Tenant Ethnicity Name",
+				            "Property Tenancy Tenant Date Of Birth"
+				        }
+				    )
+				in
+				    RemovedExtraColumns
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

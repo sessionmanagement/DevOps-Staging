@@ -1,0 +1,205 @@
+/// Test point assignments linking test cases to test suites with tester assignment and execution status. Source: OData TestPoints entity.
+table TestPoints
+	lineageTag: 6513b453-9182-4b18-9f1d-e96266352fd7
+
+	/// State of the most recent test result for this test point (e.g., Completed)
+	column LastResultState
+		dataType: string
+		lineageTag: a2d5e7e3-2c19-42ac-8600-985d40a70a0e
+		summarizeBy: none
+		sourceColumn: LastResultState
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Outcome of the most recent test result (e.g., Passed, Failed, NotExecuted)
+	column LastResultOutcome
+		dataType: string
+		lineageTag: e9660a37-1b2d-4bdf-8390-362d97a95cf4
+		summarizeBy: none
+		sourceColumn: LastResultOutcome
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date and time when this test point was last changed
+	column ChangedDate
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: ccc75934-1ee5-4ac7-a31c-9467e6590045
+		summarizeBy: none
+		sourceColumn: ChangedDate
+
+		variation Variation
+			isDefault
+			relationship: ebae6c4e-826b-4b06-96d3-f3d5bc5e5cbf
+			defaultHierarchy: LocalDateTable_77f53c87-0fe7-4e61-96ab-eb7aaf622658.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key for the changed date, linking to the Dates dimension
+	column ChangedDateSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 7db9d068-4aec-4dd9-bb62-71e619fe6649
+		summarizeBy: none
+		sourceColumn: ChangedDateSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key uniquely identifying the test point
+	column TestPointSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: f300f086-4ccd-4637-9d94-7b1c06026dc1
+		summarizeBy: none
+		sourceColumn: TestPointSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date and time when this record was last updated in Azure DevOps Analytics
+	column AnalyticsUpdatedDate
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 6ce86272-122a-47ee-b09d-c89f9520c82e
+		summarizeBy: none
+		sourceColumn: AnalyticsUpdatedDate
+
+		variation Variation
+			isDefault
+			relationship: 60382ddd-58e0-45e3-a2ba-dea1f49fa857
+			defaultHierarchy: LocalDateTable_e21d307f-730f-4f6e-8bec-371b4dc27ab6.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to the Projects dimension table
+	column ProjectSK
+		dataType: string
+		isHidden
+		lineageTag: d68c551b-fa68-4285-9b82-75a8640c2465
+		summarizeBy: none
+		sourceColumn: ProjectSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to the TestSuites dimension table
+	column TestSuiteSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b95c0f01-b89e-49ab-8616-bce1e791fb02
+		summarizeBy: none
+		sourceColumn: TestSuiteSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unique numeric identifier of the parent test plan
+	column TestPlanId
+		dataType: int64
+		formatString: 0
+		lineageTag: 0180e946-cd1a-4cc3-a2cd-d5d1c67b617b
+		summarizeBy: count
+		sourceColumn: TestPlanId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unique numeric identifier of the parent test suite
+	column TestSuiteId
+		dataType: int64
+		formatString: 0
+		lineageTag: 34f9c156-c311-4573-9e12-f521a38de53e
+		summarizeBy: count
+		sourceColumn: TestSuiteId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unique numeric identifier for the test point
+	column TestPointId
+		dataType: int64
+		formatString: 0
+		lineageTag: 35968202-2551-4938-af51-99dfef91a40e
+		summarizeBy: count
+		sourceColumn: TestPointId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to the TestConfigurations dimension table
+	column TestConfigurationSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 91d707b5-4653-4742-a4a2-f0692ef8b646
+		summarizeBy: none
+		sourceColumn: TestConfigurationSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unique numeric identifier for the test configuration
+	column TestConfigurationId
+		dataType: int64
+		formatString: 0
+		lineageTag: 23e11551-f357-46c7-8ca7-805c783ce945
+		summarizeBy: count
+		sourceColumn: TestConfigurationId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Work item ID of the test case associated with this test point
+	column TestCaseId
+		dataType: int64
+		formatString: 0
+		lineageTag: b415f45f-3018-4cf7-b3cb-b1c2ef4c462f
+		summarizeBy: none
+		sourceColumn: TestCaseId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to the Users table for the assigned tester
+	column TesterUserSK
+		dataType: string
+		isHidden
+		lineageTag: 7760e6a7-d3f4-474f-b9b2-b059be897c8c
+		summarizeBy: none
+		sourceColumn: TesterUserSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to the Users table for the assigned user
+	column AssignedToUserSK
+		dataType: string
+		isHidden
+		lineageTag: 1afb3ffa-3e5f-4c2e-8e77-52c82f3278b1
+		summarizeBy: none
+		sourceColumn: AssignedToUserSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Priority level of the test point (1=Critical, 2=High, 3=Medium, 4=Low)
+	column Priority
+		dataType: int64
+		formatString: 0
+		lineageTag: 5d6bc439-1910-4fd6-b14b-b4af63432915
+		summarizeBy: sum
+		sourceColumn: Priority
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Automation status of the test case (e.g., Automated, Not Automated, Planned)
+	column AutomationStatus
+		dataType: string
+		lineageTag: 6f2c501c-ba1c-4a54-aea1-0e20e2fbf201
+		summarizeBy: none
+		sourceColumn: AutomationStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	partition TestPoints = m
+		mode: import
+		queryGroup: 'DevOps Tables'
+		source =
+				let
+				    Source = OData.Feed("https://analytics.dev.azure.com/EmergeAotearoa/Data%20and%20Analytics/_odata/v3.0-preview/", null, [Implementation="2.0",OmitValues = ODataOmitValues.Nulls,ODataVersion = 4, Headers=[Authorization=fnGetToken()]]),
+				    TestPoints_table = Source{[Name="TestPoints",Signature="table"]}[Data]
+				in
+				    TestPoints_table
+

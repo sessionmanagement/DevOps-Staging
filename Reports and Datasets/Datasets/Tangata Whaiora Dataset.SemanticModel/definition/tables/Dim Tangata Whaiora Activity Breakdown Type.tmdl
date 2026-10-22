@@ -1,0 +1,142 @@
+table 'Dim Tangata Whaiora Activity Breakdown Type'
+	lineageTag: 71dae077-8801-4dbc-b4a9-e1eec60ef25e
+
+	column 'Dim Tangata Whaiora Activity Breakdown Type KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 3cf12dd6-ca55-4b18-b279-a37bb3772971
+		summarizeBy: none
+		sourceColumn: Dim Tangata Whaiora Activity Breakdown Type KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Activity Breakdown Type ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 96f73d18-a0c1-473f-8e6d-4a92233a2150
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Activity Breakdown Type ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Tangata Whaiora Activity Breakdown Type Unique KEY'
+		dataType: string
+		lineageTag: 5f8b7afe-6f7a-45af-87a5-07802569ca18
+		summarizeBy: none
+		sourceColumn: Dim Tangata Whaiora Activity Breakdown Type Unique KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: f9e3edac-d162-45c4-9c35-7ac6b9b875c9
+		summarizeBy: none
+		sourceColumn: Company ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Team Configuration Name'
+		dataType: string
+		lineageTag: 6c402451-7001-480b-b5d7-23b3d939c95d
+		summarizeBy: none
+		sourceColumn: Team Configuration Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Activity Breakdown Type Code'
+		dataType: string
+		lineageTag: 13b5fb93-f33a-455d-968f-e15f64c782fc
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Activity Breakdown Type Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Activity Breakdown Type Name'
+		dataType: string
+		lineageTag: 969da4fa-9d7d-4876-8abe-6f5e740742b7
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Activity Breakdown Type Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Parent Activity Breakdown Type'
+		dataType: int64
+		formatString: 0
+		lineageTag: 7477baaa-cd92-4852-945f-71027c5f69a7
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Parent Activity Breakdown Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Parent Activity Breakdown Type Name'
+		dataType: string
+		lineageTag: 76bc6042-f50b-4c15-8673-787a66a7ae1a
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Parent Activity Breakdown Type Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Batch ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: d82d5bad-b67b-43d2-9609-af890a2af4d0
+		summarizeBy: none
+		sourceColumn: DWH Batch ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Modified On'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: d92e5542-9f59-4d15-98b0-f3200d0f0ecb
+		summarizeBy: none
+		sourceColumn: DWH Modified On
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Created At'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 096e1d6c-59d4-44b0-a7a0-2bcd6af972e2
+		summarizeBy: none
+		sourceColumn: DWH Created At
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Tangata Whaiora Activity Breakdown Type' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database),
+				    edw_dim_client_activity_breakdown_type = Source{[Schema="edw",Item="vw_dim_client_activity_breakdown_type"]}[Data],
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(edw_dim_client_activity_breakdown_type, each ApplyNamingConventions(_)),
+				    #"Filtered Rows" = Table.SelectRows(#"Transformed Column Names", each ([DWH Dml Operation] <> "D")),
+				    #"Removed Columns" = Table.RemoveColumns(#"Filtered Rows",{"DWH Source System", "DWH Dml Operation"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+

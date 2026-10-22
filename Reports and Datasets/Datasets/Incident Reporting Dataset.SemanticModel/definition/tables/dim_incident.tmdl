@@ -1,0 +1,68 @@
+table dim_incident
+	lineageTag: 6f236cf3-5c18-46d6-bb60-e1c8bd92c36c
+
+	column IncidentID
+		dataType: int64
+		formatString: 0
+		lineageTag: 5bfa9c9a-14a8-4fd7-863c-a510106d55bb
+		summarizeBy: count
+		sourceColumn: IncidentID
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentTitle
+		dataType: string
+		lineageTag: 3eae1894-0b73-4646-97ef-4930f2634edf
+		summarizeBy: none
+		sourceColumn: IncidentTitle
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentDescriptionRaw
+		dataType: string
+		lineageTag: c6b1231b-e19c-438e-8940-43816e71f3c5
+		summarizeBy: none
+		sourceColumn: IncidentDescriptionRaw
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentKey
+		dataType: int64
+		formatString: 0
+		lineageTag: cb5a41d8-6e00-4fc4-a6bf-ae0880cde81e
+		summarizeBy: none
+		sourceColumn: IncidentKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentURL
+		dataType: string
+		lineageTag: 57a61169-15a8-4efd-a44b-c06cbdca32ae
+		dataCategory: WebUrl
+		summarizeBy: none
+		sourceColumn: IncidentURL
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentDate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: f14862e0-a943-4957-aa60-66f8cddcf875
+		summarizeBy: none
+		sourceColumn: IncidentDate
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_incident-c06b6422-02f8-4be1-beac-0f3d0334e25d = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="--======#(lf)--Changed 7/10/2026 - Timi - the URL no longer works - it probably never did for MnB,#(lf)#(lf)#(lf)Select#(tab)#(tab)dci.dim_client_incident_company_key_incident_id_key As IncidentKey,#(lf)#(tab)#(tab)#(tab)dci.incident_id As IncidentID,#(lf)#(tab)#(tab)#(tab)dci.incident_date As IncidentDate,#(lf)#(tab)#(tab)#(tab)dci.incident_title As IncidentTitle,#(lf)#(tab)#(tab)#(tab)dci.incident_description As IncidentDescriptionRaw,#(lf)--=====I've changed this from emergeaotearoa.wildbamboo.co.nz/incidents/incident/default.aspx?incid=', Cast(dci.incident_id As VarChar(10))) As IncidentURL#(lf)--=====I've left off the first bit because it won't blank itself out#(lf)#(tab)#(tab)#(tab)Case when dci.dim_company_key = 1 then Concat('https://app.recordbase.co.nz/incidents/incident/default.aspx?incid=',dci.incident_id ,'&redirect=emergeaotearoa')#(lf)#(tab)#(tab)#(tab)when dci.dim_company_key = 5 then  Concat('https://app.recordbase.co.nz/incidents/incident/default.aspx?incid='    ,dci.incident_id ,'&redirect=mindandbody')#(lf)#(tab)#(tab)#(tab)end as IncidentURL#(lf)From#(tab)#(tab)edw.vw_dim_client_incident dci#(lf)#(tab)Inner Join#(tab)edw.dim_company dc#(lf)#(tab)#(tab)On#(tab)#(tab)dci.dim_company_key = dc.dim_company_key#(lf)#(tab)#(tab)And#(tab)#(tab)dc.DWHIsCurrent = 1#(lf)#(tab)#(tab)And#(tab)#(tab)dc.DWHDMLOperation <> 'D'#(lf)Where#(tab)#(tab)dci.DWHIsCurrent = 1#(lf)#(tab)And#(tab)#(tab)dci.DWHDMLOperation <> 'D'"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

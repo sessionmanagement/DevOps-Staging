@@ -1,0 +1,63 @@
+table dim_inspection_category_type
+	lineageTag: dfc1fb08-e718-459b-92f3-7ebfb81b3aea
+
+	column inspection_category_type_key
+		dataType: string
+		lineageTag: 4ca0074a-fccc-4ad4-92da-ee47ec072a52
+		summarizeBy: none
+		sourceColumn: inspection_category_type_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_inspectioncategoryname
+		dataType: string
+		lineageTag: 39bf2ec0-db2a-4746-964c-57b4bdde6042
+		summarizeBy: none
+		sourceColumn: zav_inspectioncategoryname
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_inspectiontypename
+		dataType: string
+		lineageTag: 2a29fd53-12b4-47ef-a0d3-e2d6e3d419dc
+		summarizeBy: none
+		sourceColumn: zav_inspectiontypename
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'zav_inspectioncategoryname Hierarchy'
+		lineageTag: 05fd75b4-73c5-4313-aaea-87da4316f01b
+
+		level 'Inspection Category'
+			lineageTag: 1b62ddc5-bddf-4033-978d-8509d6ecea1a
+			column: zav_inspectioncategoryname
+
+		level 'Inspection Type'
+			lineageTag: 5aab0eb3-8af6-425d-9250-994cf88f897c
+			column: zav_inspectiontypename
+
+		changedProperty = IsHidden
+
+	partition dim_inspection_category_type = m
+		mode: import
+		queryGroup: dimensions
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="WITH RecentZavInspection AS (#(lf)    SELECT#(lf)        fpi.property_inspection_category AS zav_inspectioncategoryname,#(lf)        fpi.property_inspection_type     AS zav_inspectiontypename,#(lf)        fpi.property_inspection_modified_datetime AS SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (#(lf)            PARTITION BY fpi.property_inspection_category, fpi.property_inspection_type#(lf)            ORDER BY fpi.property_inspection_modified_datetime DESC#(lf)        ) AS rn#(lf)    FROM [edw].[fact_property_inspection] fpi#(lf)    WHERE fpi.property_inspection_category IS NOT NULL#(lf)      AND fpi.DWHDMLOperation <> 'D'#(lf))#(lf)SELECT DISTINCT#(lf)    #(lf)    rzi.zav_inspectioncategoryname,#(lf)    #(lf)    rzi.zav_inspectiontypename#(lf)FROM RecentZavInspection rzi#(lf)WHERE rzi.rn = 1#(lf)ORDER BY#(lf)    rzi.zav_inspectioncategoryname,#(lf)    rzi.zav_inspectiontypename;"]),
+				    #"Inserted Merged Column" = Table.AddColumn(Source, "inspection_category_type_key", each Text.Combine({Text.From([zav_inspectioncategoryname], "en-NZ"), ":", Text.From([zav_inspectiontypename], "en-NZ")})),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Inserted Merged Column",{"inspection_category_type_key", "zav_inspectioncategoryname", "zav_inspectiontypename"})
+				in
+				    #"Reordered Columns"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

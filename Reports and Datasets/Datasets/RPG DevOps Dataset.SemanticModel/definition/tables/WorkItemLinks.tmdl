@@ -1,0 +1,157 @@
+/// Relationships between work items (parent-child, related, predecessor-successor). Source: OData WorkItemLinks entity.
+table WorkItemLinks
+	lineageTag: ebc7e843-b4d4-4034-baa9-c3a43fe1199b
+
+	/// Surrogate key uniquely identifying the work item link
+	column WorkItemLinkSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 2c4b1dcc-463b-4efe-9d1f-dd295a736812
+		summarizeBy: none
+		sourceColumn: WorkItemLinkSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Work item ID of the source (from) side of the link
+	column SourceWorkItemId
+		dataType: int64
+		formatString: 0
+		lineageTag: 23a835be-aaca-4687-a8ab-761b4a9c088b
+		summarizeBy: none
+		sourceColumn: SourceWorkItemId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Work item ID of the target (to) side of the link
+	column TargetWorkItemId
+		dataType: int64
+		formatString: 0
+		lineageTag: dab096b4-f0ec-4879-b174-1b8173f6b115
+		summarizeBy: count
+		sourceColumn: TargetWorkItemId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date and time when the link was created
+	column CreatedDate
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 4b045501-dc9e-4b69-8d3f-23be47012dea
+		summarizeBy: none
+		sourceColumn: CreatedDate
+
+		variation Variation
+			isDefault
+			relationship: cebb098f-9d57-4321-a11a-1050bd6de325
+			defaultHierarchy: LocalDateTable_fa788a77-5580-4f5d-b9c8-07e1684d81fe.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date and time when the link was deleted (null if still active)
+	column DeletedDate
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: eaa412ea-c417-4cd8-8c8a-d47719a67ee0
+		summarizeBy: none
+		sourceColumn: DeletedDate
+
+		variation Variation
+			isDefault
+			relationship: f1615358-9142-4b5d-bf9b-c3dd95d06527
+			defaultHierarchy: LocalDateTable_f9057cc5-60c9-46ff-9639-02be61f84020.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Optional comment associated with the link
+	column Comment
+		dataType: string
+		lineageTag: f0a26c22-9834-4e62-82dd-099652462917
+		summarizeBy: none
+		sourceColumn: Comment
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unique numeric identifier for the link type
+	column LinkTypeId
+		dataType: int64
+		formatString: 0
+		lineageTag: 7808c5a1-8cb8-420e-b416-87c6b6fe314a
+		summarizeBy: count
+		sourceColumn: LinkTypeId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// System reference name for the link type (e.g., System.LinkTypes.Hierarchy-Forward)
+	column LinkTypeReferenceName
+		dataType: string
+		lineageTag: 213cd540-f9d8-4c97-9ff0-46eabc37aade
+		summarizeBy: none
+		sourceColumn: LinkTypeReferenceName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Display name of the link type (e.g., Parent, Child, Related)
+	column LinkTypeName
+		dataType: string
+		lineageTag: 7bfe6264-73d5-4cb1-985f-34eb78a004a5
+		summarizeBy: none
+		sourceColumn: LinkTypeName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates whether the link type prevents circular references
+	column LinkTypeIsAcyclic
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 5e2526d5-f323-4683-b692-73eff865e65b
+		summarizeBy: none
+		sourceColumn: LinkTypeIsAcyclic
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates whether the link type has forward and reverse names
+	column LinkTypeIsDirectional
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 5b324285-1e3c-4a64-a7fe-f569dd96b412
+		summarizeBy: none
+		sourceColumn: LinkTypeIsDirectional
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date and time when this record was last updated in Azure DevOps Analytics
+	column AnalyticsUpdatedDate
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 670a83c1-c4ca-4d6b-9078-6896bc77215b
+		summarizeBy: none
+		sourceColumn: AnalyticsUpdatedDate
+
+		variation Variation
+			isDefault
+			relationship: 6684e7e3-6b90-4637-8b44-1391f2e1a239
+			defaultHierarchy: LocalDateTable_fa5cec09-098e-4eb4-b3c0-93010ee7597f.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to the Projects dimension table
+	column ProjectSK
+		dataType: string
+		isHidden
+		lineageTag: 12ec107a-25fa-40d9-ad74-828c5c51e5fe
+		summarizeBy: none
+		sourceColumn: ProjectSK
+
+		annotation SummarizationSetBy = Automatic
+
+	partition WorkItemLinks = m
+		mode: import
+		queryGroup: 'DevOps Tables'
+		source =
+				let
+				    Source = OData.Feed("https://analytics.dev.azure.com/EmergeAotearoa/Data%20and%20Analytics/_odata/v3.0-preview/", null, [Implementation="2.0",OmitValues = ODataOmitValues.Nulls,ODataVersion = 4, Headers=[Authorization=fnGetToken()]]),
+				    WorkItemLinks_table = Source{[Name="WorkItemLinks",Signature="table"]}[Data]
+				in
+				    WorkItemLinks_table
+

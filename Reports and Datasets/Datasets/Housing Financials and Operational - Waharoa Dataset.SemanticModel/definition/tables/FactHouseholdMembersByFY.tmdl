@@ -1,0 +1,92 @@
+table FactHouseholdMembersByFY
+	lineageTag: 1cc4f1b8-0ea2-4a7d-a242-b44b45297291
+
+	column zav_tenancy
+		lineageTag: 1d451668-1227-4cd0-819b-6677a77ff420
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: work_number_household_members_fy[zav_tenancy]
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_hhid
+		lineageTag: 7506bf07-a7b6-4b2a-ba4c-e405fc5df381
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: work_number_household_members_fy[zav_hhid]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'fact_tenancy.zav_tenancystartdate'
+		formatString: Short Date
+		lineageTag: 2031bb3f-51ab-4b7c-b472-a600216a95f3
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: work_number_household_members_fy[fact_tenancy.zav_tenancystartdate]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'fact_tenancy.zav_vacateddate'
+		formatString: Short Date
+		lineageTag: 3762bb0f-8674-450f-8714-37f538f5c42c
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: work_number_household_members_fy[fact_tenancy.zav_vacateddate]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column LastDayOfFY
+		formatString: Short Date
+		lineageTag: 223e9d0e-ae4f-4970-b10b-7be81c656c97
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: work_number_household_members_fy[LastDayOfFY]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column MaxHouseholdMembersForTenancyInFY
+		formatString: #,0
+		lineageTag: e59a33cf-594d-432f-852b-f637d83ab9a9
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [MaxHouseholdMembersForTenancyInFY]
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_property
+		lineageTag: 0d3eb9eb-2b1f-492c-bfa5-d5b81b07aa56
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: work_number_household_members_fy[zav_property]
+
+		annotation SummarizationSetBy = Automatic
+
+	column PropertyAddress = RELATED(dim_property[zav_fulladdress])
+		lineageTag: cb5770d2-bd11-430a-9e57-324e3bd6b5b8
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FactHouseholdMembersByFY-5e280292-1502-4fff-9cb2-8b8d709bf625 = calculated
+		mode: import
+		source =
+				
+				SUMMARIZECOLUMNS(
+				    work_number_household_members_fy[zav_tenancy],
+				    work_number_household_members_fy[zav_hhid],
+				    work_number_household_members_fy[fact_tenancy.zav_tenancystartdate],
+				    work_number_household_members_fy[fact_tenancy.zav_vacateddate],
+				    //work_number_household_members_fy[zav_revision], //Uncomment to see non-sumarrised. HH-011222 is a good example.
+				    work_number_household_members_fy[zav_property],
+				    work_number_household_members_fy[LastDayOfFY],
+				    "MaxHouseholdMembersForTenancyInFY", MAX(work_number_household_members_fy[zav_numberofhouseholdmembers])
+				)
+
+	annotation PBI_Id = 45d980416aed407090e8a52d32880cfa
+

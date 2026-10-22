@@ -1,0 +1,210 @@
+table work_number_household_members_fy
+	isHidden
+	lineageTag: 0642ad93-cb1c-4d06-a567-803933315b9f
+
+	column zav_tenancy
+		dataType: string
+		isHidden
+		lineageTag: b29434ca-2775-4ac2-acb0-e56d9d431879
+		summarizeBy: none
+		sourceColumn: zav_tenancy
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_hhid
+		dataType: string
+		isHidden
+		lineageTag: 091a939e-aec0-4321-98bb-b39bdb8338ac
+		summarizeBy: none
+		sourceColumn: zav_hhid
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_numberofhouseholdmembers
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 3e23eec3-7f6e-4029-8ea6-51f9eca04a3f
+		summarizeBy: sum
+		sourceColumn: zav_numberofhouseholdmembers
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'fact_tenancy.zav_tenancystartdate'
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: df94d9fd-d587-4ccc-bad2-2f3d445ea220
+		summarizeBy: none
+		sourceColumn: fact_tenancy.zav_tenancystartdate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column zav_dateofamendment
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 17f279cd-83a3-4fa1-a110-378d72e4fac5
+		summarizeBy: none
+		sourceColumn: zav_dateofamendment
+
+		changedProperty = DataType
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'fact_tenancy.zav_vacateddate'
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: eadf1e9f-2be6-4ff3-8360-f3c941ce379c
+		summarizeBy: none
+		sourceColumn: fact_tenancy.zav_vacateddate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column rowexpirydate
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: c41c3d71-fbdb-40cb-8f74-c9a9ccc9dd76
+		summarizeBy: none
+		sourceColumn: rowexpirydate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column zav_revision
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b53d28c2-c575-4658-bcfe-d04430110e93
+		summarizeBy: sum
+		sourceColumn: zav_revision
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column rowdateeffective
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: 01dd2f70-6726-45b2-84bc-503da22b9516
+		summarizeBy: none
+		sourceColumn: rowdateeffective
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column explosion
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: 1a2570eb-e400-49f5-b385-ab8c908718ff
+		summarizeBy: none
+		sourceColumn: explosion
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column LastDayOfFY = RELATED(work_dim_date[financial_last_day_of_year_date])
+		isHidden
+		formatString: Short Date
+		lineageTag: 63e53d0e-c563-4a63-960b-9e4222cf8013
+		summarizeBy: none
+
+		changedProperty = DataType
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column zav_property
+		dataType: string
+		isHidden
+		lineageTag: dcf2f588-6d28-4d1b-b326-dcd881e7d909
+		summarizeBy: none
+		sourceColumn: zav_property
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_ethnicity
+		dataType: string
+		isHidden
+		lineageTag: dd7e89ec-7499-477e-a1d0-f776cfd26c9b
+		summarizeBy: none
+		sourceColumn: zav_ethnicity
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_gender
+		dataType: double
+		isHidden
+		lineageTag: 6b9e6cda-00b5-419e-84eb-8d7972b721bb
+		summarizeBy: sum
+		sourceColumn: zav_gender
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition work_number_household_members_fy-3807ffe6-1d0a-499f-8d1d-eefe33ce3a41 = m
+		mode: import
+		queryGroup: work
+		source =
+				let
+				    Source = Table.NestedJoin(pre_work_number_household_members_dates_for_prev_revision, {"composite_hh_revision_minus_one"}, pre_work_number_household_members_dates, {"hhid_revision_concat"}, "work_number_household_members_dates", JoinKind.LeftOuter),
+				    #"Expanded work_number_household_members_dates" = Table.ExpandTableColumn(Source, "work_number_household_members_dates", {"zav_dateofamendment"}, {"work_number_household_members_dates.zav_dateofamendment"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Expanded work_number_household_members_dates",{{"work_number_household_members_dates.zav_dateofamendment", "work_rowdateeffective"}}),
+				    #"Added Conditional Column" = Table.AddColumn(#"Renamed Columns", "rowdateeffective", each if [work_rowdateeffective] = null then [fact_tenancy.zav_tenancystartdate] else [work_rowdateeffective]),
+				    #"Filtered Rows" = Table.SelectRows(#"Added Conditional Column", each [rowdateeffective] <> null and [rowdateeffective] <> ""),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Filtered Rows",{"statuscodename", "zav_householdstatusname", "zav_tenancy", "zav_hhid", "zav_numberofhouseholdmembers", "fact_tenancy.zav_tenancystartdate", "zav_dateofamendment", "fact_tenancy.zav_vacateddate", "zav_revision", "composite_hh_revision_minus_one", "work_rowdateeffective", "rowdateeffective", "rowexpirydate"}),
+				    #"Merged Queries" = Table.NestedJoin(Table.TransformColumns(#"Reordered Columns", {{"zav_tenancy", Text.Upper}}), {"zav_tenancy"}, Table.TransformColumns(fact_tenancy, {{"opportunityid", Text.Upper}}), {"opportunityid"}, "fact_tenancy", JoinKind.LeftOuter),
+				    #"Expanded fact_tenancy" = Table.ExpandTableColumn(#"Merged Queries", "fact_tenancy", {"zav_property", "zav_ethnicity", "zav_gender"}, {"zav_property", "zav_ethnicity", "zav_gender"}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Expanded fact_tenancy",null,"0",Replacer.ReplaceValue,{"zav_ethnicity"}),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value",null,100000001,Replacer.ReplaceValue,{"zav_gender"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Replaced Value1",{{"rowdateeffective", Int64.Type}}),
+				    #"Added Custom" = Table.AddColumn(#"Changed Type", "explosion", each {[rowdateeffective]..[rowexpirydate]}),
+				    #"Expanded explosion" = Table.ExpandListColumn(#"Added Custom", "explosion"),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Expanded explosion",{{"rowdateeffective", type date}, {"rowexpirydate", type date}, {"explosion", type date}, {"fact_tenancy.zav_tenancystartdate", type date}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type1",{"statuscodename", "zav_householdstatusname", "composite_hh_revision_minus_one", "work_rowdateeffective"})
+				in
+				    #"Removed Columns"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

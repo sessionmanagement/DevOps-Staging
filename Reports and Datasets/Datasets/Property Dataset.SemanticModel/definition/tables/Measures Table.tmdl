@@ -1,0 +1,782 @@
+table 'Measures Table'
+	lineageTag: 59b1bfb2-6735-4fca-8df4-4dc1cc543ce3
+
+	/// Sum of aged debt that is 0 to 6 days old
+	measure 'Total Current' =
+			
+			SUM ( 'Fact Aged Debt'[Current 0-6] )
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		displayFolder: Ageing Buckets
+		lineageTag: 4457d5a6-d027-478c-b98f-48a55c175f36
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	/// Sum of aged debt that is 7 to 14 days overdue
+	measure 'Total 7 to 14' =
+			
+			SUM ( 'Fact Aged Debt'[Days 7-14] )
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		displayFolder: Ageing Buckets
+		lineageTag: 1dbfe3cc-c125-4eb9-b04c-88b1b5126e5b
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	/// Sum of aged debt that is 15 to 21 days overdue
+	measure 'Total 15 to 21' =
+			
+			SUM ( 'Fact Aged Debt'[Days 15-21] )
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		displayFolder: Ageing Buckets
+		lineageTag: ed5e3737-57ee-48a8-b3e6-777294500548
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	/// Sum of aged debt that is 22 to 28 days overdue
+	measure 'Total 22 to 28' =
+			
+			SUM ( 'Fact Aged Debt'[Days 22-28] )
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		displayFolder: Ageing Buckets
+		lineageTag: 55d7a834-09f4-48c3-8c46-4b3011c4d4c3
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	/// Sum of aged debt that is 29 days or more overdue
+	measure 'Total 29 Plus' =
+			
+			SUM ( 'Fact Aged Debt'[Days 29 60] ) + SUM ( 'Fact Aged Debt'[Days 61 90] )
+			    + SUM ( 'Fact Aged Debt'[Days 91 Plus] )
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		displayFolder: Ageing Buckets
+		lineageTag: 8d522f3a-b2d1-4b8a-9138-33eb17db5fdc
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	/// Total aged debt balance across all buckets
+	measure 'Total Outstanding' =
+			
+			SUM ( 'Fact Aged Debt'[Total Balance] )
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		lineageTag: 8e0cd896-34eb-48e2-8fb0-f9166ba05683
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	/// Combined overdue balance over 14 days
+	measure 'Overdue 14 Plus' =
+			
+			SUM ( 'Fact Aged Debt'[Days 15-21] ) + SUM ( 'Fact Aged Debt'[Days 22-28] )
+			    + SUM ( 'Fact Aged Debt'[Days 29 60] )
+			    + SUM ( 'Fact Aged Debt'[Days 61 90] )
+			    + SUM ( 'Fact Aged Debt'[Days 91 Plus] )
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		lineageTag: 92992377-770f-45f3-882f-60817128b623
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	/// Percentage of total aged debt over 29 days
+	measure 'Percent 29 Plus' =
+			
+			DIVIDE ( [Total 29 Plus], [Total Outstanding], 0 )
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 977578d4-2fbc-419e-a8f3-2878be3779a8
+
+	/// Distinct tenancies with net overdue balance (aggregated across Rent and Non Rent charge types)
+	measure 'Tenants Overdue Count' =
+			VAR TenanciesWithBalances =
+			    ADDCOLUMNS (
+			        VALUES ( 'Fact Aged Debt'[Property Tenancy ID] ),
+			        "@NetOverdueAmount",
+			            CALCULATE (
+			                SUM ( 'Fact Aged Debt'[Days 7-14] )
+			                    + SUM ( 'Fact Aged Debt'[Days 15-21] )
+			                    + SUM ( 'Fact Aged Debt'[Days 22-28] )
+			                    + SUM ( 'Fact Aged Debt'[Days 29 60] )
+			                    + SUM ( 'Fact Aged Debt'[Days 61 90] )
+			                    + SUM ( 'Fact Aged Debt'[Days 91 Plus] )
+			            ),
+			        "@TotalBalance",
+			            CALCULATE ( SUM ( 'Fact Aged Debt'[Total Balance] ) )
+			    )
+			VAR TenanciesOverdue =
+			    FILTER (
+			        TenanciesWithBalances,
+			        [@NetOverdueAmount] < 0
+			            && [@TotalBalance] < 0
+			    )
+			RETURN
+			    COUNTROWS ( TenanciesOverdue )
+		formatString: #,0
+		lineageTag: 51d24d8f-6495-451e-87dc-868e72b0582b
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	/// Tenancies flagged with no recent payment
+	measure 'No Recent Payment Count' =
+			
+			CALCULATE (
+			    DISTINCTCOUNT ( 'Fact Aged Debt'[Property Tenancy ID] ),
+			    FILTER ( 'Fact Aged Debt', 'Fact Aged Debt'[No Recent Payment] = 1 )
+			)
+		formatString: 0
+		lineageTag: b92a36b2-0a70-4e23-9a5a-b2815d8f5c50
+
+	/// Summary text of filters applied to Aged Debt measures
+	measure 'Aged Debt FiltersApplied' =
+			
+			//----------------------------------------------
+			// DAX measure to build a summary of filters
+			// based on Dim Property & Dim Service columns,
+			// omitting any numeric count measure.
+			//
+			// Fields used:
+			//   - 'Dim Property'[Property Program]
+			//   - 'Dim Property'[Property Sub Program]
+			//   - 'Dim Property'[Property Postal Region] (Assumed from 'Dim Service'[Region Name])
+			//   - 'Dim Property'[Property District] (Assumed from 'Dim Service'[District Name])
+			//   - 'Dim Property'[Property Bc Service Name] (Assumed from 'Dim Service'[Service Name])
+			//   - 'Dim Property Tenancy'[Property Tenancy Manager Name]
+			//   - 'Fact Aged Debt'[Charge Type]
+			//   - 'Fact Aged Debt'[Has No Overall Debt]
+			//   - 'Fact Aged Debt'[No Recent Payment]
+			//   - 'Dim Property Tenancy'[Property Tenant Opportunity Status]
+			//   - 'Role Playing As At Dim Date'[Current Date] OR 'Fact Aged Debt'[As At Date]
+			//
+			//----------------------------------------------
+			//----------------------------------------------
+			// 1. Property Program
+			//----------------------------------------------
+			VAR __PropertyPrograms =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            FILTER (
+			                VALUES ( 'Dim Property'[Property Program] ),
+			                NOT ( ISBLANK ( 'Dim Property'[Property Program] ) )
+			            ),
+			            'Dim Property'[Property Program], ASC
+			        ),
+			        "PropertyProgram_display", 'Dim Property'[Property Program]
+			    )
+			VAR __PropertyProgramCount =
+			    IF (
+			        ISFILTERED ( 'Dim Property'[Property Program] ),
+			        COUNTROWS ( VALUES ( 'Dim Property'[Property Program] ) ),
+			        0
+			    )
+			VAR __MorePropertyPrograms =
+			    IF (
+			        __PropertyProgramCount > 5,
+			        " and " & ( __PropertyProgramCount - 5 ) & " more",
+			        ""
+			    )
+			VAR _FC_PropertyPrograms =
+			    IF (
+			        __PropertyProgramCount > 0,
+			        "Program: "
+			            & CONCATENATEX ( __PropertyPrograms, [PropertyProgram_display], ", " ) & __MorePropertyPrograms,
+			        BLANK ()
+			    ) //----------------------------------------------
+			// 2. Property Sub Program
+			//----------------------------------------------
+			VAR __PropertySubPrograms =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            FILTER (
+			                VALUES ( 'Dim Property'[Property Sub Program] ),
+			                NOT ( ISBLANK ( 'Dim Property'[Property Sub Program] ) )
+			            ),
+			            'Dim Property'[Property Sub Program], ASC
+			        ),
+			        "PropertySubProgram_display", 'Dim Property'[Property Sub Program]
+			    )
+			VAR __PropertySubProgramCount =
+			    IF (
+			        ISFILTERED ( 'Dim Property'[Property Sub Program] ),
+			        COUNTROWS ( VALUES ( 'Dim Property'[Property Sub Program] ) ),
+			        0
+			    )
+			VAR __MorePropertySubPrograms =
+			    IF (
+			        __PropertySubProgramCount > 5,
+			        " and " & ( __PropertySubProgramCount - 5 ) & " more",
+			        ""
+			    )
+			VAR _FC_PropertySubPrograms =
+			    IF (
+			        __PropertySubProgramCount > 0,
+			        "| Sub Program: "
+			            & CONCATENATEX ( __PropertySubPrograms, [PropertySubProgram_display], ", " ) & __MorePropertySubPrograms,
+			        BLANK ()
+			    ) //----------------------------------------------
+			// 3. Postal Service Region
+			//----------------------------------------------
+			VAR __Regions =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            FILTER (
+			                VALUES ( 'Dim Property'[Property Postal Region] ),
+			                NOT ( ISBLANK ( 'Dim Property'[Property Postal Region] ) )
+			            ),
+			            'Dim Property'[Property Postal Region], ASC
+			        ),
+			        "Region_display", 'Dim Property'[Property Postal Region]
+			    )
+			VAR __RegionsCount =
+			    IF (
+			        ISFILTERED ( 'Dim Property'[Property Postal Region] ),
+			        COUNTROWS ( VALUES ( 'Dim Property'[Property Postal Region] ) ),
+			        0
+			    )
+			VAR __MoreRegions =
+			    IF ( __RegionsCount > 5, " and " & ( __RegionsCount - 5 ) & " more", "" )
+			VAR _FC_Regions =
+			    IF (
+			        __RegionsCount > 0,
+			        "| Region: " & CONCATENATEX ( __Regions, [Region_display], ", " ) & __MoreRegions,
+			        BLANK ()
+			    ) //----------------------------------------------
+			// 4. Service District
+			//----------------------------------------------
+			VAR __Districts =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            FILTER (
+			                VALUES ( 'Dim Property'[Property District] ),
+			                NOT ( ISBLANK ( 'Dim Property'[Property District] ) )
+			            ),
+			            'Dim Property'[Property District], ASC
+			        ),
+			        "District_display", 'Dim Property'[Property District]
+			    )
+			VAR __DistrictCount =
+			    IF (
+			        ISFILTERED ( 'Dim Property'[Property District] ),
+			        COUNTROWS ( VALUES ( 'Dim Property'[Property District] ) ),
+			        0
+			    )
+			VAR __MoreDistricts =
+			    IF ( __DistrictCount > 5, " and " & ( __DistrictCount - 5 ) & " more", "" )
+			VAR _FC_Districts =
+			    IF (
+			        __DistrictCount > 0,
+			        "| District: " & CONCATENATEX ( __Districts, [District_display], ", " ) & __MoreDistricts,
+			        BLANK ()
+			    ) //----------------------------------------------
+			// 5. Service Name
+			//----------------------------------------------
+			VAR __Services =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            FILTER (
+			                VALUES ( 'Dim Property'[Property Bc Service Name] ),
+			                NOT ( ISBLANK ( 'Dim Property'[Property Bc Service Name] ) )
+			            ),
+			            'Dim Property'[Property Bc Service Name], ASC
+			        ),
+			        "ServiceName_display", 'Dim Property'[Property Bc Service Name]
+			    )
+			VAR __ServicesCount =
+			    IF (
+			        ISFILTERED ( 'Dim Property'[Property Bc Service Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Property'[Property Bc Service Name] ) ),
+			        0
+			    )
+			VAR __MoreServices =
+			    IF ( __ServicesCount > 5, " and " & ( __ServicesCount - 5 ) & " more", "" )
+			VAR _FC_Services =
+			    IF (
+			        __ServicesCount > 0,
+			        "| Service: " & CONCATENATEX ( __Services, [ServiceName_display], ", " ) & __MoreServices,
+			        BLANK ()
+			    ) //----------------------------------------------
+			// 6. Tenancy Manager
+			//----------------------------------------------
+			VAR __TenancyManager =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            FILTER (
+			                VALUES ( 'Dim Property Tenancy'[Property Tenancy Manager Name] ),
+			                NOT ( ISBLANK ( 'Dim Property Tenancy'[Property Tenancy Manager Name] ) )
+			            ),
+			            'Dim Property Tenancy'[Property Tenancy Manager Name], ASC
+			        ),
+			        "TenancyManager_display", 'Dim Property Tenancy'[Property Tenancy Manager Name]
+			    )
+			VAR __TenancyManagerCount =
+			    IF (
+			        ISFILTERED ( 'Dim Property Tenancy'[Property Tenancy Manager Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Property Tenancy'[Property Tenancy Manager Name] ) ),
+			        0
+			    )
+			VAR __MoreTenancyManagers =
+			    IF (
+			        __TenancyManagerCount > 5,
+			        " and " & ( __TenancyManagerCount - 5 ) & " more",
+			        ""
+			    )
+			VAR _FC_TenancyManagers =
+			    IF (
+			        __TenancyManagerCount > 0,
+			        "| Tenancy Manager: "
+			            & CONCATENATEX ( __TenancyManager, [TenancyManager_display], ", " ) & __MoreTenancyManagers,
+			        BLANK ()
+			    ) //----------------------------------------------
+			// 7. Charge Type
+			//----------------------------------------------
+			VAR __ChargeType =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            // Assuming up to 5 charge types will be listed if selected
+			            FILTER (
+			                VALUES ( 'Fact Aged Debt'[Charge Type] ),
+			                NOT ( ISBLANK ( 'Fact Aged Debt'[Charge Type] ) )
+			            ),
+			            'Fact Aged Debt'[Charge Type], ASC
+			        ),
+			        "ChargeType_display", 'Fact Aged Debt'[Charge Type]
+			    )
+			VAR __ChargeTypeCount =
+			    IF (
+			        ISFILTERED ( 'Fact Aged Debt'[Charge Type] ),
+			        COUNTROWS ( VALUES ( 'Fact Aged Debt'[Charge Type] ) ),
+			        0
+			    ) // Note: Original code did not have a "__MoreChargeTypes" variable, implying all selected (up to TOPN 5) are listed.
+			VAR _FC_ChargeType =
+			    IF (
+			        __ChargeTypeCount > 0,
+			        "| Charge Type: " // Corrected label slightly "Charge Type : " to "Charge Type: "
+			            & CONCATENATEX ( __ChargeType, [ChargeType_display], ", " ),
+			        BLANK ()
+			    ) //----------------------------------------------
+			// 8. Has no overall debt
+			//----------------------------------------------
+			VAR __HasNoOverallDebt =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            // Boolean or few categories, TOPN 5 is likely sufficient to list all
+			            FILTER (
+			                VALUES ( 'Fact Aged Debt'[Has No Overall Debt] ),
+			                NOT ( ISBLANK ( 'Fact Aged Debt'[Has No Overall Debt] ) )
+			            ),
+			            'Fact Aged Debt'[Has No Overall Debt], ASC
+			        ),
+			        "HasNoOverallDebt_display", 'Fact Aged Debt'[Has No Overall Debt]
+			    )
+			VAR __HasNoOverallDebtCount =
+			    IF (
+			        ISFILTERED ( 'Fact Aged Debt'[Has No Overall Debt] ),
+			        COUNTROWS ( VALUES ( 'Fact Aged Debt'[Has No Overall Debt] ) ),
+			        0
+			    )
+			VAR _FC_HasNoOverallDebt =
+			    IF (
+			        __HasNoOverallDebtCount > 0,
+			        "| Has No Overall Debt: " // Corrected label slightly
+			            & CONCATENATEX ( __HasNoOverallDebt, [HasNoOverallDebt_display], ", " ),
+			        BLANK ()
+			    ) //----------------------------------------------
+			// 9. Has no recent payment (Previously commented as 8)
+			//----------------------------------------------
+			VAR __NoRecentPayment =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            // Boolean or few categories
+			            FILTER (
+			                VALUES ( 'Fact Aged Debt'[No Recent Payment] ),
+			                NOT ( ISBLANK ( 'Fact Aged Debt'[No Recent Payment] ) )
+			            ),
+			            'Fact Aged Debt'[No Recent Payment], ASC
+			        ),
+			        "NoRecentPayment_display", 'Fact Aged Debt'[No Recent Payment]
+			    )
+			VAR __NoRecentPaymentCount =
+			    IF (
+			        ISFILTERED ( 'Fact Aged Debt'[No Recent Payment] ),
+			        COUNTROWS ( VALUES ( 'Fact Aged Debt'[No Recent Payment] ) ),
+			        0
+			    )
+			VAR _FC_NoRecentPayment =
+			    IF (
+			        __NoRecentPaymentCount > 0,
+			        "| No Recent Payment: " // Corrected label slightly
+			            & CONCATENATEX ( __NoRecentPayment, [NoRecentPayment_display], ", " ),
+			        BLANK ()
+			    ) //----------------------------------------------
+			// 10. Tenancy Status
+			//----------------------------------------------
+			VAR __TenancyStatus =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            FILTER (
+			                VALUES ( 'Dim Property Tenancy'[Property Tenant Opportunity Status] ),
+			                NOT ( ISBLANK ( 'Dim Property Tenancy'[Property Tenant Opportunity Status] ) )
+			            ),
+			            'Dim Property Tenancy'[Property Tenant Opportunity Status], ASC
+			        ),
+			        "TenancyStatus_display", 'Dim Property Tenancy'[Property Tenant Opportunity Status]
+			    )
+			VAR __TenancyStatusCount =
+			    IF (
+			        ISFILTERED ( 'Dim Property Tenancy'[Property Tenant Opportunity Status] ),
+			        COUNTROWS (
+			            VALUES ( 'Dim Property Tenancy'[Property Tenant Opportunity Status] )
+			        ),
+			        0
+			    )
+			VAR __MoreTenancyStatuses =
+			    IF (
+			        __TenancyStatusCount > 5,
+			        " and " & ( __TenancyStatusCount - 5 ) & " more",
+			        ""
+			    )
+			VAR _FC_TenancyStatuses =
+			    IF (
+			        __TenancyStatusCount > 0,
+			        "| Tenancy Status: "
+			            & CONCATENATEX ( __TenancyStatus, [TenancyStatus_display], ", " ) & __MoreTenancyStatuses,
+			        BLANK ()
+			    ) //----------------------------------------------
+			// 11. As At Date (NEWLY ADDED SECTION)
+			//----------------------------------------------
+			VAR __AsAtDate_Value_RPD =
+			    IF (
+			        ISFILTERED ( 'Role Playing As At Dim Date'[Current Date] ),
+			        MINX (
+			            FILTER (
+			                VALUES ( 'Role Playing As At Dim Date'[Current Date] ),
+			                NOT ( ISBLANK ( 'Role Playing As At Dim Date'[Current Date] ) )
+			            ),
+			            'Role Playing As At Dim Date'[Current Date]
+			        ),
+			        BLANK ()
+			    )
+			VAR __AsAtDate_Value_FAD =
+			    IF (
+			        ISFILTERED ( 'Fact Aged Debt'[As At Date] ),
+			        MINX (
+			            FILTER (
+			                VALUES ( 'Fact Aged Debt'[As At Date] ),
+			                NOT ( ISBLANK ( 'Fact Aged Debt'[As At Date] ) )
+			            ),
+			            'Fact Aged Debt'[As At Date]
+			        ),
+			        BLANK ()
+			    )
+			VAR __Effective_AsAtDate_Value =
+			    COALESCE ( __AsAtDate_Value_RPD, __AsAtDate_Value_FAD )
+			VAR __AsAtDate_Count =
+			    IF (
+			        NOT ( ISBLANK ( __AsAtDate_Value_RPD ) ),
+			        // If RPD is filtered, use its count
+			        COUNTROWS (
+			            VALUES ( 'Role Playing As At Dim Date'[Current Date] )
+			        ),
+			        IF (
+			            NOT ( ISBLANK ( __AsAtDate_Value_FAD ) ),
+			            // Else if FAD is filtered, use its count
+			            COUNTROWS (
+			                VALUES ( 'Fact Aged Debt'[As At Date] )
+			            ),
+			            0
+			        )
+			    )
+			VAR __AsAtDate_Display_String =
+			    IF (
+			        NOT ( ISBLANK ( __Effective_AsAtDate_Value ) ),
+			        FORMAT ( __Effective_AsAtDate_Value, "dd/MM/yyyy" )
+			            & IF ( __AsAtDate_Count > 1, " (range/multiple)", "" ),
+			        // Indicator if more than one date selected
+			        BLANK ()
+			    )
+			VAR _FC_AsAtDate =
+			    IF (
+			        NOT ( ISBLANK ( __AsAtDate_Display_String ) ),
+			        "| As At Date: " & __AsAtDate_Display_String,
+			        BLANK ()
+			    ) //----------------------------------------------
+			// Return final text summary
+			//----------------------------------------------
+			VAR __AllFilters =
+			    _FC_PropertyPrograms
+			        & _FC_PropertySubPrograms
+			        & _FC_Regions
+			        & _FC_Districts
+			        & _FC_Services
+			        & _FC_TenancyManagers
+			        & _FC_ChargeType
+			        & _FC_HasNoOverallDebt
+			        & _FC_NoRecentPayment
+			        & _FC_TenancyStatuses
+			        & _FC_AsAtDate
+			VAR __HasFilters =
+			    NOT ( ISBLANK ( __AllFilters ) )
+			VAR __CleanedFilters =
+			    IF (
+			        __HasFilters,
+			        // Remove leading " | " if present (first component includes it)
+			        IF (
+			            LEFT ( __AllFilters, 3 ) = " | ",
+			            MID ( __AllFilters, 4, LEN ( __AllFilters ) - 3 ),
+			            __AllFilters
+			        ),
+			        BLANK ()
+			    )
+			RETURN
+			    IF (
+			        __HasFilters,
+			        "Aged Debt Filters Applied: " & __CleanedFilters,
+			        "No filters applied"
+			    )
+		lineageTag: d48a3da1-340b-44c0-9e6b-56a0d2a2a465
+
+	measure 'Property Tenancy Customer Name Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME () IN VALUES ( 'Executinve Masking'[User Principal Name] ),
+			    "Name Masked",
+			    SELECTEDVALUE ( 'Dim Property Tenancy'[Property Tenancy Customer Name] )
+			)
+		displayFolder: Data Masking
+		lineageTag: 64ed769c-fabe-4dad-8cf2-d8f559ed5036
+
+	measure 'Property Tenancy Household Name Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME () IN VALUES ( 'Executinve Masking'[User Principal Name] ),
+			    "Name Masked",
+			    SELECTEDVALUE ( 'Dim Property Tenancy'[Property Tenancy Household Name] )
+			)
+		displayFolder: Data Masking
+		lineageTag: b052a488-db6d-410f-824d-0c31675a62fa
+
+	measure 'Property Tenancy Second Tangata Whaiora Name Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME () IN VALUES ( 'Executinve Masking'[User Principal Name] ),
+			    "Name Masked",
+			    SELECTEDVALUE ( 'Dim Property Tenancy'[Property Tenancy Second Tangata Whaiora Name] )
+			)
+		displayFolder: Data Masking
+		lineageTag: 41f8343e-2dd3-42db-bcea-a88c4073ac82
+
+	measure 'Property Tenancy Tenancy Name Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME () IN VALUES ( 'Executinve Masking'[User Principal Name] ),
+			    SELECTEDVALUE ( 'Dim Property Tenancy'[Property Tenancy Property Name] ),
+			    SELECTEDVALUE ( 'Dim Property Tenancy'[Property Tenancy Tenancy Name] )
+			)
+		displayFolder: Data Masking
+		lineageTag: 49b5dc69-71c9-43b6-9de9-fdf7fd4f0197
+
+	measure 'Tenant Name Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME () IN VALUES ( 'Executinve Masking'[User Principal Name] ),
+			    "Name Masked",
+			    SELECTEDVALUE ( 'Fact Aged Debt'[Tenant Name] )
+			)
+		displayFolder: Data Masking
+		lineageTag: b0b05440-0922-4627-84cb-28dc0a5de835
+
+	measure 'Property Tenant First Name Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME () IN VALUES ( 'Executinve Masking'[User Principal Name] ),
+			    "Name Masked",
+			    SELECTEDVALUE ( 'Fact Property Tenant'[Property Tenant First Name] )
+			)
+		displayFolder: Data Masking
+		lineageTag: 333cac81-9c01-48bb-9764-1f3aaee215dd
+
+	measure 'Property Tenant Full Name Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME () IN VALUES ( 'Executinve Masking'[User Principal Name] ),
+			    "Name Masked",
+			    SELECTEDVALUE ( 'Fact Property Tenant'[Property Tenant Full Name] )
+			)
+		displayFolder: Data Masking
+		lineageTag: 3c5f14e9-cc8b-4321-9c15-4da46b5424be
+
+	measure 'Property Tenant Household Name Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME () IN VALUES ( 'Executinve Masking'[User Principal Name] ),
+			    "Name Masked",
+			    SELECTEDVALUE ( 'Fact Property Tenant'[Property Tenant Household Name] )
+			)
+		displayFolder: Data Masking
+		lineageTag: bd574fc7-99c9-4b56-9150-dc7aa1c36cfc
+
+	measure 'Property Tenant Last Name Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME () IN VALUES ( 'Executinve Masking'[User Principal Name] ),
+			    "Name Masked",
+			    SELECTEDVALUE ( 'Fact Property Tenant'[Property Tenant Last Name] )
+			)
+		displayFolder: Data Masking
+		lineageTag: 8555e378-aaaf-4df5-a52d-025a46d5e774
+
+	measure 'Property Tenant Named Household Members Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME () IN VALUES ( 'Executinve Masking'[User Principal Name] ),
+			    "Name Masked",
+			    SELECTEDVALUE ( 'Fact Property Tenant'[Property Tenant Named Household Members] )
+			)
+		displayFolder: Data Masking
+		lineageTag: c4490fc5-6236-4da4-9767-757e603d5d9d
+
+	measure 'Property Tenant Tenancy Name Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME () IN VALUES ( 'Executinve Masking'[User Principal Name] ),
+			    SELECTEDVALUE ( 'Fact Property Tenant'[Property Tenancy Household IDentifier] ),
+			    SELECTEDVALUE ( 'Fact Property Tenant'[Property Tenant Tenancy Name] )
+			)
+		displayFolder: Data Masking
+		lineageTag: 9cef481d-74c7-46c5-84ff-51ca2c419e1b
+
+	measure 'Void Checklist Vacated Tenancy Name Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME () IN VALUES ( 'Executinve Masking'[User Principal Name] ),
+			    SELECTEDVALUE ( 'Fact Property Void Checklist'[Void Checklist Property Name] ),
+			    SELECTEDVALUE ( 'Fact Property Void Checklist'[Void Checklist Vacated Tenancy Name] )
+			)
+		displayFolder: Data Masking
+		lineageTag: be2d754b-5d3e-4797-96a3-6aa2e1a4b823
+
+	measure 'Tenancy Name Masked' =
+			
+			VAR _IsMaskedUser =
+			    USERPRINCIPALNAME () IN VALUES ( 'Executinve Masking'[User Principal Name] )
+			VAR _RawTenancyName =
+			    SELECTEDVALUE ( 'Fact Vacant Tenantable Gap'[Tenancy Name] )
+			VAR _TenancyReference =
+			    SELECTEDVALUE ( 'Fact Vacant Tenantable Gap'[Tenancy Reference] ) /* Position of the delimiter " - " (zero if not found) */
+			VAR _DelimiterPos =
+			    FIND ( " - ", _RawTenancyName,, 0 ) /* Extract address = everything after the delimiter, trimmed.
+			   If the delimiter is missing, use Tenancy Reference instead. */
+			VAR _AddressOnly =
+			    IF (
+			        _DelimiterPos > 0,
+			        TRIM (
+			            MID (
+			                _RawTenancyName,
+			                _DelimiterPos + 3,
+			                /* skip the 3‑char delimiter */
+			                LEN ( _RawTenancyName ) - _DelimiterPos - 2 /* remaining length */
+			            )
+			        ),
+			        _TenancyReference
+			    )
+			RETURN
+			    IF ( _IsMaskedUser, _AddressOnly, _RawTenancyName )
+		displayFolder: Data Masking
+		lineageTag: c4b9e2af-6a01-4ad3-bcfd-02f715269e2a
+
+	measure 'Total 29 to 60' =
+			
+			SUM ( 'Fact Aged Debt'[Days 29 60] )
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		displayFolder: Ageing Buckets
+		lineageTag: b580d0b8-e2e9-4c4a-851e-b769cfb75912
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	measure 'Total 61 to 90' =
+			
+			SUM ( 'Fact Aged Debt'[Days 61 90] )
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		displayFolder: Ageing Buckets
+		lineageTag: 4f7a2f91-9c6a-4d25-8d28-8fb0e481728d
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	measure 'Total 91 Plus' =
+			
+			SUM ( 'Fact Aged Debt'[Days 91 Plus] )
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		displayFolder: Ageing Buckets
+		lineageTag: f66b5520-3752-4858-a9af-0c27c726ceb6
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	measure 'Percent 60 Plus' =
+			
+			DIVIDE (
+			    SUM ( 'Fact Aged Debt'[Days 61 90] ) + SUM ( 'Fact Aged Debt'[Days 91 Plus] ),
+			    [Total Outstanding],
+			    0
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: ce1f1b5a-5459-416f-bda6-bd1f8c603b22
+
+	measure 'Percent 91 Plus' =
+			
+			DIVIDE ( [Total 91 Plus], [Total Outstanding], 0 )
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 01bf4812-0f72-4212-9761-80d32887387c
+
+	measure 'Overdue 28 Plus' =
+			
+			SUM ( 'Fact Aged Debt'[Days 29 60] ) + SUM ( 'Fact Aged Debt'[Days 61 90] )
+			    + SUM ( 'Fact Aged Debt'[Days 91 Plus] )
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		lineageTag: 5bf24920-6720-4dde-ac24-1db0e8f5e7d7
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	measure 'Tenants Severely Overdue Count' =
+			
+			CALCULATE (
+			    DISTINCTCOUNT ( 'Fact Aged Debt'[Property Tenancy ID] ),
+			    FILTER (
+			        'Fact Aged Debt',
+			        'Fact Aged Debt'[Days 61 90] < 0
+			            || 'Fact Aged Debt'[Days 91 Plus] < 0
+			    )
+			)
+		formatString: #,0
+		lineageTag: 105888b2-e385-44d1-a1b9-7609da303e04
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	/// Returns 1 if current user is an executive (should see masked data), 0 otherwise
+	measure 'Is Executive User' =
+			
+			IF (
+			    USERPRINCIPALNAME () IN VALUES ( 'Executinve Masking'[User Principal Name] ),
+			    1,
+			    0
+			)
+		formatString: 0
+		displayFolder: Data Masking
+		lineageTag: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+
+	partition 'Measures Table' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

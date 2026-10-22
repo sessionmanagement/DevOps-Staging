@@ -1,0 +1,945 @@
+table fact_pay_run
+	lineageTag: c180c851-55f0-496b-b560-efafacd6e838
+
+	/// Total hours across all pay components
+	measure 'Total Hours' = CALCULATE(SUM(fact_pay_run[Total_Hours]) ) //, fact_pay_run[pay_component_name] IN {"Ordinary Pay","Addtional Hours"} ))
+		formatString: #,##0.00
+		displayFolder: Core Metrics
+		lineageTag: e5513e34-442d-46f6-adbe-97e351bacec8
+
+	/// Total FTE
+	measure 'Total FTE' = DIVIDE(DIVIDE([Total Hours],80),[Unique Pay Periods])
+		formatString: #,##0.00
+		displayFolder: Core Metrics
+		lineageTag: 8e11a845-29c2-4e18-9e37-c5cf63d0be4e
+
+	/// The most recent pay period end date in the data
+	measure 'Latest Pay Period End' = MAX(fact_pay_run[pay_period_end_date])
+		formatString: dd/mm/yyyy
+		displayFolder: Core Metrics
+		lineageTag: e86f39f9-9939-418a-a3d5-fe7d609ffa4e
+
+	/// The start date of the most recent pay period
+	measure 'Latest Pay Period Start' = ```
+			CALCULATE( MIN(fact_pay_run[pay_period_start_date])
+			//, fact_pay_run[pay_period_end_date] = [Latest Pay Period End] 
+			)
+			```
+		formatString: dd/mm/yyyy
+		displayFolder: Core Metrics
+		lineageTag: a11c5a3d-1df2-46e5-bc8b-5ade3a0b1c94
+
+	/// Number of distinct casual employees active in the selected pay periods and selected service hierarchy
+	measure 'Casual Employee Count' =
+			VAR SelectedPayPeriodEndDates =
+			    CALCULATETABLE ( VALUES ( fact_pay_run[pay_period_end_date] ), REMOVEFILTERS ( Dim_Employee ) )
+			RETURN
+			    COUNTROWS (
+			        FILTER (
+			            CALCULATETABLE (
+			                VALUES ( Dim_Employee[employee_id] ),
+			                KEEPFILTERS ( Dim_Employee[employee_work_type] = "Temporary/Casual" )
+			            ),
+			            VAR EmployeeStartDate =
+			                CALCULATE ( MIN ( Dim_Employee[employee_company_start_date] ) )
+			            VAR EmployeeEndDate =
+			                CALCULATE ( MAX ( Dim_Employee[employee_company_end_date] ) )
+			            RETURN
+			                [Employee Matches Selected Service Filter] = 1
+			                    && COUNTROWS (
+			                        FILTER (
+			                            SelectedPayPeriodEndDates,
+			                            fact_pay_run[pay_period_end_date] >= EmployeeStartDate
+			                                && (
+			                                    ISBLANK ( EmployeeEndDate )
+			                                        || fact_pay_run[pay_period_end_date] <= EmployeeEndDate
+			                                )
+			                        )
+			                    ) > 0
+			        )
+			    )
+		formatString: 0
+		displayFolder: Casual Analysis
+		lineageTag: 44ab072a-a87a-4c03-8c12-b50afa9fdcc0
+
+	/// Number of active casual employees with no hours in the selected pay periods and selected service hierarchy
+	measure 'Casuals Not Worked' =
+			VAR SelectedPayPeriodEndDates =
+			    CALCULATETABLE ( VALUES ( fact_pay_run[pay_period_end_date] ) )
+			VAR ActiveCasualEmployees =
+			    FILTER (
+			        CALCULATETABLE (
+			            VALUES ( Dim_Employee[employee_id] ),
+			            KEEPFILTERS ( Dim_Employee[employee_work_type] = "Temporary/Casual" )
+			        ),
+			        VAR EmployeeStartDate =
+			            CALCULATE ( MIN ( Dim_Employee[employee_company_start_date] ) )
+			        VAR EmployeeEndDate =
+			            CALCULATE ( MAX ( Dim_Employee[employee_company_end_date] ) )
+			        RETURN
+			            [Employee Matches Selected Service Filter] = 1
+			                && COUNTROWS (
+			                    FILTER (
+			                        SelectedPayPeriodEndDates,
+			                        fact_pay_run[pay_period_end_date] >= EmployeeStartDate
+			                            && (
+			                                ISBLANK ( EmployeeEndDate )
+			                                    || fact_pay_run[pay_period_end_date] <= EmployeeEndDate
+			                            )
+			                    )
+			                ) > 0
+			    )
+			VAR WorkedCasualEmployees =
+			    FILTER (
+			        ActiveCasualEmployees,
+			        CALCULATE ( [Employee Hours] ) > 0
+			    )
+			RETURN
+			    COALESCE ( COUNTROWS ( EXCEPT ( ActiveCasualEmployees, WorkedCasualEmployees ) ), 0 )
+		formatString: 0
+		displayFolder: Casual Analysis
+		lineageTag: 9911d079-541f-4b4c-bc1f-8b8aa2e549cc
+
+	/// Number of active casual employees who worked in the selected pay periods and selected service hierarchy
+	measure 'Casuals Worked' =
+			VAR SelectedPayPeriodEndDates =
+			    CALCULATETABLE ( VALUES ( fact_pay_run[pay_period_end_date] ) )
+			VAR ActiveCasualEmployees =
+			    FILTER (
+			        CALCULATETABLE (
+			            VALUES ( Dim_Employee[employee_id] ),
+			            KEEPFILTERS ( Dim_Employee[employee_work_type] = "Temporary/Casual" )
+			        ),
+			        VAR EmployeeStartDate =
+			            CALCULATE ( MIN ( Dim_Employee[employee_company_start_date] ) )
+			        VAR EmployeeEndDate =
+			            CALCULATE ( MAX ( Dim_Employee[employee_company_end_date] ) )
+			        RETURN
+			            [Employee Matches Selected Service Filter] = 1
+			                && COUNTROWS (
+			                    FILTER (
+			                        SelectedPayPeriodEndDates,
+			                        fact_pay_run[pay_period_end_date] >= EmployeeStartDate
+			                            && (
+			                                ISBLANK ( EmployeeEndDate )
+			                                    || fact_pay_run[pay_period_end_date] <= EmployeeEndDate
+			                            )
+			                    )
+			                ) > 0
+			    )
+			RETURN
+			    COUNTROWS (
+			        FILTER (
+			            ActiveCasualEmployees,
+			            CALCULATE ( [Employee Hours] ) > 0
+			        )
+			    )
+		formatString: #,##0
+		displayFolder: Casual Analysis
+		lineageTag: bb76ed40-75f2-4c93-859a-d971a9e0c0b2
+
+	/// Count of distinct employees whose longest fortnight worked in the selected period is 96 hours or more
+	measure 'Employees Over 96 Hours' =
+			COUNTROWS (
+			    FILTER (
+			        VALUES ( Dim_Employee[employee_id] ),
+			        [Longest Fortnight Worked] >= 96
+			    )
+			)
+		formatString: #,##0
+		displayFolder: Hours Compliance
+		lineageTag: af9239fb-b507-4921-9c4a-981621d2baea
+
+	/// Average total hours per employee in the current filter context
+	measure 'Avg Hours Per Employee' = DIVIDE( [Total Hours], [Employees Worked], 0 )
+		formatString: #,##0.0
+		displayFolder: Core Metrics
+		lineageTag: b38f83d3-0082-4dee-8206-6b2330a2e28b
+
+	/// Maximum hours worked by any single employee in the current filter context
+	measure 'Max Hours by Employee' =
+			
+			MAXX (
+			    SUMMARIZE (
+			        fact_pay_run,
+			        fact_pay_run[pay_period_start_date],
+			        fact_pay_run[employee_id],
+			        "TotalHoursWorked",
+			        SUM(fact_pay_run[Total_Hours])
+			    ),
+			    [TotalHoursWorked]
+			)
+			//MAXX(
+			//     VALUES(fact_pay_run[employee_id]),
+			//     CALCULATE( SUM(fact_pay_run[Hours]) )
+			// ))
+		formatString: #,##0.00
+		displayFolder: Hours Compliance
+		lineageTag: 24ab023b-2ed3-4e9f-8b88-aed8c756b1f9
+
+	/// Count of distinct employees whose longest fortnight worked in the selected period is more than 88 hours and less than 96 hours
+	measure 'Employees Over 88 Hours' =
+			COUNTROWS (
+			    FILTER (
+			        VALUES ( Dim_Employee[employee_id] ),
+			        [Longest Fortnight Worked] >= 88
+			            && [Longest Fortnight Worked] < 96
+			    )
+			)
+		formatString: #,##0
+		displayFolder: Hours Compliance
+		lineageTag: 63b2eaec-642c-4748-9367-0b58f4082404
+
+	/// Count of distinct pay periods in the current filter context
+	measure 'Unique Pay Periods' = DISTINCTCOUNT(fact_pay_run[pay_period_end_date])
+		formatString: #,##0
+		displayFolder: Core Metrics
+		lineageTag: 06340daf-1cac-467e-ac59-ee6bd99d5292
+
+	/// Percentage of workforce that are casual employees in the selected pay periods
+	measure 'Casual % of Workforce' =
+			VAR SelectedPayPeriodEndDates =
+			    CALCULATETABLE ( VALUES ( fact_pay_run[pay_period_end_date] ), REMOVEFILTERS ( Dim_Employee ) )
+			VAR ActiveEmployees =
+			    COUNTROWS (
+			        FILTER (
+			            VALUES ( Dim_Employee[employee_id] ),
+			            VAR EmployeeStartDate =
+			                CALCULATE ( MIN ( Dim_Employee[employee_company_start_date] ) )
+			            VAR EmployeeEndDate =
+			                CALCULATE ( MAX ( Dim_Employee[employee_company_end_date] ) )
+			            RETURN
+			                [Employee Matches Selected Service Filter] = 1
+			                    && COUNTROWS (
+			                    FILTER (
+			                        SelectedPayPeriodEndDates,
+			                        fact_pay_run[pay_period_end_date] >= EmployeeStartDate
+			                            && (
+			                                ISBLANK ( EmployeeEndDate )
+			                                    || fact_pay_run[pay_period_end_date] <= EmployeeEndDate
+			                            )
+			                    )
+			                ) > 0
+			        )
+			    )
+			RETURN
+			    DIVIDE ( [Casual Employee Count], ActiveEmployees, 0 )
+		formatString: 0.0%
+		displayFolder: Casual Analysis
+		lineageTag: 9c231f11-b9e4-43f2-be14-b2efc9c94b48
+
+	/// Count of distinct employees who worked in the latest pay period
+	measure 'Employees Worked' =
+			CALCULATE(
+			    DISTINCTCOUNT(fact_pay_run[employee_id]))
+		formatString: #,##0
+		displayFolder: Core Metrics
+		lineageTag: a5104be4-7067-4e2f-8a7f-8607e9ffcb7f
+
+	/// Total hours for each employee in the latest pay period. Use in table visuals.
+	measure 'Employee Hours' = ```
+			
+			   
+			CALCULATE(
+			        SUM(fact_pay_run[Total_Hours]))
+			   
+			```
+		formatString: #,##0.00
+		displayFolder: Hours Compliance
+		lineageTag: 9ab44f34-f623-4db4-9cb0-1f361600a44b
+
+	/// Flag for employees who exceeded 96 hours in the latest fortnight
+	measure 'Is Over 96 Hours Flag' = IF( [Longest Fortnight Worked] >= 96, 1, 0 )
+		formatString: #,##0
+		displayFolder: Hours Compliance
+		lineageTag: c73d6aeb-ae57-47ef-8d99-87abe6b1328e
+
+	/// Total rostered/budgeted FTE from position roster
+	measure 'Rostered FTE' = ```
+			[Rostered FTE_Manager] + [Rostered FTE_NON-Manager] 
+			
+			```
+		formatString: #,##0.00
+		displayFolder: Rostered vs Actual
+		lineageTag: 9d77ab6e-7dcc-4e0f-a071-5589e31e5af3
+
+	/// Total rostered hours per week from position roster
+	measure 'Rostered Hours PW' = SUMX( fact_position_roster, VALUE( fact_position_roster[hours] ) ) / 4
+		formatString: #,##0.00
+		displayFolder: Rostered vs Actual
+		lineageTag: bd2e2933-1124-4b76-866c-9acab243e476
+
+	/// Total allocated FTE from position roster
+	measure 'Rostered Allocated FTE' = SUMX( fact_position_roster, VALUE( fact_position_roster[allocated_fte] ) )
+		formatString: #,##0.00
+		displayFolder: Rostered vs Actual
+		lineageTag: b50edf2d-5c6d-43ad-a78c-c609c7a9a4b5
+
+	/// Count of rostered positions
+	measure 'Rostered Positions' = COUNTROWS( fact_position_roster )
+		formatString: #,##0
+		displayFolder: Rostered vs Actual
+		lineageTag: e8f1aa8e-f92a-4ced-a585-2dc41e6cfcd3
+
+	/// Total actual FTE from the most recent pay period
+	measure 'Actual FTE' =
+			CALCULATE( [Total FTE]
+			//, fact_pay_run[pay_period_end_date] = [Latest Pay Period End]
+			 )
+		formatString: #,##0.00
+		displayFolder: Rostered vs Actual
+		lineageTag: f61e109a-95a7-4181-a2e0-bffb76a5a388
+
+	/// Total actual hours from the most recent pay period
+	measure 'Actual Hours (Latest Period)' =
+			CALCULATE( [Total Hours]
+			//, fact_pay_run[pay_period_end_date] = CALCULATE( MAX( fact_pay_run[pay_period_end_date] ), REMOVEFILTERS() )
+			 )
+		formatString: #,##0.00
+		displayFolder: Rostered vs Actual
+		lineageTag: ca595c17-9291-46fd-80d3-c0d43ebd908f
+
+	/// Difference between actual FTE (latest period) and rostered FTE. Positive = overstaffed, Negative = understaffed
+	measure 'FTE Variance' = [Actual FTE] - [Rostered FTE]
+		formatString: +#,##0.00;-#,##0.00;0.00
+		displayFolder: Rostered vs Actual
+		lineageTag: 3bf8f73e-90bd-4654-ba13-9bfcc8fde081
+
+	/// Percentage of rostered FTE positions filled (Actual / Rostered)
+	measure 'FTE Fill Rate %' = DIVIDE( [Actual FTE], [Rostered FTE], 0 )
+		formatString: 0.0%
+		displayFolder: Rostered vs Actual
+		lineageTag: ec0734e1-b994-4f00-b3f6-4fe478c59075
+
+	/// Actual hours per week from latest fortnightly pay period (Total / 2)
+	measure 'Actual Hours PW (Latest Period)' = ```
+			[Total Hours] 
+			
+			//DIVIDE( [Actual Hours (Latest Period)], 2, 0 )
+			```
+		formatString: #,##0.00
+		displayFolder: Rostered vs Actual
+		lineageTag: 34eb7dfd-7fde-4828-aa49-41cf4832dc1a
+
+	/// Difference between actual weekly hours and rostered weekly hours. Positive = over-utilised, Negative = under-utilised
+	measure 'Hours Variance PW' = [Actual Hours PW (Latest Period)] - [Rostered Hours PW]
+		formatString: +#,##0.00;-#,##0.00;0.00
+		displayFolder: Rostered vs Actual
+		lineageTag: 1c327f66-c365-4c71-9346-eeca21caa78a
+
+	/// Percentage of rostered hours utilised (Actual weekly / Rostered weekly)
+	measure 'Hours Utilisation %' = DIVIDE( [Actual Hours PW (Latest Period)], [Rostered Hours PW], 0 )
+		formatString: 0.0%
+		displayFolder: Rostered vs Actual
+		lineageTag: 2cbc3420-bda9-4d28-8cea-6b2fc3a107b3
+
+	measure 'Rostered FTE_Manager' =
+			
+			CALCULATE(
+			    DIVIDE(SUMX(
+			        fact_position_roster,
+			        VALUE(fact_position_roster[hours_pw])
+			    ),40),
+			    FILTER(
+			        fact_position_roster,
+			        CONTAINSSTRING(fact_position_roster[position_description], "Manager")
+			    )
+			)
+		displayFolder: Rostered vs Actual
+		lineageTag: 2384fc3d-a18a-4322-be93-a32462de418c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Rostered FTE_NON-Manager' =
+			
+			CALCULATE(
+			    SUMX(
+			        fact_position_roster,
+			        VALUE(fact_position_roster[fte_pa])
+			    ),
+			    FILTER(
+			        fact_roster,
+			        CONTAINSSTRING(fact_roster[roster_shifts], "Total")
+			    )
+			)
+		displayFolder: Rostered vs Actual
+		lineageTag: 5545a5d7-74ff-4aea-b1cd-f2805604a809
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Count of employee fortnights in the selected period where worked hours were 96 or more
+	measure 'Number of 96+ hour fortnights' =
+			VAR SummaryTable =
+			    SUMMARIZE (
+			        fact_pay_run,
+			        fact_pay_run[pay_period_start_date],
+			        fact_pay_run[employee_id],
+			        "TotalHoursWorked",
+			            CALCULATE (
+			                SUM ( fact_pay_run[Total_Hours] ),
+			                fact_pay_run[pay_component_name] IN {
+			                    "Ordinary Pay",
+			                    "Addtional Hours",
+			                    "Overtime"
+			                }
+			            )
+			    )
+			RETURN
+			    COUNTROWS ( FILTER ( SummaryTable, [TotalHoursWorked] >= 96 ) )
+		formatString: 0
+		displayFolder: Hours Compliance
+		lineageTag: fec42ae8-704f-42f6-b8aa-08df61994da8
+
+	measure 'Longest Fortnight Worked' = ```
+			
+			MAXX (
+			    SUMMARIZE (
+			        fact_pay_run,
+			        fact_pay_run[pay_period_start_date],
+			        fact_pay_run[employee_id],
+			        "TotalHoursWorked",
+			        CALCULATE (
+			                    SUM ( fact_pay_run[Total_Hours] ),
+			                    fact_pay_run[pay_component_name] IN {
+			                        "Ordinary Pay",
+			                        "Addtional Hours",
+			                        "Overtime"
+			                    }
+			                )
+			    ),
+			    [TotalHoursWorked]
+			)
+			
+			
+			```
+		formatString: 0.0
+		displayFolder: Hours Compliance
+		lineageTag: 608d0c4a-8c6f-4a58-9cc2-a4029e73cc95
+
+	measure 'Casual worked Flag' = IF( [Employee Hours] > 0, 1, 0 )
+		formatString: 0
+		displayFolder: Casual Analysis
+		lineageTag: 9705f37f-a48f-4962-b778-c8c6c53ecc9e
+
+	/// Count of active casual employees associated with the current service who worked in the selected pay periods
+	measure 'Casuals Worked by Service' =
+			VAR SelectedPayPeriodEndDates =
+			    CALCULATETABLE ( VALUES ( fact_pay_run[pay_period_end_date] ), REMOVEFILTERS ( Dim_Employee ) )
+			VAR ActiveCasualEmployeesInDept =
+			    FILTER (
+			        CALCULATETABLE (
+			            VALUES ( Dim_Employee[employee_id] ),
+			            KEEPFILTERS ( Dim_Employee[employee_work_type] = "Temporary/Casual" )
+			        ),
+			        VAR EmployeeStartDate =
+			            CALCULATE ( MIN ( Dim_Employee[employee_company_start_date] ) )
+			        VAR EmployeeEndDate =
+			            CALCULATE ( MAX ( Dim_Employee[employee_company_end_date] ) )
+			        RETURN
+			            CALCULATE ( [Employee Matches Selected Service Filter] ) = 1
+			                && COUNTROWS (
+			                    FILTER (
+			                        SelectedPayPeriodEndDates,
+			                        fact_pay_run[pay_period_end_date] >= EmployeeStartDate
+			                            && (
+			                                ISBLANK ( EmployeeEndDate )
+			                                    || fact_pay_run[pay_period_end_date] <= EmployeeEndDate
+			                            )
+			                    )
+			                ) > 0
+			    )
+			VAR WorkedCasualEmployeesInDept =
+			    FILTER (
+			        ActiveCasualEmployeesInDept,
+			        CALCULATE ( [Employee Hours] ) > 0
+			    )
+			RETURN
+			    COALESCE ( COUNTROWS ( WorkedCasualEmployeesInDept ), 0 )
+		formatString: #,##0
+		displayFolder: Casual Analysis
+		lineageTag: 0d471141-4d06-47bd-8691-fbc621af901b
+
+	/// Count of active casual employees associated with the current service who did not work in the selected pay periods
+	measure 'Casuals Not Worked by Service' =
+			VAR SelectedPayPeriodEndDates =
+			    CALCULATETABLE ( VALUES ( fact_pay_run[pay_period_end_date] ), REMOVEFILTERS ( Dim_Employee ) )
+			VAR ActiveCasualEmployeesInDept =
+			    FILTER (
+			        CALCULATETABLE (
+			            VALUES ( Dim_Employee[employee_id] ),
+			            KEEPFILTERS ( Dim_Employee[employee_work_type] = "Temporary/Casual" )
+			        ),
+			        VAR EmployeeStartDate =
+			            CALCULATE ( MIN ( Dim_Employee[employee_company_start_date] ) )
+			        VAR EmployeeEndDate =
+			            CALCULATE ( MAX ( Dim_Employee[employee_company_end_date] ) )
+			        RETURN
+			            CALCULATE ( [Employee Matches Selected Service Filter] ) = 1
+			                && COUNTROWS (
+			                    FILTER (
+			                        SelectedPayPeriodEndDates,
+			                        fact_pay_run[pay_period_end_date] >= EmployeeStartDate
+			                            && (
+			                                ISBLANK ( EmployeeEndDate )
+			                                    || fact_pay_run[pay_period_end_date] <= EmployeeEndDate
+			                            )
+			                    )
+			                ) > 0
+			    )
+			VAR WorkedCasualEmployeesInDept =
+			    FILTER (
+			        ActiveCasualEmployeesInDept,
+			        CALCULATE ( [Employee Hours] ) > 0
+			    )
+			RETURN
+			    COALESCE ( COUNTROWS ( EXCEPT ( ActiveCasualEmployeesInDept, WorkedCasualEmployeesInDept ) ), 0 )
+		formatString: #,##0
+		displayFolder: Casual Analysis
+		lineageTag: 25cd5088-edf0-4c66-bf5d-362bd9c07d7a
+
+	measure 'Casual hours worked' =
+			VAR SelectedBusinessUnits =
+			    CALCULATETABLE (
+			        VALUES ( Dim_Employee[employee_Business_unit_name] ),
+			        ALLSELECTED ( Dim_Employee[employee_Business_unit_name] ),
+			        REMOVEFILTERS ( Dim_Employee[employee_id] ),
+			        REMOVEFILTERS ( Dim_Employee[employee_name] ),
+			        REMOVEFILTERS ( Dim_Employee[employee_job_name] )
+			    )
+			VAR AllBusinessUnitsInContext =
+			    CALCULATETABLE (
+			        VALUES ( Dim_Employee[employee_Business_unit_name] ),
+			        REMOVEFILTERS ( Dim_Employee[employee_Business_unit_name] ),
+			        REMOVEFILTERS ( Dim_Employee[employee_id] ),
+			        REMOVEFILTERS ( Dim_Employee[employee_name] ),
+			        REMOVEFILTERS ( Dim_Employee[employee_job_name] )
+			    )
+			VAR HasBusinessUnitSelection =
+			    COUNTROWS ( EXCEPT ( SelectedBusinessUnits, AllBusinessUnitsInContext ) ) > 0
+			        || COUNTROWS ( EXCEPT ( AllBusinessUnitsInContext, SelectedBusinessUnits ) ) > 0
+			RETURN
+			    IF (
+			        HasBusinessUnitSelection,
+			        COALESCE (
+			            CALCULATE (
+			                SUM ( fact_pay_run[Total_Hours] ),
+			                REMOVEFILTERS ( Dim_Service ),
+			                REMOVEFILTERS ( Dim_Employee[employee_Business_unit_name] ),
+			                REMOVEFILTERS ( fact_pay_run[sub_department] ),
+			                REMOVEFILTERS ( fact_pay_run[sub_department_code] ),
+			                TREATAS ( SelectedBusinessUnits, fact_pay_run[sub_department] )
+			            ),
+			            0
+			        ),
+			        COALESCE (
+			            CALCULATE (
+			                SUM ( fact_pay_run[Total_Hours] ),
+			                REMOVEFILTERS ( Dim_Service ),
+			                REMOVEFILTERS ( Dim_Employee[employee_Business_unit_name] ),
+			                REMOVEFILTERS ( fact_pay_run[sub_department] ),
+			                REMOVEFILTERS ( fact_pay_run[sub_department_code] )
+			            ),
+			            0
+			        )
+			    )
+		displayFolder: Casual Analysis
+		lineageTag: 779a4bd4-3b58-4efd-ae6b-b1514b598f9c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Last Shift Worked' =
+			CALCULATE(
+			    MAX(fact_pay_run[pay_period_end_date]),
+			    REMOVEFILTERS(Dim_Date),
+			    REMOVEFILTERS(fact_pay_run[pay_period_end_date]),
+			    REMOVEFILTERS(fact_pay_run[pay_period_start_date]),
+			    fact_pay_run[Total_Hours] > 0
+			)
+		formatString: Short Date
+		displayFolder: Casual Analysis
+		lineageTag: cac231c0-859a-4651-a97e-7046ad73cf37
+
+	/// Visual filter helper for employee rows to match the selected Dim_Service hierarchy
+	measure 'Employee Matches Selected Service Filter' =
+			VAR CurrentEmployeeServiceName =
+			    SELECTEDVALUE ( Dim_Employee[employee_Business_unit_name] )
+			VAR HasServiceSelection =
+			    ISCROSSFILTERED ( Dim_Service[Department Name] )
+			        || ISCROSSFILTERED ( Dim_Service[Region Name] )
+			        || ISCROSSFILTERED ( Dim_Service[District Name] )
+			        || ISCROSSFILTERED ( Dim_Service[Service Name] )
+			RETURN
+			    IF (
+			        NOT HasServiceSelection,
+			        1,
+			        INT (
+			            NOT ISBLANK ( CurrentEmployeeServiceName )
+			                && CONTAINS (
+			                    VALUES ( Dim_Service[Service Name] ),
+			                    Dim_Service[Service Name], CurrentEmployeeServiceName
+			                )
+			        )
+			    )
+		formatString: 0
+		displayFolder: Casual Analysis
+		lineageTag: ade9eefc-169e-495e-bd6d-543d87c39735
+
+	measure 'Number of 88+ hour fortnights' =
+			VAR SummaryTable =
+			    SUMMARIZE (
+			        fact_pay_run,
+			        fact_pay_run[pay_period_start_date],
+			        fact_pay_run[employee_id],
+			        "TotalHoursWorked",
+			            CALCULATE (
+			                SUM ( fact_pay_run[Total_Hours] ),
+			                fact_pay_run[pay_component_name] IN {
+			                    "Ordinary Pay",
+			                    "Addtional Hours",
+			                    "Overtime"
+			                }
+			            )
+			    )
+			RETURN
+			    COUNTROWS ( FILTER ( SummaryTable, [TotalHoursWorked] >= 88 && [TotalHoursWorked] < 96 ) )
+		formatString: 0
+		displayFolder: Hours Compliance
+		lineageTag: c14e5adc-c5f2-4775-b053-e77536ef4a7f
+
+	/// Total hours worked for the active casual employee set in the current service/sub-department context
+	measure 'Casual Hours Worked by Sub Department' =
+			VAR SelectedPayPeriodEndDates =
+			    CALCULATETABLE ( VALUES ( fact_pay_run[pay_period_end_date] ), REMOVEFILTERS ( Dim_Employee ) )
+			VAR ActiveCasualEmployees =
+			    FILTER (
+			        CALCULATETABLE (
+			            VALUES ( Dim_Employee[employee_id] ),
+			            KEEPFILTERS ( Dim_Employee[employee_work_type] = "Temporary/Casual" )
+			        ),
+			        VAR EmployeeStartDate =
+			            CALCULATE ( MIN ( Dim_Employee[employee_company_start_date] ) )
+			        VAR EmployeeEndDate =
+			            CALCULATE ( MAX ( Dim_Employee[employee_company_end_date] ) )
+			        RETURN
+			            [Employee Matches Selected Service Filter] = 1
+			                && COUNTROWS (
+			                    FILTER (
+			                        SelectedPayPeriodEndDates,
+			                        fact_pay_run[pay_period_end_date] >= EmployeeStartDate
+			                            && (
+			                                ISBLANK ( EmployeeEndDate )
+			                                    || fact_pay_run[pay_period_end_date] <= EmployeeEndDate
+			                            )
+			                    )
+			                ) > 0
+			    )
+			VAR ActiveCasualEmployeeIds =
+			    SELECTCOLUMNS ( ActiveCasualEmployees, "employee_id", Dim_Employee[employee_id] )
+			RETURN
+			    COALESCE (
+			        CALCULATE (
+			            SUM ( fact_pay_run[Total_Hours] ),
+			            TREATAS ( ActiveCasualEmployeeIds, fact_pay_run[employee_id] )
+			        ),
+			        0
+			    )
+		formatString: #,##0.0
+		displayFolder: Casual Analysis
+		lineageTag: 14eec01d-3bd4-49ef-aa25-01fed91f4ec0
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'All business unit hours worked' =
+			COALESCE (
+			    CALCULATE (
+			        SUM ( fact_pay_run[Total_Hours] ),
+			        REMOVEFILTERS ( Dim_Service ),
+			        REMOVEFILTERS ( fact_pay_run[sub_department] ),
+			        REMOVEFILTERS ( fact_pay_run[sub_department_code] ),
+			        REMOVEFILTERS ( Dim_Employee[employee_Business_unit_name] )
+			    ),
+			    0
+			)
+		formatString: #,##0.00
+		displayFolder: Casual Analysis
+		lineageTag: 8780daf0-6866-41e4-abd0-7e37ef7d8cf2
+
+	measure 'Avg weekly hours' =
+			
+			VAR _num_days = NETWORKDAYS(MIN('fact_pay_run'[pay_period_start_date]), MAX( 'fact_pay_run'[pay_period_end_date]), 1)
+			
+			RETURN
+			DIVIDE(SUM('fact_pay_run'[Total_Hours]), _num_days) * 5
+		displayFolder: Hours Compliance
+		lineageTag: 1d1951be-0e1b-406d-8775-2a58adc09a3f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Avg weekly FTE' =
+			
+			VAR _num_days = NETWORKDAYS(MIN('fact_pay_run'[pay_period_start_date]), MAX('fact_pay_run'[pay_period_end_date]), 1)
+			VAR _hours = DIVIDE(SUM('fact_pay_run'[Total_Hours]), _num_days) * 5
+			RETURN
+			
+			DIVIDE(_hours, 40)
+		displayFolder: Core Metrics
+		lineageTag: ad0925c0-c3da-4b0b-a0a0-87a7726a255f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure FiltersApplied = ```
+			
+			VAR __Year = IF(ISFILTERED(dim_date[calendar_year]), CONCATENATEX(FILTERS(dim_date[calendar_year]), dim_date[calendar_year], ", "), BLANK())
+			VAR __Month = IF(ISFILTERED(dim_date[calendar_month_name_short]), CONCATENATEX(FILTERS(dim_date[calendar_month_name_short]), dim_date[calendar_month_name_short], ", "), BLANK())
+			
+			VAR __ContractType = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(Dim_Employee[employee_work_type]), NOT(ISBLANK(Dim_Employee[employee_work_type]))), Dim_Employee[employee_work_type], ASC),
+			    "ContractType_Display", Dim_Employee[employee_work_type]
+			)
+			
+			
+			VAR __ContractTypeCount = IF(ISFILTERED(Dim_Employee[employee_work_type]), COUNTROWS(VALUES(Dim_Employee[employee_work_type])), 0)
+			
+			VAR __ComponentType = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES(fact_pay_run[pay_component_name]), NOT(ISBLANK(fact_pay_run[pay_component_name]))), fact_pay_run[pay_component_name], ASC),
+			    "ComponentType_Display", fact_pay_run[pay_component_name]
+			)
+			
+			VAR __ComponentTypeCount = IF(ISFILTERED(fact_pay_run[pay_component_name]), COUNTROWS(VALUES(fact_pay_run[pay_component_name])), 0)
+			
+			VAR __PayPeriods = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(fact_pay_run[pay_period_start_date]), NOT(ISBLANK(fact_pay_run[pay_period_start_date]))), fact_pay_run[pay_period_start_date], ASC),
+			    "PayPeriods_Display", fact_pay_run[pay_period_start_date]
+			)
+			VAR __PayPeriodCount = IF(ISFILTERED(fact_pay_run[pay_period_start_date]), COUNTROWS(VALUES(fact_pay_run[pay_period_start_date])), 0)
+			
+			
+			VAR __Region = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(Dim_Service[Region Name]), NOT(ISBLANK(Dim_Service[Region Name]))), Dim_Service[Region Name], ASC),
+			    "Region_display", Dim_Service[Region Name]
+			)
+			
+			VAR __RegionCount = IF(ISFILTERED(Dim_Service[Region Name]), COUNTROWS(VALUES(Dim_Service[Region Name])), 0)
+			
+			VAR __District = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(Dim_Service[District Name]), NOT(ISBLANK(Dim_Service[District Name]))), Dim_Service[District Name], ASC),
+			    "District_display", Dim_Service[District Name]
+			)
+			
+			VAR __DistrictCount = IF(ISFILTERED(Dim_Service[District Name]), COUNTROWS(VALUES(Dim_Service[District Name])), 0)
+			
+			VAR __Services = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(Dim_Service[Service Name]), NOT(ISBLANK(Dim_Service[Service Name]))), Dim_Service[Service Name], ASC),
+			    "Service_display", Dim_Service[Service Name]
+			)
+			
+			VAR __ServiceCount = IF(ISFILTERED(Dim_Service[Service Name]), COUNTROWS(VALUES(Dim_Service[Service Name])), 0)
+			
+			
+			VAR _FC_Year = IF(ISBLANK(__Year), BLANK(), "| YEAR(S) CHOSEN: " & __Year)
+			VAR _FC_Month = IF(ISBLANK(__Month), BLANK(), "| MONTH(S) CHOSEN: " & __Month)
+			
+			VAR _FC_Regions = IF(__RegionCount > 0, "| REGIONS CHOSEN: " & CONCATENATEX(__Region, [Region_display], ", "), BLANK())
+			VAR _FC_MoreRegions = IF(__RegionCount > 10, " and " & (__RegionCount - 10) & " more", "")
+			
+			VAR _FC_Districts = IF(__DistrictCount > 0, "| DISTRICTS CHOSEN: " & CONCATENATEX(__District, [District_display], ", "), BLANK())
+			VAR _FC_MoreDistricts = IF(__DistrictCount > 10, " and " & (__DistrictCount - 10) & " more", "")
+			
+			VAR _FC_Services = IF(__ServiceCount > 0, "| SERVICES CHOSEN: " & CONCATENATEX(__Services, [Service_display], ", "), BLANK())
+			VAR _FC_MoreServices = IF(__ServiceCount > 10, " and " & (__ServiceCount - 10) & " more", "")
+			
+			VAR _FC_ContractType = IF(__ContractTypeCount > 0, "| CONTRACT TYPES CHOSEN: " & CONCATENATEX(__ContractType, [ContractType_Display], ", "), BLANK())
+			
+			VAR _FC_ComponentType = IF(__ComponentTypeCount > 0, "| PAY COMPONENTS CHOSEN: " & CONCATENATEX(__ComponentType, [ComponentType_Display], ", "), BLANK())
+			VAR _FC_MoreComponents= IF(__ComponentTypeCount > 5, " and " & (__ComponentTypeCount - 5) & " more", "")
+			
+			VAR _FC_PayPeriods = IF(__PayPeriodCount > 0, "| PAY PERIODS CHOSEN: " & CONCATENATEX(__PayPeriods, [PayPeriods_Display], ", "), BLANK())
+			VAR _FC_MorePayPeriods = IF(__PayPeriodCount > 7, " and " & (__PayPeriodCount - 7) & " more", "")
+			
+			
+			VAR _FirstDate = MIN(dim_date[calendar_date])
+			VAR _LastDate = MAX(dim_date[calendar_date])
+			
+			RETURN
+			 "Please note that all data shown is based on the following date range: " & FORMAT(_FirstDate, "dd/MM/YYYY") & " - " & FORMAT(_LastDate, "dd/MM/YYYY") 
+			& " " &
+			IF(
+			    ISBLANK(_FC_Year) && ISBLANK(_FC_Month) && ISBLANK(_FC_Regions) && ISBLANK(_FC_Districts) && ISBLANK(_FC_Services),
+			    "",
+			    "-- Summary of filters applied to page: " & " " & _FC_Year & " " & _FC_Month & " " & _FC_Regions & _FC_MoreRegions & " " & _FC_Districts & _FC_MoreDistricts & " " & _FC_Services & _FC_MoreServices
+			) & _FC_PayPeriods & _FC_MorePayPeriods & " " & _FC_ContractType & _FC_ComponentType & _FC_MoreComponents
+			
+			```
+		lineageTag: b57fc150-be09-4491-9437-181623ad8a40
+
+	column employee_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 6549ac5b-f4c0-4a9e-bf19-885bee5323cb
+		summarizeBy: none
+		sourceColumn: employee_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column pay_period_start_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: b6769627-c2f5-45b6-9f31-30abccfd249e
+		summarizeBy: none
+		sourceColumn: pay_period_start_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column pay_period_end_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: b4fe6a1e-bc19-46aa-9b43-ba8119f40855
+		summarizeBy: none
+		sourceColumn: pay_period_end_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Month_No = ```
+			
+			VAR Month1 = MONTH('fact_pay_run'[pay_period_start_date])
+			
+			VAR Month2 = MONTH('fact_pay_run'[pay_period_end_date])
+			
+			VAR EndMonth1 = EOMONTH('fact_pay_run'[pay_period_start_date], 0)
+			VAR Month1Days = IF(Month1 <> Month2, DATEDIFF('fact_pay_run'[pay_period_start_date], EndMonth1, DAY), 
+			                        DATEDIFF('fact_pay_run'[pay_period_start_date], 'fact_pay_run'[pay_period_end_date], DAY))
+			
+			VAR Month2Days = DAY('fact_pay_run'[pay_period_end_date])
+			
+			RETURN
+			
+			IF(Month1 = Month2, Month1,
+			    IF(Month1Days >= Month2Days, 
+			            Month1,Month2 ) )
+			```
+		formatString: 0
+		lineageTag: 7074c0a5-0dca-4f48-948c-89d98a3354b5
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column pay_component_name
+		dataType: string
+		lineageTag: dbb939af-0415-43d8-8ac6-9979bb70e053
+		summarizeBy: none
+		sourceColumn: pay_component_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column sub_department
+		dataType: string
+		lineageTag: 553cf2b6-f0ee-4841-ab96-85ea773dd0aa
+		summarizeBy: none
+		sourceColumn: sub_department
+
+		annotation SummarizationSetBy = Automatic
+
+	column sub_department_code
+		dataType: string
+		lineageTag: da52ad1a-bc25-4795-91a9-0caf640699fc
+		summarizeBy: none
+		sourceColumn: sub_department_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month
+		dataType: string
+		lineageTag: 56ce3a1f-c242-4f90-a337-e62a580ac379
+		summarizeBy: none
+		sourceColumn: Month
+		sortByColumn: Month_No
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column employee_job_name
+		dataType: string
+		lineageTag: c6d8edc2-bfa8-436c-9e2d-babd314faf3c
+		summarizeBy: none
+		sourceColumn: employee_job_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Total_Hours
+		dataType: double
+		lineageTag: 6b61cb44-a510-4db7-bd75-2b7588d12308
+		summarizeBy: sum
+		sourceColumn: Total_Hours
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column pay_component_category
+		dataType: string
+		lineageTag: 70dcaa38-c25a-48f0-8063-63dd7ba1e94a
+		summarizeBy: none
+		sourceColumn: pay_component_category
+
+		annotation SummarizationSetBy = Automatic
+
+	column hours_amount
+		dataType: double
+		lineageTag: b5c5b653-28f3-4fcb-ac59-b55e75d51625
+		summarizeBy: sum
+		sourceColumn: hours_amount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column remuneration_type
+		dataType: string
+		lineageTag: 8e472fb4-893a-4cb6-ba81-70f9bbc6e341
+		summarizeBy: none
+		sourceColumn: remuneration_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column work_class
+		dataType: string
+		lineageTag: 47181923-5cfa-4044-a6b6-4455aa880f9e
+		summarizeBy: none
+		sourceColumn: work_class
+
+		annotation SummarizationSetBy = Automatic
+
+	column work_type
+		dataType: string
+		lineageTag: 90562507-74e6-45a9-966a-73f0c34c3b08
+		summarizeBy: none
+		sourceColumn: work_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Unit of time'
+		dataType: string
+		lineageTag: e98e3afa-3ac2-48cf-a2f3-4524740dbea9
+		summarizeBy: none
+		sourceColumn: Unit of time
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_pay_run = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="#(lf)WITH pay_slip_items AS#(lf)(#(lf)    SELECT#(lf)        psi.fact_employee_pay_slip_item_key,#(lf)        psi.employee_id,#(lf)        psi.company_code,#(lf)        ps.pay_period_start_date,#(lf)        ps.pay_period_end_date,#(lf)        UPPER(LTRIM(RTRIM(psi.item_type_detail))) AS item_type_detail_norm,#(lf)        CAST(ROUND(COALESCE(psi.item_amount, 0), 2) AS DECIMAL(18,2)) AS item_amount_2dp,#(lf)        psi.item_summary,#(lf)        ROW_NUMBER() OVER#(lf)        (#(lf)            PARTITION BY#(lf)                psi.employee_id,#(lf)                psi.company_code,#(lf)                ps.pay_period_start_date,#(lf)                ps.pay_period_end_date,#(lf)                UPPER(LTRIM(RTRIM(psi.item_type_detail))),#(lf)                CAST(ROUND(COALESCE(psi.item_amount, 0), 2) AS DECIMAL(18,2))#(lf)            ORDER BY#(lf)                psi.pay_packet_id,#(lf)                psi.pay_packet_row_id,#(lf)                psi.fact_employee_pay_slip_item_key#(lf)        ) AS match_seq#(lf)    FROM edw.fact_employee_pay_slip_item AS psi#(lf)    INNER JOIN edw.fact_employee_pay_slip AS ps#(lf)        ON ps.pay_packet_id = psi.pay_packet_id#(lf)       AND ps.employee_id = psi.employee_id#(lf)       AND ps.company_code = psi.company_code#(lf)    WHERE ISNULL(psi.DWHDMLOperation, '') <> 'D'#(lf)      AND ISNULL(ps.DWHDMLOperation, '') <> 'D'#(lf)),#(lf)pay_run_match_base AS#(lf)(#(lf)    SELECT#(lf)        pri.fact_employee_pay_run_item_key,#(lf)        pri.employee_id,#(lf)        pri.company_code,#(lf)        pri.pay_period_start_date,#(lf)        pri.pay_period_end_date,#(lf)        UPPER(LTRIM(RTRIM(pri.pay_component_name))) AS pay_component_name_norm,#(lf)        CAST(ROUND(COALESCE(pri.total_amount, 0), 2) AS DECIMAL(18,2)) AS total_amount_2dp,#(lf)        ROW_NUMBER() OVER#(lf)        (#(lf)            PARTITION BY#(lf)                pri.employee_id,#(lf)                pri.company_code,#(lf)                pri.pay_period_start_date,#(lf)                pri.pay_period_end_date,#(lf)                UPPER(LTRIM(RTRIM(pri.pay_component_name))),#(lf)                CAST(ROUND(COALESCE(pri.total_amount, 0), 2) AS DECIMAL(18,2))#(lf)            ORDER BY#(lf)                pri.pay_run_id,#(lf)                pri.fact_employee_pay_run_item_key#(lf)        ) AS match_seq#(lf)    FROM edw.fact_employee_pay_run_item AS pri#(lf)),#(lf)matched_item_summary AS#(lf)(#(lf)    SELECT#(lf)        pri.fact_employee_pay_run_item_key,#(lf)        psi.item_summary#(lf)    FROM pay_run_match_base AS pri#(lf)    LEFT JOIN pay_slip_items AS psi#(lf)        ON psi.employee_id = pri.employee_id#(lf)       AND psi.company_code = pri.company_code#(lf)       AND psi.pay_period_start_date = pri.pay_period_start_date#(lf)       AND psi.pay_period_end_date = pri.pay_period_end_date#(lf)       AND psi.item_type_detail_norm = pri.pay_component_name_norm#(lf)       AND psi.item_amount_2dp = pri.total_amount_2dp#(lf)       AND psi.match_seq = pri.match_seq#(lf)),#(lf)base_result_raw AS#(lf)(#(lf)    SELECT#(lf)        pri.fact_employee_pay_run_item_key,#(lf)        pri.hours_amount,#(lf)        mis.item_summary#(lf)    FROM edw.fact_employee_pay_run_item AS pri#(lf)    LEFT JOIN matched_item_summary AS mis#(lf)        ON mis.fact_employee_pay_run_item_key = pri.fact_employee_pay_run_item_key#(lf)),#(lf)unit_resolved AS#(lf)(#(lf)    SELECT#(lf)        br.fact_employee_pay_run_item_key,#(lf)        br.hours_amount,#(lf)        br.item_summary,#(lf)        pv.hours_value,#(lf)        pv.days_value,#(lf)        pv.weeks_value,#(lf)        CASE#(lf)            WHEN mv.hours_matches = 1 THEN 'Hours'#(lf)            WHEN mv.days_matches = 1 THEN 'Days'#(lf)            WHEN mv.weeks_matches = 1 THEN 'Weeks'#(lf)            WHEN mv.unit_count = 1 AND pv.hours_value IS NOT NULL THEN 'Hours'#(lf)            WHEN mv.unit_count = 1 AND pv.days_value IS NOT NULL THEN 'Days'#(lf)            WHEN mv.unit_count = 1 AND pv.weeks_value IS NOT NULL THEN 'Weeks'#(lf)            ELSE ''#(lf)        END AS [Unit of time]#(lf)    FROM base_result_raw AS br#(lf)    OUTER APPLY#(lf)    (#(lf)        SELECT#(lf)            ' ' + LOWER(#(lf)                REPLACE(#(lf)                    REPLACE(#(lf)                        REPLACE(#(lf)                            REPLACE(#(lf)                                REPLACE(COALESCE(br.item_summary, ''), '(', ' '),#(lf)                            ')', ' '),#(lf)                        '@', ' '),#(lf)                    ',', ' '),#(lf)                CHAR(9), ' ')#(lf)            ) + ' ' AS summary_norm,#(lf)            CASE#(lf)                WHEN br.hours_amount IS NOT NULL#(lf)                    THEN CAST(ROUND(br.hours_amount, 5) AS DECIMAL(18,5))#(lf)                ELSE NULL#(lf)            END AS hours_amount_5dp#(lf)    ) AS n#(lf)    OUTER APPLY#(lf)    (#(lf)        SELECT#(lf)            COALESCE(NULLIF(CHARINDEX(' hours ', n.summary_norm), 0), NULLIF(CHARINDEX(' hour ', n.summary_norm), 0)) AS hours_pos,#(lf)            COALESCE(NULLIF(CHARINDEX(' days ',  n.summary_norm), 0), NULLIF(CHARINDEX(' day ',  n.summary_norm), 0)) AS days_pos,#(lf)            COALESCE(NULLIF(CHARINDEX(' weeks ', n.summary_norm), 0), NULLIF(CHARINDEX(' week ', n.summary_norm), 0)) AS weeks_pos#(lf)    ) AS p#(lf)    OUTER APPLY#(lf)    (#(lf)        SELECT#(lf)            LTRIM(RTRIM(LEFT(n.summary_norm, p.hours_pos - 1))) AS before_hours,#(lf)            LTRIM(RTRIM(LEFT(n.summary_norm, p.days_pos - 1)))  AS before_days,#(lf)            LTRIM(RTRIM(LEFT(n.summary_norm, p.weeks_pos - 1))) AS before_weeks#(lf)    ) AS b#(lf)    OUTER APPLY#(lf)    (#(lf)        SELECT#(lf)            TRY_CONVERT#(lf)            (#(lf)                DECIMAL(18,5),#(lf)                REVERSE#(lf)                (#(lf)                    LEFT#(lf)                    (#(lf)                        REVERSE(COALESCE(b.before_hours, '')),#(lf)                        CHARINDEX(' ', REVERSE(COALESCE(b.before_hours, '')) + ' ') - 1#(lf)                    )#(lf)                )#(lf)            ) AS hours_value,#(lf)            TRY_CONVERT#(lf)            (#(lf)                DECIMAL(18,5),#(lf)                REVERSE#(lf)                (#(lf)                    LEFT#(lf)                    (#(lf)                        REVERSE(COALESCE(b.before_days, '')),#(lf)                        CHARINDEX(' ', REVERSE(COALESCE(b.before_days, '')) + ' ') - 1#(lf)                    )#(lf)                )#(lf)            ) AS days_value,#(lf)            TRY_CONVERT#(lf)            (#(lf)                DECIMAL(18,5),#(lf)                REVERSE#(lf)                (#(lf)                    LEFT#(lf)                    (#(lf)                        REVERSE(COALESCE(b.before_weeks, '')),#(lf)                        CHARINDEX(' ', REVERSE(COALESCE(b.before_weeks, '')) + ' ') - 1#(lf)                    )#(lf)                )#(lf)            ) AS weeks_value#(lf)    ) AS pv#(lf)    OUTER APPLY#(lf)    (#(lf)        SELECT#(lf)            CASE WHEN pv.hours_value = n.hours_amount_5dp THEN 1 ELSE 0 END AS hours_matches,#(lf)            CASE WHEN pv.days_value  = n.hours_amount_5dp THEN 1 ELSE 0 END AS days_matches,#(lf)            CASE WHEN pv.weeks_value = n.hours_amount_5dp THEN 1 ELSE 0 END AS weeks_matches,#(lf)            CASE WHEN pv.hours_value IS NOT NULL THEN 1 ELSE 0 END#(lf)          + CASE WHEN pv.days_value  IS NOT NULL THEN 1 ELSE 0 END#(lf)          + CASE WHEN pv.weeks_value IS NOT NULL THEN 1 ELSE 0 END AS unit_count#(lf)    ) AS mv#(lf)),#(lf)final_calc AS#(lf)(#(lf)    SELECT#(lf)        ur.fact_employee_pay_run_item_key,#(lf)        CASE#(lf)            WHEN NULLIF(ur.[Unit of time], '') IS NOT NULL THEN ur.[Unit of time]#(lf)            WHEN ur.hours_amount IS NOT NULL THEN 'Hours'#(lf)            ELSE ''#(lf)        END AS [Unit of time],#(lf)        ur.item_summary,#(lf)        CASE#(lf)            WHEN ur.[Unit of time] = 'Hours' THEN ur.hours_value#(lf)            WHEN ur.[Unit of time] = 'Days'  THEN ur.days_value * 8#(lf)            WHEN ur.[Unit of time] = 'Weeks' THEN ur.weeks_value * 40#(lf)            WHEN NULLIF(ur.[Unit of time], '') IS NULL#(lf)             AND ur.hours_amount IS NOT NULL THEN CAST(ur.hours_amount AS DECIMAL(18,5))#(lf)            ELSE NULL#(lf)        END AS Total_Hours#(lf)    FROM unit_resolved AS ur#(lf))#(lf)SELECT#(lf)    pri.employee_id,#(lf)    pri.pay_component_name,#(lf)    pri.pay_component_category,#(lf)    pri.pay_period_start_date,#(lf)    pri.pay_period_end_date,#(lf)    pri.hours_amount,#(lf)    pri.sub_department,#(lf)    pri.sub_department_code,#(lf)    pri.remuneration_type,#(lf)    pri.work_class,#(lf)    pri.work_type,#(lf)    CASE#(lf)        WHEN MONTH(pay_period_start_date) = MONTH(pay_period_end_date) THEN#(lf)            DATENAME(MONTH, pay_period_start_date)#(lf)        ELSE#(lf)            CASE#(lf)                WHEN DATEDIFF(#(lf)                         DAY,#(lf)                         pay_period_start_date,#(lf)                         EOMONTH(pay_period_start_date)#(lf)                     )#(lf)                     >= DAY(pay_period_end_date)#(lf)                THEN DATENAME(MONTH, pay_period_start_date)#(lf)                ELSE DATENAME(MONTH, pay_period_end_date)#(lf)            END#(lf)    END AS [Month],#(lf)    fc.[Unit of time],#(lf)    fc.Total_Hours,#(lf)   -- fc.item_summary,#(lf)    e.[employee_job_name]#(lf)FROM edw.fact_employee_pay_run_item AS pri#(lf)LEFT JOIN final_calc AS fc#(lf)    ON fc.fact_employee_pay_run_item_key = pri.fact_employee_pay_run_item_key#(lf)LEFT JOIN edw.vw_dim_employee e#(lf)    ON pri.dim_employee_key = e.dim_employee_key#(lf)WHERE Total_Hours IS NOT NULL#(lf)#(lf)ORDER BY#(lf)    pri.pay_run_id,#(lf)    pri.employee_id,#(lf)    pri.pay_component_code,#(lf)    pri.fact_employee_pay_run_item_key;#(lf)"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{ {"pay_period_start_date", type date}, {"pay_period_end_date", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

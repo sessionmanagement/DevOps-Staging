@@ -1,0 +1,403 @@
+/// Financial transactions for tenancies including rent charges, payments, adjustments, and arrears. Each record is a single transaction with amount, date, and categorisation. Used to track rent balances, payment history, and financial status of tenancies. Linked to tenancies via Property Tenancy ID.
+table 'Tenancy Transaction'
+	lineageTag: a8072a86-2384-4188-a25c-7e4392131ad9
+
+	column 'Fact Property Tenancy Transaction ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 7ba524e1-8890-47ef-9869-a931348eafd8
+		summarizeBy: none
+		sourceColumn: Fact Property Tenancy Transaction ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenancy Transaction ID'
+		dataType: string
+		isHidden
+		lineageTag: 1dfa8a81-b461-4b37-bf70-d4f3c44cfb12
+		summarizeBy: none
+		sourceColumn: Property Tenancy Transaction ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 125dc939-b080-48c0-969d-dd09a8efeb43
+		summarizeBy: none
+		sourceColumn: Dim Property KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Detail KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d77219fb-2747-49f5-b4be-e2462204f429
+		summarizeBy: none
+		sourceColumn: Dim Property Detail KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Healthy Homes KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b801d5e2-4b50-41a3-b154-a7caba6d885c
+		summarizeBy: none
+		sourceColumn: Dim Property Healthy Homes KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Tenancy KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: e3b40d06-e4f6-4337-a388-d1b6149ea5a4
+		summarizeBy: none
+		sourceColumn: Dim Property Tenancy KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Program KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 69a21275-352d-43df-bcf8-435b4eb6bb17
+		summarizeBy: none
+		sourceColumn: Dim Property Program KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property ID'
+		dataType: string
+		isHidden
+		lineageTag: 53da7c02-8093-46d0-a369-63952680a8ad
+		summarizeBy: none
+		sourceColumn: Property ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenancy ID'
+		dataType: string
+		isHidden
+		lineageTag: 98c383c5-2ce3-46b2-bd24-4ad831d1d537
+		summarizeBy: none
+		sourceColumn: Property Tenancy ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Program ID'
+		dataType: string
+		isHidden
+		lineageTag: 187d0c4a-c35d-40b7-b33f-a7ce57f0745c
+		summarizeBy: none
+		sourceColumn: Property Program ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Subprogram ID'
+		dataType: string
+		isHidden
+		lineageTag: 96e74e9c-ed1e-4db6-ad3d-942ea3b4cd3e
+		summarizeBy: none
+		sourceColumn: Property Subprogram ID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the transaction was recorded in the system.
+	column 'Transaction Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: db2a59e9-fb4b-4a93-8e08-7497d9b173a4
+		summarizeBy: none
+		sourceColumn: Transaction Date
+
+		variation Variation
+			isDefault
+			relationship: 3dbf63ef-0a7f-4e37-a527-0038c4c9dbbe
+			defaultHierarchy: LocalDateTable_d70f7eb6-0725-4054-b52f-ac61408c1f6f.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Start date of the rent period this transaction covers.
+	column 'Rent From Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 6f032e40-1cd0-437b-9ed5-672e717bddbd
+		summarizeBy: none
+		sourceColumn: Rent From Date
+
+		variation Variation
+			isDefault
+			relationship: 7ef461ac-1679-4db4-9f16-75c1699795fa
+			defaultHierarchy: LocalDateTable_027185db-b561-4e58-80bf-c2172b6e13d0.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// End date of the rent period this transaction covers.
+	column 'Rent To Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 05505ed7-38e3-4c30-855b-e2082378d2b0
+		summarizeBy: none
+		sourceColumn: Rent To Date
+
+		variation Variation
+			isDefault
+			relationship: 1385ac20-1cb0-4487-9cd8-ddad0096a366
+			defaultHierarchy: LocalDateTable_84c1ea99-a940-4ec5-9bae-59e195bf0bc3.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date to which rent has been paid (for payment transactions).
+	column 'Rent Paid To'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: f880c42e-488e-4b73-81a6-2c642232f3cd
+		summarizeBy: none
+		sourceColumn: Rent Paid To
+
+		variation Variation
+			isDefault
+			relationship: fe241356-c496-4e96-8577-ab91186ea30a
+			defaultHierarchy: LocalDateTable_3eddc68b-ced6-49db-80e0-6ff43035e6b2.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Point-in-time date for which the tenancy balance was calculated.
+	column 'Tenancy As At Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: d6c53521-4392-4913-ad9a-86bddcacb767
+		summarizeBy: none
+		sourceColumn: Tenancy As At Date
+
+		variation Variation
+			isDefault
+			relationship: 8e8791ab-b393-49c3-8648-59bea8dffc67
+			defaultHierarchy: LocalDateTable_fd5911e3-c424-425b-930e-d077ad9aa4c1.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Descriptive name of the transaction type (e.g., Rent Charge, Payment, Adjustment).
+	column 'Transaction Name'
+		dataType: string
+		lineageTag: 41b6fed9-181f-46a8-8574-33b7b6989ca8
+		summarizeBy: none
+		sourceColumn: Transaction Name
+
+		annotation SummarizationSetBy = Automatic
+
+	/// General Ledger code for financial posting in the accounting system.
+	column 'G/L Code'
+		dataType: string
+		isHidden
+		lineageTag: de8746e1-8d38-468a-b1be-ba2f883267dc
+		summarizeBy: none
+		sourceColumn: G/L Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Category of transaction (e.g., Charge, Payment, Credit, Write-off).
+	column 'Transaction Type'
+		dataType: string
+		lineageTag: d63dec97-cabe-45b2-a038-f05a0b9cb449
+		summarizeBy: none
+		sourceColumn: Transaction Type
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Type of account the transaction applies to.
+	column 'Account Type'
+		dataType: string
+		lineageTag: 9fb83f55-d52b-493b-ad1a-d1c7cebd9faf
+		summarizeBy: none
+		sourceColumn: Account Type
+
+		annotation SummarizationSetBy = Automatic
+
+	/// More specific transaction classification within the main type.
+	column 'Sub Transaction Name'
+		dataType: string
+		lineageTag: 77c002c9-f939-41fc-90e7-9d3bdc7f02d5
+		summarizeBy: none
+		sourceColumn: Sub Transaction Name
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Free-text notes/comments captured against the transaction in the source system. Not referenced by any measure; retain only if reports display it in transaction-detail tables, otherwise a candidate to hide or remove to reduce model size (needs report-ref check).
+	column Comments
+		dataType: string
+		lineageTag: 06ae6b34-9330-46df-bf0e-ece3568ebad1
+		summarizeBy: none
+		sourceColumn: Comments
+
+		annotation SummarizationSetBy = Automatic
+
+	/// System state of the transaction record.
+	column 'Transaction State'
+		dataType: string
+		lineageTag: 7c5322dc-67bc-4db4-a5ed-26785d6f44f6
+		summarizeBy: none
+		sourceColumn: Transaction State
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Current status of the transaction (e.g., Posted, Pending, Reversed).
+	column 'Transaction Status'
+		dataType: string
+		lineageTag: dcf89085-3f08-4cbc-a265-bab38c8192b3
+		summarizeBy: none
+		sourceColumn: Transaction Status
+
+		annotation SummarizationSetBy = Automatic
+
+	/// System identifier for the payment type.
+	column 'Payment Type ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: f63a68e6-559b-475c-bf85-a4a9b7992fa1
+		summarizeBy: none
+		sourceColumn: Payment Type ID
+
+		annotation SummarizationSetBy = User
+
+	/// Classification of whether the transaction relates to rent or other charges.
+	column 'Rent Or Non-Rent'
+		dataType: string
+		lineageTag: f1dff352-d839-49c9-83eb-7f51f030247c
+		summarizeBy: none
+		sourceColumn: Rent Or Non-Rent
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates if the transaction is a credit (reduces balance) or debit (increases balance).
+	column 'Credit Or Debit'
+		dataType: string
+		lineageTag: bd55926d-fdbe-4e3c-bd98-305c7a6370d1
+		summarizeBy: none
+		sourceColumn: Credit Or Debit
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates if this transaction is part of an arrears repayment arrangement.
+	column 'Arrears Arrangement'
+		dataType: string
+		lineageTag: 4afbcda5-7b4a-4e07-bbdb-79e722f273fc
+		summarizeBy: none
+		sourceColumn: Arrears Arrangement
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates if this payment was imported from an external system.
+	column 'Import Payment'
+		dataType: string
+		isHidden
+		lineageTag: 0cbfdf1e-3e94-4152-b0ca-67def0e95504
+		summarizeBy: none
+		sourceColumn: Import Payment
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Business Central entry number linking to the accounting system transaction.
+	column 'Bc Entry No'
+		dataType: string
+		isHidden
+		lineageTag: 9e8af6f1-7275-43e5-ace3-935833380374
+		summarizeBy: none
+		sourceColumn: Bc Entry No
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Transaction amount in dollars, signed per the source ledger: charges to the tenant are stored as NEGATIVE and payments/credits received are stored as POSITIVE (e.g. Rent Charge is negative, Rent Payment is positive). Additive (summarizeBy sum) — the sum is a net signed balance movement, not gross charges.
+	column Amount
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 2792904e-efcf-4d57-89e0-ef518de6939d
+		summarizeBy: sum
+		sourceColumn: Amount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Running balance of non-rent transactions (e.g., maintenance charges, fees).
+	column 'Balance Non Rent'
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 681e6f04-250d-4f48-9483-b8355455cf43
+		summarizeBy: none
+		sourceColumn: Balance Non Rent
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Running balance of rent-related transactions for this tenancy.
+	column 'Balance Rent'
+		dataType: double
+		formatString: #,0.00
+		lineageTag: c8ddffd2-c419-43b3-8fd2-beac4bfd514e
+		summarizeBy: none
+		sourceColumn: Balance Rent
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Total running balance (rent + non-rent) for this tenancy.
+	column 'Balance Total'
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 9a4301af-a0f8-4270-ba5e-02845a43e2de
+		summarizeBy: none
+		sourceColumn: Balance Total
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Receipt number for payment transactions.
+	column 'Receipt Number (Number)'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 8942aa21-5b12-4286-9746-d283fad33032
+		summarizeBy: none
+		sourceColumn: Receipt Number (Number)
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	/// Flag indicating if this record contains the most recent balance snapshot for the tenancy. Use this to filter for current balances.
+	column 'Is Latest Balance'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 1d023ecc-6419-41e6-89cd-fd87ec2ecb32
+		summarizeBy: none
+		sourceColumn: Is Latest Balance
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Tenancy Transaction' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT [fact_property_tenancy_transaction_id]#(lf)      ,[property_tenancy_transaction_id]#(lf)      ,[dim_property_key]#(lf)      ,[dim_property_detail_key]#(lf)      ,[dim_property_healthy_homes_key]#(lf)      ,[dim_property_tenancy_key]#(lf)      ,[dim_property_program_key]#(lf)      ,[property_id]#(lf)      ,[property_tenancy_id]#(lf)      ,[property_program_id]#(lf)      ,[property_subprogram_id]#(lf)      ,TRY_CONVERT(DATE, CAST([property_tenancy_transaction_date_key] AS CHAR(8)), 112) AS [Transaction Date]#(lf)      ,TRY_CONVERT(DATE, CAST([property_tenancy_transaction_rent_from_date_key] AS CHAR(8)), 112) AS [Rent From Date]#(lf)      ,TRY_CONVERT(DATE, CAST([property_tenancy_transaction_rent_to_date_key] AS CHAR(8)), 112) AS [Rent To Date]#(lf)      ,TRY_CONVERT(DATE, CAST([property_tenancy_transaction_rent_paid_to_date_key] AS CHAR(8)), 112) AS [Rent Paid To]#(lf)      ,TRY_CONVERT(DATE, CAST([property_tenancy_transaction_as_at_date_key] AS CHAR(8)), 112) AS [Tenancy As At Date]#(lf)      ,[property_tenancy_transaction_name] AS [Transaction Name]#(lf)      ,[property_tenancy_transaction_type_code] AS [G/L Code]#(lf)      ,[property_tenancy_transaction_type] AS [Transaction Type]#(lf)      ,[property_tenancy_transaction_account_type] AS [Account Type]#(lf)      ,[property_tenancy_transaction_subtransaction_name] AS [Sub Transaction Name]#(lf)      ,[property_tenancy_transaction_comments] AS [Comments]#(lf)      ,[property_tenancy_transaction_state] AS [Transaction State]#(lf)      ,[property_tenancy_transaction_status] AS [Transaction Status]#(lf)      ,[property_tenancy_transaction_payment_type_id] AS [Payment Type ID]#(lf)      --,[property_tenancy_transaction_payment_type] AS [Payment Type]#(lf)      ,[property_tenancy_transaction_rent_nonrent] AS [Rent or Non-Rent]#(lf)      ,[property_tenancy_transaction_credit_debit] AS [Credit or Debit]#(lf)      ,[property_tenancy_transaction_arrears_arrangement] AS [Arrears Arrangement]#(lf)      ,[property_tenancy_transaction_import_payment_name] AS [import payment]#(lf)      ,[property_tenancy_transaction_bc_entry_number] AS [BC Entry No]#(lf)      ,[property_tenancy_transaction_amount] AS [Amount]#(lf)      ,[property_tenancy_transaction_balance_non_rent] AS [Balance Non Rent]#(lf)      ,[property_tenancy_transaction_balance_rent] AS [Balance Rent]#(lf)      ,[property_tenancy_transaction_balance_total] AS [Balance Total]#(lf)      ,[property_tenancy_transaction_receipt_number] AS [Receipt Number (Number)]#(lf)      ,CASE#(lf)          WHEN [fact_property_tenancy_transaction_id] = MAX([fact_property_tenancy_transaction_id]) OVER (PARTITION BY [property_tenancy_id])#(lf)          THEN 1 ELSE 0#(lf)       END AS [Is Latest Balance]#(lf)  FROM [edw].[fact_property_tenancy_transaction]#(lf)  WHERE [DWHDMLOperation] <> 'D'#(lf)    AND [property_id] IS NOT NULL#(lf)    AND [property_tenancy_id] IS NOT NULL"]),
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, fnApplyNamingConventions),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Transformed Column Names",{{"Is Latest Balance", type logical}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Exception
+

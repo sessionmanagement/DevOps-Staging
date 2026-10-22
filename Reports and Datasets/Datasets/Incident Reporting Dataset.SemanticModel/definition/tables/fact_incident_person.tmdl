@@ -1,0 +1,85 @@
+table fact_incident_person
+	lineageTag: 781688e9-e006-4d5c-b942-0a5a17158799
+
+	column PersonAndTypeKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 7c0cfac2-34a9-4e56-ba92-08cf3a29a2bd
+		summarizeBy: none
+		sourceColumn: PersonAndTypeKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 0c63934e-056e-40ca-b888-2eb1a576f865
+		summarizeBy: none
+		sourceColumn: IncidentKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonDOB = RELATED(dim_person_and_user[PersonDateOfBirth])
+		isHidden
+		formatString: Short Date
+		lineageTag: 554a9304-698f-4ab3-9605-782a1bca5891
+		summarizeBy: none
+
+		changedProperty = DataType
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column IncidentDate = RELATED(fact_incident[IncidentDate])
+		isHidden
+		formatString: Short Date
+		lineageTag: b987a5cc-6c81-41d9-96e3-5012b31d734e
+		summarizeBy: none
+
+		changedProperty = DataType
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column PersonAgeAtIncident = FLOOR(DATEDIFF(fact_incident_person[PersonDOB], fact_incident_person[IncidentDate], DAY)/365,1)
+		formatString: 0
+		lineageTag: 700ebf4b-3fc5-4caf-8b17-88e769929aeb
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentPersonEntityType
+		dataType: string
+		lineageTag: 6cb98bc2-7782-4392-81db-9ce4c98347a9
+		summarizeBy: none
+		sourceColumn: IncidentPersonEntityType
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentPersonRole
+		dataType: string
+		lineageTag: 02cdc610-63a2-4d65-8358-fed20dcfc08c
+		summarizeBy: none
+		sourceColumn: IncidentPersonRole
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_incident_person-ddfe4f45-dac9-4681-b5d9-91569a42bbfa = m
+		mode: import
+		queryGroup: Facts
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="-- ============================================================#(lf)-- Model:  Incident Reporting Dataset#(lf)-- Table:  fact_incident_person#(lf)-- Source: native query (complex CTE/window) - emitted in full#(lf)-- Used columns: 5 (mapped 5, unmapped 0)  [full query, not trimmed]#(lf)-- Auto-generated from pbi_complete_dump.csv + model M + EDW/ODS schema.#(lf)-- Review before use; verify joins/filters against the model.#(lf)-- ============================================================#(lf)-- USED model columns: IncidentDate; IncidentKey; PersonAgeAtIncident; PersonAndTypeKey; PersonDOB#(lf)#(lf)Select#(tab)#(tab)fcip.dim_client_key As PersonAndTypeKey,#(lf)#(tab)#(tab)#(tab)fcip.dim_client_incident_company_key_incident_id_key As IncidentKey,#(lf)#(tab)#(tab)#(tab)fcip.incident_client_entity_type As IncidentPersonEntityType,#(lf)#(tab)#(tab)#(tab)fcip.incident_client_role As IncidentPersonRole#(lf)From#(tab)#(tab)edw.vw_fact_client_incident_person fcip#(lf)#(tab)Inner Join#(tab)edw.vw_dim_client_incident dci#(lf)#(tab)#(tab)On#(tab)#(tab)fcip.incident_id = dci.incident_id#(lf)#(tab)#(tab)And#(tab)#(tab)fcip.dim_company_key = dci.dim_company_key#(lf)#(tab)#(tab)And#(tab)#(tab)dci.DWHIsCurrent = 1#(lf)#(tab)#(tab)And#(tab)#(tab)dci.DWHDMLOperation <> 'D'#(lf)Where#(tab)#(tab)fcip.DWHIsCurrent = 1#(lf)#(tab)And#(tab)#(tab)fcip.DWHDMLOperation <> 'D'#(lf)#(lf)Union All#(lf)#(lf)Select#(tab)#(tab)0 As PersonAndTypeKey,#(lf)#(tab)#(tab)#(tab)dci.dim_client_incident_company_key_incident_id_key As IncidentKey,#(lf)#(tab)#(tab)#(tab)'Person' As IncidentPersonEntityType,#(lf)#(tab)#(tab)#(tab)'N/A' As IncidentPersonRole#(lf)From#(tab)#(tab)edw.vw_dim_client_incident dci#(lf)Where#(tab)#(tab)dci.DWHIsCurrent = 1#(lf)#(tab)And#(tab)#(tab)dci.DWHDMLOperation <> 'D'#(lf)#(tab)And#(tab)#(tab)dci.dim_client_incident_company_key_incident_id_key > 0#(lf)#(tab)And#(tab)#(tab)Not Exists (#(lf)#(tab)#(tab)#(tab)Select#(tab)#(tab)*#(lf)#(tab)#(tab)#(tab)From#(tab)#(tab)edw.fact_client_incident_person fcip#(lf)#(tab)#(tab)#(tab)Where#(tab)#(tab)dci.dim_client_incident_company_key_incident_id_key = fcip.dim_client_incident_company_key_incident_id_key#(lf)#(tab)#(tab)#(tab)#(tab)And#(tab)#(tab)fcip.DWHIsCurrent = 1#(lf)#(tab)#(tab)#(tab)#(tab)And#(tab)#(tab)fcip.DWHDMLOperation <> 'D');#(lf)"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

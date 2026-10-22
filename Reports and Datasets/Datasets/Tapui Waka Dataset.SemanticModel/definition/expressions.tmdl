@@ -1,0 +1,245 @@
+expression work_fact_trip_summary_dim_team_asset =
+		let
+		    Source = #"Speed and Trip Sample (Trip Summaries)",
+		    #"Changed Type1" = Table.TransformColumnTypes(
+		        Source,
+		        {
+		            {"Asset Name", type text},
+		            {"Trip Start Date", type datetime},
+		            {"Start Time", type datetime},
+		            {"Trip End Date", type datetime},
+		            {"End Time", type datetime},
+		            {"KM Within Tolerance", type number},
+		            {"1km/h - 9km/h Over", type number},
+		            {"10km/h - 19km/h Over", type number},
+		            {"20km/h - 29km/h Over", type number},
+		            {"30km/h - 34km/h Over", Int64.Type},
+		            {"35km/h - 40km/h Over", Int64.Type},
+		            {"41km/h+ Over", Int64.Type},
+		            {"Total (km)", type number}
+		        }
+		    )
+		in
+		    #"Changed Type1"
+	lineageTag: 8b2604d5-efd3-4216-90fd-855a82781112
+	queryGroup: Work
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression fact_speed_details_dim_team_asset =
+		let
+		    Source = #"Speed and Trip Sample",
+		    #"Changed Type1" = Table.TransformColumnTypes(
+		        Source,
+		        {
+		            {"Asset Name", type text},
+		            {"Start Date", type datetime},
+		            {"Start Time", type datetime},
+		            {"End Date", type datetime},
+		            {"End Time", type datetime},
+		            {"Start Road", type text},
+		            {"End Road", type text},
+		            {"Min Speed (km/h)", Int64.Type},
+		            {"Max Speed (km/h)", Int64.Type},
+		            {"Average Speed (km/h)", type number},
+		            {"Limit (km/h)", Int64.Type},
+		            {"Distance (km)", type number},
+		            {"Driver/Operator List", type text},
+		            {"Column14", type any}
+		        }
+		    ),
+		    #"Removed Columns" = Table.RemoveColumns(#"Changed Type1", {"Column14"}),
+		    #"Appended Query" = Table.Combine({#"Removed Columns", work_fact_trip_summary_dim_team_asset}),
+		    #"Removed Other Columns" = Table.SelectColumns(#"Appended Query", {"Asset Name"}),
+		    #"Filtered Rows" = Table.SelectRows(#"Removed Other Columns", each [Asset Name] <> null and [Asset Name] <> "")
+		in
+		    #"Filtered Rows"
+	lineageTag: 29f9d2f3-8a15-40de-910e-a06e5ecdc435
+	queryGroup: Work
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'Additional Access' =
+		let
+		    // Load data from SharePoint
+		    Source = SharePoint.Tables(
+		        "https://emergeaotearoaltd.sharepoint.com/sites/OPS_ITServices/", [Implementation = "2.0", ViewMode = "All"]
+		    ),
+		    // Access specific table by ID
+		    SelectedTable = Source{[Id = "27e19ae7-4448-4dfe-b172-3ee660e6e1df"]}[Items],
+		    // Expand "Requester" List Column
+		    ExpandedRequesterList = Table.ExpandListColumn(SelectedTable, "Requester"),
+		    // Expand "Requester" Record Column to "email"
+		    ExpandedRequesterEmail = Table.ExpandRecordColumn(
+		        ExpandedRequesterList, "Requester", {"email"}, {"Requester Email"}
+		    ),
+		    // Expand "Person to Impersonate" List Column
+		    ExpandedImpersonateList = Table.ExpandListColumn(ExpandedRequesterEmail, "Person to Impersonate"),
+		    // Expand "Person to Impersonate" Record Column to "email"
+		    ExpandedImpersonateEmail = Table.ExpandRecordColumn(
+		        ExpandedImpersonateList, "Person to Impersonate", {"email"}, {"Person to Impersonate Email"}
+		    ),
+		    // Expand "Approved By" List Column
+		    ExpandedApprovedList = Table.ExpandListColumn(ExpandedImpersonateEmail, "Approved By"),
+		    // Expand "Approved By" Record Column to "email"
+		    ExpandedApprovedEmail = Table.ExpandRecordColumn(
+		        ExpandedApprovedList, "Approved By", {"email"}, {"Approved By Email"}
+		    ),
+		    // Remove unnecessary columns
+		    RemovedUnnecessaryColumns = Table.RemoveColumns(
+		        ExpandedApprovedEmail,
+		        {
+		            "Color Tag",
+		            "Compliance Asset Id",
+		            "ID",
+		            "Content Type",
+		            "Attachments",
+		            "Edit",
+		            "Type",
+		            "Item Child Count",
+		            "Folder Child Count",
+		            "Label setting",
+		            "Retention label",
+		            "Retention label Applied",
+		            "Label applied by",
+		            "Item is a Record",
+		            "App Created By",
+		            "App Modified By"
+		        }
+		    ),
+		    // Expand "Created By" List Column
+		    ExpandedCreatedByList = Table.ExpandListColumn(RemovedUnnecessaryColumns, "Created By"),
+		    // Expand "Created By" Record Column to "email"
+		    ExpandedCreatedByEmail = Table.ExpandRecordColumn(
+		        ExpandedCreatedByList, "Created By", {"email"}, {"Created By Email"}
+		    ),
+		    // Expand "Modified By" List Column
+		    ExpandedModifiedByList = Table.ExpandListColumn(ExpandedCreatedByEmail, "Modified By"),
+		    // Expand "Modified By" Record Column to "email"
+		    ExpandedModifiedByEmail = Table.ExpandRecordColumn(
+		        ExpandedModifiedByList, "Modified By", {"email"}, {"Modified By Email"}
+		    ),
+		    // Change data types of specified columns
+		    ChangedColumnTypes = Table.TransformColumnTypes(
+		        ExpandedModifiedByEmail,
+		        {
+		            {"Person to Impersonate Email", type text},
+		            {"Requester Email", type text},
+		            {"Expiry Date", type date},
+		            {"Access Reason", type text},
+		            {"Approved By Email", type text},
+		            {"Approved Date", type date},
+		            {"Modified", type date},
+		            {"Created", type date},
+		            {"Created By Email", type text},
+		            {"Modified By Email", type text}
+		        }
+		    ),
+		    // Filtering rows where "Expiry Date" is greater than or equal to today
+		    ExpiryDateFilter = Table.SelectRows(ChangedColumnTypes, each [Expiry Date] >= Date.From(DateTime.LocalNow())),
+		    #"Lowercased Text" = Table.TransformColumns(ExpiryDateFilter,{{"Requester Email", Text.Lower, type text}, {"Person to Impersonate Email", Text.Lower, type text}}),
+		    // Filter rows where "Report" is the current report
+		    ReportFilter = Table.SelectRows(#"Lowercased Text", each ([Report] = "Tapui Waka Dataset"))
+		in
+		    ReportFilter
+	lineageTag: c6883bbb-5982-471e-ac60-d09ce3681139
+	queryGroup: RLS
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'RLS - New Intelli Structure' =
+		let
+		    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)    m.manager_id,#(lf)    m.manager_email,#(lf)    m.manager_business_unit,#(lf)    e.employee_id,#(lf)    e.employee_primary_email_address AS employee_email,#(lf)    e.employee_company_name AS employee_company#(lf)FROM#(lf)    edw.dim_employee_hierarchy e#(lf)    CROSS APPLY (VALUES#(lf)        -- Level 1 Manager#(lf)        (e.employee_people_leader_employee_number_level_1, e.employee_people_leader_email_level_1, e.employee_people_leader_business_unit_name_level_1),#(lf)        -- Level 2 Manager#(lf)        (e.employee_people_leader_employee_number_level_2, e.employee_people_leader_email_level_2, e.employee_people_leader_business_unit_name_level_2),#(lf)        -- Level 3 Manager#(lf)        (e.employee_people_leader_employee_number_level_3, e.employee_people_leader_email_level_3, e.employee_people_leader_business_unit_name_level_3),#(lf)        -- Level 4 Manager#(lf)        (e.employee_people_leader_employee_number_level_4, e.employee_people_leader_email_level_4, e.employee_people_leader_business_unit_name_level_4),#(lf)        -- Level 5 Manager#(lf)        (e.employee_people_leader_employee_number_level_5, e.employee_people_leader_email_level_5, e.employee_people_leader_business_unit_name_level_5),#(lf)        -- Level 6 Manager#(lf)        (e.employee_people_leader_employee_number_level_6, e.employee_people_leader_email_level_6, e.employee_people_leader_business_unit_name_level_6),#(lf)        -- Level 7 Manager#(lf)        (e.employee_people_leader_employee_number_level_7, e.employee_people_leader_email_level_7, e.employee_people_leader_business_unit_name_level_7),#(lf)        -- Level 8 Manager#(lf)        (e.employee_people_leader_employee_number_level_8, e.employee_people_leader_email_level_8, e.employee_people_leader_business_unit_name_level_8),#(lf)        -- Level 9 Manager#(lf)        (e.employee_people_leader_employee_number_level_9, e.employee_people_leader_email_level_9, e.employee_people_leader_business_unit_name_level_9)#(lf)    ) m(manager_id, manager_email, manager_business_unit)#(lf)WHERE#(lf)    e.[DWHIsCurrent] = 1#(lf)    AND e.[DWHDMLOperation] <> 'D'#(lf)    AND m.manager_id IS NOT NULL;"]),
+		    ApplyNamingConventions = (columnName as text) as text =>
+		        let
+		            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+		            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+		            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+		            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+		            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+		            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+		            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+		            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+		            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+		            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+		            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+		            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+		            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+		            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+		        in
+		            capitaliseDWH,
+		    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+		    #"Renamed Columns" = Table.RenameColumns(#"Transformed Column Names",{{"Manager Email", "User Principal Name"}}),
+		    #"Lowercased Text" = Table.TransformColumns(#"Renamed Columns",{{"User Principal Name", Text.Lower, type text}, {"Employee Email", Text.Lower, type text}}),
+		    #"Removed Duplicates" = Table.Distinct(#"Lowercased Text")
+		in
+		    #"Removed Duplicates"
+	lineageTag: ea98a7af-0673-4a88-95d6-e81c42b6f2df
+	queryGroup: RLS
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+/// Azure SQL Server
+expression Server = "sql-prod-aus-svc-datawarehouse-01.database.windows.net" meta [IsParameterQuery=true, List={"sql-dev-aue-svc-datawarehouse-01.database.windows.net", "sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sql-test-aus-svc-datawarehouse-01.database.windows.net"}, DefaultValue="sql-dev-aue-svc-datawarehouse-01.database.windows.net", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 8cfb4808-12fd-4d3d-b782-0c86acc330b2
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+expression Database = "sqldb-prod-datawarehouse-01" meta [IsParameterQuery=true, List={"sqldb-dev-datawarehouse-01", "sqldb-prod-datawarehouse-01", "sqldb-test-datawarehouse-01"}, DefaultValue="sqldb-prod-datawarehouse-01", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: a8e90462-a5a1-406b-a2ac-3527723efa42
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+expression 'PBI Service RLS Impersonation' = "BLANK" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 1acf227c-3b11-46b7-a4ef-637c42df388c
+	queryGroup: RLS
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+expression rls_employee_emails =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="WITH EmployeeLeaderEmails AS (#(lf)    SELECT #(lf)        [employee_primary_email_address] AS employee_email,#(lf)        [employee_people_leader_email_level_1] AS leader_email#(lf)    FROM #(lf)        [edw].[vw_dim_employee_hierarchy]#(lf)    WHERE #(lf)        DWHIsCurrent = 1#(lf)        AND dim_employee_hierarchy_key > 0#(lf)#(lf)    UNION#(lf)#(lf)    SELECT #(lf)        [employee_primary_email_address] AS employee_email,#(lf)        [employee_people_leader_email_level_2] AS leader_email#(lf)    FROM #(lf)        [edw].[vw_dim_employee_hierarchy]#(lf)    WHERE #(lf)        DWHIsCurrent = 1#(lf)        AND dim_employee_hierarchy_key > 0#(lf)#(lf)    UNION#(lf)#(lf)    SELECT #(lf)        [employee_primary_email_address] AS employee_email,#(lf)        [employee_people_leader_email_level_3] AS leader_email#(lf)    FROM #(lf)        [edw].[vw_dim_employee_hierarchy]#(lf)    WHERE #(lf)        DWHIsCurrent = 1#(lf)        AND dim_employee_hierarchy_key > 0#(lf)#(lf)    UNION#(lf)#(lf)    SELECT #(lf)        [employee_primary_email_address] AS employee_email,#(lf)        [employee_people_leader_email_level_4] AS leader_email#(lf)    FROM #(lf)        [edw].[vw_dim_employee_hierarchy]#(lf)    WHERE #(lf)        DWHIsCurrent = 1#(lf)        AND dim_employee_hierarchy_key > 0#(lf)#(lf)    UNION#(lf)#(lf)    SELECT #(lf)        [employee_primary_email_address] AS employee_email,#(lf)        [employee_people_leader_email_level_5] AS leader_email#(lf)    FROM #(lf)        [edw].[vw_dim_employee_hierarchy]#(lf)    WHERE #(lf)        DWHIsCurrent = 1#(lf)        AND dim_employee_hierarchy_key > 0#(lf)#(lf)    UNION#(lf)#(lf)    SELECT #(lf)        [employee_primary_email_address] AS employee_email,#(lf)        [employee_people_leader_email_level_6] AS leader_email#(lf)    FROM #(lf)        [edw].[vw_dim_employee_hierarchy]#(lf)    WHERE #(lf)        DWHIsCurrent = 1#(lf)        AND dim_employee_hierarchy_key > 0#(lf)#(lf)    UNION#(lf)#(lf)    SELECT #(lf)        [employee_primary_email_address] AS employee_email,#(lf)        [employee_people_leader_email_level_7] AS leader_email#(lf)    FROM #(lf)        [edw].[vw_dim_employee_hierarchy]#(lf)    WHERE #(lf)        DWHIsCurrent = 1#(lf)        AND dim_employee_hierarchy_key > 0#(lf)#(lf)    UNION#(lf)#(lf)    SELECT #(lf)        [employee_primary_email_address] AS employee_email,#(lf)        [employee_people_leader_email_level_8] AS leader_email#(lf)    FROM #(lf)        [edw].[vw_dim_employee_hierarchy]#(lf)    WHERE #(lf)        DWHIsCurrent = 1#(lf)        AND dim_employee_hierarchy_key > 0#(lf)#(lf)    UNION#(lf)#(lf)    SELECT #(lf)        [employee_primary_email_address] AS employee_email,#(lf)        [employee_people_leader_email_level_9] AS leader_email#(lf)    FROM #(lf)        [edw].[vw_dim_employee_hierarchy]#(lf)    WHERE #(lf)        DWHIsCurrent = 1#(lf)        AND dim_employee_hierarchy_key > 0#(lf))#(lf)SELECT DISTINCT #(lf)    LOWER(employee_email) AS employee_email,#(lf)    LOWER(leader_email) AS leader_email#(lf)FROM #(lf)    EmployeeLeaderEmails#(lf)WHERE #(lf)    leader_email IS NOT NULL;"])
+		in
+		    Source
+	lineageTag: 64b60d43-19ea-4119-bce3-00a1d1eae58f
+	queryGroup: RLS
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'Fuel Invoice Data (old)' =
+		let
+		    Source = SharePoint.Files("https://emergeaotearoaltd.sharepoint.com/sites/DRCollaboration/", [ApiVersion = 15]),
+		    #"Filtered Rows" = Table.SelectRows(Source, each Text.Contains([Name], "20240710") or Text.Contains([Name], "20240730")),
+		    #"Filtered Rows1" = Table.SelectRows(#"Filtered Rows", each ([Name] = "Fuel Invoice Data 20240730.xlsx")),
+		    #"Fuel Invoice Data 20240730 xlsx_https://emergeaotearoaltd sharepoint com/sites/DRCollaboration/Shared Documents/General/Power BI Report/Tapui Waka/Sample Data/" = #"Filtered Rows1"{[Name="Fuel Invoice Data 20240730.xlsx",#"Folder Path"="https://emergeaotearoaltd.sharepoint.com/sites/DRCollaboration/Shared Documents/General/Power BI Report/Tapui Waka/Sample Data/"]}[Content],
+		    #"Imported Excel Workbook" = Excel.Workbook(#"Fuel Invoice Data 20240730 xlsx_https://emergeaotearoaltd sharepoint com/sites/DRCollaboration/Shared Documents/General/Power BI Report/Tapui Waka/Sample Data/"),
+		    #"Page 1_Sheet" = #"Imported Excel Workbook"{[Item="Page 1",Kind="Sheet"]}[Data],
+		    #"Promoted Headers" = Table.PromoteHeaders(#"Page 1_Sheet", [PromoteAllScalars=true]),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"Asset Description", type text}, {"Vehicle Registration", type text}, {"Remaining Months", Int64.Type}, {"Contract Km", Int64.Type}, {"Contract End Km", Int64.Type}, {"Maturity Date", type date}, {"Billing Start", type date}, {"Billing End", type date}, {"Amount Excl GST", type number}, {"GST", type number}, {"Amount Incl GST", type number}, {"Driver", type text}, {"Cost Center", type text}, {"Invoice Description", type text}})
+		in
+		    #"Changed Type"
+	lineageTag: 151a96e7-c749-4bac-9c35-6627358fad5e
+	queryGroup: 'Excel Spreadsheets'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

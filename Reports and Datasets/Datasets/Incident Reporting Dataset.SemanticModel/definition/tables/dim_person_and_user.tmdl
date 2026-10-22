@@ -1,0 +1,109 @@
+table dim_person_and_user
+	lineageTag: 40588222-cf0d-4416-be16-3d3f69c4082e
+
+	column PersonAndTypeKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 1e2b4943-0555-457e-ba9b-91c58a2a8363
+		summarizeBy: none
+		sourceColumn: PersonAndTypeKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonFirstName
+		dataType: string
+		lineageTag: 18a6e1fd-5597-4228-809c-4806f8337c2b
+		summarizeBy: none
+		sourceColumn: PersonFirstName
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonLastName
+		dataType: string
+		lineageTag: 7428f70d-9184-41d0-bae7-a9707b370e8e
+		summarizeBy: none
+		sourceColumn: PersonLastName
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonFullName
+		dataType: string
+		lineageTag: f0903c83-b17a-433f-8a72-081ee57787e9
+		summarizeBy: none
+		sourceColumn: PersonFullName
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonDateOfBirth
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 3c012282-b0ee-4edc-ab6b-7e74f2906f98
+		summarizeBy: none
+		sourceColumn: PersonDateOfBirth
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderText
+		dataType: string
+		lineageTag: 4345ef0f-b9f1-40c9-8d5b-f073519cb08f
+		summarizeBy: none
+		sourceColumn: GenderText
+
+		annotation SummarizationSetBy = Automatic
+
+	column EthnicityBucket
+		dataType: string
+		lineageTag: 6ab91068-a226-466e-ab36-afbd3a406dbe
+		summarizeBy: none
+		sourceColumn: EthnicityBucket
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation __PBI_SemanticLinks = [{"LinkTarget":{"TableName":"dim_person_and_user","TableItemName":"EthnicityBucket (groups)","ObjectType":4},"LinkType":"UsedInGroup"}]
+
+	column 'EthnicityBucket (groups)' =
+			SWITCH(
+				TRUE,
+				ISBLANK('dim_person_and_user'[EthnicityBucket]),
+				"(Blank)",
+				'dim_person_and_user'[EthnicityBucket] IN {"Maori"},
+				"Maori",
+				'dim_person_and_user'[EthnicityBucket]
+			)
+		lineageTag: e793bd2a-74e9-43d6-8037-4e45a726a219
+		summarizeBy: none
+
+		extendedProperty GroupingMetadata =
+				{
+				  "version": 0,
+				  "groupedColumns": [
+				    {
+				      "Column": {
+				        "Expression": {
+				          "SourceRef": {
+				            "Entity": "dim_person_and_user"
+				          }
+				        },
+				        "Property": "EthnicityBucket"
+				      }
+				    }
+				  ]
+				}
+
+		annotation GroupingDesignState = {"Version":0,"Sources":[{"Name":"d","Entity":"dim_person_and_user"}],"GroupedColumns":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"EthnicityBucket"}}],"GroupItems":[{"DisplayName":"(Blank)","BlankDefaultPlaceholder":true},{"DisplayName":"Maori","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"EthnicityBucket"}}],"Values":[[{"Literal":{"Value":"'Maori'"}}]]}}}]}
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_person_and_user-f5d6d6b9-1592-4040-ae40-5051e1a21c9c = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="Select#(tab)#(tab)dc.dim_client_key As PersonAndTypeKey,#(lf)#(tab)#(tab)#(tab)dc.client_first_name As PersonFirstName,#(lf)#(tab)#(tab)#(tab)dc.client_last_name As PersonLastName,#(lf)#(tab)#(tab)#(tab)Concat(IsNull(trim(dc.client_first_name), ''), ' ' + IsNull(trim(dc.client_last_name) ,'')) As PersonFullName,#(lf)#(tab)#(tab)#(tab)dc.client_date_of_birth As PersonDateOfBirth,#(lf)#(tab)#(tab)#(tab)dc.client_gender As GenderText,#(lf)#(tab)#(tab)#(tab)Case When dc.primary_ethnicity_group In ('Asian nfd', 'Chinese', 'Indian', 'Other Asian', 'Southeast Asian')#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)Then 'Asian'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)When dc.primary_ethnicity_group In ('European nfd', 'New Zealand European', 'Other European')#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)Then 'European'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)When dc.primary_ethnicity_group In ('Maori')#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)Then N'Māori'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)When dc.primary_ethnicity_group In ('African', 'Latin American', 'Middle Eastern')#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)Then 'Middle Eastern, Latin American, African'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)When dc.primary_ethnicity_group In ('Other Ethnicity')#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)Then 'Other'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)When dc.primary_ethnicity_group In ('Cook Islands Maori', 'Fijian', 'Niuean', 'Other Pacific Peoples', 'Pacific Peoples nfd', 'Samoan', 'Tokelauan', 'Tongan')#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)Then 'Pasifika'#(lf)#(tab)#(tab)#(tab)#(tab)Else 'Unknown/Undisclosed'#(lf)#(tab)#(tab)#(tab)#(tab)End As EthnicityBucket#(lf)From#(tab)#(tab)edw.vw_dim_client dc#(lf)"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

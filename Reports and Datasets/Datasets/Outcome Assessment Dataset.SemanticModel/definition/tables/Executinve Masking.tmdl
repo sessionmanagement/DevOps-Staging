@@ -1,0 +1,46 @@
+table 'Executinve Masking'
+	lineageTag: 1c803ed3-9870-4627-b866-01358ce212b7
+
+	column 'User Principal Name'
+		dataType: string
+		lineageTag: f356c274-78d9-4f3f-ac36-1085e32d4120
+		summarizeBy: none
+		sourceColumn: User Principal Name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Executinve Masking' = m
+		mode: import
+		queryGroup: Timi
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT LOWER(edw.vw_dim_employee.employee_primary_email_address) AS employee_primary_email_address#(lf)FROM edw.vw_dim_employee#(lf)WHERE #(lf)    (#(lf)        employee_people_manager_job_name = 'Group Chief Executive'#(lf)        OR employee_job_name = 'Group Chief Executive'#(lf)    )#(lf)    AND DWHIsCurrent = 1#(lf)    AND DWHDMLOperation <> 'D'#(lf)    AND employee_employment_status IN ('Current Staff', 'Exiting Staff');"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				    #"Renamed Columns" = Table.RenameColumns(#"Transformed Column Names",{{"Employee Primary Email Address", "User Principal Name"}}),
+				    #"Lowercased Text" = Table.TransformColumns(#"Renamed Columns",{{"User Principal Name", Text.Lower, type text}}),
+				    #"Removed Duplicates" = Table.Distinct(#"Lowercased Text")
+				in
+				    #"Removed Duplicates"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,88 @@
+table 'Date Table'
+	lineageTag: a5af412a-e7df-4513-8a7d-3eac5ded37b1
+	dataCategory: Time
+
+	column 'Created Date'
+		dataType: dateTime
+		isKey
+		formatString: dd/mm/yyyy
+		lineageTag: ebb84f69-403e-4600-9703-66e2ac58c6e3
+		summarizeBy: none
+		sourceColumn: Created Date
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column calendar_year_createddate
+		dataType: int64
+		formatString: 0
+		lineageTag: 7174386c-ed58-4d7c-9451-12ed2f0b5c92
+		summarizeBy: sum
+		sourceColumn: calendar_year_createddate
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_createddate
+		dataType: int64
+		formatString: 0
+		lineageTag: b9dcf12c-6084-4297-88fd-04f61a0e9c90
+		summarizeBy: sum
+		sourceColumn: month_createddate
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_month
+		dataType: int64
+		formatString: 0
+		lineageTag: 11563394-6184-4e71-b17a-e1db9f8bfbfa
+		summarizeBy: sum
+		sourceColumn: financial_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Financial Year'
+		dataType: int64
+		formatString: 0
+		lineageTag: d27b5db7-198d-4dfc-a277-4ecbf5924a04
+		summarizeBy: sum
+		sourceColumn: Financial Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_number
+		dataType: int64
+		formatString: 0
+		lineageTag: 62cb7fbe-9965-4433-85e1-0bb1adbaebe5
+		summarizeBy: sum
+		sourceColumn: date_number
+
+		annotation SummarizationSetBy = Automatic
+
+	column Cal_month
+		dataType: string
+		lineageTag: 203782c9-3199-4d52-bd9d-72ac66e7753b
+		summarizeBy: none
+		sourceColumn: Cal_month
+		sortByColumn: financial_month
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Date Table-1df56008-0077-4401-8e04-296df1ecbc72' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("eal-sql01.database.windows.net", "Recordbase_EmergeAotearoa_Elite", [Query="declare @startdate date = '2016-07-01'#(lf)#(lf)declare @enddate  date = #(lf)CONVERT(datetime, SWITCHOFFSET(getdate(), DATEPART(TZOFFSET, #(lf)Getdate() AT TIME ZONE 'New Zealand Standard Time')))#(lf)#(lf)#(lf)#(lf)create table #createddate (createddate date)#(lf)#(lf)while @startdate <= @enddate#(lf)begin #(lf)insert into #createddate (createddate)#(lf)select @startdate#(lf)set @startdate = dateadd(day,1,@startdate)#(lf)end#(lf)#(tab)#(lf)#(lf)#(tab)select createddate#(lf)#(tab), year(createddate) as calendar_year_createddate#(lf)#(tab), month(createddate) as month_createddate#(lf)#(tab), case when month(createddate) <=6 then month(createddate)+6#(lf)#(tab)  else month(createddate)-6#(lf)#(tab)  end as financial_month#(lf)#(tab)   ,case when month(createddate) <=6 then year(createddate)#(lf)#(tab)   ELSE YEAR(CREATEDDATE)+1#(lf)#(tab)   END AS Financial_Year_no#(lf)#(tab), row_number () over ( order by createddate desc) as date_number#(lf)#(tab),case when month(createddate) = 1 then 'Jan'#(lf)#(tab)when month(createddate) = 2 then 'Feb'#(lf)#(tab)when month(createddate) = 3 then 'Mar'#(lf)#(tab)when month(createddate) = 4 then 'Apr'#(lf)#(tab)when month(createddate) = 5 then 'May'#(lf)#(tab)when month(createddate) = 6 then 'Jun'#(lf)#(tab)when month(createddate) = 7 then 'Jul'#(lf)#(tab)when month(createddate) = 8 then 'Aug'#(lf)#(tab)when month(createddate) = 9 then 'Sep'#(lf)#(tab)when month(createddate) = 10 then 'Oct'#(lf)#(tab)when month(createddate) = 11 then 'Nov'#(lf)#(tab)when month(createddate) = 12 then 'Dec'#(lf)#(tab)end as Cal_month#(lf)#(tab)#(lf)#(tab)from #createddate "]),
+				    #"Extracted Date" = Table.TransformColumns(Source,{{"createddate", DateTime.Date, type date}}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Extracted Date",{{"Financial_Year_no", "Financial Year"}, {"createddate", "Created Date"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+

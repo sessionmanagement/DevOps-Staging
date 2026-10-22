@@ -1,0 +1,49 @@
+table 'Dim PRIMHD Review Employment Status'
+	lineageTag: 2bee2f30-f267-4974-93ac-e75f6d79baf7
+
+	column ParentPRIMHDReviewEmploymentStatusText
+		dataType: string
+		lineageTag: 679e675b-f426-4414-a980-d3373fc008fa
+		summarizeBy: none
+		sourceColumn: ParentPRIMHDReviewEmploymentStatusText
+
+		annotation SummarizationSetBy = Automatic
+
+	column PRIMHDReviewEmploymentStatusText
+		dataType: string
+		lineageTag: 8f2a7cee-1f98-400c-b247-75bf06a3164c
+		summarizeBy: none
+		sourceColumn: PRIMHDReviewEmploymentStatusText
+
+		annotation SummarizationSetBy = Automatic
+
+	column PRIMHDReviewEmploymentStatusValue
+		dataType: string
+		lineageTag: 34b067d0-9aa0-4b4b-bc92-8b43f100dce1
+		summarizeBy: none
+		sourceColumn: PRIMHDReviewEmploymentStatusValue
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim PRIMHD Review Employment Status Unique KEY'
+		dataType: string
+		isHidden
+		lineageTag: b2bfa852-7840-4237-8825-3164b9dc598d
+		summarizeBy: none
+		sourceColumn: Dim PRIMHD Review Employment Status Unique KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim PRIMHD Review Employment Status' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ods", [Query="SELECT CAST(t1.[PRIMHDReviewEmploymentStatusID] AS nvarchar(20)) + '-1' AS [Dim PRIMHD Review Employment Status Unique KEY] #(lf)      ,t2.[PRIMHDReviewEmploymentStatusText] AS [ParentPRIMHDReviewEmploymentStatusText]#(lf)#(tab)  ,t1.[PRIMHDReviewEmploymentStatusText]#(lf)      ,t1.[PRIMHDReviewEmploymentStatusValue]#(lf)  FROM#(lf)  [RBMNB].[dlDimPRIMHDReviewEmploymentStatus] t1#(lf)  LEFT OUTER JOIN #(lf)  [RBEAL].[dlDimPRIMHDReviewEmploymentStatus] t2 ON t1.PRIMHDReviewEmploymentStatusParentId = t2.PRIMHDReviewEmploymentStatusID#(lf)  WHERE t1.[PRIMHDReviewEmploymentStatusIsActive] = 1#(lf)  #(lf)  UNION ALL#(lf)#(lf)  SELECT CAST(t1.[PRIMHDReviewEmploymentStatusID] AS nvarchar(20)) + '-5' AS [Dim PRIMHD Review Employment Status Unique KEY] #(lf)      ,t2.[PRIMHDReviewEmploymentStatusText] AS [ParentPRIMHDReviewEmploymentStatusText]#(lf)#(tab)  ,t1.[PRIMHDReviewEmploymentStatusText]#(lf)      ,t1.[PRIMHDReviewEmploymentStatusValue]#(lf)  FROM#(lf)  [RBMNB].[dlDimPRIMHDReviewEmploymentStatus] t1#(lf)  LEFT OUTER JOIN #(lf)  [RBMNB].[dlDimPRIMHDReviewEmploymentStatus] t2 ON t1.PRIMHDReviewEmploymentStatusParentId = t2.PRIMHDReviewEmploymentStatusID#(lf)  WHERE t1.[PRIMHDReviewEmploymentStatusIsActive] = 1"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+

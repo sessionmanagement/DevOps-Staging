@@ -1,0 +1,60 @@
+table 'Dim Service Company Mapping'
+	lineageTag: 07eb3b2b-cf19-4d19-b05e-207185895292
+
+	column 'Dim Service KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 34998407-10e1-4869-a67b-57f8b1ccdadc
+		summarizeBy: none
+		sourceColumn: Dim Service KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company Name'
+		dataType: string
+		lineageTag: 6fbcdb50-b277-462f-89e9-e08455b418ee
+		summarizeBy: none
+		sourceColumn: Company Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Customcompany
+		dataType: string
+		lineageTag: 67e67b7f-4ce8-4807-8866-9855c6cc4cd3
+		summarizeBy: none
+		sourceColumn: Customcompany
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Service Company Mapping' = m
+		mode: import
+		queryGroup: Mapping
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT dim_service_key#(lf)#(tab)#(tab),company_name#(lf)#(tab)#(tab),CASE #(lf)#(tab)#(tab)#(tab)WHEN company_name = 'Emerge Aotearoa Limited'#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'Emerge Aotearoa'#(lf)#(tab)#(tab)#(tab)WHEN company_name = 'Emerge Aotearoa Trust'#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'Emerge Aotearoa'#(lf)#(tab)#(tab)#(tab)WHEN company_name = 'Emerge Aotearoa Housing Trust'#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'Emerge Aotearoa'#(lf)#(tab)#(tab)#(tab)WHEN company_name = 'Ignite Aotearoa Limited'#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'Ignite Aotearoa'#(lf)#(tab)#(tab)#(tab)WHEN company_name = 'Mind and Body Consultants Ltd'#(lf)#(tab)#(tab)#(tab)#(tab)THEN 'Mind & Body'#(lf)#(tab)#(tab)#(tab)ELSE 'N/A'#(lf)#(tab)#(tab)#(tab)END AS CustomCompany#(lf)#(tab)FROM edw.dim_service#(lf)#(tab)WHERE DWHIsCurrent = 1#(lf)#(tab)#(tab)AND DWHDMLOperation <> 'D'"])
+				    ,ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_))
+				in
+				    #"Transformed Column Names"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

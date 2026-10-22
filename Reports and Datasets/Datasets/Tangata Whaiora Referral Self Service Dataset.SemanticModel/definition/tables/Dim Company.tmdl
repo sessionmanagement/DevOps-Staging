@@ -1,0 +1,181 @@
+table 'Dim Company'
+	isHidden
+	lineageTag: ee753c53-fd1e-42cb-b08e-1e2c6f08203b
+
+	column 'Dim Company KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b1a03691-a974-4007-8688-62a675a98633
+		summarizeBy: none
+		sourceColumn: Dim Company KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b993984b-b006-46e7-9abe-6837029b040b
+		summarizeBy: none
+		sourceColumn: Company ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column 'Company Name'
+		dataType: string
+		isHidden
+		lineageTag: 491b7bcf-c6ea-4c16-a061-e63ec29c95d0
+		summarizeBy: none
+		sourceColumn: Company Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company Short Code'
+		dataType: string
+		isHidden
+		lineageTag: 80cd898d-52d7-4d2c-9dda-229800c69a21
+		summarizeBy: none
+		sourceColumn: Company Short Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Company Intellihr KEY'
+		dataType: string
+		isHidden
+		lineageTag: e88889fc-40ae-4582-baf7-f3d1bb84423b
+		summarizeBy: none
+		sourceColumn: Dim Company Intellihr KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Company Datapay KEY'
+		dataType: string
+		isHidden
+		lineageTag: 5d732345-4898-4f96-b236-df5e00dd60ec
+		summarizeBy: none
+		sourceColumn: Dim Company Datapay KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company Datapay Code'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: cb99cff9-f064-47f7-8e44-5c937365ef58
+		summarizeBy: count
+		sourceColumn: Company Datapay Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company Recordbase ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 98159812-0702-4820-a86f-d081f030ec58
+		summarizeBy: none
+		sourceColumn: Company Recordbase ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column 'DWH Batch ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 670fc7d6-bcbf-4ea6-9391-e65336eb8076
+		summarizeBy: none
+		sourceColumn: DWH Batch ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column 'DWH Effective From'
+		dataType: dateTime
+		isHidden
+		formatString: General Date
+		lineageTag: fdf2db88-3e38-4a61-b9db-c3bc86a1c321
+		summarizeBy: none
+		sourceColumn: DWH Effective From
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Effective To'
+		dataType: dateTime
+		isHidden
+		formatString: General Date
+		lineageTag: 6b2d7f64-30b4-4dbd-9fd7-cb598524bd4e
+		summarizeBy: none
+		sourceColumn: DWH Effective To
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Is Current'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 559d1ddb-3dd5-4260-999e-9dd5826e6313
+		summarizeBy: sum
+		sourceColumn: DWH Is Current
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Company' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01"),
+				    edw_dim_company = Source{[Schema="edw",Item="vw_dim_company"]}[Data],
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(edw_dim_company, each ApplyNamingConventions(_)),
+				    #"Filtered Rows" = Table.SelectRows(#"Transformed Column Names", each ([DWH Dml Operation] <> "D")),
+				    #"Removed Columns" = Table.RemoveColumns(#"Filtered Rows",{"DWH Source System", "DWH Dml Operation"})
+				in
+				    #"Removed Columns"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

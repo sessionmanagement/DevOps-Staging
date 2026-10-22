@@ -1,0 +1,22 @@
+table dim_payment_type
+	lineageTag: 3ad4559a-5a4d-4fff-9bd1-0d9354d65393
+
+	column payment_type
+		dataType: string
+		lineageTag: 5d9827b8-110a-46ae-8708-a363c15973a4
+		summarizeBy: none
+		sourceColumn: payment_type
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_payment_type = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45W8nF1DHNVitWJVvIPcgHTwSGOIRCBEA/XIKXYWAA=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [payment_type = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"payment_type", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,70 @@
+table dim_severity
+	lineageTag: df2f2b60-a500-4d6c-853f-61ff61eca783
+
+	column IncidentSeverityValue
+		dataType: int64
+		formatString: 0
+		lineageTag: 23dc971e-7736-4213-9047-de77684f3f69
+		summarizeBy: none
+		sourceColumn: IncidentSeverityValue
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentSeverityText
+		dataType: string
+		lineageTag: b5c0b32b-f5b1-4bfd-93eb-2880aea25424
+		summarizeBy: none
+		sourceColumn: IncidentSeverityText
+		sortByColumn: IncidentSeverityValue
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentSeverityKey
+		dataType: int64
+		formatString: 0
+		lineageTag: fc430907-ccc8-475b-b672-19613fe44784
+		summarizeBy: none
+		sourceColumn: IncidentSeverityKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CompletionAllowanceDays
+		dataType: int64
+		formatString: 0
+		lineageTag: ea73006f-cb9e-447e-8b69-61abdb2f6472
+		summarizeBy: none
+		sourceColumn: CompletionAllowanceDays
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentSeverity =
+			
+			SWITCH(dim_severity[IncidentSeverityValue]
+			,0,"Do Not Use - must choose a SAC Rating"
+			,1,"SAC 4 - Requires little or no intervention"
+			,2,"SAC 3 - Harm causing short term loss of function and/or requiring minimal additional intervention"
+			,3,"SAC 2 - Harm causing major loss of function and/or requiring significant intervention"
+			,4,"SAC 1 - Death or harm causing severe loss of function and/or requiring lifesaving intervention"
+			,"Other"
+			)
+		lineageTag: 5557fc8b-0830-4aca-a3d2-6425065b9777
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_severity-6c4a3be5-10c9-45f4-985a-5b111b75bb88 = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="Select#(tab)#(tab)dcis.dim_client_incident_company_key_severity_id_key As IncidentSeverityKey,#(lf)#(tab)#(tab)#(tab)IIf(IsNumeric(dcis.incident_severity_value) = 1, dcis.incident_severity_value, Null) As IncidentSeverityValue,#(lf)#(tab)#(tab)#(tab)dcis.incident_severity_text As IncidentSeverityText,#(lf)#(tab)#(tab)#(tab)Case When dcis.incident_severity_text Like 'SAC 3%'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)Then 20#(lf)#(tab)#(tab)#(tab)#(tab)When  dcis.incident_severity_text Like 'SAC 4%'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)Then 7#(lf)#(tab)#(tab)#(tab)Else 40#(lf)#(tab)#(tab)#(tab)End As CompletionAllowanceDays#(lf)From#(tab)#(tab)edw.vw_dim_client_incident_severity dcis#(lf)"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"IncidentSeverityValue", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

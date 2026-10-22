@@ -1,0 +1,25 @@
+table '_Report Components'
+	lineageTag: 44f353fe-5db9-4893-9214-979acdd4cdd6
+
+	measure 'BI and Reporting Team URL' = "https://emergeaotearoaltd.sharepoint.com/sites/ITS2/SitePages/Reporting.aspx"
+		lineageTag: 9bc943de-02a0-4ee8-a98d-057d1b57b381
+		dataCategory: WebUrl
+
+	measure 'Help Button URL' = "https://ealservicedesk.freshservice.com/a/solutions/articles/75000104496"
+		lineageTag: 649abd6f-ee85-45ee-b18c-3191c5573853
+		dataCategory: WebUrl
+
+	partition '_Report Components' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

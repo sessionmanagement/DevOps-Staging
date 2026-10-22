@@ -1,0 +1,184 @@
+/// Date dimension table from Azure DevOps Analytics OData feed. Contains calendar attributes for date-based analysis. Source: OData Dates entity.
+table Dates
+	lineageTag: 85dbf358-81b0-45ab-854f-a56f95630d5a
+
+	/// Calendar date value
+	column Date
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 723ed608-0e66-470f-9b6f-910656fc2593
+		summarizeBy: none
+		sourceColumn: Date
+
+		variation Variation
+			isDefault
+			relationship: 03edd754-c5b1-4b33-aae9-7e83a1e6e78e
+			defaultHierarchy: LocalDateTable_8c9c87a0-6bb6-4dfe-9f04-0fef620a2964.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key for the date (YYYYMMDD integer format)
+	column DateSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 6c032549-c130-4b57-a43a-abf3f01b4a5c
+		summarizeBy: none
+		sourceColumn: DateSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Full name of the day (e.g., Monday)
+	column DayName
+		dataType: string
+		lineageTag: a21062e6-b110-415e-9eca-e01cf9b188a0
+		summarizeBy: none
+		sourceColumn: DayName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Abbreviated day name (e.g., Mon)
+	column DayShortName
+		dataType: string
+		lineageTag: 5144a0c4-33a6-423e-b523-01786c686db2
+		summarizeBy: none
+		sourceColumn: DayShortName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Day of week number (0=Sunday, 6=Saturday)
+	column DayOfWeek
+		dataType: int64
+		formatString: 0
+		lineageTag: e91ed03c-2e89-446e-8cd8-e3cfb8bb8138
+		summarizeBy: sum
+		sourceColumn: DayOfWeek
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Day of month (1-31)
+	column DayOfMonth
+		dataType: int64
+		formatString: 0
+		lineageTag: 8e3e5ea8-b634-44ad-9d98-1490c34b800e
+		summarizeBy: sum
+		sourceColumn: DayOfMonth
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Day of year (1-366)
+	column DayOfYear
+		dataType: int64
+		formatString: 0
+		lineageTag: ffd56687-19ea-4af7-9aaa-9e34ff5fcdc5
+		summarizeBy: sum
+		sourceColumn: DayOfYear
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Start date of the week containing this date
+	column WeekStartingDate
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 65de8f56-07e0-422b-9fc8-a5bc5149cb9a
+		summarizeBy: none
+		sourceColumn: WeekStartingDate
+
+		variation Variation
+			isDefault
+			relationship: 668ef88c-a72a-4f9e-b46d-be2c848b737e
+			defaultHierarchy: LocalDateTable_a952b6ef-4b41-49f3-9bc7-4a93c18baa5d.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// End date of the ISO week containing this date
+	column WeekEndingDate
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: c532d371-6826-475d-a658-9dab692b5cc0
+		summarizeBy: none
+		sourceColumn: WeekEndingDate
+
+		variation Variation
+			isDefault
+			relationship: ccbaace5-2436-486b-8444-16ac9e528883
+			defaultHierarchy: LocalDateTable_6335952d-e79a-4100-85e8-0ee35d768c49.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Month portion of the date in text format
+	column Month
+		dataType: string
+		lineageTag: cfe506a2-7cc9-4eb9-b998-57b677856079
+		summarizeBy: none
+		sourceColumn: Month
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Full name of the month (e.g., January, February)
+	column MonthName
+		dataType: string
+		lineageTag: 51801598-d998-4688-84c0-ae6f8c24488c
+		summarizeBy: none
+		sourceColumn: MonthName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Abbreviated month name (e.g., Jan, Feb)
+	column MonthShortName
+		dataType: string
+		lineageTag: 37bee7aa-838b-4153-95e6-058d9f268480
+		summarizeBy: none
+		sourceColumn: MonthShortName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Numeric month of the year (1-12)
+	column MonthOfYear
+		dataType: int64
+		formatString: 0
+		lineageTag: 5ee02187-63b6-4d1c-b33a-ab5e740045ca
+		summarizeBy: sum
+		sourceColumn: MonthOfYear
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Year and month combined as an integer (e.g., 202401 for January 2024)
+	column YearMonth
+		dataType: int64
+		formatString: 0
+		lineageTag: 73192976-d487-4594-b93f-064e41bd38a4
+		summarizeBy: sum
+		sourceColumn: YearMonth
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Calendar year as an integer
+	column Year
+		dataType: int64
+		formatString: 0
+		lineageTag: 68cf195d-853d-4f16-9a41-87b3f6a45f0a
+		summarizeBy: sum
+		sourceColumn: Year
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates whether this date is the last day of a reporting period
+	column IsLastDayOfPeriod
+		dataType: string
+		lineageTag: 902154da-6bcb-49cf-8aee-b91be51fe80d
+		summarizeBy: none
+		sourceColumn: IsLastDayOfPeriod
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dates = m
+		mode: import
+		queryGroup: 'DevOps Tables'
+		source =
+				let
+				    Source = OData.Feed("https://analytics.dev.azure.com/EmergeAotearoa/Data%20and%20Analytics/_odata/v3.0-preview/", null, [Implementation="2.0",OmitValues = ODataOmitValues.Nulls,ODataVersion = 4, Headers=[Authorization=fnGetToken()]]),
+				    Dates_table = Source{[Name="Dates",Signature="table"]}[Data]
+				in
+				    Dates_table
+

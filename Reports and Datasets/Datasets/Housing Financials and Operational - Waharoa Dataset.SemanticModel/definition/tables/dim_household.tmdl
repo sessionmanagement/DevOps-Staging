@@ -1,0 +1,70 @@
+table dim_household
+	lineageTag: 578c069f-dddd-4089-9ea4-6d95e21d24e0
+
+	column zav_name
+		dataType: string
+		lineageTag: 2e7f4061-7737-4c1d-8770-497d69adaaea
+		summarizeBy: none
+		sourceColumn: zav_name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_hhid
+		dataType: string
+		lineageTag: 1527261c-6da5-4f19-b3ef-682424a894b5
+		summarizeBy: none
+		sourceColumn: zav_hhid
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_tenancy
+		dataType: string
+		lineageTag: e5d612cf-01cf-4f84-a1f3-4df91bbf59e4
+		summarizeBy: none
+		sourceColumn: zav_tenancy
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_tenancyname
+		dataType: string
+		lineageTag: 6832600a-9a2f-4886-945d-3220a3e328c7
+		summarizeBy: none
+		sourceColumn: zav_tenancyname
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Composite
+		dataType: string
+		lineageTag: 4959aa59-1550-45cc-8945-a92314de65fe
+		summarizeBy: none
+		sourceColumn: Composite
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_household-f420bab1-03d8-4fc6-8e49-950cac3c03b6 = m
+		mode: import
+		queryGroup: dimensions
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="WITH RecentHouseholds AS (#(lf)    SELECT#(lf)        f.property_tenant_household_name       AS zav_name,         -- ODS zav_name#(lf)        f.property_tenancy_household_identifier AS zav_hhid,         -- ODS zav_hhid#(lf)        f.property_tenancy_id                  AS zav_tenancy,      -- ODS zav_tenancy#(lf)        f.property_tenant_tenancy_name         AS zav_tenancyname,  -- ODS zav_tenancyname#(lf)        COALESCE(f.property_tenant_modified_datetime, f.DWHModifiedOn) AS SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (#(lf)            PARTITION BY f.property_tenancy_household_identifier#(lf)            ORDER BY COALESCE(f.property_tenant_modified_datetime, f.DWHModifiedOn) DESC#(lf)        ) AS rn#(lf)    FROM [edw].[fact_property_tenant] f#(lf)    WHERE f.DWHDMLOperation <> 'D'#(lf))#(lf)SELECT#(lf)    zav_name,#(lf)    zav_hhid,#(lf)    zav_tenancy,#(lf)    zav_tenancyname#(lf)FROM RecentHouseholds#(lf)WHERE rn = 1;"]),
+				    #"Sorted Rows" = Table.Sort(Source,{{"zav_name", Order.Ascending}}),
+				    #"Added Custom" = Table.AddColumn(#"Sorted Rows", "Composite", each [zav_name]&[zav_hhid]&[zav_tenancy]&[zav_tenancyname]),
+				    #"Filtered Rows" = Table.SelectRows(#"Added Custom", each ([Composite] <> null)),
+				    #"Removed Duplicates" = Table.Distinct(#"Filtered Rows", {"zav_hhid"})
+				in
+				    #"Removed Duplicates"
+
+	annotation PBI_ResultType = Exception
+
+	annotation PBI_NavigationStepName = Navigation
+

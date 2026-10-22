@@ -1,0 +1,122 @@
+table DimLocations
+	lineageTag: f22da9a9-0b13-4e9a-bfed-bbe703ae6197
+
+	column locations_id
+		dataType: string
+		lineageTag: 05b918b9-439f-431d-ac19-f5436238e893
+		summarizeBy: none
+		sourceColumn: locations_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column parentId
+		dataType: string
+		lineageTag: 845f834c-8a50-472d-948b-79d83e29d4c7
+		summarizeBy: none
+		sourceColumn: parentId
+
+		annotation SummarizationSetBy = Automatic
+
+	column name
+		dataType: string
+		lineageTag: 26b0de23-9c5b-49d9-a2f5-9d6db94fe822
+		summarizeBy: none
+		sourceColumn: name
+
+		annotation SummarizationSetBy = Automatic
+
+	column address
+		dataType: string
+		lineageTag: 5388b3c8-b416-4596-802e-d455a3cfdc5e
+		summarizeBy: none
+		sourceColumn: address
+
+		annotation SummarizationSetBy = Automatic
+
+	column isEnabled
+		dataType: int64
+		formatString: 0
+		lineageTag: 1e0dcf27-e0ed-489d-9b57-364906fbb3ee
+		summarizeBy: none
+		sourceColumn: isEnabled
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Parent Location Name'
+		dataType: string
+		lineageTag: 126d89e2-fdbf-4d31-8e6b-6d8d82352db0
+		summarizeBy: none
+		sourceColumn: Parent Location Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Parent Locations.name'
+		dataType: string
+		lineageTag: 905d9d21-29e8-4268-abee-5827ecc2556a
+		summarizeBy: none
+		sourceColumn: Parent Locations.name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Parent Locations.address'
+		dataType: string
+		lineageTag: 4adb7759-e881-405f-a338-59288bebc81c
+		summarizeBy: none
+		sourceColumn: Parent Locations.address
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Parent Locations.isEnabled'
+		dataType: int64
+		formatString: 0
+		lineageTag: 99c7ef2e-28ab-4705-b8f8-5bc1a507cd44
+		summarizeBy: none
+		sourceColumn: Parent Locations.isEnabled
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'LocationsSP.Latitude'
+		dataType: double
+		lineageTag: f80aea78-3425-43fa-a350-c2639230705f
+		summarizeBy: none
+		sourceColumn: LocationsSP.Latitude
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'LocationsSP.Longitude'
+		dataType: double
+		lineageTag: c23866c9-69fe-4e00-8884-434a264d3871
+		summarizeBy: none
+		sourceColumn: LocationsSP.Longitude
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'LocationsSP.Region'
+		dataType: string
+		lineageTag: 1c56134d-4013-44b3-ae44-d8ae57ceeeb4
+		summarizeBy: none
+		sourceColumn: LocationsSP.Region
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimLocations-3c55bf45-02e5-4c55-8f68-01127707ec38 = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source =
+				let
+				    Source = Table.NestedJoin(#"IntelliHR locations", {"locations_id"}, #"Parent Locations", {"locations_id"}, "Parent Locations", JoinKind.LeftOuter),
+				    #"Removed Columns" = Table.RemoveColumns(Source,{"ODSIsCurrent", "ODSEffectiveFrom", "ODSEffectiveTo", "ODSDMLOperation", "ODSBatchId", "ODSSourceSystem"}),
+				    #"Expanded Parent Locations" = Table.ExpandTableColumn(#"Removed Columns", "Parent Locations", {"name", "address", "isEnabled"}, {"Parent Locations.name", "Parent Locations.address", "Parent Locations.isEnabled"}),
+				    #"Merged Queries" = Table.NestedJoin(#"Expanded Parent Locations", {"locations_id"}, LocationsSP, {"id"}, "LocationsSP", JoinKind.LeftOuter),
+				    #"Expanded Locations" = Table.ExpandTableColumn(#"Merged Queries", "LocationsSP", {"Latitude", "Longitude", "Region"}, {"LocationsSP.Latitude", "LocationsSP.Longitude", "LocationsSP.Region"})
+				in
+				    #"Expanded Locations"
+
+	annotation PBI_ResultType = Exception
+
+	annotation PBI_NavigationStepName = Navigation
+

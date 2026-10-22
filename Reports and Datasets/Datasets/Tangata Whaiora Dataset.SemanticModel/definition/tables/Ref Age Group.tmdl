@@ -1,0 +1,146 @@
+table 'Ref Age Group'
+	lineageTag: f1f241eb-5a3e-4684-811c-e3f44668519e
+
+	column 'Dim Age Group KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: cbb73f18-fa5f-4c76-9afb-038d32c4cdce
+		summarizeBy: none
+		sourceColumn: Dim Age Group KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Age In Years'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b4134d33-de9d-4b26-acd9-ea9ad4694ef9
+		summarizeBy: none
+		sourceColumn: Age In Years
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Age Group Tangatawhaiora'
+		dataType: string
+		lineageTag: 2fb3e35d-84d6-49b0-ba85-8bb057e189ad
+		summarizeBy: none
+		sourceColumn: Age Group Tangatawhaiora
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Age 5 Year Groups'
+		dataType: string
+		lineageTag: 93313aef-e07e-4003-ab40-245581256729
+		summarizeBy: none
+		sourceColumn: Age 5 Year Groups
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Age Decade Group'
+		dataType: string
+		lineageTag: 95a1b6e7-1fdd-41c7-8ba5-dfb5e9ed3a26
+		summarizeBy: none
+		sourceColumn: Age Decade Group
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Age Group Broad'
+		dataType: string
+		lineageTag: e714435a-b68a-48a6-9107-4d38f60d7f93
+		summarizeBy: none
+		sourceColumn: Age Group Broad
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Age Group Moh Covid'
+		dataType: string
+		lineageTag: 8f06e79c-1e1e-4f95-a3a5-174cce7aaff9
+		summarizeBy: none
+		sourceColumn: Age Group Moh Covid
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Age Group Groupings'
+		dataType: string
+		lineageTag: 2eb835a7-abdd-4c53-92d3-37161d9e647d
+		summarizeBy: none
+		sourceColumn: Age Group Groupings
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Created At'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 47caa9c2-755c-48bd-b120-4c6e42b6bd7a
+		summarizeBy: none
+		sourceColumn: DWH Created At
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Batch ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: dd1e9131-ebe3-4dff-ad38-677b5ad8c1d9
+		summarizeBy: none
+		sourceColumn: DWH Batch ID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Ref Age Group' = m
+		mode: import
+		queryGroup: 'Reference Tables'
+		source =
+				// Initialize the SQL Database source
+				let
+				    Source = Sql.Database(Server, Database),
+				    // Extract data from the "dim_age_group" table in the "edw" schema
+				    edw_dim_age_group = Source{[Schema="edw",Item="vw_dim_age_group"]}[Data],
+				    // Function to apply naming conventions to column names
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            // Replace 'client_' prefix with 'Tangata_Whaiora_'
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            // Replace underscores with spaces for readability
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            // Rename 'DWHBatchId' to 'DWH Batch Id'
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            // Rename 'DWHCreatedAt' to 'DWH Created At'
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            // Rename 'DWHDMLOperation' to 'DWH DML Operation'
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            // Rename 'DWHEffectiveFrom' to 'DWH Effective From'
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            // Rename 'DWHEffectiveTo' to 'DWH Effective To'
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            // Rename 'DWHIsCurrent' to 'DWH Is Current'
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            // Rename 'DWHModifiedOn' to 'DWH Modified On'
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            // Rename 'DWHSourceSystem' to 'DWH Source System'
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            // Capitalize the first letter of each word for uniformity
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            // Fully capitalize 'ID'
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            // Fully capitalize 'KEY'
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            // Fully capitalize 'DWH'
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            // Return the transformed column name
+				            capitaliseDWH,
+				    // Apply the naming conventions to all column names in the table
+				    #"Transformed Column Names" = Table.TransformColumnNames(edw_dim_age_group, each ApplyNamingConventions(_)),
+				    // Remove the column "DWH Source System" as it is not needed
+				    #"Removed Columns" = Table.RemoveColumns(#"Transformed Column Names",{"DWH Source System"})
+				in
+				    // Output the final table with transformed column names and removed columns
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+

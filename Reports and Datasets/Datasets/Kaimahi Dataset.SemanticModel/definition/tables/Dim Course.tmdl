@@ -1,0 +1,175 @@
+table 'Dim Course'
+	lineageTag: 49ca4265-7a6e-4efe-b1c4-701762ef412f
+
+	column 'Dim Course KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 9a846c06-8e7c-4c65-a5f4-c5f7b09bdce6
+		summarizeBy: sum
+		sourceColumn: Dim Course KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Course Full Name'
+		dataType: string
+		lineageTag: f0115a33-2bde-47b9-aab7-363751606c9d
+		summarizeBy: none
+		sourceColumn: Course Full Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Course Start Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: fc703ee7-482f-43e9-8a4c-32e86942f0c3
+		summarizeBy: none
+		sourceColumn: Course Start Date
+
+		variation Variation
+			isDefault
+			relationship: 158dda9a-78e0-4eb8-9deb-5ec870d2559e
+			defaultHierarchy: LocalDateTable_f87dea3c-0902-409d-b554-717afe171f96.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Course End Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 9ef8cd2d-4b1a-40bb-9772-7977db7bb9e2
+		summarizeBy: none
+		sourceColumn: Course End Date
+
+		variation Variation
+			isDefault
+			relationship: 00caa090-2e61-4744-9c31-fdafa73bb0fb
+			defaultHierarchy: LocalDateTable_7adcf649-ec13-41ee-add1-da48396b2cd2.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Course Created Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: aeb2d8f0-006d-4b5f-a457-84b8a7aab36b
+		summarizeBy: none
+		sourceColumn: Course Created Date
+
+		variation Variation
+			isDefault
+			relationship: 312eaede-f396-42ae-9a6a-8495af602de3
+			defaultHierarchy: LocalDateTable_5c7e7a2e-c769-4a42-b11d-21e5ab21a16a.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Course Visible'
+		dataType: int64
+		formatString: 0
+		lineageTag: 6ce957f1-fbb1-433f-a5d3-7adf63be3691
+		summarizeBy: sum
+		sourceColumn: Is Course Visible
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Course Audience Visible'
+		dataType: int64
+		formatString: 0
+		lineageTag: fcfc98f5-ef88-4228-bf11-7521690b5853
+		summarizeBy: sum
+		sourceColumn: Course Audience Visible
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Course Category Name'
+		dataType: string
+		lineageTag: abad5c7f-2542-4715-880b-a619cd0a3496
+		summarizeBy: none
+		sourceColumn: Course Category Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Effective From'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: c25d2a1c-7e1a-49ce-be7e-6b717636ef67
+		summarizeBy: none
+		sourceColumn: DWH Effective From
+
+		variation Variation
+			isDefault
+			relationship: 6cf95d2a-71f4-467f-8e5b-45b8db444daa
+			defaultHierarchy: LocalDateTable_585dea8a-de06-4bf8-8aef-914f346224ee.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Effective To'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 3e12fd02-fe1c-4990-a207-eee33350429a
+		summarizeBy: none
+		sourceColumn: DWH Effective To
+
+		variation Variation
+			isDefault
+			relationship: 879b8079-f298-4623-a01c-f48bcb59a102
+			defaultHierarchy: LocalDateTable_fae0b73e-fd83-449e-b8d7-7ae0867dc4bc.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Course' = m
+		mode: import
+		queryGroup: Dim
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)    [dim_course_key],#(lf)    [course_full_name],#(lf)    [course_start_date],#(lf)    [course_end_date],#(lf)    [course_created_date],#(lf)    [course_category_name],#(lf)    [is_course_visible],#(lf)    [course_audience_visible],#(lf)    [DWHEffectiveFrom],#(lf)    [DWHEffectiveTo]#(lf)FROM [edw].[dim_course]#(lf)WHERE ([DWHDMLOperation] <> 'D')#(lf)AND DWHiscurrent=1"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceKaimahi = Text.Replace(columnName, "employee_", "Kaimahi_"),
+				            replaceClient = Text.Replace(replaceKaimahi, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transform Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				    // New step to add and convert date key columns
+				    #"Added and Converted Date Columns" = List.Accumulate(
+				        List.Select(Table.ColumnNames(#"Transform Column Names"), each Text.EndsWith(_, " Date KEY")),
+				        #"Transform Column Names",
+				        (state, columnName) =>
+				            Table.AddColumn(
+				                state,
+				                Text.BeforeDelimiter(columnName, " KEY"),
+				                each
+				                    if Record.Field(_, columnName) <> null then
+				                        let
+				                            dateValue = Text.From(Record.Field(_, columnName)),
+				                            yearPart = Text.Start(dateValue, 4),
+				                            monthPart = Text.Middle(dateValue, 4, 2),
+				                            dayPart = Text.End(dateValue, 2),
+				                            formattedDate = yearPart & "-" & monthPart & "-" & dayPart
+				                        in
+				                            if Text.Length(dateValue) = 8 then
+				                                Date.FromText(formattedDate)
+				                            else
+				                                null
+				                    else
+				                        null,
+				                type date
+				            )
+				    )
+				in
+				    #"Added and Converted Date Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

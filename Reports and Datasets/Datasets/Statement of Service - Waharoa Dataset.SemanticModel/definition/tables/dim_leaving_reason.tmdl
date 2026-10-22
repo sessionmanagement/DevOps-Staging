@@ -1,0 +1,31 @@
+table dim_leaving_reason
+	lineageTag: bb5ba117-7714-4794-afec-03b1556aa747
+
+	column zav_leavingreason
+		dataType: string
+		isHidden
+		lineageTag: 651c64cb-c3d5-4ea1-a624-d53f2b375eec
+		summarizeBy: none
+		sourceColumn: zav_leavingreason
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_leavingreasonname
+		dataType: string
+		lineageTag: dce74379-a0a4-45e0-bbf5-02cd84a5251b
+		summarizeBy: none
+		sourceColumn: zav_leavingreasonname
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_leaving_reason = m
+		mode: import
+		queryGroup: dimensions
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT DISTINCT#(lf)[property_tenancy_leaving_reason] AS zav_leavingreason,#(lf)[property_tenancy_leaving_reason] AS zav_leavingreasonname#(lf)FROM [edw].[dim_property_tenancy]#(lf)WHERE [DWHIsCurrent] = 1 AND [DWHDMLOperation] <> 'D'#(lf)AND [property_tenancy_id] IS NOT NULL#(lf)AND [property_tenant_opportunity_status] <> 'Cancelled'#(lf)AND [property_tenancy_leaving_reason] IS NOT NULL"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+

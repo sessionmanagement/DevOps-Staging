@@ -1,0 +1,37 @@
+table 'Dim First Contact Category'
+	lineageTag: 0b0dae66-5959-4793-a76c-a484da9aaedc
+
+	column 'Dim First Contact Category KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: a67fb1b4-eff3-43d5-9b56-51b91ecdc28c
+		summarizeBy: none
+		sourceColumn: Dim First Contact Category KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'First Contact Category'
+		dataType: string
+		lineageTag: 261ff876-381c-4820-8c1e-31445db7b8b0
+		summarizeBy: none
+		sourceColumn: First Contact Category
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim First Contact Category' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WMlTSUbIEAqXYWAA=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Begin = _t, End = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Begin", Int64.Type}, {"End", Int64.Type}}),
+				    #"Added Custom" = Table.AddColumn(#"Changed Type", "Explosion", each {[Begin]..[End]}),
+				    #"Expanded Explosion" = Table.ExpandListColumn(#"Added Custom", "Explosion"),
+				    #"Removed Columns" = Table.RemoveColumns(#"Expanded Explosion",{"Begin", "End"}),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Removed Columns",{{"Explosion", Int64.Type}}),
+				    #"Added Conditional Column" = Table.AddColumn(#"Changed Type1", "First Contact Category", each if [Explosion] <= 21 then "Less than 3 weeks" else if [Explosion] <= 56 then "3-8 weeks" else "Over 8 weeks"),
+				    #"Renamed Columns" = Table.RenameColumns(#"Added Conditional Column",{{"Explosion", "Dim First Contact Category KEY"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+

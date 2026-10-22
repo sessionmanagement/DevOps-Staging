@@ -1,0 +1,70 @@
+table dim_resource
+	lineageTag: e2682266-500c-4013-b578-1c7ad80b01de
+
+	column resource_group
+		dataType: string
+		lineageTag: 6ed6bbe0-873f-47b0-90bb-87101f571dce
+		summarizeBy: none
+		sourceColumn: resource_group
+
+		annotation SummarizationSetBy = Automatic
+
+	column resource
+		dataType: string
+		lineageTag: 474137ad-56b4-4012-998b-190705289994
+		summarizeBy: none
+		sourceColumn: resource
+
+		annotation SummarizationSetBy = Automatic
+
+	column servicefamily
+		dataType: string
+		lineageTag: 7e5b413c-ab37-4818-aaf5-c8417bc76c9b
+		summarizeBy: none
+		sourceColumn: servicefamily
+
+		annotation SummarizationSetBy = Automatic
+
+	column subscription_name
+		dataType: string
+		lineageTag: ee94b85b-f8d8-47c4-ab59-e81549e92e06
+		summarizeBy: none
+		sourceColumn: subscription_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_resource_key
+		dataType: string
+		lineageTag: 7d8305ac-44b0-4f2f-9055-3f951b5242fc
+		summarizeBy: none
+		sourceColumn: dim_resource_key
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'service_name Hierarchy'
+		lineageTag: fadd843e-dfba-4d26-ac4b-5c69b84015aa
+
+		level 'Subscription Name'
+			lineageTag: 4ec8d2c0-41a1-4f85-a259-8868db5719c2
+			column: subscription_name
+
+		level 'Resource Group'
+			lineageTag: bd959fc3-333d-4618-a0b5-993634259000
+			column: resource_group
+
+		level 'Resource Name'
+			lineageTag: b89cf9e4-083e-4fd4-8530-5622697ed7df
+			column: resource
+
+	partition dim_resource = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ods", [Query="-- ============================================================#(lf)-- Model:  Azure Cost Tracking Dataset#(lf)-- Table:  dim_resource#(lf)-- Source: native query (complex CTE/window) - emitted in full#(lf)-- Used columns: 5 (mapped 5, unmapped 0)  [full query, not trimmed]#(lf)-- Auto-generated from pbi_complete_dump.csv + model M + EDW/ODS schema.#(lf)-- Review before use; verify joins/filters against the model.#(lf)-- ============================================================#(lf)-- USED model columns: dim_resource_key; resource; resource_group; servicefamily; subscription_name#(lf)#(lf)WITH data AS (#(lf)    SELECT DISTINCT#(lf)        LOWER(resourceGroupName) AS resource_group,#(lf)        LOWER(SUBSTRING(ResourceId, LEN(ResourceId) - CHARINDEX('/', REVERSE(ResourceId)) + 2, LEN(ResourceId))) AS resource,#(lf)#(tab)#(tab)servicefamily,#(lf)#(tab)#(tab)subscriptionName as subscription_name#(lf)    FROM [dbo].[cost_analysis_current]#(lf)    UNION#(lf)    SELECT DISTINCT#(lf)        LOWER(resourceGroupName) AS resource_group,#(lf)        LOWER(SUBSTRING(ResourceId, LEN(ResourceId) - CHARINDEX('/', REVERSE(ResourceId)) + 2, LEN(ResourceId))) AS resource,#(lf)#(tab)#(tab)serviceFamily,#(lf)#(tab)#(tab)subscriptionName as subscription_name#(lf)    FROM [dbo].[cost_analysis_monthly]#(lf)#(tab))#(lf)#(lf)SELECT#(lf)*,#(lf)HASHBYTES('SHA1',CONCAT(resource_group,resource,servicefamily,subscription_name)) AS dim_resource_key#(lf)FROM data;#(lf)"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"dim_resource_key", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

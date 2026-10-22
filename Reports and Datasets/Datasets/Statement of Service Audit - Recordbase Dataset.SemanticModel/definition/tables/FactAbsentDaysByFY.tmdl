@@ -1,0 +1,164 @@
+table FactAbsentDaysByFY
+	lineageTag: 809d9acf-32a0-4b87-84b3-ca1037968a19
+
+	column PersonID
+		lineageTag: a33d4911-e71c-40f1-b82e-90d56372daa9
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_AbsentDaysExplosion[PersonID]
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonStatusStartDate
+		formatString: Short Date
+		lineageTag: bb2da8ee-9693-4a4c-9ddc-d256f258e718
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_AbsentDaysExplosion[PersonStatusStartDate]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column PersonStatusEndDate
+		formatString: Short Date
+		lineageTag: 55671247-f771-404a-933a-3630d21ed6b6
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_AbsentDaysExplosion[PersonStatusEndDate]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column FinancialYear
+		lineageTag: 8c74c7c9-2cb1-40d0-b71f-7804f0a8e788
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_AbsentDaysExplosion[FinancialYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column FYEnd
+		formatString: Short Date
+		lineageTag: c020d5ca-13a3-4e52-bcfd-8736c4bd89cc
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_AbsentDaysExplosion[FYEnd]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column AbsenceNightsInFY =
+			
+			// Only counted if person is gone "overnight" i.e. if PersonStatusStartDate and PersonStatusEndDate are on the same day then it is not counted.
+			IF(
+			    FactAbsentDaysByFY[PersonStatusEndDate] > FactAbsentDaysByFY[FYEnd],
+			        DATEDIFF(FactAbsentDaysByFY[AbsenceBeginDateForFY],FactAbsentDaysByFY[FYEnd],DAY),
+			        DATEDIFF(FactAbsentDaysByFY[AbsenceBeginDateForFY],FactAbsentDaysByFY[PersonStatusEndDate],DAY)
+			)
+		formatString: 0
+		lineageTag: a225f0a0-dd95-4c50-b3d5-987f3a68e59e
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonStatusTypeID
+		lineageTag: 5e79d3b5-87f8-4990-a7b2-38fa3f491f4e
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_AbsentDaysExplosion[PersonStatusTypeID]
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReferralID
+		lineageTag: 2b57707a-206f-4e78-b87b-0f6e52e75314
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_AbsentDaysExplosion[ReferralID]
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionID
+		lineageTag: b4651289-ca22-482c-b04a-cb2ae1c44021
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_AbsentDaysExplosion[TeamFunctionID]
+
+		annotation SummarizationSetBy = Automatic
+
+	column AbsenceBeginDateForFY
+		formatString: Short Date
+		lineageTag: 3b113582-3c18-4bc5-9fbe-5725173a2c1f
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [AbsenceBeginDateForFY]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column CompanyIdentifier
+		lineageTag: 46e25e24-2f9f-43db-b9a3-d73f655b8f19
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_AbsentDaysExplosion[CompanyIdentifier]
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamID
+		lineageTag: e2c7b728-1fe5-4e4e-8468-44a68d1e1638
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_AbsentDaysExplosion[TeamID]
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamKeyComposite
+		lineageTag: 9b1f3f96-c808-4839-91e1-75b436050fd8
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_AbsentDaysExplosion[TeamKeyComposite]
+
+		annotation SummarizationSetBy = Automatic
+
+	column AbsenceEndDateForFY =
+			
+			// Only counted if person is gone "overnight" i.e. if PersonStatusStartDate and PersonStatusEndDate are on the same day then it is not counted.
+			IF(
+			    FactAbsentDaysByFY[PersonStatusEndDate] > FactAbsentDaysByFY[FYEnd],
+			        FactAbsentDaysByFY[FYEnd],
+			        FactAbsentDaysByFY[PersonStatusEndDate]
+			)
+		formatString: Short Date
+		lineageTag: 70969338-e306-497d-a8a1-b8143d27ad4b
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition FactAbsentDaysByFY-ee1d1b72-a23c-4018-8b6f-af65982ddbac = calculated
+		mode: import
+		source =
+				
+				// This table splits each person into the FYs over they have absent days. It then calculates the number of days the absence occurred for in that FY. Each PersonID will have as many rows as financial years that it spans.
+				// You can generally disregard PersonStatusStartDate and PersonStatusEndDate - they are better used as a reference for understanding how the table works.
+				SUMMARIZECOLUMNS(
+				    ALL_Work_AbsentDaysExplosion[CompanyIdentifier],
+				    ALL_Work_AbsentDaysExplosion[PersonID],
+				    ALL_Work_AbsentDaysExplosion[ReferralID],
+				    ALL_Work_AbsentDaysExplosion[TeamFunctionID],
+				    ALL_Work_AbsentDaysExplosion[TeamID],
+				    ALL_Work_AbsentDaysExplosion[TeamKeyComposite],
+				    ALL_Work_AbsentDaysExplosion[PersonStatusTypeID],
+				    ALL_Work_AbsentDaysExplosion[PersonStatusStartDate],
+				    ALL_Work_AbsentDaysExplosion[PersonStatusEndDate],
+				    ALL_Work_AbsentDaysExplosion[FinancialYear],
+				    ALL_Work_AbsentDaysExplosion[FYEnd],
+				    "AbsenceBeginDateForFY", MIN(ALL_Work_AbsentDaysExplosion[Explosion])
+				)
+
+	annotation PBI_Id = 2247a1a34e3143d0a0aa5f49f2c69d55
+

@@ -1,0 +1,52 @@
+table fact_costs
+	lineageTag: e9cc7751-7f5b-462c-87da-cfdc2c0c2a8d
+
+	column total_costs
+		dataType: double
+		formatString: 0.0000000000
+		lineageTag: 5807953f-82a1-4a00-9d09-fad29f0ea82b
+		summarizeBy: sum
+		sourceColumn: total_costs
+
+		annotation SummarizationSetBy = User
+
+	column date
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 5e30d0e0-b84f-4faa-bf12-346cd9078480
+		summarizeBy: none
+		sourceColumn: date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column resource
+		dataType: string
+		lineageTag: 793bd6e6-ca9c-47cf-8d56-32a70cd83d22
+		summarizeBy: none
+		sourceColumn: resource
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_resource_key
+		dataType: string
+		lineageTag: ae8aab39-75c8-4f53-8685-280d4ff59767
+		summarizeBy: none
+		sourceColumn: dim_resource_key
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_costs = m
+		mode: import
+		queryGroup: Facts
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ods", [Query="-- ============================================================#(lf)-- Model:  Azure Cost Tracking Dataset#(lf)-- Table:  fact_costs#(lf)-- Source: native query (complex CTE/window) - emitted in full#(lf)-- Used columns: 4 (mapped 4, unmapped 0)  [full query, not trimmed]#(lf)-- Auto-generated from pbi_complete_dump.csv + model M + EDW/ODS schema.#(lf)-- Review before use; verify joins/filters against the model.#(lf)-- ============================================================#(lf)-- USED model columns: date; dim_resource_key; resource; total_costs#(lf)#(lf)with flagged_data as (#(lf)  SELECT#(lf)    costInBillingCurrency,#(lf)    TRY_CAST(costInBillingCurrency AS decimal(38,10)) as total_costs,#(lf)    CASE #(lf)      WHEN TRY_CAST(costInBillingCurrency AS decimal(38,10)) IS NULL THEN 1#(lf)      ELSE 0#(lf)    END as is_problematic,#(lf)    date,#(lf)    lower(ResourceId) as resource_id,#(lf)    location,#(lf)    chargeType as charge_type,#(lf)    lower(resourceGroupName) as resource_group,#(lf)    publisherName as publisher,#(lf)    serviceFamily as service_name,#(lf)    meterName as meter,#(lf)    subscriptionName as subscription_name,#(lf)    billingCurrency as currency,#(lf)    lower(SUBSTRING(ResourceId, LEN(ResourceId) - CHARINDEX('/', REVERSE(ResourceId)) + 2, LEN(ResourceId))) AS resource#(lf)  FROM [dbo].[cost_analysis_current]#(lf)UNION#(lf)  SELECT#(lf)    costInBillingCurrency,#(lf)    TRY_CAST(costInBillingCurrency AS decimal(38,10)) as total_costs,#(lf)    CASE #(lf)      WHEN TRY_CAST(costInBillingCurrency AS decimal(38,10)) IS NULL THEN 1#(lf)      ELSE 0#(lf)    END as is_problematic,#(lf)    date,#(lf)    lower(ResourceId) as resource_id,#(lf)    location,#(lf)    chargeType as charge_type,#(lf)    lower(resourceGroupName) as resource_group,#(lf)    publisherName as publisher,#(lf)    serviceFamily as service_name,#(lf)    meterName as meter,#(lf)    subscriptionName as subscription_name,#(lf)    billingCurrency as currency,#(lf)    lower(SUBSTRING(ResourceId, LEN(ResourceId) - CHARINDEX('/', REVERSE(ResourceId)) + 2, LEN(ResourceId))) AS resource#(lf)  FROM [dbo].[cost_analysis_monthly]#(lf))#(lf)SELECT#(lf)  *,#(lf)  HASHBYTES('SHA1',CONCAT(resource_group,resource,service_name,subscription_name)) AS dim_resource_key#(lf)FROM flagged_data;#(lf)"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"date", type date}, {"dim_resource_key", type text}}),
+				#"Columns removed by Measure Killer"= Table.SelectColumns(#"Changed Type",{"total_costs","dim_resource_key","date","resource"})
+				in
+				#"Columns removed by Measure Killer"
+
+	annotation PBI_ResultType = Table
+

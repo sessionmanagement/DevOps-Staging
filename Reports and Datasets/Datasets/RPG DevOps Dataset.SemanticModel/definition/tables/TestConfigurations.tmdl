@@ -1,0 +1,63 @@
+/// Test configuration definitions specifying environment and variable combinations for test execution. Source: OData TestConfigurations entity.
+table TestConfigurations
+	lineageTag: 84be3649-5ca0-40a0-93d1-dfd1d278064d
+
+	/// Surrogate key linking to the Projects dimension table
+	column ProjectSK
+		dataType: string
+		isHidden
+		lineageTag: 8c455235-5288-40a3-88ba-825fcdee63e9
+		summarizeBy: none
+		sourceColumn: ProjectSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key uniquely identifying the test configuration
+	column TestConfigurationSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 44a3813e-b7ff-416c-bd44-54f9479fe692
+		summarizeBy: none
+		sourceColumn: TestConfigurationSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unique numeric identifier for the test configuration
+	column TestConfigurationId
+		dataType: int64
+		formatString: 0
+		lineageTag: 61b34049-0658-4afb-be74-bd3a90ddb8cb
+		summarizeBy: count
+		sourceColumn: TestConfigurationId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Display name of the test configuration
+	column Name
+		dataType: string
+		lineageTag: 5c93c989-38ba-4229-af16-9bb7c3aa997f
+		summarizeBy: none
+		sourceColumn: Name
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Current state of the test configuration (e.g., Active, Inactive)
+	column State
+		dataType: string
+		lineageTag: 99dd75fb-b8c5-418e-9b61-5ca3b6930a59
+		summarizeBy: none
+		sourceColumn: State
+
+		annotation SummarizationSetBy = Automatic
+
+	partition TestConfigurations = m
+		mode: import
+		queryGroup: 'DevOps Tables'
+		source =
+				let
+				    Source = OData.Feed("https://analytics.dev.azure.com/EmergeAotearoa/Data%20and%20Analytics/_odata/v3.0-preview/", null, [Implementation="2.0",OmitValues = ODataOmitValues.Nulls,ODataVersion = 4, Headers=[Authorization=fnGetToken()]]),
+				    TestConfigurations_table = Source{[Name="TestConfigurations",Signature="table"]}[Data]
+				in
+				    TestConfigurations_table
+

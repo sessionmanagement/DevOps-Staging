@@ -1,0 +1,215 @@
+table 'Dim KPI'
+	lineageTag: 65b5efc1-dd90-4e8b-b4f7-28f3065d22be
+
+	column 'Dim Kpi KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 07e1245b-91f6-4b7e-9bcf-a43b12aae176
+		summarizeBy: none
+		sourceColumn: Dim Kpi KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Kpi ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 91492412-6afe-4896-8b4e-27c9b75781ed
+		summarizeBy: none
+		sourceColumn: Kpi ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Kpi Target Green'
+		dataType: string
+		lineageTag: f01a11df-ae92-41c5-a57a-e1291701bf3f
+		summarizeBy: none
+		sourceColumn: Kpi Target Green
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Kpi Ru G Value'
+		dataType: double
+		lineageTag: d0bf9219-116e-4717-9d60-8cf33f9fb356
+		summarizeBy: sum
+		sourceColumn: Kpi Ru G Value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Kpi Target Amber'
+		dataType: string
+		lineageTag: 08b91775-b271-4f69-b4f5-74b4b6a1701c
+		summarizeBy: none
+		sourceColumn: Kpi Target Amber
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Kpi Ru A Value'
+		dataType: double
+		lineageTag: 879e90c2-e336-4907-ac52-e5e70291ae7b
+		summarizeBy: sum
+		sourceColumn: Kpi Ru A Value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Related Kpi Outcome Lookup Value'
+		dataType: string
+		lineageTag: 155ab76e-4e3d-49b0-b0cd-b68c10200daa
+		summarizeBy: none
+		sourceColumn: Related Kpi Outcome Lookup Value
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Related Outcome'
+		dataType: string
+		lineageTag: c2cdc220-3ff4-43d2-8d7c-4aaab460c6da
+		summarizeBy: none
+		sourceColumn: Related Outcome
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sfa Rollup Area'
+		dataType: string
+		lineageTag: a61a3c9a-ed36-406b-9343-1e5978b23053
+		summarizeBy: none
+		sourceColumn: Sfa Rollup Area
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sfa Rollup Areas Strategic Focus Area'
+		dataType: string
+		lineageTag: c666ee40-0441-4635-b4a1-fd208da5f496
+		summarizeBy: none
+		sourceColumn: Sfa Rollup Areas Strategic Focus Area
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sfa Rollup Areas Lookup Value'
+		dataType: string
+		lineageTag: effb5a7e-7c5b-4ab5-a96c-c171f0ec0fa6
+		summarizeBy: none
+		sourceColumn: Sfa Rollup Areas Lookup Value
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'What Is Measured'
+		dataType: string
+		lineageTag: c88a65fc-8460-4649-b681-43f17cad434b
+		summarizeBy: none
+		sourceColumn: What Is Measured
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Call To Action'
+		dataType: string
+		lineageTag: 7e55ed1f-b638-4ef1-a073-c2de976c2ceb
+		summarizeBy: none
+		sourceColumn: Call To Action
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Effective From'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: a04564af-004b-4636-b42c-2de19082d679
+		summarizeBy: none
+		sourceColumn: DWH Effective From
+
+		variation Variation
+			isDefault
+			relationship: 34357dee-08e0-4fbe-a4a5-a4dfa970efbb
+			defaultHierarchy: LocalDateTable_86a2eae3-7c52-42c2-b8bf-7245ccfcecaf.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Effective To'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 459a6fef-1765-4b00-86a9-d787280855cb
+		summarizeBy: none
+		sourceColumn: DWH Effective To
+
+		variation Variation
+			isDefault
+			relationship: afdbafec-5e51-4789-ac33-52e71a734416
+			defaultHierarchy: LocalDateTable_e55dc346-bdb1-45e3-aabc-d874f4cbb4ba.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Is Current'
+		dataType: int64
+		formatString: 0
+		lineageTag: cf455842-46d0-4126-9909-cb8d5f0d973f
+		summarizeBy: sum
+		sourceColumn: DWH Is Current
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sim Title'
+		dataType: string
+		lineageTag: ede284e0-c701-4d69-86a0-6f23dcb21fce
+		summarizeBy: none
+		sourceColumn: Sim Title
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Relevant Bu'
+		dataType: string
+		lineageTag: 6d85c978-008b-4a3a-859d-a350be2864d2
+		summarizeBy: none
+		sourceColumn: Relevant Bu
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim KPI' = m
+		mode: import
+		queryGroup: 'EDW Dim Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)    [dim_kpi_key],#(lf)    [kpi_id],#(lf)    [kpi_target_green],#(lf)    [kpi_ru_g_value],#(lf)    [kpi_target_amber],#(lf)    [kpi_ru_a_value],#(lf)    [related_kpi_outcome_lookup_value],#(lf)    [related_outcome],#(lf)    [sfa_rollup_area],#(lf)    [sfa_rollup_areas_strategic_focus_area],#(lf)    [sfa_rollup_areas_lookup_value],#(lf)    [what_is_measured],#(lf)    [call_to_action],#(lf)    [sim_title],#(lf)    [relevant_bu],#(lf)    [DWHEffectiveFrom],#(lf)    [DWHEffectiveTo],#(lf)    [DWHDMLOperation],#(lf)    [DWHIsCurrent]#(lf)FROM [kpi].[dim_kpi_master]"]),
+				    edw_dim_company = Source,
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceKaimahi = Text.Replace(columnName, "employee_", "Kaimahi_"),
+				            replaceClient = Text.Replace(replaceKaimahi, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(edw_dim_company, each ApplyNamingConventions(_)),
+				    #"Filtered Rows" = Table.SelectRows(#"Transformed Column Names", each ([DWH Dml Operation] <> "D") and ([DWH Is Current] = 1)),
+				    #"Removed Columns" = Table.RemoveColumns(#"Filtered Rows",{ "DWH Dml Operation"}),
+				    #"Normalised Relevant Bu" = Table.TransformColumns(
+				    #"Removed Columns",
+				    {
+				        "Relevant Bu",
+				        each Text.Replace(
+				            Text.Replace(
+				                Text.Replace(_, "Mind & Body", "Health & Disability"),
+				                ", ", "|"
+				            ),
+				            ",", "|"
+				        )
+				    }
+				)
+				in
+				    #"Normalised Relevant Bu"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

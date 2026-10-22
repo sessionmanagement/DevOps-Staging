@@ -1,0 +1,547 @@
+/// Individual maintenance tasks within a work order. Each task has a specific maintenance type, location, cost, and completion status. Multiple tasks can belong to a single Property Maintenance work order. Contains the detailed breakdown of work performed and associated costs.
+table 'Property Maintenance Task'
+	lineageTag: aa48859e-b69e-4986-b18d-7b9f27d74b74
+
+	column 'Fact Property Maintenance Task KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 5b61ca20-14a9-47b1-9340-97ec42f8727f
+		summarizeBy: sum
+		sourceColumn: Fact Property Maintenance Task KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Maintenance Task ID'
+		dataType: string
+		isHidden
+		lineageTag: 80ac9e7b-de14-4c5f-9617-7882b9c10374
+		summarizeBy: none
+		sourceColumn: Property Maintenance Task ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Maintenance ID'
+		dataType: string
+		isHidden
+		lineageTag: 166b2e19-2402-4710-95d3-944aa72006ca
+		summarizeBy: none
+		sourceColumn: Property Maintenance ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Maintenance KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 34eaa48c-64ca-4669-a0a8-8280515e62c7
+		summarizeBy: sum
+		sourceColumn: Dim Property Maintenance KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 111e7b90-7311-4661-85c7-0f7e9dd59c3e
+		summarizeBy: sum
+		sourceColumn: Dim Property KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Detail KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: cde5c3ee-cc20-401f-8bed-74abb9211536
+		summarizeBy: sum
+		sourceColumn: Dim Property Detail KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Healthy Homes KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 7f4a3406-fcaf-458a-a2b2-66141c9b3ba4
+		summarizeBy: sum
+		sourceColumn: Dim Property Healthy Homes KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Tenancy KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 9511fdac-c520-451d-9318-cfd58f5e69b2
+		summarizeBy: sum
+		sourceColumn: Dim Property Tenancy KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Program KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: a37bedb8-ab55-4a9a-a935-6bfd33619174
+		summarizeBy: sum
+		sourceColumn: Dim Property Program KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Maintenace Type KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 44398a16-d742-4ddf-9f4c-e4ebbc49fbbc
+		summarizeBy: sum
+		sourceColumn: Dim Property Maintenace Type KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property ID'
+		dataType: string
+		isHidden
+		lineageTag: cbcdbe3b-9900-4773-af5a-29ed4f72addc
+		summarizeBy: none
+		sourceColumn: Property ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Maintenance Type ID'
+		dataType: string
+		isHidden
+		lineageTag: b070fd0e-347a-46ae-bd3d-65e98b56b0e3
+		summarizeBy: none
+		sourceColumn: Property Maintenance Type ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Program ID'
+		dataType: string
+		isHidden
+		lineageTag: 8d3fa514-9a96-4f2a-9ef7-d19721063d80
+		summarizeBy: none
+		sourceColumn: Property Program ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Subprogram ID'
+		dataType: string
+		isHidden
+		lineageTag: 8a669d77-c7af-4cca-9ce6-38aa211918cc
+		summarizeBy: none
+		sourceColumn: Property Subprogram ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenancy ID'
+		dataType: string
+		isHidden
+		lineageTag: a3ae604c-a4a0-4f25-9eb6-f324bdf11152
+		summarizeBy: none
+		sourceColumn: Property Tenancy ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Maintenace Type ID'
+		dataType: string
+		isHidden
+		lineageTag: 21c3e0c5-e211-45ea-b8b2-b202ea6bda23
+		summarizeBy: none
+		sourceColumn: Property Maintenace Type ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenancy Type ID'
+		dataType: string
+		isHidden
+		lineageTag: bbd6d411-a3fd-4056-81ce-fb6f21466ae2
+		summarizeBy: none
+		sourceColumn: Property Tenancy Type ID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the task acknowledgment period started.
+	column 'Acknowledgment Start Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 6419eadd-6b0e-4288-a8ca-80251de36ee7
+		summarizeBy: none
+		sourceColumn: Acknowledgment Start Date And Time
+
+		variation Variation
+			isDefault
+			relationship: db19d873-d8dd-4222-b030-c7e3136f7ccc
+			defaultHierarchy: LocalDateTable_c0e55d47-aff4-40c9-8988-51c44263eef8.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date by which acknowledgment must be received.
+	column 'Acknowledgment End Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: c587476c-9c58-44bd-ab0d-e10141d15c67
+		summarizeBy: none
+		sourceColumn: Acknowledgment End Date And Time
+
+		variation Variation
+			isDefault
+			relationship: 7f45d56f-1ff6-4ce4-b81a-8b97d3521338
+			defaultHierarchy: LocalDateTable_61b2092f-236b-4962-b47e-2cfa81b087a1.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the contractor invoice was processed for payment.
+	column 'Invoice Processed Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: d2b5757a-1344-46ff-8a4d-52199c5bc6bd
+		summarizeBy: none
+		sourceColumn: Invoice Processed Date
+
+		variation Variation
+			isDefault
+			relationship: 57d1f411-7a1e-4f9a-8ac7-9590b1de35cc
+			defaultHierarchy: LocalDateTable_3f7d33d4-9fcc-430d-b1ce-44d6e4d6bdb3.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Actual date the contractor completed the work.
+	column 'Actual Contractor Completion Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 59a85972-c6d3-407b-8392-13ef4b977a00
+		summarizeBy: none
+		sourceColumn: Actual Contractor Completion Date
+
+		variation Variation
+			isDefault
+			relationship: db800537-3d20-4180-a215-0f4ab51b651b
+			defaultHierarchy: LocalDateTable_3c1d75ca-f8e8-494f-b441-75f938ac0ce8.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Target date for completing this task.
+	column 'Expected Completion Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 75e72ac6-931c-4e9c-9554-7b466117b2ca
+		summarizeBy: none
+		sourceColumn: Expected Completion Date
+
+		variation Variation
+			isDefault
+			relationship: 1e56f272-c251-4e91-a094-055096e65b47
+			defaultHierarchy: LocalDateTable_0da1fde8-251c-4292-b317-d9268580449b.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Expected date for contractor to arrive on-site.
+	column 'Expected On-Site Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 40297eb5-2522-4277-8f20-a190d8924858
+		summarizeBy: none
+		sourceColumn: Expected On-Site Date
+
+		variation Variation
+			isDefault
+			relationship: 0ac85030-4c82-41c7-aa71-2d5752855d15
+			defaultHierarchy: LocalDateTable_bc88a34e-40eb-44dc-beed-baab614e1e5b.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the total cost amount was last modified.
+	column 'Total Amount Last Updated Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 3e46413f-334a-45f2-99f0-8100d3caa801
+		summarizeBy: none
+		sourceColumn: Total Amount Last Updated On
+
+		variation Variation
+			isDefault
+			relationship: 59b758db-908a-42e3-ae01-3444644f2e46
+			defaultHierarchy: LocalDateTable_a952d894-921a-4f6e-b595-78db7b08df90.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date web-submitted expenses were last updated.
+	column 'Web Expenses Last Updated Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 037d1b21-cd33-431a-8959-2f41734a2907
+		summarizeBy: none
+		sourceColumn: Web Expenses Amount Last Updated On
+
+		variation Variation
+			isDefault
+			relationship: 86bb8451-c238-496a-bbe3-af71bcb20a1b
+			defaultHierarchy: LocalDateTable_5fbc8400-07ec-47b4-b8b3-8a7d69597695.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date any equipment or fixtures were installed.
+	column 'Installation Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: a886b339-d682-4f74-bb28-d62889c3744e
+		summarizeBy: none
+		sourceColumn: Installation Date
+
+		variation Variation
+			isDefault
+			relationship: d070b62f-6a81-4516-92c5-ce5084a230ea
+			defaultHierarchy: LocalDateTable_4858545d-8a17-4304-b405-15c23260d390.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the contractor sent completion notification email.
+	column 'Contractor Completion Email Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: a9fbed31-2485-4563-9b78-1a9ea9d5a9fe
+		summarizeBy: none
+		sourceColumn: Contractor Completion Email Received
+
+		variation Variation
+			isDefault
+			relationship: 250a3c13-5f09-411e-a905-b3e30960d932
+			defaultHierarchy: LocalDateTable_ee9d913d-fa32-4284-9fa8-dfa09b329e7e.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Short code for the information/task type classification.
+	column ICode
+		dataType: string
+		isHidden
+		lineageTag: 7d6c40ac-17d6-43f5-80cb-aa9ec90ef209
+		summarizeBy: none
+		sourceColumn: Icode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Classification code describing the type of maintenance issue.
+	column 'Information Code'
+		dataType: string
+		lineageTag: 70ac19a0-9e53-4f73-8624-74dc97f74dd5
+		summarizeBy: none
+		sourceColumn: Information Code
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Code indicating which area of the property the task relates to.
+	column 'Location Code'
+		dataType: string
+		lineageTag: 72c885ad-6e69-40f3-b734-dedc44cc6762
+		summarizeBy: none
+		sourceColumn: Location Code
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Description of the property location where the task is required (e.g., Kitchen, Bathroom, Bedroom 1).
+	column 'Location Name'
+		dataType: string
+		lineageTag: 132a90df-3f17-4296-8ec2-be27d43a5123
+		summarizeBy: none
+		sourceColumn: Location Name
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Description of the specific maintenance task to be performed.
+	column 'Work Task'
+		dataType: string
+		lineageTag: eaaa7d46-4011-4a61-8dcc-06279eae90fd
+		summarizeBy: none
+		sourceColumn: Work Task
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Sequence number for ordering tasks within a property area.
+	column 'Area Seq'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 8bbc2d1f-7d93-4e6a-9444-1dce2dd9916c
+		summarizeBy: sum
+		sourceColumn: Area Seq
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Any property assets related to or affected by this task.
+	column Assets
+		dataType: string
+		lineageTag: f72d12c5-c887-4b4a-a944-f063af639a19
+		summarizeBy: none
+		sourceColumn: Assets
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Name of the contracted service provider for this task.
+	column 'Contract Service Name'
+		dataType: string
+		lineageTag: b0e2b527-c0f9-4b67-8281-ae0d99d14bad
+		summarizeBy: none
+		sourceColumn: Contract Service Name
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Free-text notes and comments recorded against the maintenance task.
+	column Comments
+		dataType: string
+		lineageTag: a7aa3db2-a404-4545-a45f-495022ca25d9
+		summarizeBy: none
+		sourceColumn: Comments
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Detailed description of the information code classification.
+	column 'Information Code Detail'
+		dataType: string
+		lineageTag: 5a493de0-63c0-405d-9c37-6d61d657cefa
+		summarizeBy: none
+		sourceColumn: Information Code Detail
+
+		annotation SummarizationSetBy = Automatic
+
+	/// General Ledger code for financial posting of this task's costs.
+	column 'G/L Code'
+		dataType: string
+		isHidden
+		lineageTag: 133ec64e-e193-43f1-84ea-b90b73436475
+		summarizeBy: none
+		sourceColumn: G/L Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Category of work being performed.
+	column 'Work Type'
+		dataType: string
+		lineageTag: 8da0d253-a4c5-4011-aa4a-a17df387d4fc
+		summarizeBy: none
+		sourceColumn: Work Type
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Cost amount for this specific maintenance task in dollars.
+	column Amount
+		dataType: double
+		formatString: #,0.00
+		lineageTag: dde75864-ce5e-4f61-b9ce-e1284abcf1bd
+		summarizeBy: sum
+		sourceColumn: Amount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Created Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 72a56413-db62-4cb1-8d3c-b6271e9c92cc
+		summarizeBy: none
+		sourceColumn: Created Date
+
+		variation Variation
+			isDefault
+			relationship: 9b5251e0-8c74-46f3-839d-6841de1b8572
+			defaultHierarchy: LocalDateTable_cf1a13d4-b85c-4e3b-bc6f-e235c1d06ce2.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Modified Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 496e3cc1-66ab-4e43-ad3f-51938c3f1958
+		summarizeBy: none
+		sourceColumn: Modified Date
+
+		variation Variation
+			isDefault
+			relationship: 99dbd36d-aced-4b00-b2bb-fccf13e97da1
+			defaultHierarchy: LocalDateTable_e06a9a24-1b72-4ac3-b258-1b2b195a24db.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Property Maintenance Task' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query=" SELECT
+				      [fact_property_maintenance_task_key],
+				      [property_maintenance_task_id],
+				      [property_maintenance_id],
+				      [dim_property_maintenance_key],
+				      [dim_property_key],
+				      [dim_property_detail_key],
+				      [dim_property_healthy_homes_key],
+				      [dim_property_tenancy_key],
+				      [dim_property_program_key],
+				      [dim_property_maintenace_type_key],
+				      [property_id],
+				      [property_maintenance_type_id],
+				      [property_program_id],
+				      [property_subprogram_id],
+				      [property_tenancy_id],
+				      [property_maintenace_type_id],
+				      [property_tenancy_type_id],
+				
+				      -- Date Key Conversions (INT YYYYMMDD → DATE)
+				      TRY_CONVERT(DATE, CAST(NULLIF([property_maintenance_task_acknowledgment_date_key], -1) AS VARCHAR(8)), 112) AS
+				   [Acknowledgment Start Date and Time],
+				      TRY_CONVERT(DATE, CAST(NULLIF([property_maintenance_task_acknowledgment_end_date_key], -1) AS VARCHAR(8)),
+				  112) AS [Acknowledgment End Date and Time],
+				      TRY_CONVERT(DATE, CAST(NULLIF([property_maintenance_task_actual_completion_date_key], -1) AS VARCHAR(8)), 112)
+				   AS [Invoice Processed Date],
+				      TRY_CONVERT(DATE, CAST(NULLIF([property_maintenance_task_contractor_work_completion_date_key], -1) AS
+				  VARCHAR(8)), 112) AS [Actual Contractor Completion Date],
+				      TRY_CONVERT(DATE, CAST(NULLIF([property_maintenance_task_expected_completion_date_key], -1) AS VARCHAR(8)),
+				  112) AS [Expected Completion Date],
+				      TRY_CONVERT(DATE, CAST(NULLIF([property_maintenance_task_expected_onsite_date_key], -1) AS VARCHAR(8)), 112)
+				  AS [Expected On-Site Date],
+				      TRY_CONVERT(DATE, CAST(NULLIF([property_maintenance_task_total_capped_amount_date_key], -1) AS VARCHAR(8)),
+				  112) AS [Total Amount Last Updated On],
+				      TRY_CONVERT(DATE, CAST(NULLIF([property_maintenance_task_web_expenses_amount_date_key], -1) AS VARCHAR(8)),
+				  112) AS [Web Expenses Amount Last Updated On],
+				      TRY_CONVERT(DATE, CAST(NULLIF([property_maintenance_assets_installation_date_key], -1) AS VARCHAR(8)), 112) AS
+				   [Installation Date],
+				      TRY_CONVERT(DATE, CAST(NULLIF([property_maintenance_task_contractor_status_date_key], -1) AS VARCHAR(8)), 112)
+				   AS [Contractor Completion Email Received],
+				
+				      -- Non-date columns
+				      [property_maintenance_task_icode] AS [ICode],
+				      [property_maintenance_task_information_code_name] AS [Information Code],
+				      [property_maintenance_task_location_code] AS [Location Code],
+				      [property_maintenance_task_location_name] AS [Location Name],
+				      [property_maintenance_task_work_task_name] AS [Work Task],
+				      [property_maintenance_task_area_seq] AS [Area Seq],
+				      [property_maintenance_task_assets_name] AS [Assets],
+				      [property_maintenance_contract_service_name] AS [Contract Service Name],
+				      [property_maintenance_task_comments] AS [Comments],
+				      [property_maintenance_task_information_code_detail_name] AS [Information Code Detail],
+				      [property_maintenance_task_maintenance_code] AS [G/L Code],
+				      [property_maintenance_task_maintenance_type_name] AS [Work Type],
+				      [property_maintenance_task_amount] AS [Amount],
+				      CAST([property_maintenance_task_created_datetime] AS DATE) AS [Created Date],
+				      CAST([property_maintenance_task_modified_datetime] AS DATE) AS [Modified Date]
+				
+				  FROM [edw].[fact_property_maintenance_task]
+				  WHERE [property_maintenance_task_is_delete_flag] IS NULL
+				    AND [DWHDMLOperation] <> 'D'"]),
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, fnApplyNamingConventions)
+				in
+				    #"Transformed Column Names"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Exception
+

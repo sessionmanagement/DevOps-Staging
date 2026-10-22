@@ -1,0 +1,66 @@
+table Work_ALL_DimGender
+	lineageTag: b1cdec45-5188-4989-9505-2912e9bb80ad
+
+	column CompanyIdentifier
+		dataType: string
+		lineageTag: de44fdc1-d744-4966-be3b-c74db0a48a90
+		summarizeBy: none
+		sourceColumn: CompanyIdentifier
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderID
+		dataType: string
+		lineageTag: fb46587c-21cc-4a57-ab12-b2e761b73e03
+		summarizeBy: none
+		sourceColumn: GenderID
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderValue
+		dataType: string
+		lineageTag: a9df3408-cfed-46e6-ab5a-c226772ac5c3
+		summarizeBy: none
+		sourceColumn: GenderValue
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderText
+		dataType: string
+		lineageTag: 4f1ad636-aebe-4cfd-a488-4678852e4a5a
+		summarizeBy: none
+		sourceColumn: GenderText
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderParentID
+		dataType: string
+		lineageTag: f7864eb8-05bc-401c-87ff-f819eb538191
+		summarizeBy: none
+		sourceColumn: GenderParentID
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderIsActive
+		dataType: int64
+		formatString: 0
+		lineageTag: 9363f8ab-5618-434d-b9c0-da35a4c4c869
+		summarizeBy: none
+		sourceColumn: GenderIsActive
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Work_ALL_DimGender-85481e32-88c1-48c2-b775-837528f59ad3 = m
+		mode: import
+		queryGroup: Shared
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)'EAL' AS CompanyIdentifier,#(lf)CASE WHEN GenderID IS NOT NULL THEN CONCAT('E',GenderID) ELSE NULL END AS GenderID,#(lf)GenderValue,#(lf)GenderText,#(lf)CASE WHEN GenderParentID IS NOT NULL THEN CONCAT('E',GenderParentID) ELSE NULL END AS GenderParentID,#(lf)GenderIsActive#(lf)FROM RBEAL.[dlDimGender]"]),
+				    #"Appended Query" = Table.Combine({Source, MNB_DimGender})
+				in
+				    #"Appended Query"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

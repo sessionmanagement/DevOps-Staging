@@ -1,0 +1,47 @@
+table 'RLS with Additional Access'
+	lineageTag: fd1caa4f-ac07-4249-9274-b4762f1b907c
+
+	column 'User Principal Name'
+		dataType: string
+		lineageTag: e9f37f53-7b68-4e1d-83bb-c969654b566c
+		summarizeBy: none
+		sourceColumn: User Principal Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Service KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 7a913420-cf64-4b7a-b425-a0aebd768410
+		summarizeBy: sum
+		sourceColumn: Dim Service KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'RLS with Additional Access' = m
+		mode: import
+		queryGroup: 'Row Level Security'
+		source = ```
+				let
+				    // Load both tables
+				    RowLevelSecurity = @#"Row Level Security Employee",
+				    AdditionalAccess = #"Additional Access",
+				    
+				    // Join tables
+				    JoinedTable = Table.Join(AdditionalAccess, "Person to Impersonate Email", RowLevelSecurity, "User Principal Name", JoinKind.RightOuter),
+				    #"Added Conditional Column" = Table.AddColumn(JoinedTable, "Custom", each if [Requester Email] = null then [User Principal Name] else [Requester Email]),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Conditional Column",{"Report", "Requester Email", "Person to Impersonate Email", "Expiry Date", "Access Reason", "Approved By Email", "Approved Date", "Modified", "Created", "Created By Email", "Modified By Email", "Version", "User Principal Name"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"Custom", "User Principal Name"}}),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Renamed Columns",{"User Principal Name", "Dim Service KEY"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Reordered Columns",{{"User Principal Name", type text}}),
+				    #"Removed Duplicates" = Table.Distinct(#"Changed Type"),
+				    #"Appended Query" = Table.Combine({#"Removed Duplicates", #"Row Level Security Employee"}),
+				    #"Removed Duplicates1" = Table.Distinct(#"Appended Query")
+				in
+				    #"Removed Duplicates1"
+				```
+
+	annotation PBI_ResultType = Exception
+
+	annotation PBI_NavigationStepName = Navigation
+

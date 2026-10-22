@@ -1,0 +1,33 @@
+table DimCompany
+	lineageTag: 4dc5a4e3-c376-4278-9691-a0e83e77b963
+
+	column CompanyIdentifier
+		dataType: string
+		lineageTag: 83274fcf-f981-401a-a58a-1c0e12c31ddd
+		summarizeBy: none
+		sourceColumn: CompanyIdentifier
+
+		annotation SummarizationSetBy = Automatic
+
+	column CompanyName
+		dataType: string
+		lineageTag: eff8b105-13fd-4f70-8617-7e4199e595e0
+		summarizeBy: none
+		sourceColumn: CompanyName
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimCompany-584cc1eb-f938-4f4e-9df1-97c110ff694a = m
+		mode: import
+		queryGroup: Shared
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WcnX0UdJRcs1NLUpPVXDML0lNLMpPVPApSVGK1YlW8vVzAsr6ZualKCQCsVN+SqVSbCwA", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [CompanyIdentifier = _t, CompanyName = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"CompanyIdentifier", type text}, {"CompanyName", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

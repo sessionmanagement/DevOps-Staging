@@ -1,0 +1,71 @@
+table 'RLS - Property'
+	lineageTag: 34554a0e-72a3-4409-820d-d723789929c9
+
+	column 'Dim Property KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: c30ea416-db8a-4817-ad2b-4785ac8bcbe6
+		summarizeBy: none
+		sourceColumn: Dim Property KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Name'
+		dataType: string
+		lineageTag: 8b54d42a-80f0-4f61-a2d3-c177f5ed3db7
+		summarizeBy: none
+		sourceColumn: Property Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'User Principal Name'
+		dataType: string
+		lineageTag: 85b2983d-75d7-430a-b809-c86f9a264652
+		summarizeBy: none
+		sourceColumn: User Principal Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property ID'
+		dataType: string
+		lineageTag: 8bbb44c6-4a4d-4f97-9084-da04fc694a59
+		summarizeBy: none
+		sourceColumn: Property ID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'RLS - Property' = m
+		mode: import
+		queryGroup: 'RLS\RLS -Property'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="-- ============================================================#(lf)-- Model:  KPI Dataset#(lf)-- Table:  RLS - Property#(lf)-- Source: native query (complex CTE/window) - emitted in full#(lf)-- Used columns: 2 (mapped 2, unmapped 0)  [full query, not trimmed]#(lf)-- Auto-generated from pbi_complete_dump.csv + model M + EDW/ODS schema.#(lf)-- Review before use; verify joins/filters against the model.#(lf)-- ============================================================#(lf)-- USED model columns: Dim Property KEY; User Principal Name#(lf)#(lf)WITH LatestTenancy AS (#(lf)    SELECT #(lf)        dpt.property_tenancy_manager_name AS property_assigned_tenancy_manager,#(lf)        dpt.property_id,#(lf)        dpt.property_tenancy_tenancy_start_date,#(lf)        ROW_NUMBER() OVER (#(lf)            PARTITION BY dpt.property_id #(lf)            ORDER BY dpt.property_tenancy_tenancy_start_date DESC#(lf)        ) AS rn#(lf)    FROM edw.vw_dim_property_tenancy dpt#(lf)    WHERE #(lf)        dpt.DWHDMLOperation <> 'D'#(lf)        AND dpt.DWHIsCurrent = 1#(lf)        AND dpt.property_tenant_opportunity_status NOT IN ('cancelled')#(lf)),#(lf)#(lf)tenancy_managers AS (#(lf)SELECT #(lf)    lt.property_assigned_tenancy_manager,#(lf)    p.property_name,#(lf)    p.dim_property_key,#(lf)    p.property_status,#(lf)    p.property_id#(lf)FROM edw.vw_dim_property p#(lf)JOIN LatestTenancy lt#(lf)    ON p.property_id = lt.property_id#(lf)    AND lt.rn = 1  -- only keep the latest tenancy record#(lf)WHERE #(lf)    p.DWHDMLOperation <> 'D'#(lf)    AND p.DWHIsCurrent = 1#(lf)    AND p.property_id IS NOT NULL#(lf)    AND p.property_statuscode <> 'disposed'#(lf)    AND lt.property_assigned_tenancy_manager IS NOT NULL   #(lf)#(lf)),#(lf)employee_hierarchy AS (#(lf)    SELECT#(lf)        deh.employee_id,#(lf)        deh.employee_primary_email_address,#(lf)        tm.property_id,#(lf)        tm.property_name,#(lf)        tm.property_status,#(lf)        tm.dim_property_key,#(lf)        hierarchy_levels.level_number,#(lf)        hierarchy_levels.leader_email#(lf)    FROM edw.dim_employee_hierarchy deh#(lf)    INNER JOIN edw.dim_employee de#(lf)        ON deh.employee_id = de.employee_id#(lf)        AND de.DWHDMLOperation <> 'D'#(lf)        AND de.DWHIsCurrent = 1#(lf)   INNER JOIN tenancy_managers tm#(lf)    ON tm.property_assigned_tenancy_manager COLLATE Latin1_General_CI_AI =  #(lf)       LTRIM(RTRIM(#(lf)           CASE #(lf)               WHEN CHARINDEX('(', deh.employee_displayname) > 0 #(lf)                    AND CHARINDEX(')', deh.employee_displayname) > CHARINDEX('(', deh.employee_displayname)#(lf)               THEN #(lf)                   REPLACE(#(lf)                       STUFF(#(lf)                           deh.employee_displayname,#(lf)                           CHARINDEX('(', deh.employee_displayname),#(lf)                           CHARINDEX(')', deh.employee_displayname) - CHARINDEX('(', deh.employee_displayname) + 1,#(lf)                           ''#(lf)                       ), '  ', ' '#(lf)                   )#(lf)               ELSE deh.employee_displayname#(lf)           END#(lf)       ))#(lf)#(lf)#(lf)#(lf)    CROSS APPLY (#(lf)        VALUES#(lf)            (1, employee_people_leader_email_level_1),#(lf)            (2, employee_people_leader_email_level_2),#(lf)            (3, employee_people_leader_email_level_3),#(lf)            (4, employee_people_leader_email_level_4),#(lf)            (5, employee_people_leader_email_level_5),#(lf)            (6, employee_people_leader_email_level_6),#(lf)            (7, employee_people_leader_email_level_7),#(lf)            (8, employee_people_leader_email_level_8),#(lf)            (9, employee_people_leader_email_level_9)#(lf)    ) AS hierarchy_levels(level_number, leader_email)#(lf)    WHERE deh.DWHDMLOperation <> 'D'#(lf)    AND deh.DWHIsCurrent = 1#(lf)    AND deh.employee_company_name COLLATE Latin1_General_CI_AI#(lf)        NOT IN ('previous business entity', 'ignite aotearoa')#(lf)    AND hierarchy_levels.leader_email IS NOT NULL#(lf))#(lf)#(lf)    #(lf)#(lf)   SELECT DISTINCT#(lf)        property_id,#(lf)        dim_property_key,#(lf)        property_name,#(lf)        leader_email AS user_principal_name#(lf)    FROM employee_hierarchy#(lf) rls_access#(lf)WHERE leader_email IS NOT NULL;#(lf)#(lf)-- Row filter(s) defined in REFERENCED Power Query expressions (verify which apply to this source before adding to WHERE):#(lf)--   each ([Requester Email] <> null)#(lf)--   each [Expiry Date] >= Date.From(DateTime.LocalNow())#(lf)--   each ([Report] = ""KPI Dataset"")#(lf)"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				    #"Lowercased Text" = Table.TransformColumns(#"Transformed Column Names",{{"User Principal Name", Text.Lower, type text}}),
+				    #"Removed Duplicates" = Table.Distinct(#"Lowercased Text"),
+				    #"Appended Query" = Table.Combine({#"Removed Duplicates", #"Additional Access - Property"})
+				in
+				    #"Appended Query"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

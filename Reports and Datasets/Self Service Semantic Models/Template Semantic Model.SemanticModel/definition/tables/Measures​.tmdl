@@ -1,0 +1,32 @@
+/// Central repository for all calculated measures in this semantic model. Use display folders to organize measures by functional area (e.g., '01. Sales', '02. Inventory'). This table contains no data rows - it exists solely to house measure definitions. Add your measures here using the DAX formula bar.
+table Measures​
+	lineageTag: 620dcdda-0015-4aff-a044-307090a82f49
+
+	/// Displays the date and time when this semantic model was last refreshed, formatted in NZ time. Useful for displaying data freshness on reports.
+	measure 'Last Refreshed' =
+			VAR UTCTime = NOW()
+			VAR NZOffset = IF(
+			    // NZ Daylight Saving: Last Sunday in September to first Sunday in April
+			    VAR CurrentDate = TODAY()
+			    VAR Year = YEAR(CurrentDate)
+			    VAR SeptLastSun = DATE(Year, 9, 30) - WEEKDAY(DATE(Year, 9, 30), 1) + 1
+			    VAR AprFirstSun = DATE(Year, 4, 1) + (8 - WEEKDAY(DATE(Year, 4, 1), 1)) - 7
+			    RETURN CurrentDate >= SeptLastSun || CurrentDate < AprFirstSun,
+			    13, // NZDT (UTC+13)
+			    12  // NZST (UTC+12)
+			)
+			RETURN UTCTime + NZOffset/24
+		formatString: dd/MM/yyyy HH:mm:ss
+		displayFolder: _Utility
+		lineageTag: 51ac8ddb-95c0-426c-bf93-7c912ec6d0f0
+
+	column Placeholder
+		isHidden
+		lineageTag: 718c2249-0cb4-4ec8-87e7-7ef45e554703
+		isNameInferred
+		sourceColumn: [Placeholder]
+
+	partition Measure​ = calculated
+		mode: import
+		source = ROW("Placeholder", 0)
+

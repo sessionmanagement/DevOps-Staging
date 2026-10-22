@@ -1,0 +1,192 @@
+table 'Dim Referral'
+	lineageTag: 886718b8-b007-4153-b3a0-f9fa0bd61e2d
+
+	column 'Tangata Whaiora Referral ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: c237a0a9-f0c4-4035-974e-4a0206d111cd
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: dc3d14a8-f3cc-45cd-84df-b4f7f92d7567
+		summarizeBy: count
+		sourceColumn: Tangata Whaiora ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Company KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: ce96767c-585d-400b-acf1-3318abeee1eb
+		summarizeBy: sum
+		sourceColumn: Dim Company KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Service KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: bdbe11c9-38b5-4aba-8415-e16f01d51482
+		summarizeBy: sum
+		sourceColumn: Dim Service KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column Url
+		dataType: string
+		lineageTag: d47ac0ff-933d-4b23-b2ab-36f34b6551d8
+		dataCategory: WebUrl
+		summarizeBy: none
+		sourceColumn: Url
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Kaimahi Assigned'
+		dataType: string
+		lineageTag: 95b9d20f-8bf4-4bd0-bc91-350e8180dac0
+		summarizeBy: none
+		sourceColumn: Kaimahi Assigned
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Tangata Whaiora Referral KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 7cd66cc3-16e1-4902-ba11-4027fe63ada7
+		summarizeBy: none
+		sourceColumn: Dim Tangata Whaiora Referral KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: fa7db0f4-2a73-47d8-b9f8-7c76d6052846
+		summarizeBy: count
+		sourceColumn: Service ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team Name'
+		dataType: string
+		lineageTag: 00f8023a-d3c9-4e76-b42f-582772e77ae1
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Team Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Display Name'
+		dataType: string
+		lineageTag: 431393ee-f212-4006-81fb-044d63f30fcf
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Display Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Tangata Whaiora KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 01d6ce14-8da9-45ef-af30-d60f41b0da5d
+		summarizeBy: sum
+		sourceColumn: Dim Tangata Whaiora KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Tangata Whaiora KEY Latest'
+		dataType: int64
+		formatString: 0
+		lineageTag: bf1df07c-993f-4077-9575-a31d94ccea01
+		summarizeBy: sum
+		sourceColumn: Dim Tangata Whaiora KEY Latest
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Tangata Whaiora Unique KEY'
+		dataType: string
+		lineageTag: 9ede3d05-9e96-4668-ae8c-e400cb23d9fa
+		summarizeBy: none
+		sourceColumn: Dim Tangata Whaiora Unique KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 94eea13e-7fb3-4577-b981-29bd20b2bd0e
+		summarizeBy: count
+		sourceColumn: Tangata Whaiora Team ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Code'
+		dataType: string
+		lineageTag: e71258eb-cecc-4a9a-aaca-b214ca26fcd1
+		summarizeBy: none
+		sourceColumn: Service Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Status'
+		dataType: string
+		lineageTag: 345d705e-7d5e-4531-a89d-c9f9d13187bd
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Row Num By Client'
+		dataType: int64
+		formatString: 0
+		lineageTag: 218310f3-d3b0-44d3-aed7-e8fd4c54bebd
+		summarizeBy: sum
+		sourceColumn: Row Num By Client
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Row Num By Tangata Whaiora Per Service'
+		dataType: int64
+		formatString: 0
+		lineageTag: 373d6729-0839-4952-ba79-e1c080db7287
+		summarizeBy: sum
+		sourceColumn: Row Num By Tangata Whaiora Per Service
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Referral' = m
+		mode: import
+		queryGroup: 'EDW Dim Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="#(lf)-- GET KAIMAHI INFO FROM  EMPLOYEE HIERARCHY FIRST#(lf)WITH Kaimahi_assigned AS#(lf)(SELECT vw_dim_employee_hierarchy.employee_displayname AS kaimahi_assigned#(lf),vw_dim_employee_hierarchy.employee_id#(lf)#(lf)FROM edw.vw_dim_employee_hierarchy#(lf)WHERE vw_dim_employee_hierarchy.DWHIsCurrent = 1#(lf)   AND vw_dim_employee_hierarchy.DWHDMLOperation <> 'd'#(lf)     AND vw_dim_employee_hierarchy.dim_employee_key > 0 )#(lf)#(lf)#(lf)#(tab)#(tab)#(lf)   SELECT DISTINCT#(lf)        vw_fact_client_referral.dim_company_key,#(lf)#(tab)#(tab)vw_fact_client_referral.dim_client_key,#(lf)#(tab)#(tab)vw_fact_client_referral.client_id,#(lf)#(tab)#(tab)vw_fact_client_referral.dim_client_key_latest,#(lf)#(tab)#(tab)vw_dim_client.dim_client_unique_key,#(lf)#(tab)#(tab)vw_dim_client.client_display_name,#(lf)#(tab)#(tab)--===added#(lf)#(tab)#(tab)vw_fact_client_referral.dim_client_referral_key,#(lf)#(tab)#(tab)vw_fact_client_referral.client_referral_id,#(lf)#(tab)#(tab)vw_fact_client_referral.client_team_id,#(lf)#(tab)#(tab)vw_dim_client_team.client_team_name,#(lf)#(tab)#(tab)--========#(lf)       #(tab)vw_dim_service.dim_service_key,#(lf)#(tab)#(tab)--===added#(lf)#(tab)#(tab)vw_dim_service.service_code,#(lf)#(tab)#(tab)vw_dim_service.service_id,#(lf)#(tab)#(tab)vw_dim_client_referral.client_referral_status,#(lf)#(tab)#(tab)ROW_NUMBER() OVER (PARTITION BY vw_fact_client_referral.client_id #(lf)#(tab)#(tab)ORDER BY vw_fact_client_referral.client_id, vw_fact_client_referral.dim_client_referral_key) AS row_num_by_client,#(lf)    #(lf)#(tab)--====rationale for the count.  If you want to know the active clients take row_number_by_client = 1#(lf)#(tab)#(tab)ROW_NUMBER() OVER (PARTITION BY vw_fact_client_referral.client_id, vw_fact_client_referral.dim_service_key #(lf)#(tab)#(tab)ORDER BY  vw_fact_client_referral.dim_client_referral_key, vw_fact_client_referral.dim_service_key) AS row_num_by_client_per_service#(lf)#(tab)--====if you want to know the number of active client referrals then count(dim_client_referral_key).#(lf)#(tab)--====if you want to know the number of active clients per service then count by service where row_num_by_client_per_service = 1 #(lf)#(tab), kaimahi_assigned#(lf)#(tab), CASE #(lf)        WHEN vw_fact_client_referral .dim_company_key = 1 THEN #(lf)            'https://emergeaotearoa.wildbamboo.co.nz/person/' + CAST(vw_fact_client_referral .client_id AS VARCHAR)#(lf)        WHEN vw_fact_client_referral .dim_company_key = 5 THEN #(lf)            'https://mindandbody.wildbamboo.co.nz/person/' + CAST(vw_fact_client_referral .client_id AS VARCHAR)#(lf)        ELSE NULL#(lf)    END AS URL#(lf)   #(lf)#(tab)FROM edw.vw_fact_client_referral #(lf)#(tab)INNER JOIN edw.vw_dim_client #(tab)#(tab)#(tab) ON vw_fact_client_referral.dim_client_key = vw_dim_client.dim_client_key#(lf)#(tab)INNER JOIN edw.vw_dim_client_team        ON vw_dim_client_team.dim_client_team_key  = VW_fact_client_referral.dim_client_team_key #(lf)    INNER JOIN edw.vw_dim_service            ON vw_fact_client_referral.dim_service_key = vw_dim_service.dim_service_key#(lf)#(tab)--====added#(lf)#(tab)INNER JOIN edw.vw_dim_client_referral    on vw_fact_client_referral.dim_client_referral_key = vw_dim_client_referral.dim_client_referral_key#(lf)#(tab)--===========#(lf)#(tab)LEFT JOIN Kaimahi_assigned ON Kaimahi_assigned.employee_id = vw_fact_client_referral.user_employee_number#(lf)    WHERE #(lf)#(tab)#(tab)vw_fact_client_referral.DWHDMLOperation       <> 'D'#(lf)#(tab)#(tab)--=== discussion with Thijs, he says we need waitlist and pending... therefore need to add an extra column for client_referral_status.  Any confusion is his doing#(lf)#(tab)#(tab)--AND vw_fact_client_referral.client_referral_accepted_date_key is not null#(lf)#(tab)#(tab)AND vw_dim_client_referral.client_referral_type = 'InboundReferral'#(lf)#(tab)#(tab)AND vw_dim_client_referral.client_status_is_active = 'Active'#(lf)#(tab)#(tab)--dim_client_team doesn't keep history - keep only the valid ones - because we're using team id.#(lf)#(tab)#(tab)AND vw_dim_client_team.DWHDMLOperation       <> 'D'#(lf)#(tab)--#(tab)and vw_dim_service.dwhiscurrent  = 1#(lf)#(tab)#(tab)and vw_dim_service.dwhdmloperation <> 'd'#(lf)#(lf)#(tab)#(tab)#(lf)#(tab)order by client_id;#(lf)"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceKaimahi = Text.Replace(columnName, "employee_", "Kaimahi_"),
+				            replaceClient = Text.Replace(replaceKaimahi, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_))
+				in
+				    #"Transformed Column Names"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

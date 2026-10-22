@@ -1,0 +1,153 @@
+table 'Ref Person Referral to Goals'
+	lineageTag: a774d82c-22cc-4ac3-8ff0-0400a0be1991
+
+	column dim_client_referral_key
+		dataType: int64
+		formatString: 0
+		lineageTag: f76beabf-bac1-40ae-b342-5fb5933499e5
+		summarizeBy: none
+		sourceColumn: dim_client_referral_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column total_person_centred_goals
+		dataType: int64
+		formatString: 0
+		lineageTag: a9997bad-f138-4a52-9fee-1a50016e7de1
+		summarizeBy: sum
+		sourceColumn: total_person_centred_goals
+
+		annotation SummarizationSetBy = Automatic
+
+	column open_person_centred_goals
+		dataType: int64
+		formatString: 0
+		lineageTag: 852cc4ff-bfc0-493f-8e26-9bb613f5668f
+		summarizeBy: sum
+		sourceColumn: open_person_centred_goals
+
+		annotation SummarizationSetBy = Automatic
+
+	column person_centred_goal_within_28_days_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: a8b9b76d-8112-4ce9-b5fc-9bdf936513ec
+		summarizeBy: sum
+		sourceColumn: person_centred_goal_within_28_days_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column total_referral_goals_open
+		dataType: int64
+		formatString: 0
+		lineageTag: 292eef0f-40a2-4b7d-9d23-ea0585ebc882
+		summarizeBy: sum
+		sourceColumn: total_referral_goals_open
+
+		annotation SummarizationSetBy = Automatic
+
+	column total_referral_goals
+		dataType: int64
+		formatString: 0
+		lineageTag: 3a669b56-9c2b-4537-8e12-b2e068bd4a88
+		summarizeBy: sum
+		sourceColumn: total_referral_goals
+
+		annotation SummarizationSetBy = Automatic
+
+	column referral_goal_within_24_hours_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: 7f2c60cb-e4bd-4318-945b-4134f1ff32fa
+		summarizeBy: sum
+		sourceColumn: referral_goal_within_24_hours_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column person_centred_goal_within_28_days_flag2
+		dataType: int64
+		formatString: 0
+		lineageTag: 11766782-9e62-4bdc-81fb-30f052cd1c10
+		summarizeBy: sum
+		sourceColumn: person_centred_goal_within_28_days_flag2
+
+		annotation SummarizationSetBy = Automatic
+
+	column person_centred_goals_missing_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: 0a3e04b0-a783-4447-bb55-9e55cb7619f7
+		summarizeBy: sum
+		sourceColumn: person_centred_goals_missing_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column total_referral_goals_missing_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: 244eb085-f1f2-41a4-8443-7c18348082bd
+		summarizeBy: sum
+		sourceColumn: total_referral_goals_missing_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column client_referral_id
+		dataType: int64
+		formatString: 0
+		lineageTag: c28a3d58-677d-40c8-9745-673605fc9ba5
+		summarizeBy: sum
+		sourceColumn: client_referral_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column referral_accepted_date
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 54a39b26-d113-427e-8bf4-e574eccebc6a
+		summarizeBy: none
+		sourceColumn: referral_accepted_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column referral_discharged_date
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 226ec3df-3859-4594-bff3-f69f17e2cc57
+		summarizeBy: none
+		sourceColumn: referral_discharged_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column client_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 43a8727b-bf7b-40b9-bad9-64d5c41f4dc7
+		summarizeBy: sum
+		sourceColumn: client_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column days_accepted
+		dataType: string
+		lineageTag: f43b639b-c9f2-47a4-b4d7-69cdc0539f24
+		summarizeBy: none
+		sourceColumn: days_accepted
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Ref Person Referral to Goals' = m
+		mode: import
+		queryGroup: 'Reference Tables'
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="--=====data for referrals - I need to know when the referral was created#(lf)WITH referrals#(lf)     AS (SELECT DISTINCT#(lf)        --==== I don't care who the relationship is at this stage so only taking unique referral fields#(lf)        vw_fact_client_referral.dim_client_key_latest,#(lf)        vw_dim_client_referral.dim_client_referral_key,#(lf)        vw_dim_client_referral.client_referral_id,#(lf)#(tab)#(tab)vw_dim_client_referral.client_id,#(lf)        vw_dim_client_referral.client_team_id,#(lf)        vw_fact_client_referral.dim_client_team_key,#(lf)        vw_fact_client_referral.dim_service_key,#(lf)        vw_dim_date.calendar_date AS referral_accepted_date,#(lf)        date2.calendar_date       AS referral_created_date,#(lf)        date3.calendar_date       AS referral_pending_date,#(lf)        date4.calendar_date       AS referral_waiting_date,#(lf)#(tab)#(tab)date5.calendar_date       AS referral_discharged_date#(lf)         FROM   edw.vw_fact_client_referral#(lf)                INNER JOIN edw.vw_dim_client_referral#(lf)                        ON vw_fact_client_referral.dim_client_referral_key =#(lf)                           vw_dim_client_referral.dim_client_referral_key#(lf)                LEFT JOIN edw.vw_dim_date#(lf)                       ON#(lf)                vw_fact_client_referral.client_referral_accepted_date_key =#(lf)                vw_dim_date.dim_date_key#(lf)                LEFT JOIN edw.vw_dim_date AS date2#(lf)                       ON#(lf)                vw_fact_client_referral.client_referral_created_date_key =#(lf)                date2.dim_date_key#(lf)                LEFT JOIN edw.vw_dim_date AS date3#(lf)                       ON#(lf)                vw_fact_client_referral.client_referral_pending_date_key =#(lf)                date3.dim_date_key#(lf)                LEFT JOIN edw.vw_dim_date AS date4#(lf)                       ON#(lf)                vw_fact_client_referral.client_referral_waitlist_date_key =#(lf)                date4.dim_date_key#(lf)#(tab)#(tab)#(tab)#(tab)LEFT JOIN edw.vw_dim_date AS date5#(lf)                       ON#(lf)                vw_fact_client_referral.client_referral_discharge_date_key =#(lf)                date5.dim_date_key#(lf)         WHERE  vw_fact_client_referral.dwhdmloperation <> 'd'#(lf)                AND vw_dim_client_referral.dwhdmloperation <> 'd'#(lf)                AND vw_dim_client_referral.client_referral_type =#(lf)                    'inboundreferral'),#(lf)     -- whole table with goals in it.#(lf)     goalsummary#(lf)     AS (SELECT vw_fact_client_personal_goal.fact_client_personal_goal_key,#(lf)                --===== person centred goal - short term goal - from FactGoal - elite db#(lf)                vw_fact_client_personal_goal.fact_client_referral_goal_key,#(lf)                --====referral goal - personal plan - Long term goal - from factPersonalPlan - elite db#(lf)                vw_fact_client_personal_goal.dim_company_key,#(lf)                vw_fact_client_personal_goal.dim_client_referral_key,#(lf)                vw_fact_client_personal_goal.dim_client_key_latest,#(lf)                vw_fact_client_personal_goal.client_personal_goal_id,#(lf)                Row_number ()#(lf)                  OVER (#(lf)                    partition BY client_personal_goal_id#(lf)                    ORDER BY client_personal_goal_id)#(lf)                AS#(lf)                   PC_goal_order,-- adding in a count for PC Goals#(lf)                vw_dim_date.calendar_date#(lf)                AS#(lf)                   person_centred_goal_created_date,#(lf)                date2.calendar_date#(lf)                AS#(lf)                   person_centred_goal_end_date,#(lf)               #(lf)#(tab)#(tab)#(tab)   --====added this piece 14 June 2024 - referral goal is not unique to one referral so added in referral_id#(lf)#(tab)#(tab)#(tab)   Row_number ()#(lf)                  OVER (#(lf)                    partition BY#(lf)                  vw_fact_client_personal_goal.client_personal_plan_id, client_referral_id#(lf)                    ORDER BY#(lf)                  vw_fact_client_personal_goal.client_personal_plan_id, client_referral_id) AS#(lf)                referral_goal_order,-- adding in a count for Referral Goals#(lf)                vw_fact_client_personal_goal.client_personal_plan_id,#(lf)                referral_goal_created_date,#(lf)                referral_goal_end_date,#(lf)                referral_goal_next_review_date,#(lf)                referral_goal_open,#(lf)                referral_goal_count,#(lf)                --====count for open PC Goals#(lf)                CASE#(lf)                  WHEN date2.calendar_date IS NULL THEN 1#(lf)                  ELSE 0#(lf)                END#(lf)                AS#(lf)                   person_centred_goal_open,#(lf)                1#(lf)                AS#(lf)                   person_centred_goal_total#(lf)         FROM   edw.vw_fact_client_personal_goal#(lf)                LEFT JOIN#(lf)                -- I have to join 2 tables together to get referral_goal_created_date which is what happens below#(lf)                (SELECT fact_client_referral_goal_key,#(lf)                        client_referral_goal_created_date_key,#(lf)                        client_referral_goal_end_date_key,#(lf)                        client_referral_goal_next_review_date_key,#(lf)                        vw_dim_date.calendar_date AS referral_goal_created_date,#(lf)                        date2.calendar_date       AS referral_goal_end_date,#(lf)                        date3.calendar_date       AS#(lf)                        referral_goal_next_review_date,#(lf)                        --==== to figure out open goals#(lf)                        CASE#(lf)                          WHEN date2.calendar_date IS NULL THEN 1#(lf)                          ELSE 0#(lf)                        END                       AS Referral_Goal_Open,#(lf)                        1                         AS Referral_Goal_count#(lf)                 FROM   edw.vw_fact_client_referral_goal#(lf)                        LEFT JOIN edw.vw_dim_date#(lf)                               ON#(lf)           vw_fact_client_referral_goal.client_referral_goal_created_date_key =#(lf)           vw_dim_date.dim_date_key#(lf)           LEFT JOIN edw.vw_dim_date AS date2#(lf)                  ON#(lf)           vw_fact_client_referral_goal.client_referral_goal_end_date_key#(lf)           =#(lf)           date2.dim_date_key#(lf)           LEFT JOIN edw.vw_dim_date AS date3#(lf)                  ON#(lf)vw_fact_client_referral_goal.client_referral_goal_next_review_date_key#(lf)=#(lf)          date3.dim_date_key#(lf)AND vw_fact_client_referral_goal.dwhdmloperation <> 'D') AS#(lf)     referral_goals#(lf)            ON vw_fact_client_personal_goal.fact_client_referral_goal_key#(lf)               =#(lf)               referral_goals.fact_client_referral_goal_key#(lf)     LEFT JOIN edw.vw_dim_date#(lf)            ON#(lf)     vw_fact_client_personal_goal.client_personal_goal_created_date_key =#(lf)     vw_dim_date.dim_date_key#(lf)     LEFT JOIN edw.vw_dim_date AS date2#(lf)            ON#(lf)     vw_fact_client_personal_goal.client_personal_goal_close_date_key =#(lf)     date2.dim_date_key#(lf)         WHERE  vw_fact_client_personal_goal.dwhdmloperation <> 'd'),#(lf)     --===== getting single referral goals from the summary table#(lf)     referralgoals#(lf)     AS (SELECT Row_number ()#(lf)                  OVER (#(lf)                    partition BY dim_client_referral_key#(lf)                    ORDER BY dim_client_referral_key, referral_goal_created_date#(lf)                  ) AS#(lf)                ref_goal_order,#(lf)                dim_client_referral_key,#(lf)                fact_client_referral_goal_key,#(lf)                referral_goal_created_date#(lf)         FROM   goalsummary#(lf)         WHERE  referral_goal_order = 1),#(lf)     --===== this is the first referral goal for the referral.  Not the first referral goal in the dataset#(lf)     referral_goals_first#(lf)     AS (SELECT *#(lf)         FROM   referralgoals#(lf)         WHERE  ref_goal_order = 1),#(lf)     --=== getting single PC Goals#(lf)     pcgoalssummary#(lf)     AS (SELECT#(lf)        --===adding in another order#(lf)        Row_number ()#(lf)          OVER (#(lf)            partition BY dim_client_referral_key#(lf)            ORDER BY dim_client_referral_key, person_centred_goal_created_date)#(lf)        AS#(lf)        PCGoalRefOrder,#(lf)        dim_client_referral_key,#(lf)        fact_client_personal_goal_key,#(lf)        person_centred_goal_created_date,#(lf)        person_centred_goal_end_date,#(lf)        client_personal_goal_id#(lf)         FROM   goalsummary#(lf)         WHERE  pc_goal_order = 1),#(lf)     --===== this is the first person centred goal for the referral #(lf)     pcgoals_first#(lf)     AS (SELECT *#(lf)         FROM   pcgoalssummary#(lf)         WHERE  pcgoalreforder = 1),#(lf)     --====working out a sum of the open goals and total goals#(lf)     referral_pc_counts#(lf)     AS (SELECT dim_client_referral_key,#(lf)                Sum(person_centred_goal_open)  AS total_PC_Goals_Open,#(lf)                Sum(person_centred_goal_total) AS total_PC_Goals#(lf)         FROM   goalsummary#(lf)         WHERE  pc_goal_order = 1#(lf)         GROUP  BY dim_client_referral_key),#(lf)     referral_referral_goal_counts#(lf)     AS (SELECT dim_client_referral_key,#(lf)                Sum(referral_goal_open)  AS total_Ref_Goals_Open,#(lf)                Sum(referral_goal_count) AS total_Ref_Goals#(lf)         FROM   goalsummary#(lf)         WHERE  referral_goal_order = 1#(lf)         GROUP  BY dim_client_referral_key),#(lf)     referral_summary_1#(lf)     AS (SELECT referrals.*,#(lf)                Isnull(total_pc_goals, 0)       AS total_Person_centred_goals,#(lf)                Isnull(total_pc_goals_open, 0)  AS open_person_centred_goals,#(lf)                Isnull(total_ref_goals_open, 0) AS total_referral_goals_open,#(lf)                Isnull(total_ref_goals, 0)      AS total_referral_goals#(lf)         FROM   referrals#(lf)                LEFT JOIN referral_pc_counts#(lf)                       ON referrals.dim_client_referral_key =#(lf)                          referral_pc_counts.dim_client_referral_key#(lf)                LEFT JOIN referral_referral_goal_counts#(lf)                       ON referrals.dim_client_referral_key =#(lf)                          referral_referral_goal_counts.dim_client_referral_key)#(lf),#(lf)     referral_goal_days#(lf)     AS (SELECT referrals.dim_client_referral_key,#(lf)                CASE#(lf)                  WHEN referral_accepted_date > referral_goal_created_date#(lf)                       AND referral_goal_created_date > referral_pending_date#(lf)                THEN#(lf)                  Datediff(day, referral_pending_date,#(lf)                  referral_goal_created_date)#(lf)                  ELSE Datediff(day, referral_accepted_date,#(lf)                       referral_goal_created_date)#(lf)                END AS days_to_ref_goal#(lf)         FROM   referrals#(lf)                LEFT JOIN referral_goals_first#(lf)                       ON referrals.dim_client_referral_key =#(lf)                          referral_goals_first.dim_client_referral_key),#(lf)     pc_goal_days#(lf)     AS (SELECT referrals.dim_client_referral_key,#(lf)                CASE#(lf)                  WHEN referral_accepted_date > person_centred_goal_created_date#(lf)                       AND referral_pending_date <#(lf)                           person_centred_goal_created_date#(lf)                THEN#(lf)                  Datediff(day, referral_pending_date,#(lf)                  person_centred_goal_created_date)#(lf)                  ELSE Datediff(day, referral_accepted_date,#(lf)                       person_centred_goal_created_date)#(lf)                END AS days_to_PC_goal#(lf)         FROM   referrals#(lf)                LEFT JOIN pcgoals_first#(lf)                       ON referrals.dim_client_referral_key =#(lf)                          pcgoals_first.dim_client_referral_key)#(lf)--==== adding in all the flags etc#(lf), Final as#(lf)(SELECT referral_summary_1.dim_client_referral_key,#(lf)#(tab)   referral_summary_1.client_referral_id,#(lf)#(tab)   referral_summary_1.client_id,#(lf)       referral_summary_1.total_person_centred_goals AS#(lf)       total_person_centred_goals,#(lf)       open_person_centred_goals                     AS#(lf)       open_person_centred_goals,#(lf)       CASE#(lf)         WHEN days_to_pc_goal IS NULL THEN 0#(lf)         WHEN days_to_pc_goal <= 28 THEN 1#(lf)         ELSE 0#(lf)       END                                           AS#(lf)       person_centred_goal_within_28_days_flag,#(lf)       total_referral_goals_open,#(lf)       total_referral_goals,#(lf)       CASE#(lf)         WHEN days_to_ref_goal IS NULL THEN 0#(lf)#(tab)#(tab) WHEN days_to_ref_goal <= 2 THEN 1#(lf)         ELSE 0#(lf)       END                                           AS#(lf)       referral_goal_within_24_hours_flag,#(lf)      #(lf)       CASE#(lf)         WHEN total_person_centred_goals = 0 THEN 1#(lf)         ELSE 0#(lf)       END                                           AS#(lf)       person_centred_goals_missing_flag,#(lf)       CASE#(lf)         WHEN total_referral_goals = 0 THEN 1#(lf)         ELSE 0#(lf)       END                                           AS#(lf)       total_referral_goals_missing_flag,#(lf)#(tab)   referral_accepted_date,#(lf)#(tab)   case when datediff(day,referral_accepted_date,getdate()) between 0 and 28 then 'Accepted last 28 days'#(lf)#(tab)   when referral_discharged_date is not null then 'Discharged'#(lf)#(tab)   when referral_accepted_date is null then 'Not Accepted'#(lf)#(tab)   else 'Accepted for more than 28 Days'#(lf)#(tab)   end#(lf)#(tab)   as days_accepted,#(lf)#(tab)   referral_discharged_date#(lf)FROM   referral_summary_1#(lf)       LEFT JOIN referral_goal_days#(lf)              ON referral_summary_1.dim_client_referral_key =#(lf)                 referral_goal_days.dim_client_referral_key#(lf)       LEFT JOIN pc_goal_days#(lf)              ON referral_summary_1.dim_client_referral_key =#(lf)                 pc_goal_days.dim_client_referral_key#(lf)#(lf)#(tab))#(lf)#(tab)#(lf)#(tab)select #(lf)#(tab)dim_client_referral_key,#(lf)#(tab)   client_referral_id,#(lf)#(tab)   client_id,#(lf)       #(lf)       total_person_centred_goals,#(lf)   #(lf)       open_person_centred_goals,#(lf)       CASE#(lf)#(tab)     when datediff(day,referral_accepted_date, getdate()) <= 28 then 0#(lf)       else person_centred_goal_within_28_days_flag#(lf)#(tab)   END    AS#(lf)       person_centred_goal_within_28_days_flag,#(lf)       total_referral_goals_open,#(lf)       total_referral_goals,#(lf)       CASE#(lf)        when datediff(day,referral_accepted_date,getdate())<=2 then 0#(lf)#(tab)#(tab)else referral_goal_within_24_hours_flag#(lf)       END                                           AS#(lf)       referral_goal_within_24_hours_flag,#(lf)#(tab)   --===this is there twice so I don't break the dataset, am keeping it in#(lf)          CASE#(lf)#(tab)     when datediff(day,referral_accepted_date, getdate()) <= 28 then 0#(lf)       else person_centred_goal_within_28_days_flag#(lf)#(tab)   END    AS#(lf)       person_centred_goal_within_28_days_flag,#(lf)       person_centred_goals_missing_flag,#(lf)      #(lf)       total_referral_goals_missing_flag,#(lf)#(tab)   referral_accepted_date,#(lf)#(tab)   days_accepted,#(lf)#(tab)   referral_discharged_date#(lf)#(tab)#(lf)#(tab)from final#(lf)#(tab)#(lf)#(lf)"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"referral_accepted_date", type date}, {"referral_discharged_date", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

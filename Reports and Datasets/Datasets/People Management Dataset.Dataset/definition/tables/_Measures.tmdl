@@ -1,0 +1,420 @@
+table _Measures
+	lineageTag: de17d4e0-d9ac-48cf-ba43-2b582a36e03d
+
+	measure 'Total Hours Worked' = ```
+			
+			VAR CurrentPayPeriodStartDate = SELECTEDVALUE(fact_pay_slips[pay_period_start_date])
+			RETURN
+			    CALCULATE(
+			        SUM(fact_pay_slips[HoursWorked]),
+			        FILTER(fact_pay_slips, fact_pay_slips[pay_period_start_date] = CurrentPayPeriodStartDate)
+			    )
+			
+			```
+		lineageTag: b27e5768-2c4b-41ed-a15e-8fa00c18057d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Kaimahi' = ```
+			
+			CALCULATE (
+			    DISTINCTCOUNT ( dim_people[EmpID] ),
+			    FILTER (
+			        ALLSELECTED(dim_people),
+			        dim_people[isPrimaryJob] = 1
+			    )
+			)
+			
+			```
+		formatString: 0
+		lineageTag: b9080352-9751-4778-9553-af7b8ccbbc71
+
+	measure 'Over 96 Hours' = ```
+			IF([Total Hours Worked] >= 96, 1, 0)
+			
+			```
+		formatString: 0
+		lineageTag: 56f80dbd-38ad-4021-937a-8e6eab32764b
+
+	measure '16 Hours Over FTE' = ```
+			
+			VAR ConvertedFTE =
+			    CALCULATE (
+			        SUMX (
+			            dim_people,
+			            dim_people[fte] * 80
+			        )
+			    )
+			VAR over = IF (ISBLANK(ConvertedFTE),0, IF(
+			        [Total Hours Worked]-ConvertedFTE >= 16,
+			        1,
+			        0
+			    ))
+			RETURN
+			    over    
+			```
+		lineageTag: 66c6a52d-36bb-4550-8a17-03a5fb3983df
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Percentage Kaimahi with 96+ hours' = ```
+			
+			IF (
+			    ISBLANK (
+			        DIVIDE ( [Number of Kaimahi with 96+ hour fortnights], [Total Kaimahi] )
+			    ),
+			    0,
+			    DIVIDE ( [Number of Kaimahi with 96+ hour fortnights], [Total Kaimahi] )
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: 96 Hour Fortnights
+		lineageTag: a90fafc6-393f-46d7-b531-f98dea472c09
+
+	measure 'Percentage Staff 16 Hours above FTE' = ```
+			
+			DIVIDE(
+			    CALCULATE(
+			        COUNTROWS('dim_people'),
+			        FILTER('dim_people',
+			               [16 Hours Over FTE] = 1
+			        )
+			    ),
+			    CALCULATE(
+			        COUNTROWS('dim_people')
+			    ) 
+			)
+			```
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 54b10b3e-8371-4582-b22d-8b680bbc481a
+
+	measure '% of casuals that worked no hours' = //
+		formatString: 0
+		lineageTag: e5c98f1c-9604-4113-a590-c35e8a1ff89a
+
+	measure 'Is zero hours' = ```
+			
+			IF(
+			    SELECTEDVALUE(dim_people[Work Type]) = "Temporary/Casual" && ([Total Hours Worked] = 0 || ISBLANK([Total Hours Worked])),
+			    1,
+			    0
+			)
+			
+			```
+		formatString: 0
+		lineageTag: b2dd48fb-755f-4f6b-a01f-dd60696f4268
+
+	measure 'Num Casuals No Hours' = CALCULATE([Is zero hours])
+		formatString: 0
+		lineageTag: fc6fd766-60a2-4088-861a-759ba427a12e
+
+	measure 'Number of Sleepovers' =
+			
+			IF (
+			    ISBLANK (
+			        CALCULATE (
+			            COUNTROWS ( fact_approved_shifts_non_leave ),
+			            fact_approved_shifts_non_leave[shift_length_cumulative] >= 24,
+			            dim_roles[name]= "Sleepover"
+			        )
+			    ),
+			    0,
+			    CALCULATE (
+			        COUNTROWS ( fact_approved_shifts_non_leave ),
+			        fact_approved_shifts_non_leave[shift_length_cumulative] >= 24,
+			        dim_roles[name]= "Sleepover"
+			    )
+			)
+		formatString: 0
+		lineageTag: c33d1fdd-14cc-46dd-ae6a-d3eb57866f44
+
+	measure 'Number of 96+ hour fortnights' = ```
+			
+			VAR SummaryTable =
+			    SUMMARIZE (
+			        fact_pay_slips,
+			        fact_pay_slips[pay_period_start_date],
+			        fact_pay_slips[employee_id],
+			        "TotalHoursWorked",
+			        SUM(fact_pay_slips[HoursWorked])
+			    )
+			RETURN
+			    CALCULATE (
+			        COUNTROWS(FILTER(SummaryTable, [TotalHoursWorked] >= 96))
+			    )
+			
+			```
+		formatString: 0
+		displayFolder: 96 Hour Fortnights
+		lineageTag: e2e36320-b95a-4079-bef0-596ea94f4592
+
+	measure 'Number of fortnights worked' =
+			
+			COUNTROWS( (
+			    FILTER (
+			        fact_pay_slips,
+			        CALCULATE ( SUM ( fact_pay_slips[HoursWorked] ) ) >= 0
+			    )
+			))
+		formatString: 0
+		lineageTag: eee4366f-99d8-4e1d-b622-a75e137e1b0c
+
+	measure 'Average Hours Worked in a fortnight' = //Average Payslip hours
+		formatString: 0
+		lineageTag: 946c331c-59a6-4654-8c9a-d31355817fff
+
+	measure NewFiltersApplied = ```
+			
+			VAR __Year = IF(ISFILTERED(dim_date[calendar_year]), CONCATENATEX(FILTERS(dim_date[calendar_year]), dim_date[calendar_year], ", "), BLANK())
+			VAR __Month = IF(ISFILTERED(dim_date[calendar_month_name_short]), CONCATENATEX(FILTERS(dim_date[calendar_month_name_short]), dim_date[calendar_month_name_short], ", "), BLANK())
+			VAR __WorkTypes = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_people[Work Type]), NOT(ISBLANK(dim_people[Work Type]))), dim_people[Work Type], ASC),
+			    "WorkType_Display", dim_people[Work Type]
+			)
+			VAR __WorkTypeCount = IF(ISFILTERED(dim_people[Work Type]), COUNTROWS(VALUES(dim_people[Work Type])), 0)
+			VAR __EmploymentConditions = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_people[Employment Condition]), NOT(ISBLANK(dim_people[Employment Condition]))), dim_people[Employment Condition], ASC),
+			    "EmploymentCondition_Display", dim_people[Employment Condition]
+			)
+			VAR __EmploymentConditionCount = IF(ISFILTERED(dim_people[Employment Condition]), COUNTROWS(VALUES(dim_people[Employment Condition])), 0)
+			VAR __WorkClasses = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_people[Work Class]), NOT(ISBLANK(dim_people[Work Class]))), dim_people[Work Class], ASC),
+			    "WorkClass_Display", dim_people[Work Class]
+			)
+			VAR __WorkClassCount = IF(ISFILTERED(dim_people[Work Class]), COUNTROWS(VALUES(dim_people[Work Class])), 0)
+			VAR __JobTitles = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_people[Job Title]), NOT(ISBLANK(dim_people[Job Title]))), dim_people[Job Title], ASC),
+			    "JobTitle_Display", dim_people[Job Title]
+			)
+			VAR __JobTitleCount = IF(ISFILTERED(dim_people[Job Title]), COUNTROWS(VALUES(dim_people[Job Title])), 0)
+			VAR __TotalMismatchCounts = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_people[DataPay_total_mismatch_count]), NOT(ISBLANK(dim_people[DataPay_total_mismatch_count]))), dim_people[DataPay_total_mismatch_count], ASC),
+			    "TotalMismatchCount_Display", FORMAT(dim_people[DataPay_total_mismatch_count], "0")
+			)
+			VAR __TotalMismatchCountCount = IF(ISFILTERED(dim_people[DataPay_total_mismatch_count]), COUNTROWS(VALUES(dim_people[DataPay_total_mismatch_count])), 0)
+			
+			VAR __KaimahiNames = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_people[Kaimahi]), NOT(ISBLANK(dim_people[Kaimahi]))), dim_people[Kaimahi], ASC),
+			    "KaimahiName_Display", dim_people[Kaimahi]
+			)
+			VAR __KaimahiCount = IF(ISFILTERED(dim_people[Kaimahi]), COUNTROWS(VALUES(dim_people[Kaimahi])), 0)
+			
+			VAR __SupervisorNames = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_people[Supervisor]), NOT(ISBLANK(dim_people[Supervisor]))), dim_people[Supervisor], ASC),
+			    "Supervisor_Display", dim_people[Supervisor]
+			)
+			VAR __SupervisorCount = IF(ISFILTERED(dim_people[Supervisor]), COUNTROWS(VALUES(dim_people[Supervisor])), 0)
+			
+			VAR __JobStatuses = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_people[Job Status]), NOT(ISBLANK(dim_people[Job Status]))), dim_people[Job Status], ASC),
+			    "JobStatus_Display", dim_people[Job Status]
+			)
+			VAR __JobStatusCount = IF(ISFILTERED(dim_people[Job Status]), COUNTROWS(VALUES(dim_people[Job Status])), 0)
+			
+			VAR __PayPeriods = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(fact_pay_slips[pay_period_start_date]), NOT(ISBLANK(fact_pay_slips[pay_period_start_date]))), fact_pay_slips[pay_period_start_date], ASC),
+			    "PayPeriods_Display", fact_pay_slips[pay_period_start_date]
+			)
+			VAR __PayPeriodCount = IF(ISFILTERED(fact_pay_slips[pay_period_start_date]), COUNTROWS(VALUES(fact_pay_slips[pay_period_start_date])), 0)
+			
+			VAR __ParentAreas = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(DimBusinessUnits[business_unit_hierarchy_level1_name]), NOT(ISBLANK(DimBusinessUnits[business_unit_hierarchy_level1_name]))), DimBusinessUnits[business_unit_hierarchy_level1_name], ASC),
+			    "AreaParentName_display", DimBusinessUnits[business_unit_hierarchy_level1_name]
+			)
+			VAR __ParentAreasCount = IF(ISFILTERED(DimBusinessUnits[business_unit_hierarchy_level1_name]), COUNTROWS(VALUES(DimBusinessUnits[business_unit_hierarchy_level1_name])), 0)
+			VAR __MoreParentAreas = IF(__ParentAreasCount > 10, " and " & (__ParentAreasCount - 10) & " more", "")
+			
+			VAR __Areas = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(DimBusinessUnits[business_unit_hierarchy_level2_name]), NOT(ISBLANK(DimBusinessUnits[business_unit_hierarchy_level2_name]))), DimBusinessUnits[business_unit_hierarchy_level2_name], ASC),
+			    "AreaName_display", DimBusinessUnits[business_unit_hierarchy_level2_name]
+			)
+			VAR __AreasCount = IF(ISFILTERED(DimBusinessUnits[business_unit_hierarchy_level2_name]), COUNTROWS(VALUES(DimBusinessUnits[business_unit_hierarchy_level2_name])), 0)
+			VAR __MoreAreas = IF(__AreasCount > 10, " and " & (__AreasCount - 10) & " more", "")
+			
+			VAR __Services = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(DimBusinessUnits[business_unit_hierarchy_level3_name]), NOT(ISBLANK(DimBusinessUnits[business_unit_hierarchy_level3_name]))), DimBusinessUnits[business_unit_hierarchy_level3_name], ASC),
+			    "TeamName_display", DimBusinessUnits[business_unit_hierarchy_level3_name]
+			)
+			VAR __ServicesCount = IF(ISFILTERED(DimBusinessUnits[business_unit_hierarchy_level3_name]), COUNTROWS(VALUES(DimBusinessUnits[business_unit_hierarchy_level3_name])), 0)
+			VAR __MoreServices = IF(__ServicesCount > 10, " and " & (__ServicesCount - 10) & " more", "")
+			
+			VAR _FC_Year = IF(ISBLANK(__Year), BLANK(), "| YEAR(S) CHOSEN: " & __Year)
+			VAR _FC_Month = IF(ISBLANK(__Month), BLANK(), "| MONTH(S) CHOSEN: " & __Month)
+			VAR _FC_WorkTypes = IF(__WorkTypeCount > 0, "| WORK TYPES CHOSEN: " & CONCATENATEX(__WorkTypes, [WorkType_Display], ", "), BLANK())
+			VAR _FC_MoreWorkTypes = IF(__WorkTypeCount > 10, " and " & (__WorkTypeCount - 10) & " more", "")
+			VAR _FC_EmploymentConditions = IF(__EmploymentConditionCount > 0, "| EMPLOYMENT CONDITIONS CHOSEN: " & CONCATENATEX(__EmploymentConditions, [EmploymentCondition_Display], ", "), BLANK())
+			VAR _FC_MoreEmploymentConditions = IF(__EmploymentConditionCount > 10, " and " & (__EmploymentConditionCount - 10) & " more", "")
+			VAR _FC_WorkClasses = IF(__WorkClassCount > 0, "| WORK CLASSES CHOSEN: " & CONCATENATEX(__WorkClasses, [WorkClass_Display], ", "), BLANK())
+			VAR _FC_MoreWorkClasses = IF(__WorkClassCount > 10, " and " & (__WorkClassCount - 10) & " more", "")
+			VAR _FC_JobTitles = IF(__JobTitleCount > 0, "| JOB TITLES CHOSEN: " & CONCATENATEX(__JobTitles, [JobTitle_Display], ", "), BLANK())
+			VAR _FC_MoreJobTitles = IF(__JobTitleCount > 10, " and " & (__JobTitleCount - 10) & " more", "")
+			VAR _FC_TotalMismatchCounts = IF(__TotalMismatchCountCount > 0, "| TOTAL MISMATCH COUNTS CHOSEN: " & CONCATENATEX(__TotalMismatchCounts, [TotalMismatchCount_Display], ", "), BLANK())
+			VAR _FC_ParentAreas = IF(__ParentAreasCount > 0, "| PARENT AREAS CHOSEN: " & CONCATENATEX(__ParentAreas, [AreaParentName_display], ", "), BLANK())
+			VAR _FC_MoreParentAreas = IF(__ParentAreasCount > 10, " and " & (__ParentAreasCount - 10) & " more", "")
+			VAR _FC_Areas = IF(__AreasCount > 0, "| AREAS CHOSEN: " & CONCATENATEX(__Areas, [AreaName_display], ", "), BLANK())
+			VAR _FC_MoreAreas = IF(__AreasCount > 10, " and " & (__AreasCount - 10) & " more", "")
+			VAR _FC_Services = IF(__ServicesCount > 0, "| SERVICES CHOSEN: " & CONCATENATEX(__Services, [TeamName_display], ", "), BLANK())
+			VAR _FC_MoreServices = IF(__ServicesCount > 10, " and " & (__ServicesCount - 10) & " more", "")
+			
+			VAR _FC_KaimahiNames = IF(__KaimahiCount > 0, "| KAIMAHI CHOSEN: " & CONCATENATEX(__KaimahiNames, [KaimahiName_Display], ", "), BLANK())
+			VAR _FC_MoreKaimahiNames = IF(__KaimahiCount > 7, " and " & (__KaimahiCount - 7) & " more", "")
+			
+			VAR _FC_SupervisorNames = IF(__SupervisorCount > 0, "| SUPERVISORS CHOSEN: " & CONCATENATEX(__SupervisorNames, [Supervisor_Display], ", "), BLANK())
+			VAR _FC_MoreSupervisorNames = IF(__SupervisorCount > 7, " and " & (__SupervisorCount - 7) & " more", "")
+			
+			VAR _FC_JobStatuses = IF(__JobStatusCount > 0, "| JOB STATUSES CHOSEN: " & CONCATENATEX(__JobStatuses, [Job Status], ", "), BLANK())
+			
+			VAR _FC_PayPeriods = IF(__PayPeriodCount > 0, "| PAY PERIODS CHOSEN: " & CONCATENATEX(__PayPeriods, [PayPeriods_Display], ", "), BLANK())
+			VAR _FC_MorePayPeriods = IF(__PayPeriodCount > 7, " and " & (__PayPeriodCount - 7) & " more", "")
+			
+			
+			VAR _FirstDate = MIN(dim_date[calendar_date])
+			VAR _LastDate = MAX(dim_date[calendar_date])
+			
+			RETURN
+			"Please note that all data shown is based on the following date range: " & FORMAT(_FirstDate, "dd/MM/YYYY") & " - " & FORMAT(_LastDate, "dd/MM/YYYY") & " " &
+			IF(
+			    ISBLANK(_FC_Year) && ISBLANK(_FC_Month) && ISBLANK(_FC_ParentAreas) && ISBLANK(_FC_Areas) && ISBLANK(_FC_Services) && ISBLANK(_FC_WorkTypes) && ISBLANK(_FC_EmploymentConditions) && ISBLANK(_FC_WorkClasses) && ISBLANK(_FC_JobTitles) && ISBLANK(_FC_TotalMismatchCounts),
+			    "",
+			    "-- Summary of filters applied to page: " & " " & _FC_Year & " " & _FC_Month & " " & _FC_ParentAreas & _FC_MoreParentAreas & " " & _FC_Areas & _FC_MoreAreas & " " & _FC_Services & _FC_MoreServices & " " & _FC_WorkTypes & _FC_MoreWorkTypes & " " & _FC_EmploymentConditions & _FC_MoreEmploymentConditions & " " & _FC_WorkClasses & _FC_MoreWorkClasses & " " & _FC_JobTitles & _FC_MoreJobTitles & " " & _FC_TotalMismatchCounts
+			) & _FC_KaimahiNames & _FC_MoreKaimahiNames & _FC_PayPeriods & _FC_MorePayPeriods & _FC_SupervisorNames & _FC_MoreSupervisorNames & _FC_JobStatuses
+			
+			```
+		lineageTag: 0cbb505c-fdeb-49cf-b8d6-f2e3e6a5fe44
+
+	measure 'Number of Kaimahi with 96+ hour fortnights' = ```
+			
+			CALCULATE (
+			    DISTINCTCOUNT ( dim_people[EmpID] ), 
+			        FILTER(dim_people,
+			            [Number of 96+ hour fortnights]
+			        )
+			)
+			
+			```
+		formatString: 0
+		displayFolder: 96 Hour Fortnights
+		lineageTag: b5fc66f4-e9c5-4f46-8771-fec9c0c088fa
+
+	measure Target = 0
+		formatString: 0
+		displayFolder: 96 Hour Fortnights
+		lineageTag: 23c533d5-8d40-40af-a49c-fd6920242f2c
+
+	measure 'Number of 24+ hour shifts' = ```
+			
+			VAR SummaryTable =
+			    SUMMARIZE (
+			        fact_approved_shifts_non_leave,
+			        fact_approved_shifts_non_leave[group_id],
+			        fact_approved_shifts_non_leave[employee_id],
+			        "LongestShift",
+			        MAX(fact_approved_shifts_non_leave[shift_length_cumulative])
+			    )
+			RETURN
+			    CALCULATE (
+			        COUNTROWS(FILTER(SummaryTable, [LongestShift] >= 24))
+			    )
+			
+			```
+		formatString: 0
+		displayFolder: 24 Hour Shifts
+		lineageTag: 87948e8f-7845-467d-ac4c-5ca28298cffd
+
+	measure 'Percentage Kaimahi worked 24+ hour shifts' = ```
+			
+			IF (
+			    //If the result of the measures is blank, return 0, otherwise return the result
+			    ISBLANK ( DIVIDE ( [Number of Kaimahi with 24+ hour shifts], [Total Kaimahi] ) ),
+			    0,
+			    //Didivd the number of staff who have worked a 24+ hour shift by the total number of Kaimahi (taking into account filters)
+			    DIVIDE ( [Number of Kaimahi with 24+ hour shifts], [Total Kaimahi] )
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: 24 Hour Shifts
+		lineageTag: 66f60e4a-18a8-4730-aa58-cea61eda72e9
+
+	measure 'Number of Kaimahi with 24+ hour shifts' = ```
+			
+			CALCULATE (
+			    DISTINCTCOUNT ( dim_people[EmpID] ), 
+			        FILTER(dim_people,
+			            [Number of 24+ hour shifts]
+			        )
+			)
+			```
+		formatString: 0
+		displayFolder: 24 Hour Shifts
+		lineageTag: dc354cf1-cda2-439f-8827-4c6306aa7430
+
+	measure 'Longest Fortnight Worked' = ```
+			
+			MAXX (
+			    SUMMARIZE (
+			        fact_pay_slips,
+			        fact_pay_slips[pay_period_start_date],
+			        fact_pay_slips[employee_id],
+			        "TotalHoursWorked",
+			        SUM(fact_pay_slips[HoursWorked])
+			    ),
+			    [TotalHoursWorked]
+			)
+			
+			```
+		displayFolder: 96 Hour Fortnights
+		lineageTag: 9e0bfb68-8e86-4cf4-b58a-3189790774d1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Mismatches' = CALCULATE(SUM(dim_people[DataPay_total_mismatch_count]))
+		formatString: 0
+		lineageTag: 75b393eb-da24-40b6-be29-5bf1dd44a5bf
+
+	measure 'Affected Kaimahi' =
+			CALCULATE(
+			    DISTINCTCOUNT(dim_people[EmpID]),
+			    KEEPFILTERS(dim_people[DataPay_total_mismatch_count] > 0)
+			)
+		formatString: 0
+		displayFolder: DataPay Reconciliation
+		lineageTag: 3112e751-bbca-4e87-b32f-a4506d303509
+
+	measure 'Mismatch Rate' = DIVIDE([Affected Kaimahi], [Total Kaimahi])
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: DataPay Reconciliation
+		lineageTag: 3a984d0e-1a2b-4266-b4fd-8453c12f3979
+
+	measure 'Avg Mismatches per Affected' = DIVIDE([Total Mismatches], [Affected Kaimahi])
+		formatString: 0.0
+		displayFolder: DataPay Reconciliation
+		lineageTag: 645bab93-6d8f-43ea-a471-3e289687b180
+
+	measure '3+ Mismatch Kaimahi' =
+			CALCULATE(
+			    DISTINCTCOUNT(dim_people[EmpID]),
+			    KEEPFILTERS(dim_people[DataPay_total_mismatch_count] >= 3)
+			)
+		formatString: 0
+		displayFolder: DataPay Reconciliation
+		lineageTag: 30a6d1f0-8652-4d21-9af6-f40ca4a859a9
+
+	measure 'Pay Rate Mismatch Difference %' = COALESCE(AVERAGE(dim_people[DataPay_pay_rate_difference_pct]), 0)
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: DataPay Reconciliation
+		lineageTag: 7d05f608-7f07-41a4-9838-13078f2bf5ea
+
+	partition _Measures = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+

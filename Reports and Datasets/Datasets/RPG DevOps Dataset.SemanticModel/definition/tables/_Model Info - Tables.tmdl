@@ -1,0 +1,51 @@
+/// Model documentation table listing all tables in this semantic model with their descriptions, visibility, and storage mode. Use this to understand what data is available. This is metadata only - not for reporting data.
+table '_Model Info - Tables'
+	isHidden
+	lineageTag: 73a4f271-6b4b-4f1f-8c11-3da7ed687019
+
+	column 'Table Name'
+		isHidden
+		lineageTag: 8fa95bdf-ba20-4b03-ad9f-f3bc6ac5c8f7
+		isNameInferred
+		sourceColumn: [Table Name]
+
+	column Description
+		isHidden
+		lineageTag: 8cd4f3b7-829f-492d-a10f-2b80fdad54ec
+		isNameInferred
+		sourceColumn: [Description]
+
+	column 'Is Hidden'
+		isHidden
+		lineageTag: aebc142c-dea6-4cce-b376-2f6cd2def7a1
+		isNameInferred
+		sourceColumn: [Is Hidden]
+
+	column 'Storage Mode'
+		isHidden
+		lineageTag: 94c139b0-fc05-45a1-8bdb-bee3d0ff7d16
+		isNameInferred
+		sourceColumn: [Storage Mode]
+
+	column 'Data Category'
+		isHidden
+		lineageTag: 583bcf0b-dfc2-44bf-a8a8-a3eda4e8b604
+		isNameInferred
+		sourceColumn: [Data Category]
+
+	partition '_Model Info - Tables' = calculated
+		mode: import
+		source =
+				SELECTCOLUMNS(
+				    FILTER(
+				        INFO.VIEW.TABLES(),
+				        NOT(CONTAINSSTRING([Name], "LocalDateTable_")) &&
+				        NOT(CONTAINSSTRING([Name], "DateTableTemplate_"))
+				    ),
+				    "Table Name", [Name],
+				    "Description", [Description],
+				    "Is Hidden", [IsHidden],
+				    "Storage Mode", [StorageMode],
+				    "Data Category", [DataCategory]
+				)
+

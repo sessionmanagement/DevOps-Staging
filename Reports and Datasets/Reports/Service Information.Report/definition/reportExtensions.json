@@ -1,0 +1,52 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/reportExtension/1.0.0/schema.json",
+  "name": "extension",
+  "entities": [
+    {
+      "name": "_Measures",
+      "measures": [
+        {
+          "name": "Number of Kaimahi SPLY",
+          "dataType": "Double",
+          "expression": "\nVAR OneYearAgo = EDATE(TODAY(), -12)\nVAR SPLYKaimahi = CALCULATE(\n    [Unique Kaimahi],\n    'Fact Kaimahi'[Company Start Date] <= OneYearAgo,\n    'Fact Kaimahi'[Company End Date] >= OneYearAgo \n        || ISBLANK('Fact Kaimahi'[Company End Date])\n)\nRETURN IF(ISBLANK(SPLYKaimahi), 0, SPLYKaimahi)",
+          "displayFolder": "Kaimahi",
+          "references": {
+            "measures": [
+              {
+                "entity": "_Measures",
+                "name": "Unique Kaimahi"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Active Kaimahi at Period End",
+          "dataType": "Double",
+          "expression": "\nVAR LatestSnapshot = MAX('Fact Kaimahi'[Snapshot Date])\nRETURN\nCALCULATE(\n    [Unique Kaimahi],\n    'Fact Kaimahi'[Snapshot Date] = LatestSnapshot,\n    'Fact Kaimahi'[Employment Status At Snapshot] = \"Active\"\n)",
+          "displayFolder": "Kaimahi",
+          "references": {
+            "measures": [
+              {
+                "entity": "_Measures",
+                "name": "Unique Kaimahi"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dim Service",
+      "measures": [
+        {
+          "name": "Current Active Services",
+          "dataType": "Double",
+          "expression": "",
+          "references": {
+            "unrecognizedReferences": true
+          }
+        }
+      ]
+    }
+  ]
+}

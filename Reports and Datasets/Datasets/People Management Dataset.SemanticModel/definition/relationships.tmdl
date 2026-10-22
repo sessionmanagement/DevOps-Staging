@@ -1,0 +1,84 @@
+relationship db1c3ccc-40db-4359-a6cb-28b8fc901a8f
+	fromColumn: fact_days_worked_by_month.month_start_date
+	toColumn: dim_date.calendar_date
+
+relationship 3c3a9d3a-f3cf-4194-9a45-7e72377203f8
+	fromColumn: fact_days_worked_by_month.work_type_id
+	toColumn: WorkTypes.id
+
+relationship 7259f5f5-b27c-4041-8a39-28cfd76d0ee3
+	fromColumn: fact_days_worked_by_month.day
+	toColumn: dim_day.DayNum
+
+relationship 3e3295ed-1a0f-43a1-b4b6-02ba19ce8c54
+	fromColumn: fact_approved_shifts.employee_id
+	toColumn: dim_people.EmpLive_EmpID
+
+relationship 37cb5fe2-e63b-4731-ab44-88632c49f422
+	fromColumn: fact_approved_shifts.work_type_id
+	toColumn: WorkTypes.id
+
+relationship d6d93941-3bc2-406b-8e93-7498635c3896
+	fromColumn: fact_approved_shifts.role_id
+	toColumn: dim_roles.id
+
+relationship 945ba5f0-48a9-4e12-b69d-9a330cea44ed
+	fromColumn: fact_approved_shifts.day
+	toColumn: dim_day.DayNum
+
+relationship 044feeec-0b73-4f21-8376-5979a324338f
+	fromColumn: fact_approved_shifts_non_leave.work_type_id
+	toColumn: WorkTypes.id
+
+relationship d4da3cd8-e375-4a18-ac53-d052bec7c193
+	fromColumn: fact_approved_shifts_non_leave.employee_id
+	toColumn: dim_people.EmpLive_EmpID
+
+relationship a96b669b-3d68-4fbd-a06c-8f33eff912e8
+	fromColumn: fact_approved_shifts_non_leave.start_date
+	toColumn: dim_date.calendar_date
+
+relationship 385e0e37-f4cb-4c55-a1f2-de79e7f54bf3
+	fromColumn: fact_approved_shifts.start_date
+	toColumn: dim_date.calendar_date
+
+relationship 944bda9b-38f2-41eb-861b-b7a80ef82ba0
+	fromColumn: fact_approved_shifts_non_leave.role_id
+	toColumn: dim_roles.id
+
+relationship a442ca1c-fd5c-4d68-88ae-28db304964c5
+	fromColumn: fact_pay_slips.pay_period_start_date
+	toColumn: dim_date.calendar_date
+
+relationship 48a58939-0556-4f62-ae01-6806fdfdf275
+	fromColumn: dim_people.businessUnit_id
+	toColumn: DimBusinessUnits.business_unit_id
+
+relationship 065017b5-8a94-4851-9161-20dfe34436fd
+	fromColumn: fact_days_worked_by_month.employee_id
+	toColumn: dim_people.EmpID
+
+relationship 28f2ef23-8e49-463f-a16c-0af8f37a9db0
+	fromColumn: fact_approved_shifts_non_leave.ShiftBucket
+	toColumn: dim_shift_lengths.Index
+
+relationship ca24cf9b-e3f3-4f56-968e-fd8918cd4c25
+	fromColumn: fact_pay_slips.employee_id
+	toColumn: dim_people.id
+
+relationship d4c15fe1-8424-5eec-3b45-71bef3286833
+	crossFilteringBehavior: bothDirections
+	fromColumn: dim_people.primaryEmailAddress_email
+	toColumn: dim_employee_hierarchy.employee_primary_email_address
+
+relationship AutoDetected_3c707cf5-115a-43c7-a754-f449e5a93694
+	fromColumn: data_measure_definitions.Report
+	toColumn: 'Additional Access'.Report
+
+relationship b1cbbf02-1fb8-49d7-8db0-4354e93b5b35
+	crossFilteringBehavior: bothDirections
+	securityFilteringBehavior: bothDirections
+	toCardinality: many
+	fromColumn: 'RLS with Additional Access'.mapped_employee_id
+	toColumn: dim_employee_hierarchy.employee_id
+

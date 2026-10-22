@@ -1,0 +1,210 @@
+table PropertyOwnershipDaysByFY
+	lineageTag: 18edf57d-8082-43c0-89a6-8b38847440d2
+
+	column zav_propertyid
+		isHidden
+		lineageTag: 46a48607-56d6-4a4b-a040-ef3bc4dbfebc
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: work_property_dates[zav_propertyid]
+
+		annotation SummarizationSetBy = Automatic
+
+	column statuscode
+		isHidden
+		formatString: 0
+		lineageTag: 1ccde48c-6af2-4d3c-bc55-e4551fecf8b1
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: work_property_dates[statuscode]
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_acquireddate
+		isHidden
+		formatString: Short Date
+		lineageTag: 23611eea-7d25-4a5a-b6a3-b0b0b5989bf4
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: work_property_dates[zav_acquireddate]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column zav_confirmeddisposaldate
+		isHidden
+		formatString: Short Date
+		lineageTag: 2692ffd4-dd00-4817-9e59-5923ba9204bc
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: work_property_dates[zav_confirmeddisposaldate]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column disposaldateortoday
+		isHidden
+		formatString: Short Date
+		lineageTag: 664ae07f-7496-4573-8da1-953565a296b9
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: work_property_dates[disposaldateortoday]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column BeginPropertyOwnershipDateForFY
+		isHidden
+		formatString: Short Date
+		lineageTag: 18ff2bd8-5525-4906-a1a8-b442f004622f
+		summarizeBy: none
+		sourceColumn: [BeginPropertyOwnerShipDateForFY]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column FinancialYear
+		isHidden
+		formatString: 0
+		lineageTag: 0fbac18a-0706-4fc7-aa02-837e6532ff85
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: work_property_dates[FinancialYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column LastDayOfFY
+		isHidden
+		formatString: Short Date
+		lineageTag: 1580d56c-5a41-41b1-b7a5-28d650be3b75
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: work_property_dates[LastDayOfFY]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column PropertyOwnershipDaysInFY =
+			
+			IF(
+			    PropertyOwnershipDaysByFY[disposaldateortoday] < PropertyOwnershipDaysByFY[LastDayOfFY],
+			    DATEDIFF(PropertyOwnershipDaysByFY[BeginPropertyOwnershipDateForFY], PropertyOwnershipDaysByFY[disposaldateortoday], DAY)+1,
+			    DATEDIFF(PropertyOwnershipDaysByFY[BeginPropertyOwnershipDateForFY], PropertyOwnershipDaysByFY[LastDayOfFY], DAY)+1
+			)
+		isHidden
+		formatString: #,0
+		lineageTag: c5a52806-8d39-47ea-a992-43e29761d536
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column EndOfFYOrDisposalDateOrToday =
+			
+			IF(
+			    PropertyOwnershipDaysByFY[disposaldateortoday] < PropertyOwnershipDaysByFY[LastDayOfFY],
+			    PropertyOwnershipDaysByFY[disposaldateortoday],
+			    PropertyOwnershipDaysByFY[LastDayOfFY]
+			)
+		isHidden
+		formatString: Short Date
+		lineageTag: fc823816-7f32-4a61-a11c-ada668860ed6
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column DaysPropertyOwnedAtFYEndOrToday =
+			
+			IFERROR(
+			    DATEDIFF(PropertyOwnershipDaysByFY[zav_acquireddate],PropertyOwnershipDaysByFY[EndOfFYOrDisposalDateOrToday],DAY),
+			    BLANK()
+			)
+		isHidden
+		formatString: 0
+		lineageTag: 84870195-f1fa-4121-9750-64dd3e916b7b
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column ApproxBuildDate =
+			
+			IF(
+			    ISBLANK(RELATED(dim_property[new_yearbuilt])),
+			    BLANK(),
+			    DATE(RELATED(dim_property[new_yearbuilt]),06,01)
+			)
+		isHidden
+		formatString: Short Date
+		lineageTag: 3fc76c43-e525-4682-a6a4-d46f7625e150
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column PropertyAgeDaysAtFYEndOrToday =
+			
+			IFERROR(
+			    DATEDIFF(PropertyOwnershipDaysByFY[ApproxBuildDate],PropertyOwnershipDaysByFY[EndOfFYOrDisposalDateOrToday],DAY),
+			    BLANK()
+			)
+		isHidden
+		formatString: 0
+		lineageTag: ea1dda26-1f3b-462a-9878-4ab86dd0f13d
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column PropertyAddress = RELATED(dim_property[zav_fulladdress])
+		isHidden
+		lineageTag: 38438e1d-d613-41b7-9bfb-c3ab361b27db
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column OwnedOrLeased = RELATED(dim_property[zav_propertyownership])
+		isHidden
+		lineageTag: 6f71cceb-bfb8-4687-8808-8e4edd2dd5c4
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column PropertyAgeYearsAtFYEndOrToday = PropertyOwnershipDaysByFY[PropertyAgeDaysAtFYEndOrToday] / 365
+		isHidden
+		formatString: 0.00
+		lineageTag: 2a18d5a8-bfb5-4365-8e15-ede9adc71ca0
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column YearsPropertyOwnedAtFYEndOrToday = PropertyOwnershipDaysByFY[DaysPropertyOwnedAtFYEndOrToday]/365
+		isHidden
+		formatString: 0.00
+		lineageTag: 3cba4d48-df72-4656-978f-49a2d3828f7f
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	partition PropertyOwnershipDaysByFY-d9665092-15da-45ea-bd6a-2dc77e2421e8 = calculated
+		mode: import
+		source =
+				
+				SUMMARIZECOLUMNS(
+				    work_property_dates[zav_propertyid],
+				    work_property_dates[statuscode],
+				    work_property_dates[zav_acquireddate],
+				    work_property_dates[zav_confirmeddisposaldate],
+				    work_property_dates[disposaldateortoday],
+				    work_property_dates[FinancialYear],
+				    work_property_dates[LastDayOfFY],
+				    "BeginPropertyOwnerShipDateForFY", MIN(work_property_dates[explosion])
+				)
+
+	annotation PBI_Id = ecee61d1dc3e4085ba83dc70251c1a34
+

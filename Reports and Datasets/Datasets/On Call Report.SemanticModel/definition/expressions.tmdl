@@ -1,0 +1,331 @@
+expression Server = "sql-prod-aus-svc-datawarehouse-01.database.windows.net" meta [IsParameterQuery=true, List={"sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sql-test-aus-svc-datawarehouse-01.database.windows.net"}, DefaultValue="sql-prod-aus-svc-datawarehouse-01.database.windows.net", Type="Any", IsParameterQueryRequired=true]
+	lineageTag: 8212f8bb-1667-42a6-bdf5-2ed95a11faf2
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+expression Database = "sqldb-prod-datawarehouse-01" meta [IsParameterQuery=true, List={"sqldb-prod-datawarehouse-01", "sqldb-test-datawarehouse-01"}, DefaultValue="sqldb-prod-datawarehouse-01", Type="Any", IsParameterQueryRequired=true]
+	lineageTag: a4dad4da-915a-430b-b9b7-d694b7349bc4
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+/// Interim import of OnCallLog CSV export for Epic #12794 / User Story #13590.
+expression 'Fact OnCall Log (Dev)' =
+		let
+		    Source = Csv.Document(
+		        File.Contents("C:\\Users\\Chris.Negus\\Downloads\\OnCallLog.csv"),
+		        [Delimiter=",", Columns=27, Encoding=65001, QuoteStyle=QuoteStyle.Csv]
+		    ),
+		    PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+		    SelectedColumns = Table.SelectColumns(
+		        PromotedHeaders,
+		        {
+		            "ID",
+		            "CallDateTime",
+		            "CallDuration",
+		            "ExtraTime",
+		            "TravelTime",
+		            "Region",
+		            "Service",
+		            "Category",
+		            "HoursCovered",
+		            "ShiftCovered",
+		            "ShiftService",
+		            "Status",
+		            "On Call Staff Member",
+		            "Created",
+		            "Created By",
+		            "IncidentReportRequired",
+		            "EscalatedAnotherTier",
+		            "EscalatedTo",
+		            "CallReceivedFrom",
+		            "IssueDescription",
+		            "Outcome"
+		        }
+		    ),
+		    TypedBase = Table.TransformColumnTypes(
+		        SelectedColumns,
+		        {
+		            {"ID", Int64.Type},
+		            {"CallDuration", Int64.Type},
+		            {"ExtraTime", Int64.Type},
+		            {"TravelTime", Int64.Type},
+		            {"Region", type text},
+		            {"Service", type text},
+		            {"Category", type text},
+		            {"HoursCovered", type text},
+		            {"ShiftCovered", type logical},
+		            {"ShiftService", type text},
+		            {"Status", type text},
+		            {"On Call Staff Member", type text},
+		            {"Created By", type text},
+		            {"IncidentReportRequired", type logical},
+		            {"EscalatedAnotherTier", type logical},
+		            {"EscalatedTo", type text},
+		            {"CallReceivedFrom", type text},
+		            {"IssueDescription", type text},
+		            {"Outcome", type text}
+		        }
+		    ),
+		    TypedDates = Table.TransformColumnTypes(
+		        TypedBase,
+		        {
+		            {"CallDateTime", type datetime},
+		            {"Created", type datetime}
+		        },
+		        "en-NZ"
+		    ),
+		    AddedHoursCoveredDecimal = Table.AddColumn(
+		        TypedDates,
+		        "HoursCoveredDecimal",
+		        each
+		            let
+		                hours = try Number.FromText(Text.BeforeDelimiter([HoursCovered], "hr")) otherwise 0,
+		                minutes = try Number.FromText(Text.BetweenDelimiters([HoursCovered], "(s) ", "m")) otherwise 0
+		            in
+		                Number.From(hours) + (Number.From(minutes) / 60),
+		        type number
+		    ),
+		    AddedDateKey = Table.AddColumn(
+		        AddedHoursCoveredDecimal,
+		        "DateKey",
+		        each
+		            let
+		                callDate = Date.From([CallDateTime])
+		            in
+		                Date.Year(callDate) * 10000 + Date.Month(callDate) * 100 + Date.Day(callDate),
+		        Int64.Type
+		    )
+		in
+		    AddedDateKey
+	lineageTag: 22ec8d49-022d-4082-8c2b-69e6d6e98f0a
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'DataEntry - OnCallLog' =
+		let
+		    Source = SharePoint.Tables("https://emergeaotearoaltd.sharepoint.com/sites/OPS_OnCallLog/", [Implementation="2.0", ViewMode="All"]),
+		    TableSelect = Source{[Id="ec518ca3-7663-4238-9263-9f49757001e4"]}[Items],
+		    SelectedColumns = Table.SelectColumns(
+		        TableSelect,
+		        {
+		            "ID",
+		            "CallDateTime",
+		            "CallDuration",
+		            "ExtraTime",
+		            "TravelTime",
+		            "Region",
+		            "Service",
+		            "Category",
+		            "HoursCovered",
+		            "ShiftCovered",
+		            "ShiftService",
+		            "Status",
+		            "On Call Staff Member",
+		            "Created",
+		            "Created By",
+		            "IncidentReportRequired",
+		            "EscalatedAnotherTier",
+		            "EscalatedTo",
+		            "CallReceivedFrom",
+		            "IssueDescription",
+		            "Outcome"
+		        }
+		    ),
+		    TypedDates = Table.TransformColumnTypes(
+		        SelectedColumns,
+		        {
+		            {"CallDateTime", type datetime},
+		            {"Created", type datetime}
+		        },
+		        "en-NZ"
+		    ),
+		    AddedHoursCoveredDecimal = Table.AddColumn(
+		        TypedDates,
+		        "HoursCoveredDecimal",
+		        each
+		            let
+		                hours = try Number.FromText(Text.BeforeDelimiter([HoursCovered], "hr")) otherwise 0,
+		                minutes = try Number.FromText(Text.BetweenDelimiters([HoursCovered], "(s) ", "m")) otherwise 0
+		            in
+		                Number.From(hours) + (Number.From(minutes) / 60),
+		        type number
+		    ),
+		    AddedDateKey = Table.AddColumn(
+		        AddedHoursCoveredDecimal,
+		        "DateKey",
+		        each
+		            let
+		                callDate = Date.From([CallDateTime])
+		            in
+		                Date.Year(callDate) * 10000 + Date.Month(callDate) * 100 + Date.Day(callDate),
+		        Int64.Type
+		    )
+		in
+		    AddedDateKey
+		/*   ,TypedBase = Table.TransformColumnTypes(
+		        AddedDateKey,
+		        {
+		            {"ID", Int64.Type},
+		            {"CallDuration", Int64.Type},
+		            {"ExtraTime", Int64.Type},
+		            {"TravelTime", Int64.Type},
+		            {"Region", type text},
+		            {"Service", type text},
+		            {"Category", type text},
+		            {"HoursCovered", type text},
+		            {"ShiftCovered", type logical},
+		            {"ShiftService", type text},
+		            {"Status", type text},
+		            {"On Call Staff Member", type text},
+		            {"Created By", type text},
+		            {"IncidentReportRequired", type logical},
+		            {"EscalatedAnotherTier", type logical},
+		            {"EscalatedTo", type text},
+		            {"CallReceivedFrom", type text},
+		            {"IssueDescription", type text},
+		            {"Outcome", type text}
+		        }
+		    )
+		 in
+		    TypedBase
+		    */
+	lineageTag: ed7e3dd2-70e4-4947-a171-f3df06480ee4
+	queryGroup: 'Primary Datasets'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression DimRegion =
+		let
+		    Source = #"DataEntry - OnCallLog",
+		    RemovedOtherColumns = Table.SelectColumns(Source,{"ID", "Region"}),
+		    Expanded = Table.ExpandListColumn(RemovedOtherColumns, "Region"),
+		    Expanded1 = Table.ExpandRecordColumn(Expanded, "Region", {"lookupValue"}, {"Region"}),
+		    GroupedRows = Table.Group(Expanded1, {"ID"}, {{"Region", each Text.Combine([Region],"; "), type text}})
+		in
+		    GroupedRows
+	lineageTag: 70304163-f0a8-4c5b-9b39-eabc2dc41b9b
+	queryGroup: 'Primary Datasets'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression DimService =
+		let
+		    Source = #"DataEntry - OnCallLog",
+		    RemovedOtherColumns = Table.SelectColumns(Source,{"ID", "Service"}),
+		    Expanded = Table.ExpandListColumn(RemovedOtherColumns, "Service"),
+		    Expanded1 = Table.ExpandRecordColumn(Expanded, "Service", {"lookupValue"}, {"Service"}),
+		    GroupedRows = Table.Group(Expanded1, {"ID"}, {{"Service", each Text.Combine([Service],"; "), type text}})
+		in
+		    GroupedRows
+	lineageTag: c3e4ee76-943a-4b06-b5a0-77e1395d9f5b
+	queryGroup: 'Primary Datasets'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression DimCategory =
+		let
+		    Source = #"DataEntry - OnCallLog",
+		    RemovedOtherColumns = Table.SelectColumns(Source,{"ID", "Category"}),
+		    Expanded = Table.ExpandListColumn(RemovedOtherColumns, "Category"),
+		    Expanded1 = Table.ExpandRecordColumn(Expanded, "Category", {"lookupValue"}, {"Category"}),
+		    GroupedRows = Table.Group(Expanded1, {"ID"}, {{"Category", each Text.Combine([Category],"; "), type text}})
+		in
+		    GroupedRows
+	lineageTag: fd2aa25e-db95-4578-8c12-f86887881019
+	queryGroup: 'Primary Datasets'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression DimOnCallStaffMember =
+		let
+		    Source = #"DataEntry - OnCallLog",
+		    RemovedOtherColumns = Table.SelectColumns(Source,{"ID", "On Call Staff Member"}),
+		    Expanded = Table.ExpandListColumn(RemovedOtherColumns, "On Call Staff Member"),
+		    Expanded1 = Table.ExpandRecordColumn(Expanded, "On Call Staff Member", {"lookupValue"}, {"On Call Staff Member"}),
+		    GroupedRows = Table.Group(Expanded1, {"ID"}, {{"On Call Staff Member", each Text.Combine([On Call Staff Member],"; "), type text}})
+		in
+		    GroupedRows
+	lineageTag: 4269ea4b-44c1-4dcb-be3a-e65854a64ab5
+	queryGroup: 'Primary Datasets'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression DimCreatedBy =
+		let
+		    Source = #"DataEntry - OnCallLog",
+		    RemovedOtherColumns = Table.SelectColumns(Source,{"ID", "Created By"}),
+		    Expanded = Table.ExpandListColumn(RemovedOtherColumns, "Created By"),
+		    Expanded1 = Table.ExpandRecordColumn(Expanded, "Created By", {"lookupValue"}, {"Created By"}),
+		    GroupedRows = Table.Group(Expanded1, {"ID"}, {{"Created By", each Text.Combine([Created By],"; "), type text}})
+		in
+		    GroupedRows
+	lineageTag: 7c3eeb2e-baa7-4e68-b7a7-04d8898900f9
+	queryGroup: 'Primary Datasets'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression FactOnCallLog =
+		let
+		    Source = #"DataEntry - OnCallLog",
+		    RemovedColumns = Table.RemoveColumns(Source,{"Region", "Service", "Category", "On Call Staff Member", "Created By", "EscalatedTo"})
+		    ,TypedBase = Table.TransformColumnTypes(
+		        RemovedColumns,
+		        {
+		            {"ID", Int64.Type},
+		            {"CallDuration", Int64.Type},
+		            {"ExtraTime", Int64.Type},
+		            {"TravelTime", Int64.Type},
+		            {"HoursCovered", type text},
+		            {"ShiftCovered", type logical},
+		            {"ShiftService", type text},
+		            {"Status", type text},
+		            {"IncidentReportRequired", type logical},
+		            {"EscalatedAnotherTier", type logical},
+		            {"CallReceivedFrom", type text},
+		            {"IssueDescription", type text},
+		            {"Outcome", type text}
+		        }
+		    )
+		in
+		    TypedBase
+	lineageTag: d3755245-0384-4e90-a8b1-8be967af584c
+	queryGroup: 'Primary Datasets'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression DimEscalatedTo =
+		let
+		    Source = #"DataEntry - OnCallLog",
+		    RemovedOtherColumns = Table.SelectColumns(Source,{"ID", "EscalatedTo"}),
+		    Expanded = Table.ExpandListColumn(RemovedOtherColumns, "EscalatedTo"),
+		    #"Expanded EscalatedTo" = Table.ExpandRecordColumn(Expanded, "EscalatedTo", {"title"}, {"EscalatedTo"}),
+		    GroupedRows = Table.Group(#"Expanded EscalatedTo", {"ID"}, {{"Escalated To", each Text.Combine([EscalatedTo],"; "), type text}})
+		in
+		    GroupedRows
+	lineageTag: 863c0bd7-46d0-4c9f-90f7-545066b3280b
+	queryGroup: 'Primary Datasets'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

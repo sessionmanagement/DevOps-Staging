@@ -1,0 +1,167 @@
+table dim_recordbase_user
+	lineageTag: e2d5bce8-e1fd-4a4f-ae66-0f210fa892cf
+
+	column RecordBaseInstance
+		dataType: string
+		lineageTag: 4162420b-27d9-4d84-a271-7efce09c7912
+		summarizeBy: none
+		sourceColumn: RecordBaseInstance
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserEmailAddress
+		dataType: string
+		lineageTag: 4df80890-37a3-4a2a-8161-f98806c49019
+		summarizeBy: none
+		sourceColumn: UserEmailAddress
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserFirstName
+		dataType: string
+		lineageTag: 771858fe-13a8-4aa3-8e87-d4a4863f3f2d
+		summarizeBy: none
+		sourceColumn: UserFirstName
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserLastName
+		dataType: string
+		lineageTag: c4e1b02e-df8f-428b-a9bc-75bc899e8122
+		summarizeBy: none
+		sourceColumn: UserLastName
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserLicenceType
+		dataType: string
+		lineageTag: dac92710-a2f8-4939-b63c-3d9b000dac71
+		summarizeBy: none
+		sourceColumn: UserLicenceType
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserIsActive
+		dataType: int64
+		formatString: 0
+		lineageTag: 501c1ab5-8617-45fc-ba52-3ebe10c65786
+		summarizeBy: sum
+		sourceColumn: UserIsActive
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserDisabledDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 57293b19-50f9-45f0-bcd8-8f858fa1fcbe
+		summarizeBy: none
+		sourceColumn: UserDisabledDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column EmailDomain
+		dataType: string
+		lineageTag: d006724b-bb51-451a-b160-d19129524ba4
+		summarizeBy: none
+		sourceColumn: EmailDomain
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'dim_employee.intelli_employee_id'
+		dataType: int64
+		formatString: 0
+		lineageTag: ae6cc8c0-b408-49b5-9b37-42a8459ec0f2
+		summarizeBy: none
+		sourceColumn: dim_employee.intelli_employee_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'dim_employee.intelli_CleanEmployeeName'
+		dataType: string
+		lineageTag: ac55aae4-2729-4603-bf51-5ea73fcc6097
+		summarizeBy: none
+		sourceColumn: dim_employee.intelli_CleanEmployeeName
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserID
+		dataType: string
+		lineageTag: 685cc59d-a361-407b-953b-555823609180
+		summarizeBy: none
+		sourceColumn: UserID
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserFullName
+		dataType: string
+		lineageTag: 3d087497-aa53-45ae-8d9d-64b1bac48383
+		summarizeBy: none
+		sourceColumn: UserFullName
+
+		annotation SummarizationSetBy = Automatic
+
+	column user_exists_in_intellihr
+		dataType: string
+		lineageTag: 84ed212a-5eb5-41d8-a221-94d50c4e99c5
+		summarizeBy: none
+		sourceColumn: user_exists_in_intellihr
+
+		annotation SummarizationSetBy = Automatic
+
+	column user_exists_in_intellihr_int
+		dataType: string
+		lineageTag: 762fbc7b-bbc7-4d52-9c51-3f95e651b04e
+		summarizeBy: none
+		sourceColumn: user_exists_in_intellihr_int
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'dim_employee.intelli_employee_employment_status'
+		dataType: string
+		lineageTag: f0fbece0-5254-4d91-bfb1-443469b149f6
+		summarizeBy: none
+		sourceColumn: dim_employee.intelli_employee_employment_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'dim_employee.employee_end_date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: f53e9a0b-65ec-4e1b-8d2e-2663e9fa3780
+		summarizeBy: none
+		sourceColumn: dim_employee.employee_end_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column UserTypeName
+		dataType: string
+		lineageTag: 9743eee1-5028-4942-8ce4-13f7bbbc6a8e
+		summarizeBy: none
+		sourceColumn: UserTypeName
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_recordbase_user = m
+		mode: import
+		queryGroup: RecordBase
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT#(lf)    CONCAT('E-', UserID) AS UserID,#(lf)    'EAL' AS RecordBaseInstance,#(lf)    LOWER(UserEmailAddress) AS UserEmailAddress,#(lf)    LOWER(SUBSTRING(UserEmailAddress, CHARINDEX('@', UserEmailAddress) + 1, LEN(UserEmailAddress) - CHARINDEX('@', UserEmailAddress))) AS EmailDomain,#(lf)    UserFirstName,#(lf)    UserLastName,#(lf)    UserLicenceType,#(lf)    CASE WHEN UserDisabledDate IS NULL THEN 1 ELSE 0 END AS UserIsActive,#(lf)    CAST(UserDisabledDate AS date) AS UserDisabledDate,#(lf)    COALESCE(UserFirstName, '') + ' ' + COALESCE(UserLastName, '') AS UserFullName,#(lf)#(tab)d2.UserTypeName#(lf)FROM [RBEAL].[dlDimUser] d1#(lf)LEFT OUTER JOIN [RBEAL].[dlDimUserType] d2 ON d1.UserTypeID = d2.UserTypeID#(lf)WHERE UserDisabledDate IS NULL#(lf)UNION#(lf)SELECT#(lf)    CONCAT('M-', UserID) AS UserID,#(lf)    'MNB' AS RecordBaseInstance,#(lf)    LOWER(UserEmailAddress) AS UserEmailAddress,#(lf)    LOWER(SUBSTRING(UserEmailAddress, CHARINDEX('@', UserEmailAddress) + 1, LEN(UserEmailAddress) - CHARINDEX('@', UserEmailAddress))) AS EmailDomain,#(lf)    UserFirstName,#(lf)    UserLastName,#(lf)    UserLicenceType,#(lf)    CASE WHEN UserDisabledDate IS NULL THEN 1 ELSE 0 END AS UserIsActive,#(lf)    CAST(UserDisabledDate AS date) AS UserDisabledDate,#(lf)    COALESCE(UserFirstName, '') + ' ' + COALESCE(UserLastName, '') AS UserFullName,#(lf)#(tab)d2.UserTypeName#(lf)FROM [RBMNB].[dlDimUser] d1#(lf)LEFT OUTER JOIN [RBMNB].[dlDimUserType] d2 ON d1.UserTypeID = d2.UserTypeID#(lf)WHERE UserDisabledDate IS NULL;"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source, {{"UserDisabledDate", type date}}),
+				    #"Transformed Email Addresses" = Table.TransformColumns(#"Changed Type", {{"UserEmailAddress", Text.Lower}}),
+				    #"Transformed Employee Emails" = Table.TransformColumns(dim_employee, {{"employee_primary_email_address", Text.Lower}}),
+				    #"Merged Queries" = Table.NestedJoin(#"Transformed Email Addresses", {"UserEmailAddress"}, #"Transformed Employee Emails", {"employee_primary_email_address"}, "dim_employee", JoinKind.LeftOuter),
+				    #"Expanded dim_employee" = Table.ExpandTableColumn(#"Merged Queries", "dim_employee", {"intelli_employee_id", "intelli_CleanEmployeeName", "intelli_employee_employment_status", "employee_end_date"}, {"dim_employee.intelli_employee_id", "dim_employee.intelli_CleanEmployeeName", "dim_employee.intelli_employee_employment_status", "dim_employee.employee_end_date"}),
+				    #"Added Conditional Column" = Table.AddColumn(#"Expanded dim_employee", "user_exists_in_intellihr", each if [dim_employee.intelli_employee_id] <> null then "Yes" else "No"),
+				    #"Added Conditional Column1" = Table.AddColumn(#"Added Conditional Column", "user_exists_in_intellihr_int", each if [dim_employee.intelli_employee_id] <> null then 1 else 0)
+				in
+				    #"Added Conditional Column1"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

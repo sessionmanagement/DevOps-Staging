@@ -1,0 +1,52 @@
+/// Enter the name of this semantic model here. This value is displayed in the Changelog and used for model identification.
+expression 'Semantic Model' = "Template" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: eddd6478-f420-4d82-8474-2b43c202425d
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+/// Azure SQL Server endpoint. Format: servername.database.windows.net. Update this parameter when connecting to different environments (Dev/Test/Prod).
+expression Server = "sql-prod-aus-svc-datawarehouse-01.database.windows.net" meta [IsParameterQuery=true, List={"sql-dev-aue-svc-datawarehouse-01.database.windows.net", "sql-prod-aus-svc-datawarehouse-01.database.windows.net"}, DefaultValue="sql-prod-aus-svc-datawarehouse-01.database.windows.net", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: f9b770e8-3232-4910-a52a-b5552dfe1da1
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+/// SQL Database name to connect to. Update this parameter when connecting to different databases or environments.
+expression Database = "sqldb-prod-datawarehouse-01" meta [IsParameterQuery=true, List={"sqldb-dev-datawarehouse-01", "sqldb-prod-datawarehouse-01"}, DefaultValue="sqldb-prod-datawarehouse-01", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 5853ab2c-3691-4f4e-a0b1-dcbc1f659c35
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+/// Reusable M function that applies standard naming conventions to column names. Replaces underscores with spaces, capitalizes words, and fixes common acronyms (ID, KEY, DWH, IRRS, etc.). Use with Table.TransformColumnNames() when loading new tables.
+expression fnApplyNamingConventions =
+		(columnName as text) as text =>
+		let
+		    replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+		    replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+		    capitaliseWords = Text.Proper(replaceUnderscore),
+		    // capitaliseID must run before fixIdentifier
+		    capitaliseID = Text.Replace(capitaliseWords, " Id", " ID"),
+		    // Fix Identifier after capitalising ID (fixes IDentifier back to Identifier)
+		    fixIdentifier = Text.Replace(capitaliseID, "IDentifier", "Identifier"),
+		    capitaliseKEY = Text.Replace(fixIdentifier, "Key", "KEY"),
+		    capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH"),
+		    capitaliseIRRS = Text.Replace(capitaliseDWH, "Irrs", "IRRS"),
+		    capitaliseDML = Text.Replace(capitaliseIRRS, "Dml", "DML"),
+		    capitaliseBOS = Text.Replace(capitaliseDML, "Bos", "BOS"),
+		    capitaliseHUD = Text.Replace(capitaliseBOS, "Hud", "HUD"),
+		    capitaliseMSD = Text.Replace(capitaliseHUD, "Msd", "MSD"),
+		    capitaliseSNG = Text.Replace(capitaliseMSD, "Sng", "SNG"),
+		    capitaliseEA = Text.Replace(capitaliseSNG, "Ea ", "EA ")
+		in
+		    capitaliseEA
+	lineageTag: 811f83b2-5652-4e88-bbe5-b707572f7e70
+	queryGroup: Functions
+

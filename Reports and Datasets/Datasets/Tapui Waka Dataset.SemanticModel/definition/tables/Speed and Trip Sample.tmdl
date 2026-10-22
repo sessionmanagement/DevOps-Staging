@@ -1,0 +1,147 @@
+table 'Speed and Trip Sample'
+	lineageTag: 330c3b52-1271-42a3-9eb9-10a374b4e40a
+
+	column 'Asset Name'
+		dataType: string
+		lineageTag: ebcb2313-28fe-4a86-94f2-8433299da665
+		summarizeBy: none
+		sourceColumn: Asset Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Start Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: e3218baf-8815-4887-88a0-75664d528b45
+		summarizeBy: none
+		sourceColumn: Start Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Start Time'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 78f2eacc-07d1-43e4-9b85-b96dcfb3a355
+		summarizeBy: none
+		sourceColumn: Start Time
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'End Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: c0b7a0ad-5112-4059-8392-94f1292b0058
+		summarizeBy: none
+		sourceColumn: End Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'End Time'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: caf146e6-84f0-42f2-9e26-e5790c75bd96
+		summarizeBy: none
+		sourceColumn: End Time
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Start Road'
+		dataType: string
+		lineageTag: f72cfc40-7aac-4568-bb5a-97512445b515
+		summarizeBy: none
+		sourceColumn: Start Road
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'End Road'
+		dataType: string
+		lineageTag: d6dd8f82-cb93-4ef5-9773-8a5437cb225d
+		summarizeBy: none
+		sourceColumn: End Road
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Min Speed (km/h)'
+		dataType: int64
+		formatString: 0
+		lineageTag: 64030901-88d7-4f30-ab32-cc4e26ee0159
+		summarizeBy: sum
+		sourceColumn: Min Speed (km/h)
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Max Speed (km/h)'
+		dataType: int64
+		formatString: 0
+		lineageTag: 1b0303b6-c8fc-4db6-a765-61be02fca53d
+		summarizeBy: sum
+		sourceColumn: Max Speed (km/h)
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Average Speed (km/h)'
+		dataType: double
+		lineageTag: d2b2b204-6166-410a-8b45-8cf363f7e3b0
+		summarizeBy: sum
+		sourceColumn: Average Speed (km/h)
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Limit (km/h)'
+		dataType: int64
+		formatString: 0
+		lineageTag: a3ec2f96-b1f9-43c9-ab51-e1c822c86c2e
+		summarizeBy: sum
+		sourceColumn: Limit (km/h)
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Distance (km)'
+		dataType: double
+		lineageTag: 62db450f-e477-4762-a432-f929cd1c4f9d
+		summarizeBy: sum
+		sourceColumn: Distance (km)
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Driver/Operator List'
+		dataType: string
+		lineageTag: 324966c0-3843-43e0-b431-a54bb68cfa69
+		summarizeBy: none
+		sourceColumn: Driver/Operator List
+
+		annotation SummarizationSetBy = Automatic
+
+	column Column14
+		dataType: string
+		lineageTag: 2418b773-8a3b-4756-8bf9-418e5f9c7c62
+		summarizeBy: none
+		sourceColumn: Column14
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Speed and Trip Sample' = m
+		mode: import
+		queryGroup: 'Excel Spreadsheets'
+		source =
+				let
+				    Source = SharePoint.Files("https://emergeaotearoaltd.sharepoint.com/sites/DRCollaboration/", [ApiVersion = 15]),
+				    #"Filtered Rows" = Table.SelectRows(Source, each Text.Contains([Name], "20240710") or Text.Contains([Name], "20240730")),
+				    #"Filtered Rows1" = Table.SelectRows(#"Filtered Rows", each ([Name] = "Speed and Trip Sample 20240710.xlsx")),
+				    #"Speed and Trip Sample 20240710 xlsx_https://emergeaotearoaltd sharepoint com/sites/DRCollaboration/Shared Documents/General/Power BI Report/Tapui Waka/Sample Data/" = #"Filtered Rows1"{[Name="Speed and Trip Sample 20240710.xlsx",#"Folder Path"="https://emergeaotearoaltd.sharepoint.com/sites/DRCollaboration/Shared Documents/General/Power BI Report/Tapui Waka/Sample Data/"]}[Content],
+				    #"Imported Excel Workbook" = Excel.Workbook(#"Speed and Trip Sample 20240710 xlsx_https://emergeaotearoaltd sharepoint com/sites/DRCollaboration/Shared Documents/General/Power BI Report/Tapui Waka/Sample Data/"),
+				    #"Speed Details_Sheet" = #"Imported Excel Workbook"{[Item="Speed Details",Kind="Sheet"]}[Data],
+				    #"Removed Top Rows" = Table.Skip(#"Speed Details_Sheet",1),
+				    #"Promoted Headers" = Table.PromoteHeaders(#"Removed Top Rows", [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"Asset Name", type text}, {"Start Date", type datetime}, {"Start Time", type datetime}, {"End Date", type datetime}, {"End Time", type datetime}, {"Start Road", type text}, {"End Road", type text}, {"Min Speed (km/h)", Int64.Type}, {"Max Speed (km/h)", Int64.Type}, {"Average Speed (km/h)", type number}, {"Limit (km/h)", Int64.Type}, {"Distance (km)", type number}, {"Driver/Operator List", type text}, {"Column14", type any}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

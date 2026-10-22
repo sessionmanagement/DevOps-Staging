@@ -1,0 +1,147 @@
+table fact_referral
+	lineageTag: 036f9fca-ea48-4901-8ab8-8bb481aa2b50
+
+	column CompanyIdentifier
+		dataType: string
+		lineageTag: 2e26987f-d7b6-4134-a90e-23ce2f48584c
+		summarizeBy: none
+		sourceColumn: CompanyIdentifier
+
+		annotation SummarizationSetBy = Automatic
+
+	column AcceptedDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 16832c8c-71a3-43e4-be2b-7f8d15f111fe
+		summarizeBy: none
+		sourceColumn: AcceptedDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column DischargeDateOrToday
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 54b5da7b-e02c-42e1-abaa-43fa82f4f0dd
+		summarizeBy: none
+		sourceColumn: DischargeDateOrToday
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column DischargeDateTrue
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 836801e9-4802-4409-9912-93bc39a06142
+		summarizeBy: none
+		sourceColumn: DischargeDateTrue
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column ID
+		dataType: string
+		lineageTag: d9d43992-317a-449f-bd83-ec5060fb86e5
+		summarizeBy: none
+		sourceColumn: ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonID
+		dataType: string
+		lineageTag: 0c3fbf83-269d-40f8-88c8-f13e8910425a
+		summarizeBy: none
+		sourceColumn: PersonID
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamKey
+		dataType: string
+		lineageTag: aa48857c-3e26-41bc-b688-b6ba2c624ec7
+		summarizeBy: none
+		sourceColumn: TeamKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionID
+		dataType: string
+		lineageTag: 6b41fc12-86be-41b6-8bfe-7586490a4dea
+		summarizeBy: none
+		sourceColumn: TeamFunctionID
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReferralExplosion
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 0185d8e8-9df4-4a73-89cc-20ee3aa07ef3
+		summarizeBy: none
+		sourceColumn: ReferralExplosion
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column PersonEarliestSmokingAssessment =
+			
+			RELATED(dim_person[EarliestSmokingAssessmentDate])
+		formatString: Long Date
+		lineageTag: 2212319f-1de5-44b8-a0ee-939c8aba3688
+		summarizeBy: none
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column PersonLatestSmokingAssessment =
+			
+			RELATED(dim_person[LatestSmokingAssessmentDate])
+		formatString: Long Date
+		lineageTag: c8286f60-c356-4131-8eec-f114f2f1731e
+		summarizeBy: none
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column FirstNonBlankEthnicityID
+		dataType: string
+		lineageTag: 3beb7df8-7f66-4827-abf7-7d7005023e08
+		summarizeBy: none
+		sourceColumn: FirstNonBlankEthnicityID
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderID
+		dataType: string
+		lineageTag: 05ffc4f4-44c1-4dfc-bebd-75fe1cb36ea7
+		summarizeBy: none
+		sourceColumn: GenderID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_referral-37b3b13b-edc8-47e1-bed8-c1443f198128 = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT DISTINCT#(lf)'EAL' AS CompanyIdentifier,#(lf)CAST(lfr.AcceptedDate AS DATE) AS AcceptedDate,#(lf)CASE WHEN CAST(lfr.DischargeDate AS DATE) IS NULL THEN CAST(GETDATE() AS DATE) ELSE CAST(lfr.DischargeDate AS DATE) END AS DischargeDateOrToday,#(lf)CAST(lfr.DischargeDate AS DATE) AS DischargeDateTrue,#(lf)CASE WHEN lfr.ID IS NOT NULL THEN CONCAT('E',lfr.ID) ELSE NULL END AS ID,#(lf)CASE WHEN lfr.PersonID IS NOT NULL THEN CONCAT('E',lfr.PersonID) ELSE NULL END AS PersonID,#(lf)CASE WHEN lfr.TeamID IS NOT NULL THEN CONCAT('E',lfr.TeamID) ELSE NULL END AS TeamID,#(lf)CASE WHEN tf.TeamFunctionID IS NOT NULL THEN CONCAT('E',tf.TeamFunctionID) ELSE NULL END AS TeamFunctionID,#(lf)COALESCE(#(lf)CASE WHEN dp.Ethnicity1ID IS NOT NULL THEN CONCAT('E',dp.Ethnicity1ID) ELSE NULL END,#(lf)CASE WHEN dp.Ethnicity3ID IS NOT NULL THEN CONCAT('E',dp.Ethnicity3ID) ELSE NULL END,#(lf)CASE WHEN dp.Ethnicity4ID IS NOT NULL THEN CONCAT('E',dp.Ethnicity4ID) ELSE NULL END,#(lf)CASE WHEN dp.Ethnicity5ID IS NOT NULL THEN CONCAT('E',dp.Ethnicity5ID) ELSE NULL END,#(lf)CASE WHEN dp.Ethnicity2ID IS NOT NULL THEN CONCAT('E',dp.Ethnicity2ID) ELSE NULL END#(lf)) AS FirstNonBlankEthnicityID,#(lf)CASE WHEN dp.GenderID IS NOT NULL THEN CONCAT('E',dp.GenderID) ELSE NULL END AS GenderID#(lf)#(lf)FROM [RBEAL].[legacyFactReferral] lfr#(lf)LEFT OUTER JOIN [RBEAL].[dlDimTeam] t ON t.TeamID = lfr.TeamID#(lf)LEFT OUTER JOIN [RBEAL].[dlDimTeamFunction] tf ON tf.TeamFunctionID = t.TeamFunctionID#(lf)LEFT OUTER JOIN [RBEAL].[dlDimPerson] dp ON dp.PersonID = lfr.PersonID#(lf)WHERE ID IS NOT NULL#(lf)AND AcceptedDate IS NOT NULL#(lf)#(lf)UNION#(lf)#(lf)SELECT DISTINCT#(lf)'MNB' AS CompanyIdentifier,#(lf)CAST(lfr.AcceptedDate AS DATE) AS AcceptedDate,#(lf)CASE WHEN CAST(lfr.DischargeDate AS DATE) IS NULL THEN CAST(GETDATE() AS DATE) ELSE CAST(lfr.DischargeDate AS DATE) END AS DischargeDateOrToday,#(lf)CAST(lfr.DischargeDate AS DATE) AS DischargeDateTrue,#(lf)CASE WHEN lfr.ID IS NOT NULL THEN CONCAT('M',lfr.ID) ELSE NULL END AS ID,#(lf)CASE WHEN lfr.PersonID IS NOT NULL THEN CONCAT('M',lfr.PersonID) ELSE NULL END AS PersonID,#(lf)CASE WHEN lfr.TeamID IS NOT NULL THEN CONCAT('M',lfr.TeamID) ELSE NULL END AS TeamID,#(lf)CASE WHEN tf.TeamFunctionID IS NOT NULL THEN CONCAT('M',tf.TeamFunctionID) ELSE NULL END AS TeamFunctionID,#(lf)COALESCE(#(lf)CASE WHEN dp.Ethnicity1ID IS NOT NULL THEN CONCAT('M',dp.Ethnicity1ID) ELSE NULL END,#(lf)CASE WHEN dp.Ethnicity3ID IS NOT NULL THEN CONCAT('M',dp.Ethnicity3ID) ELSE NULL END,#(lf)CASE WHEN dp.Ethnicity4ID IS NOT NULL THEN CONCAT('M',dp.Ethnicity4ID) ELSE NULL END,#(lf)CASE WHEN dp.Ethnicity5ID IS NOT NULL THEN CONCAT('M',dp.Ethnicity5ID) ELSE NULL END,#(lf)CASE WHEN dp.Ethnicity2ID IS NOT NULL THEN CONCAT('M',dp.Ethnicity2ID) ELSE NULL END#(lf)) AS FirstNonBlankEthnicityID,#(lf)CASE WHEN dp.GenderID IS NOT NULL THEN CONCAT('M',dp.GenderID) ELSE NULL END AS GenderID#(lf)#(lf)FROM [RBMNB].[legacyFactReferral] lfr#(lf)LEFT OUTER JOIN [RBMNB].[dlDimTeam] t ON t.TeamID = lfr.TeamID#(lf)LEFT OUTER JOIN [RBMNB].[dlDimTeamFunction] tf ON tf.TeamFunctionID = t.TeamFunctionID#(lf)LEFT OUTER JOIN [RBMNB].[dlDimPerson] dp ON dp.PersonID = lfr.PersonID#(lf)WHERE ID IS NOT NULL#(lf)AND AcceptedDate IS NOT NULL"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"AcceptedDate", type date}, {"DischargeDateOrToday", type date}, {"DischargeDateTrue", type date}}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"TeamID", "TeamKey"}}),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Renamed Columns",{{"AcceptedDate", Int64.Type}, {"DischargeDateOrToday", Int64.Type}}),
+				    #"Added Custom" = Table.AddColumn(#"Changed Type1", "ReferralExplosion", each {[AcceptedDate]..[DischargeDateOrToday]}),
+				    #"Expanded ReferralExplosion" = Table.ExpandListColumn(#"Added Custom", "ReferralExplosion"),
+				    #"Changed Type2" = Table.TransformColumnTypes(#"Expanded ReferralExplosion",{{"ReferralExplosion", type date}, {"AcceptedDate", type date}, {"DischargeDateOrToday", type date} })
+				in
+				    #"Changed Type2"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

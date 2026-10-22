@@ -1,0 +1,1040 @@
+table _Measures
+	lineageTag: d7709112-34a3-4bae-9afb-03c288aa6289
+
+	measure 'Average Total Score' = if([Number of Assessments]>0&&[Total Scores]>0, [Total Scores]/[Number of Assessments])
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: 2ba984c0-5445-4af2-8a47-21516f663407
+
+	measure 'Number of Assessments' = calculate(countrows(AssessmentOnly),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+		formatString: #,0
+		displayFolder: Assessments Only
+		lineageTag: e4a7e881-4963-4ad1-b036-e65a7fb1dd66
+
+	measure 'Total Scores' = ```
+			
+			 calculate
+			 (sum(AssessmentOnly[Total_Score]),userelationship(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			```
+		formatString: 0
+		displayFolder: Assessments Only
+		lineageTag: f048cfe9-3226-4f99-8f3c-48f140fe2aa7
+
+	measure '% Referrals with only 1 assessment' = ```
+			IF([Number of active referrals]>0&&[Referrals witn Only 1 Assessment]>0,[Referrals witn Only 1 Assessment]/[Number of active referrals],0)
+			
+			```
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Referral Based
+		lineageTag: 6871550e-a9af-4dce-8c01-736bfe163532
+
+	measure '%Positive Change Overall' = if([Overall Positive Change]>0 && [More than 1 Assessment]>0, [Overall Positive Change]/[More than 1 Assessment],"")
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Referral Based
+		lineageTag: 5eed8f3a-b765-4b36-a079-3cd944b54309
+
+	measure '%Positive Change from last to previous assessment' = if([Positive Change Previous]>0 && [More than 1 Assessment]>0, [Positive Change Previous]/[More than 1 Assessment],"")
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Referral Based
+		lineageTag: caaef490-7816-4baf-9834-764537a58a5d
+
+	measure '% active referrals with 2 or more assessments' = IF([Number of active referrals]>0&&[More than 1 Assessment]>0,[More than 1 Assessment]/[Number of active referrals],"")
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Referral Based
+		lineageTag: 71c12166-dce4-4da0-86c7-b5fc304f288a
+
+	measure 'More than 1 Assessment' = ```
+			
+			Var CalculateAss = calculate(DISTINCTCOUNT('AssessmentReferralExplosion'[ReferralIDKey]),'AssessmentReferralExplosion'[assessmentstatus]="1. More than 1 assessment",AssessmentReferralExplosion[referral_counts]=1) 
+			Return
+			if(CalculateAss > 0 , CalculateAss,0)
+			```
+		formatString: #,0
+		displayFolder: Referral Based
+		lineageTag: 27fa69e0-08ee-463a-b2a0-77c564e04e19
+
+	measure 'No Assessment' = ```
+			
+			Var NoAss = calculate(DISTINCTCOUNT('AssessmentReferralExplosion'[ReferralIDKey]),'AssessmentReferralExplosion'[assessmentstatus]="3. No Assessments",AssessmentReferralExplosion[referral_counts]=1) 
+			Return
+			if(NoAss >0 , NoAss,0)
+			```
+		formatString: #,0
+		displayFolder: Referral Based
+		lineageTag: d07b8a42-8df0-4198-ae2d-5c6dc4c00445
+
+	measure '% active referrals without an assessment' = IF([Number of active referrals]>0&&[No Assessment]>0,[No Assessment]/[Number of active referrals],0)
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Referral Based
+		lineageTag: 9edfa043-e60e-4c8a-b121-32c6d677114e
+
+	measure 'Number of active referrals' =
+			
+			Var CalculationRef = calculate(DISTINCTCOUNT(AssessmentReferralExplosion[referralidkey]),AssessmentReferralExplosion[referral_counts]=1)
+			Return
+			if (CalculationRef >0 , CalculationRef,0)
+		formatString: #,0
+		displayFolder: Referral Based
+		lineageTag: 2c586f0e-b5ff-46fe-ad74-e81b58d04612
+
+	measure 'Overall Positive Change' =
+			
+			calculate(DISTINCTCOUNT('AssessmentReferralExplosion'[ReferralIDKey]),'AssessmentReferralExplosion'[score_change]="Increase")
+		formatString: 0
+		displayFolder: Referral Based
+		lineageTag: 50940146-c929-437c-b40d-57fd6a6b315b
+
+	measure 'Positive Change Previous' =
+			
+			calculate(DISTINCTCOUNT('AssessmentReferralExplosion'[ReferralIDKey]),'AssessmentReferralExplosion'[score_changeprevious]="Increase")
+		formatString: 0
+		displayFolder: Referral Based
+		lineageTag: c6a41529-f121-480c-b8c5-1f840be1b5e1
+
+	measure 'Referrals witn Only 1 Assessment' =
+			
+			VAR CalculateAss1 = calculate(DISTINCTCOUNT('AssessmentReferralExplosion'[ReferralIDKey]),'AssessmentReferralExplosion'[assessmentstatus]="2. Only 1 Assessment",AssessmentReferralExplosion[referral_counts]=1)
+			RETURN
+			if(CalculateAss1 >0, CalculateAss1,0)
+		formatString: #,0
+		displayFolder: Referral Based
+		lineageTag: ef989db3-fe7e-4145-ab90-48ad97cfc758
+
+	measure 'Taha Tinana Average' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[HOPQ1]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[HOPQ1]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			if(NewCount>0,
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Hua Oranga
+		lineageTag: 51c5b5fc-815f-46f8-8ff9-93cf57cba05e
+
+	measure 'Taha Wairua Average' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[HOPQ2]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[HOPQ2]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			if(NewCount>0,
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Hua Oranga
+		lineageTag: 6d2ea76e-311b-4a7b-a3cc-f2fab551295b
+
+	measure 'Taha Whanau Average' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[HOPQ3]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[HOPQ3]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			if(NewCount>0,
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Hua Oranga
+		lineageTag: 7788ad62-da04-4207-9479-afa5546c3ece
+
+	measure 'Taha Hinengaro Average' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[HOPQ4]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[HOPQ4]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			if(NewCount>0,
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Hua Oranga
+		lineageTag: 2061b8d1-05e3-4a0d-a547-eae0e0db7bc2
+
+	measure 'Raw_Q1 Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q1]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q1]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: c1fed632-5583-410c-b02e-f77d5e02a0a6
+
+	measure 'Raw_Q2 Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q2]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q2]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: e561625a-2d6a-439f-8b7a-cdac32323665
+
+	measure 'Raw_Q3 Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q3]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q3]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: 5686d1a9-acb2-409c-ac39-4897f903bad9
+
+	measure 'Raw_Q4 Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q4]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q4]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: a292a79e-32c2-4894-8291-aa970f985067
+
+	measure 'Raw_Q5 Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q5]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q5]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: c7192fd9-e77f-432e-94d3-13dff2960313
+
+	measure 'Raw_Q6 Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q6]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q6]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: 8fb2c88c-789f-4125-8579-b483899ff460
+
+	measure 'Raw_Q7 Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q7]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q7]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: 36574a97-498c-4136-ae63-c658a8fbd71e
+
+	measure 'Raw_Q8 Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q8]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q8]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: adb735db-1228-427f-9050-a2766ff209b1
+
+	measure 'Raw_Q9 Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q9]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q9]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: 1de4b4b8-ab9c-47df-81ba-d619a5921850
+
+	measure 'Raw_Q10 Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q10]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q10]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: b8a24312-cf23-48db-b3ec-9a9421296a52
+
+	measure 'Raw_Q11 Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q11]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q11]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: e7fb515c-96bc-4753-bdc7-2840a4409594
+
+	measure 'Raw_Q12 Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q12]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q12]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: f3f8e5d0-6f36-4ba5-9eac-e08048ea9a4b
+
+	measure 'Raw_Q1A Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q1A]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q1A]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: 65cde3e5-4296-4f50-a07c-d8606af62ff7
+
+	measure 'Raw_Q1B Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q1B]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q1B]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: 4c5f2297-122c-4b73-a58d-8c8cf785964e
+
+	measure 'Raw_Q1C Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q1C]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q1C]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: b93a3147-2b8c-45cf-a445-a9458a6f91ae
+
+	measure 'Raw_Q1D Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q1D]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q1D]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: ed0a76d3-8b67-4171-9bd7-4b0dec37aebf
+
+	measure 'Raw_Q2A Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q2A]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q2A]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: b726574e-ac7c-4216-bde3-d08f0dae0d63
+
+	measure 'Raw_Q2B Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q2B]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q2B]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: 9eaa917e-19dd-41b4-b71f-f19d3a02c017
+
+	measure 'Raw_Q2C Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q2C]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q2C]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: 5ae508e2-7f9a-4c78-a8d0-ce0f40baf11f
+
+	measure 'Raw_Q2D Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q2D]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q2D]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: 11ca6705-ec69-41ae-be22-d862c53bdbca
+
+	measure 'Raw_Q3A Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q3A]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q3A]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: c1282ef8-a2a9-40bc-8515-ef3833f0e38b
+
+	measure 'Raw_Q3B Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q3B]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q3B]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: 5d7bd56c-c3cb-4c29-a351-d3aad86ba47b
+
+	measure 'Raw_Q3C Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q3C]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q3C]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: 66aa30fe-1d27-4110-aaa7-330d24f0ac2b
+
+	measure 'Raw_Q3D Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q3D]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q3D]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: b1d75e79-917f-42ac-bb0c-4f6e8ad85792
+
+	measure 'Raw_Q4A Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q4A]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q4A]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: 725d3553-4909-4f2f-ad94-01c9524c85c6
+
+	measure 'Raw_Q4B Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q4B]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q4B]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: 3d35ca2c-b265-4713-9be7-030acc1db456
+
+	measure 'Raw_Q4C Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q4C]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q4C]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: 1194f105-cb6e-4532-8d8d-ccae7cf0c320
+
+	measure 'Raw_Q4D Average New' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Q4D]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Q4D]),USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			
+			
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: 91b96854-4900-4af8-83bc-88fca8ec752d
+
+	measure 'First Average Score (Matrix)' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Total_Score])
+			    ,AssessmentOnly[row_count_person_assess]=1,
+			    AssessmentOnly[Outcome Tool Title]="Matrix",
+			    USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Total_Score])
+			    ,AssessmentOnly[row_count_person_assess]=1,
+			    AssessmentOnly[Outcome Tool Title]="Matrix",
+			    USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: 672b2007-280b-4b97-a7e7-524afd4af94a
+
+	measure 'Latest Average Score (Matrix)' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Total_Score])
+			    ,AssessmentOnly[row_count_person_assess_desc]=1,
+			    AssessmentOnly[Outcome Tool Title]="Matrix",
+			    USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Total_Score])
+			    ,AssessmentOnly[row_count_person_assess_desc]=1,
+			    AssessmentOnly[Outcome Tool Title]="Matrix",
+			    USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: 291b1a2a-f4d1-4421-860a-3064bbb417c4
+
+	measure 'First Average Score (Kessler10)' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Total_Score])
+			    ,AssessmentOnly[row_count_person_assess]=1,
+			    AssessmentOnly[Outcome Tool Title]="Kessler 10",
+			    USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Total_Score])
+			    ,AssessmentOnly[row_count_person_assess]=1,
+			    AssessmentOnly[Outcome Tool Title]="Kessler 10",
+			    USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: 2ff8cba8-a9f3-461e-9287-48e8de4dcff9
+
+	measure 'Latest Average Score (HuaO)' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Total_Score])
+			    ,AssessmentOnly[row_count_person_assess_desc]=1,
+			    AssessmentOnly[Outcome Tool Title]="Hua Oranga - Primary Care",
+			    USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Total_Score])
+			    ,AssessmentOnly[row_count_person_assess_desc]=1,
+			    AssessmentOnly[Outcome Tool Title]="Hua Oranga - Primary Care",
+			    USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: 9689459c-845d-4324-9bdc-7fab0ddc860d
+
+	measure 'Latest Average Score (Kessler10)' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Total_Score])
+			    ,AssessmentOnly[row_count_person_assess_desc]=1,
+			    AssessmentOnly[Outcome Tool Title]="Kessler 10",
+			    USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Total_Score])
+			    ,AssessmentOnly[row_count_person_assess_desc]=1,
+			    AssessmentOnly[Outcome Tool Title]="Kessler 10",
+			    USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			)
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: f57d1eb7-f73b-4235-84da-cf5d186dbbeb
+
+	measure 'First Average Score (HuaO)' = ```
+			
+			Var NewMeasure = 
+			calculate(sumx(Distinct(AssessmentOnly),AssessmentOnly[Total_Score])
+			    ,AssessmentOnly[row_count_person_assess]=1,
+			    AssessmentOnly[Outcome Tool Title]="Hua Oranga - Primary Care",
+			    USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Var NewCount = 
+			calculate(countx(distinct(AssessmentOnly),AssessmentOnly[Total_Score])
+			    ,AssessmentOnly[row_count_person_assess]=1,
+			    AssessmentOnly[Outcome Tool Title]="Hua Oranga - Primary Care",
+			    USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date]))
+			Return
+			calculate(NewMeasure/NewCount,USERELATIONSHIP(AssessmentOnly[Response Created Date],'DimDate(Dev)'[calendar_date])
+			)
+			
+			```
+		formatString: 0.0
+		displayFolder: Assessments Only
+		lineageTag: fe385659-8b58-4941-a165-24f9a9c330a5
+
+	measure ---NewFiltersApplied2 = ```
+			
+			VAR __Year = IF(ISFILTERED('DimDate(Dev)'[calendar_year]), CONCATENATEX(FILTERS('DimDate(Dev)'[calendar_year]), 'DimDate(Dev)'[calendar_year], ", "), BLANK())
+			
+			VAR __Month = IF(ISFILTERED('DimDate(Dev)'[calendar_month_name_short]), CONCATENATEX(FILTERS('DimDate(Dev)'[calendar_month_name_short]), 'DimDate(Dev)'[calendar_month_name_short], ", "), BLANK())
+			
+			VAR __ParentAreas = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES('DimTeam(ODS)'[Company]), NOT(ISBLANK('DimTeam(ODS)'[Company]))), 'DimTeam(ODS)'[Company], ASC),
+			    "AreaParentName_display", 'DimTeam(ODS)'[Company])
+			VAR __ParentAreasCount = IF(ISFILTERED('DimTeam(ODS)'[Company]), COUNTROWS(VALUES('DimTeam(ODS)'[Company])), 0)
+			VAR __MoreParentAreas = IF(__ParentAreasCount > 10, " and " & (__ParentAreasCount - 10) & " more", "")
+			VAR __Services = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES('DimTeam(ODS)'[Team Name]), NOT(ISBLANK('DimTeam(ODS)'[Team Name]))), 'DimTeam(ODS)'[Team Name], ASC),
+			    "TeamName_display", 'DimTeam(ODS)'[Team Name]
+			)
+			VAR __ServicesCount = IF(ISFILTERED('DimTeam(ODS)'[Team Name]), COUNTROWS(VALUES('DimTeam(ODS)'[Team Name])), 0)
+			VAR __MoreServices = IF(__ServicesCount > 10, " and " & (__ServicesCount - 10) & " more", "")
+			
+			VAR _FC_Year = IF(ISBLANK(__Year), BLANK(), "| Year(s) chosen: " & __Year)
+			
+			VAR _FC_Month = IF(ISBLANK(__Month), BLANK(), "| Month(s) chosen: " & __Month)
+			VAR _FC_ParentAreas = IF(__ParentAreasCount > 0, "| Company: " & CONCATENATEX(__ParentAreas, [AreaParentName_display], ", "), BLANK())
+			VAR _FC_MoreParentAreas = IF(__ParentAreasCount > 5, " and " & (__ParentAreasCount - 10) & " more", "")
+			
+			VAR _FC_Services = IF(__ServicesCount > 0, "| Teams chosen: " & CONCATENATEX(__Services, [TeamName_display], ", "), BLANK())
+			VAR _FC_MoreServices = IF(__ServicesCount > 10, " and " & (__ServicesCount - 10) & " more", "")
+			
+			VAR _FirstDate = MIN('DimDate(Dev)'[calendar_date])
+			VAR _LastDate = MAX('DimDate(Dev)'[calendar_date])
+			RETURN
+			    "-- Summary of filters applied to page: " & " " & _FC_Year & " "  & _FC_Month & " " & _FC_ParentAreas & _FC_MoreParentAreas & " " & _FC_Services & _FC_MoreServices
+			
+			
+			```
+		lineageTag: 01896ef3-59fb-433f-87d9-8fee7e34fbd1
+
+	measure ---NewFiltersApplied1 = ```
+			
+			VAR __Year = IF(ISFILTERED('DimDate(Dev)'[calendar_year]), CONCATENATEX(FILTERS('DimDate(Dev)'[calendar_year]), 'DimDate(Dev)'[calendar_year], ", "), BLANK())
+			
+			VAR __Month = IF(ISFILTERED('DimDate(Dev)'[calendar_month_name_short]), CONCATENATEX(FILTERS('DimDate(Dev)'[calendar_month_name_short]), 'DimDate(Dev)'[calendar_month_name_short], ", "), BLANK())
+			
+			VAR __ParentAreas = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES('DimTeam(ODS)'[Company]), NOT(ISBLANK('DimTeam(ODS)'[Company]))), 'DimTeam(ODS)'[Company], ASC),
+			    "AreaParentName_display", 'DimTeam(ODS)'[Company])
+			VAR __ParentAreasCount = IF(ISFILTERED('DimTeam(ODS)'[Company]), COUNTROWS(VALUES('DimTeam(ODS)'[Company])), 0)
+			VAR __MoreParentAreas = IF(__ParentAreasCount > 10, " and " & (__ParentAreasCount - 10) & " more", "")
+			VAR __Services = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES('DimTeam(ODS)'[Team Name]), NOT(ISBLANK('DimTeam(ODS)'[Team Name]))), 'DimTeam(ODS)'[Team Name], ASC),
+			    "TeamName_display", 'DimTeam(ODS)'[Team Name]
+			)
+			VAR __ServicesCount = IF(ISFILTERED('DimTeam(ODS)'[Team Name]), COUNTROWS(VALUES('DimTeam(ODS)'[Team Name])), 0)
+			VAR __MoreServices = IF(__ServicesCount > 10, " and " & (__ServicesCount - 10) & " more", "")
+			
+			VAR _FC_Year = IF(ISBLANK(__Year), BLANK(), "| Year(s) chosen: " & __Year)
+			
+			VAR _FC_Month = IF(ISBLANK(__Month), BLANK(), "| Month(s) chosen: " & __Month)
+			VAR _FC_ParentAreas = IF(__ParentAreasCount > 0, "| Company: " & CONCATENATEX(__ParentAreas, [AreaParentName_display], ", "), BLANK())
+			VAR _FC_MoreParentAreas = IF(__ParentAreasCount > 10, " and " & (__ParentAreasCount - 10) & " more", "")
+			
+			VAR _FC_Services = IF(__ServicesCount > 0, "| Teams chosen: " & CONCATENATEX(__Services, [TeamName_display], ", "), BLANK())
+			VAR _FC_MoreServices = IF(__ServicesCount > 10, " and " & (__ServicesCount - 10) & " more", "")
+			
+			VAR _FirstDate = MIN('DimDate(Dev)'[calendar_date])
+			VAR _LastDate = MAX('DimDate(Dev)'[calendar_date])
+			RETURN
+			"Please note that all data shown is based on the following date range: " & FORMAT(_FirstDate, "dd/MM/YYYY") & " - " & FORMAT(_LastDate, "dd/MM/YYYY")  
+			
+			```
+		lineageTag: d4692715-7e5d-4ecd-92d6-e2a9ea42cc3b
+
+	measure 'Change First to Most Recent Avg Score (HuaO)' = if([First Average Score (HuaO)]>0,([Latest Average Score (HuaO)]/[First Average Score (HuaO)])-1)
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Assessments Only
+		lineageTag: e0dcfaad-8825-4f0d-85a1-373103ea2356
+
+	measure 'Change First to Most Recent Avg Score (Matrix)' = if([First Average Score (Matrix)]>0,([Latest Average Score (Matrix)]/[First Average Score (Matrix)])-1)
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Assessments Only
+		lineageTag: 0b7f4168-c6c9-499d-9e66-82f2de8cace2
+
+	measure 'Change First to Most Recent Avg Score (Kessler 10)' = if([First Average Score (Kessler10)]>0,([Latest Average Score (Kessler10)]/[First Average Score (Kessler10)])-1)
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Assessments Only
+		lineageTag: cb6fc3d5-21b3-4080-ac00-d72a67ee9161
+
+	measure '---Title Number of Referrals' = ```
+			
+			var conversiontotest = convert([Number of active referrals],STRING)
+			return
+			CONCATENATE("Number of active referrals: ",conversiontotest)
+			
+			```
+		displayFolder: Referral Based
+		lineageTag: 6d250dab-d9da-420c-9156-0d124d080476
+
+	measure 'Title Number of Assessments' =
+			
+			var conversiontotest = convert([Number of Assessments],STRING)
+			return
+			CONCATENATE("Number of assessments: ",conversiontotest)
+		displayFolder: Assessments Only
+		lineageTag: 1d96f619-4c8c-468a-9088-60c41afc55fa
+
+	measure 'With an Assessment' = ```
+			
+			Var AnAss = calculate(DISTINCTCOUNT('AssessmentReferralExplosion'[ReferralIDKey]),'AssessmentReferralExplosion'[assessmentstatus]<>"3. No Assessments",AssessmentReferralExplosion[referral_counts]=1) 
+			Return
+			if(AnAss >0 , AnAss,0)
+			```
+		formatString: #,0
+		lineageTag: bc31716a-d4e8-452a-a3b5-8318ff56d0a1
+
+	measure '% active referrals with an assessments' = IF([Number of active referrals]>0&&[With an Assessment]>0,[With an Assessment]/[Number of active referrals],0)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: f85af7b3-8929-405c-a3b8-f5fbb5cf755b
+
+	measure Cheat1 = UNICHAR(128712)
+		lineageTag: 551af651-bab9-4d8a-bfc9-520fd0174097
+
+	measure FiltersApplied = ```
+			
+			VAR __Year = IF(ISFILTERED('DimDate(Dev)'[calendar_year]), CONCATENATEX(FILTERS('DimDate(Dev)'[calendar_year]), 'DimDate(Dev)'[calendar_year], ", "), BLANK())
+			
+			VAR __Month = IF(ISFILTERED('DimDate(Dev)'[calendar_month_name_short]), CONCATENATEX(FILTERS('DimDate(Dev)'[calendar_month_name_short]), 'DimDate(Dev)'[calendar_month_name_short], ", "), BLANK())
+			
+			VAR __ParentAreas = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES('DimTeam(ODS)'[Company]), NOT(ISBLANK('DimTeam(ODS)'[Company]))), 'DimTeam(ODS)'[Company], ASC),
+			    "AreaParentName_display", 'DimTeam(ODS)'[Company])
+			VAR __ParentAreasCount = IF(ISFILTERED('DimTeam(ODS)'[Company]), COUNTROWS(VALUES('DimTeam(ODS)'[Company])), 0)
+			VAR __MoreParentAreas = IF(__ParentAreasCount > 10, " and " & (__ParentAreasCount - 10) & " more", "")
+			VAR __Services = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES('DimTeam(ODS)'[Team Name]), NOT(ISBLANK('DimTeam(ODS)'[Team Name]))), 'DimTeam(ODS)'[Team Name], ASC),
+			    "TeamName_display", 'DimTeam(ODS)'[Team Name]
+			)
+			VAR __ServicesCount = IF(ISFILTERED('DimTeam(ODS)'[Team Name]), COUNTROWS(VALUES('DimTeam(ODS)'[Team Name])), 0)
+			VAR __MoreServices = IF(__ServicesCount > 10, " and " & (__ServicesCount - 10) & " more", "")
+			
+			VAR _FC_Year = IF(ISBLANK(__Year), BLANK(), "| Year(s) chosen: " & __Year)
+			
+			VAR _FC_Month = IF(ISBLANK(__Month), BLANK(), "| Month(s) chosen: " & __Month)
+			VAR _FC_ParentAreas = IF(__ParentAreasCount > 0, "| Company: " & CONCATENATEX(__ParentAreas, [AreaParentName_display], ", "), BLANK())
+			VAR _FC_MoreParentAreas = IF(__ParentAreasCount > 5, " and " & (__ParentAreasCount - 10) & " more", "")
+			VAR _FC_Services = IF(__ServicesCount > 0, "| Teams chosen: " & CONCATENATEX(__Services, [TeamName_display], ", "), BLANK())
+			VAR _FC_MoreServices = IF(__ServicesCount > 5, " and " & (__ServicesCount - 10) & " more", "")
+			
+			VAR _FirstDate = MIN('DimDate(Dev)'[calendar_date])
+			VAR _LastDate = MAX('DimDate(Dev)'[calendar_date])
+			RETURN
+			"Please note that all data shown is based on the following date range: " & FORMAT(_FirstDate, "dd/MM/YYYY") & " - " & FORMAT(_LastDate, "dd/MM/YYYY") & " | Number of active Referrals: " & [Number of active referrals]
+			& UNICHAR(10) & UNICHAR(13) &
+			 UNICHAR(10) & UNICHAR(13) &
+			    " -- Summary of filters applied to page: " &  _FC_Year & " "  & _FC_Month & " " & _FC_ParentAreas & _FC_MoreParentAreas & " " & _FC_Services & _FC_MoreServices
+			
+			
+			```
+		lineageTag: d5245d33-2efe-4d12-adde-d03f4eef2e08
+
+	measure 'FiltersApplied Detailed' = ```
+			
+			VAR __Year = IF(ISFILTERED('DimDate(Dev)'[calendar_year]), CONCATENATEX(FILTERS('DimDate(Dev)'[calendar_year]), 'DimDate(Dev)'[calendar_year], ", "), BLANK())
+			
+			VAR __Month = IF(ISFILTERED('DimDate(Dev)'[calendar_month_name_short]), CONCATENATEX(FILTERS('DimDate(Dev)'[calendar_month_name_short]), 'DimDate(Dev)'[calendar_month_name_short], ", "), BLANK())
+			
+			VAR __ParentAreas = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES('DimTeam(ODS)'[Company]), NOT(ISBLANK('DimTeam(ODS)'[Company]))), 'DimTeam(ODS)'[Company], ASC),
+			    "AreaParentName_display", 'DimTeam(ODS)'[Company])
+			VAR __ParentAreasCount = IF(ISFILTERED('DimTeam(ODS)'[Company]), COUNTROWS(VALUES('DimTeam(ODS)'[Company])), 0)
+			VAR __MoreParentAreas = IF(__ParentAreasCount > 10, " and " & (__ParentAreasCount - 10) & " more", "")
+			VAR __Services = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES('DimTeam(ODS)'[Team Name]), NOT(ISBLANK('DimTeam(ODS)'[Team Name]))), 'DimTeam(ODS)'[Team Name], ASC),
+			    "TeamName_display", 'DimTeam(ODS)'[Team Name]
+			)
+			VAR __ServicesCount = IF(ISFILTERED('DimTeam(ODS)'[Team Name]), COUNTROWS(VALUES('DimTeam(ODS)'[Team Name])), 0)
+			VAR __MoreServices = IF(__ServicesCount > 10, " and " & (__ServicesCount - 10) & " more", "")
+			
+			VAR _FC_Year = IF(ISBLANK(__Year), BLANK(), "| Year(s) chosen: " & __Year)
+			
+			VAR _FC_Month = IF(ISBLANK(__Month), BLANK(), "| Month(s) chosen: " & __Month)
+			VAR _FC_ParentAreas = IF(__ParentAreasCount > 0, "| Company: " & CONCATENATEX(__ParentAreas, [AreaParentName_display], ", "), BLANK())
+			VAR _FC_MoreParentAreas = IF(__ParentAreasCount > 5, " and " & (__ParentAreasCount - 10) & " more", "")
+			VAR _FC_Services = IF(__ServicesCount > 0, "| Teams chosen: " & CONCATENATEX(__Services, [TeamName_display], ", "), BLANK())
+			VAR _FC_MoreServices = IF(__ServicesCount > 5, " and " & (__ServicesCount - 10) & " more", "")
+			
+			VAR _FirstDate = MIN('DimDate(Dev)'[calendar_date])
+			VAR _LastDate = MAX('DimDate(Dev)'[calendar_date])
+			RETURN
+			"Please note that all data shown is based on the following date range: " & FORMAT(_FirstDate, "dd/MM/YYYY") & " - " & FORMAT(_LastDate, "dd/MM/YYYY") 
+			& UNICHAR(10) & UNICHAR(13) &
+			 UNICHAR(10) & UNICHAR(13) &
+			    " -- Summary of filters applied to page: " &  _FC_Year & " "  & _FC_Month & " " & _FC_ParentAreas & _FC_MoreParentAreas & " " & _FC_Services & _FC_MoreServices
+			
+			
+			```
+		lineageTag: 667e837a-3dd1-44c8-bb72-7af62d578299
+
+	measure 'Person Name Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME() IN VALUES('Executinve Masking'[User Principal Name]),
+			    "Name Masked",
+			    [__PersonDisplayName]
+			)
+		displayFolder: Data Masking
+		lineageTag: 3d5e8db5-8a54-482c-8ade-ede680cef4e4
+
+	measure __PersonDisplayName =
+			
+			VAR LastName = calculate(max('AssessmentReferralExplosion'[PersonLastName]))
+			VAR FirstName = calculate(max('AssessmentReferralExplosion'[PersonFirstName]))
+			VAR WithGap = CONCATENATE(FirstName," ")
+			Return
+			CONCATENATE(WithGap,LastName)
+		lineageTag: 91a67146-3019-4aeb-bd67-1969597a6c5b
+
+	measure TotalScore_Last =
+			
+			
+			Calculate(sum('AssessmentOnly'[Total_Score]),'AssessmentOnly'[row_count_desc]=1&&AssessmentOnly[row_count]<>AssessmentOnly[row_count_desc],USERELATIONSHIP
+			    (AssessmentOnly[ResponseCreatedDate],'DimDate(Dev)'[calendar_date]))
+		formatString: 0
+		displayFolder: LastAssessment
+		lineageTag: 35cf3d26-738e-4483-9694-65412c9683ea
+
+	measure AverageLastAssessment = if([TotalScore_Last]>0,[TotalScore_Last]/[Number of Assessments_Last])
+		displayFolder: LastAssessment
+		lineageTag: fe9fa809-8a67-47ac-9d6a-7bb873ec7456
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Latest Average Score - Client(Peer)' = calculate(average(PersonAssessments[mostrecent_Total_Score]))
+		formatString: 0
+		displayFolder: Assessments Only
+		lineageTag: cf902a12-485a-4b2c-95fb-6812dd9ff429
+
+	measure 'Previous Average Score - Client(Peer)' = calculate(average(PersonAssessments[previous_Total_Score]))
+		formatString: 0
+		displayFolder: Assessments Only
+		lineageTag: ffbf7ced-6c7e-4500-ab0d-0b9a5443485c
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'First Average Score - Client(Peer)' = calculate(average(PersonAssessments[first_Total_Score]))
+		formatString: 0
+		displayFolder: Assessments Only
+		lineageTag: 4fd5b2c5-0c37-4afe-8342-b98d548c8bb7
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Change in Score Latest to first' =
+			
+			if (isblank([Latest Average Score - Client(Peer)]),"",
+			1-([First Average Score - Client(Peer)]/[Latest Average Score - Client(Peer)]))
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Assessments Only
+		lineageTag: 5ca9cdce-0092-4fac-a33d-d535e9f6619c
+
+	measure 'Change in Score Latest to Previous' =
+			
+			if(isblank([Latest Average Score - Client(Peer)]),"",
+			1-([Previous Average Score - Client(Peer)]/[Latest Average Score - Client(Peer)]))
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Assessments Only
+		lineageTag: 57bfccbd-6160-4ba3-8392-266302b41ca2
+
+	measure 'Lastest Average Score PA' = average(PersonAssessments[mostrecent_Total_Score])
+		lineageTag: 755dfeda-b4b3-4125-9fbf-ae9c9a6c16bf
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Previous Average Score (HuaO) PA' = average(PersonAssessments[previous_Total_Score])
+		lineageTag: ed2ecbe1-c5f7-40ac-8c5b-1fd2a9f57c8a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure ExitReasonsRanked = ```
+			
+			VAR MonthlyExitReasons = 
+			    SUMMARIZE(
+			        SummarizedData,
+			        SummarizedData[DischargeMonth],
+			        SummarizedData[GroupedExitReason],
+			        "TotalExits", SUM(SummarizedData[Exits])
+			    )
+			RETURN
+			    RANKX(
+			        FILTER(MonthlyExitReasons, [DischargeMonth] = SELECTEDVALUE(SummarizedData[DischargeMonth])),
+			        [TotalExits]
+			    )
+			
+			```
+		lineageTag: 3ae09f63-8ecd-4ab9-95e6-a515bb90160d
+
+	partition _Measures-349fffc3-8312-4569-9898-4ac05039bc17 = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [_Measures = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"_Measures", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"_Measures"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+

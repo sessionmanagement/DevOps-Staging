@@ -1,0 +1,33 @@
+table 'Fact Roster'
+	lineageTag: eb13abeb-c811-42b6-ac57-e06d96cd57fa
+
+	column dim_service_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 4de3d993-c84e-498e-95eb-53ff09c47e61
+		summarizeBy: none
+		sourceColumn: dim_service_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column roster_shifts
+		dataType: string
+		lineageTag: bed2e941-ba05-486e-84e7-8fdbe52dd334
+		summarizeBy: none
+		sourceColumn: roster_shifts
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Fact Roster' = m
+		mode: import
+		queryGroup: Fact
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="#(lf)SELECT#(lf)    [dim_service_key],#(lf)    [roster_shifts]#(lf)FROM [edw].[fact_sixdegree_roster]#(lf)WHERE [DWHIsCurrent] = 1#(lf)  AND [DWHDMLOperation] <> 'D';#(lf)"])
+				in
+				    Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

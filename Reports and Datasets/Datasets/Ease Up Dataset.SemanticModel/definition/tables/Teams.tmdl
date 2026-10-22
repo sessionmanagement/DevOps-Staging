@@ -1,0 +1,71 @@
+table Teams
+	lineageTag: b1ffc08b-7625-4b65-96a7-9a3072e33d14
+
+	column TeamRegion
+		dataType: string
+		lineageTag: 08eec1fa-1898-4237-98e1-4d35577dba00
+		summarizeBy: none
+		sourceColumn: TeamRegion
+
+		annotation SummarizationSetBy = Automatic
+
+	column team_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 11ca4218-0452-456f-ab73-e30f8a6868b5
+		summarizeBy: none
+		sourceColumn: team_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column RLS = 1
+		formatString: 0
+		lineageTag: 9de4950f-e3d4-4fb3-b012-1b5d1a9e0ff9
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Team Name'
+		dataType: string
+		lineageTag: ca6e2e68-96a2-4139-b182-e208e0a1ff32
+		summarizeBy: none
+		sourceColumn: Team Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionName
+		dataType: string
+		lineageTag: 24f32776-48dc-4abc-a90f-4444037901e6
+		summarizeBy: none
+		sourceColumn: TeamFunctionName
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Teams-419fd425-1a35-4b43-b600-3dceefbe96a1 = m
+		mode: import
+		source = ```
+				let
+				    Source = Sql.Database(#"Server", #"Database", [Query="SELECT 
+				    dt.TeamName,
+				    dtf.TeamFunctionName,
+				    dt.TeamID AS team_id,
+				    CASE 
+				        WHEN dt.TeamName LIKE '%adhb%' THEN 'Auckland'
+				        WHEN dt.TeamName LIKE '%wdhb%' THEN 'Waitemata'
+				        WHEN dt.TeamName LIKE 'easeup%west%' THEN 'Waitemata'
+				        WHEN dt.TeamName LIKE 'easeup%north%' THEN 'Waitemata'
+				        WHEN dt.TeamName LIKE '%waikato%' THEN 'Waikato'
+				        ELSE 'Other Region'
+				    END AS TeamRegion
+				FROM RBEAL.dlDimTeam dt
+				INNER JOIN RBEAL.dlDimTeamFunction dtf ON dt.TeamFunctionID = dtf.TeamFunctionID
+				WHERE dt.TeamName LIKE '%ease%up%'"]),
+				    #"Renamed Columns" = Table.RenameColumns(Source,{{"TeamName", "Team Name"}})
+				in
+				    #"Renamed Columns"
+				```
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

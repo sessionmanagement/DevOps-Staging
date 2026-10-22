@@ -1,0 +1,25 @@
+
+  EVALUATE
+  ADDCOLUMNS(
+      SUMMARIZE(
+          dim_date,
+          dim_date[financial_year_num]
+      ),
+
+      // Measure values
+      "Total Portfolio", [Housing Portfolio Count (by Year)],
+      "Owned Properties", [Number of properties owned in FY],
+      "Leased Properties", [Number of properties leased in FY],
+
+      // Verification
+      "Owned + Leased", [Number of properties owned in FY] + [Number of properties leased in FY],
+
+      "Match?",
+          [Housing Portfolio Count (by Year)] =
+          ([Number of properties owned in FY] + [Number of properties leased in FY]),
+
+      // Breakdown percentages
+      "% Owned", DIVIDE([Number of properties owned in FY], [Housing Portfolio Count (by Year)], BLANK()),
+      "% Leased", DIVIDE([Number of properties leased in FY], [Housing Portfolio Count (by Year)], BLANK())
+  )
+  ORDER BY dim_date[financial_year_num] DESC

@@ -1,0 +1,20 @@
+table _Measures
+	lineageTag: ed0c1696-2b27-484e-aa11-546df4b7b894
+
+	measure RefreshedAt_forDisplay = "Data Last Refreshed: " & FORMAT(LASTDATE(LastRefreshed[Date Last Refreshed]), "dd/MM/YYYY - hh:mm am/pm")
+		lineageTag: eaf4a4f3-e23f-4dce-991a-b0d52f5c53c8
+
+	partition _Measures-0ee86b1b-a58d-4d7a-aaf2-e12618900831 = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

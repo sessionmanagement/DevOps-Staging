@@ -1,0 +1,142 @@
+table DimPayGrades
+	lineageTag: ccc0aa6d-b071-41fa-aa01-e9f046eea364
+
+	column pay_grades_id
+		dataType: string
+		lineageTag: 05938259-a8a3-41ae-a913-ef9380bb68a4
+		summarizeBy: none
+		sourceColumn: pay_grades_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column code
+		dataType: string
+		lineageTag: 774a6208-1e18-458e-a46f-4de9ebc75621
+		summarizeBy: none
+		sourceColumn: code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Job Family'
+		dataType: string
+		lineageTag: 9a0af379-75f1-4cb8-a4eb-5581f40343ce
+		summarizeBy: none
+		sourceColumn: Job Family
+
+		annotation SummarizationSetBy = Automatic
+
+	column Grade
+		dataType: string
+		lineageTag: 1e9302c7-896e-49a0-9fc8-b0410c0c3ead
+		summarizeBy: none
+		sourceColumn: Grade
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation __PBI_SemanticLinks = [{"LinkTarget":{"TableName":"DimPayGrades","TableItemName":"Grade Group","ObjectType":4},"LinkType":"UsedInGroup"}]
+
+	column Step
+		dataType: string
+		lineageTag: 740689a8-0fd4-4a6d-a7ab-c9dbdcb3504e
+		summarizeBy: none
+		sourceColumn: Step
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Grade Group' =
+			SWITCH(
+				TRUE,
+				ISBLANK('DimPayGrades'[Grade]),
+				"(Blank)",
+				'DimPayGrades'[Grade] IN {"10"},
+				"10",
+				'DimPayGrades'[Grade] IN {"11"},
+				"11",
+				'DimPayGrades'[Grade] IN {"12"},
+				"12",
+				'DimPayGrades'[Grade] IN {"13"},
+				"13",
+				'DimPayGrades'[Grade] IN {"14"},
+				"14",
+				'DimPayGrades'[Grade] IN {"15"},
+				"15",
+				'DimPayGrades'[Grade] IN {"16"},
+				"16",
+				'DimPayGrades'[Grade] IN {"17"},
+				"17",
+				'DimPayGrades'[Grade] IN {"18"},
+				"18",
+				'DimPayGrades'[Grade] IN {"19"},
+				"19",
+				'DimPayGrades'[Grade] IN {"07",
+					"09"},
+				"7-9",
+				'DimPayGrades'[Grade] IN {"CSWPE 0",
+					"CSWPE 2",
+					"CSWPE 3",
+					"CSWPE 3e",
+					"CSWPE 4",
+					"CSWPE 4e",
+					"PE - Level 4x"},
+				"CSWPE",
+				'DimPayGrades'[Grade] IN {"20",
+					"20c",
+					"21",
+					"22",
+					"23",
+					"24",
+					"25",
+					"26",
+					"27",
+					"28"},
+				"Grade 20+",
+				'DimPayGrades'[Grade] IN {"2024"},
+				"Minimum Wage",
+				'DimPayGrades'[Grade] IN {"XX"},
+				"No Pay Grade",
+				'DimPayGrades'[Grade] IN {"SWPE"},
+				"SWPE",
+				"Other"
+			)
+		lineageTag: 38c177bc-89ee-4a10-9773-185d0b5be3f1
+		summarizeBy: none
+
+		extendedProperty GroupingMetadata =
+				{
+				  "version": 0,
+				  "groupedColumns": [
+				    {
+				      "Column": {
+				        "Expression": {
+				          "SourceRef": {
+				            "Entity": "DimPayGrades"
+				          }
+				        },
+				        "Property": "Grade"
+				      }
+				    }
+				  ]
+				}
+
+		annotation GroupingDesignState = {"Version":0,"Sources":[{"Name":"d","Entity":"DimPayGrades"}],"GroupedColumns":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Grade"}}],"GroupItems":[{"DisplayName":"(Blank)","BlankDefaultPlaceholder":true},{"DisplayName":"10","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Grade"}}],"Values":[[{"Literal":{"Value":"'10'"}}]]}}},{"DisplayName":"11","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Grade"}}],"Values":[[{"Literal":{"Value":"'11'"}}]]}}},{"DisplayName":"12","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Grade"}}],"Values":[[{"Literal":{"Value":"'12'"}}]]}}},{"DisplayName":"13","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Grade"}}],"Values":[[{"Literal":{"Value":"'13'"}}]]}}},{"DisplayName":"14","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Grade"}}],"Values":[[{"Literal":{"Value":"'14'"}}]]}}},{"DisplayName":"15","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Grade"}}],"Values":[[{"Literal":{"Value":"'15'"}}]]}}},{"DisplayName":"16","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Grade"}}],"Values":[[{"Literal":{"Value":"'16'"}}]]}}},{"DisplayName":"17","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Grade"}}],"Values":[[{"Literal":{"Value":"'17'"}}]]}}},{"DisplayName":"18","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Grade"}}],"Values":[[{"Literal":{"Value":"'18'"}}]]}}},{"DisplayName":"19","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Grade"}}],"Values":[[{"Literal":{"Value":"'19'"}}]]}}},{"DisplayName":"7-9","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Grade"}}],"Values":[[{"Literal":{"Value":"'07'"}}],[{"Literal":{"Value":"'09'"}}]]}}},{"DisplayName":"CSWPE","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Grade"}}],"Values":[[{"Literal":{"Value":"'CSWPE 0'"}}],[{"Literal":{"Value":"'CSWPE 2'"}}],[{"Literal":{"Value":"'CSWPE 3'"}}],[{"Literal":{"Value":"'CSWPE 3e'"}}],[{"Literal":{"Value":"'CSWPE 4'"}}],[{"Literal":{"Value":"'CSWPE 4e'"}}],[{"Literal":{"Value":"'PE - Level 4x'"}}]]}}},{"DisplayName":"Grade 20+","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Grade"}}],"Values":[[{"Literal":{"Value":"'20'"}}],[{"Literal":{"Value":"'20c'"}}],[{"Literal":{"Value":"'21'"}}],[{"Literal":{"Value":"'22'"}}],[{"Literal":{"Value":"'23'"}}],[{"Literal":{"Value":"'24'"}}],[{"Literal":{"Value":"'25'"}}],[{"Literal":{"Value":"'26'"}}],[{"Literal":{"Value":"'27'"}}],[{"Literal":{"Value":"'28'"}}]]}}},{"DisplayName":"Minimum Wage","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Grade"}}],"Values":[[{"Literal":{"Value":"'2024'"}}]]}}},{"DisplayName":"No Pay Grade","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Grade"}}],"Values":[[{"Literal":{"Value":"'XX'"}}]]}}},{"DisplayName":"SWPE","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Grade"}}],"Values":[[{"Literal":{"Value":"'SWPE'"}}]]}}},{"DisplayName":"Other"}]}
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimPayGrades = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT#(lf)    [pay_grades_id],#(lf)    code#(lf)FROM [IntelliHR].[pay_grades]#(lf)WHERE (([ODSIsCurrent] = 1) AND ([isEnabled] = 1));#(lf)"]),
+				    #"Duplicated Column" = Table.DuplicateColumn(Source, "code", "code - Copy"),
+				    #"Split Column by Delimiter" = Table.SplitColumn(#"Duplicated Column", "code - Copy", Splitter.SplitTextByDelimiter("_", QuoteStyle.None), {"code - Copy.1", "code - Copy.2", "code - Copy.3"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Split Column by Delimiter",{{"code - Copy.1", type text}, {"code - Copy.2", type text}, {"code - Copy.3", type text}}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"code - Copy.1", "Job Family"}, {"code - Copy.2", "Grade"}, {"code - Copy.3", "Step"}}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Renamed Columns",null,"No Pay Grade",Replacer.ReplaceValue,{"Grade"})
+				in
+				    #"Replaced Value"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Exception
+

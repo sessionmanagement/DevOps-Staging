@@ -1,0 +1,56 @@
+table dim_inspection_category_type
+	lineageTag: dfc1fb08-e718-459b-92f3-7ebfb81b3aea
+
+	column inspection_category_type_key
+		dataType: string
+		isHidden
+		lineageTag: 4ca0074a-fccc-4ad4-92da-ee47ec072a52
+		summarizeBy: none
+		sourceColumn: inspection_category_type_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_inspectioncategoryname
+		dataType: string
+		isHidden
+		lineageTag: 39bf2ec0-db2a-4746-964c-57b4bdde6042
+		summarizeBy: none
+		sourceColumn: zav_inspectioncategoryname
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_inspectiontypename
+		dataType: string
+		isHidden
+		lineageTag: 2a29fd53-12b4-47ef-a0d3-e2d6e3d419dc
+		summarizeBy: none
+		sourceColumn: zav_inspectiontypename
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'zav_inspectioncategoryname Hierarchy'
+		lineageTag: 05fd75b4-73c5-4313-aaea-87da4316f01b
+
+		level 'Inspection Category'
+			lineageTag: 1b62ddc5-bddf-4033-978d-8509d6ecea1a
+			column: zav_inspectioncategoryname
+
+		level 'Inspection Type'
+			lineageTag: 5aab0eb3-8af6-425d-9250-994cf88f897c
+			column: zav_inspectiontypename
+
+	partition dim_inspection_category_type = m
+		mode: import
+		queryGroup: dimensions
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="WITH optionHashTable AS #(lf)(#(lf)    SELECT#(lf)        [OptionSetName],#(lf)        [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', [OptionSetName] + CAST([Option] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_GlobalOptionsetMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        [OptionSetName],#(lf)        [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', [OptionSetName] + CAST([Option] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_OptionsetMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        'statuscodename' AS [OptionSetName],#(lf)        [status] AS [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', 'statuscodename' + CAST([status] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_StatusMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        'statecodename' AS [OptionSetName],#(lf)        [state] AS [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', 'statecodename' + CAST([state] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_StateMetadata]#(lf)),#(lf)RecentZavInspection AS (#(lf)    SELECT#(lf)        zav_inspectioncategory,#(lf)        zav_inspectiontype,#(lf)        SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (PARTITION BY zav_inspectioncategory, zav_inspectiontype ORDER BY SinkModifiedOn DESC) AS rn#(lf)    FROM#(lf)        [Zavanti].[vw_zav_inspection]#(lf)    WHERE #(lf)        zav_inspectioncategory IS NOT NULL#(lf))#(lf)SELECT DISTINCT#(lf)    rzi.zav_inspectioncategory,#(lf)    t1.LocalizedLabel AS zav_inspectioncategoryname,#(lf)    rzi.zav_inspectiontype,#(lf)    t2.LocalizedLabel AS zav_inspectiontypename#(lf)FROM#(lf)    RecentZavInspection rzi#(lf)LEFT OUTER JOIN #(lf)    optionHashTable t1 #(lf)ON #(lf)    t1.optionHash = HASHBYTES('MD5', 'zav_inspectioncategory' + CAST(rzi.zav_inspectioncategory AS nvarchar(100)) + 'zav_inspection')#(lf)LEFT OUTER JOIN #(lf)    optionHashTable t2 #(lf)ON #(lf)    t2.optionHash = HASHBYTES('MD5', 'zav_inspectiontype' + CAST(rzi.zav_inspectiontype AS nvarchar(100)) + 'zav_inspection')#(lf)WHERE#(lf)    rzi.rn = 1"]),
+				    #"Inserted Merged Column" = Table.AddColumn(Source, "inspection_category_type_key", each Text.Combine({Text.From([zav_inspectioncategory], "en-NZ"), ":", Text.From([zav_inspectiontype], "en-NZ")}), type text),
+				    #"Sorted Rows" = Table.Sort(#"Inserted Merged Column",{{"zav_inspectioncategory", Order.Ascending}}),
+				    #"Removed Other Columns1" = Table.SelectColumns(#"Sorted Rows",{"zav_inspectioncategoryname", "zav_inspectiontypename", "inspection_category_type_key"}),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Removed Other Columns1",{"inspection_category_type_key", "zav_inspectioncategoryname", "zav_inspectiontypename"})
+				in
+				    #"Reordered Columns"
+
+	annotation PBI_ResultType = Table
+

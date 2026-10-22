@@ -1,0 +1,287 @@
+table fact_fuelcard_expenditure
+	lineageTag: a0b94376-cf2f-4465-bb49-ad47ec07c5a4
+
+	column 'Vehicle Registration'
+		dataType: string
+		lineageTag: 0e713a17-7ba6-46cb-a7e9-6b429771933f
+		summarizeBy: none
+		sourceColumn: Vehicle Registration
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_asset_key
+		dataType: double
+		formatString: 0
+		lineageTag: b090035e-660d-41c9-81ac-335aa512124a
+		summarizeBy: none
+		sourceColumn: dim_asset_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: cb386ff6-ed56-4218-9b97-f34f5fbb6c27
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Time
+		dataType: dateTime
+		formatString: Long Time
+		lineageTag: ba9ee71e-b9f3-4ba5-abe6-20cb32767725
+		summarizeBy: none
+		sourceColumn: Time
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Time
+
+	column 'Card Number'
+		dataType: int64
+		formatString: 0
+		lineageTag: 837d73ab-9821-4b0d-8122-efec18f7fdbc
+		summarizeBy: sum
+		sourceColumn: Card Number
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Card Holder'
+		dataType: string
+		lineageTag: 5254ce34-8bd8-4075-b52f-30241891eabd
+		summarizeBy: none
+		sourceColumn: Card Holder
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Cost Centre'
+		dataType: string
+		lineageTag: e112a53a-4d56-4994-ace0-477b40d4063f
+		summarizeBy: none
+		sourceColumn: Cost Centre
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Location '
+		dataType: string
+		lineageTag: 2a49aee7-08fb-4652-8f94-3ff583d93075
+		summarizeBy: none
+		sourceColumn: "Location "
+
+		annotation SummarizationSetBy = Automatic
+
+	column Voucher
+		dataType: int64
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 0623ae70-1a1f-4ef0-a523-1bf1e83c9d0f
+		summarizeBy: sum
+		sourceColumn: Voucher
+
+		annotation SummarizationSetBy = Automatic
+
+	column Odometer
+		dataType: int64
+		formatString: 0
+		lineageTag: 0d2d4464-7b38-43aa-9fb5-753e9d1efa59
+		summarizeBy: sum
+		sourceColumn: Odometer
+
+		annotation SummarizationSetBy = Automatic
+
+	column Product
+		dataType: string
+		lineageTag: 7b112a57-66c5-44e5-9b7c-271635ffe18a
+		summarizeBy: none
+		sourceColumn: Product
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quantity
+		dataType: double
+		lineageTag: 5c25e8a5-17cd-41af-b268-80073df8c61a
+		summarizeBy: sum
+		sourceColumn: Quantity
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Voucher Value'
+		dataType: double
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: fa627b4a-13f1-4ebf-a42f-ec20c91bd7c4
+		summarizeBy: sum
+		sourceColumn: Voucher Value
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Invoice Rate'
+		dataType: double
+		lineageTag: 603aff07-436f-4a78-8340-f20453aaddcd
+		summarizeBy: sum
+		sourceColumn: Invoice Rate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Net Excl GST'
+		dataType: double
+		lineageTag: 559bbf0b-a59c-4be7-bacc-8ecb49c71159
+		summarizeBy: sum
+		sourceColumn: Net Excl GST
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Distance Since Previous Fill Km'
+		dataType: double
+		formatString: 0.00
+		lineageTag: 7422d839-dbf8-4b02-aa1c-add288e10357
+		summarizeBy: sum
+		sourceColumn: Distance Since Previous Fill Km
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Fuel Quantity for Interval'
+		dataType: double
+		formatString: 0.00
+		lineageTag: 2792c778-04ad-43db-a495-b598f0a853c5
+		summarizeBy: sum
+		sourceColumn: Fuel Quantity for Interval
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Fuel Spend for Interval'
+		dataType: double
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 71dded98-27d6-4602-a64b-1a226a4e4d14
+		summarizeBy: sum
+		sourceColumn: Fuel Spend for Interval
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Has Valid Odometer Interval'
+		dataType: int64
+		formatString: 0
+		lineageTag: e756f541-a7d4-4235-b5c4-edb787bcfb86
+		summarizeBy: sum
+		sourceColumn: Has Valid Odometer Interval
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_fuelcard_expenditure = m
+		mode: import
+		queryGroup: Facts
+		source =
+				let
+				    Source = #"Fuel Invoice Data",
+				    #"Removed Errors" = Table.RemoveRowsWithErrors(Source, {"Date"}),
+				    FilterNullAndWhitespace = each List.Select(_, each _ <> null and (not (_ is text) or Text.Trim(_) <> "")),
+				    #"Removed Bottom Rows" = Table.RemoveLastN(#"Removed Errors", each try List.IsEmpty(List.Skip(FilterNullAndWhitespace(Record.FieldValues(_)), 1)) otherwise false),
+				    #"Merged Queries" = Table.NestedJoin(#"Removed Bottom Rows", {"Vehicle Registration"}, dim_team_asset, {"number_plate"}, "dim_team_asset", JoinKind.LeftOuter),
+				    #"Expanded dim_team_asset" = Table.ExpandTableColumn(#"Merged Queries", "dim_team_asset", {"dim_asset_key"}, {"dim_asset_key"}),
+				    #"Replaced Value2" = Table.ReplaceValue(#"Expanded dim_team_asset",null,0,Replacer.ReplaceValue,{"dim_asset_key"}),
+				    #"Filtered Rows" = Table.SelectRows(#"Replaced Value2", each ([Product] <> "Car Wash")),
+				    #"Sorted Rows" = Table.Sort(#"Filtered Rows",{{"Vehicle Registration", Order.Ascending}, {"Date", Order.Ascending}, {"Time", Order.Ascending}, {"Voucher", Order.Ascending}}),
+				    #"Grouped Rows" = Table.Group(
+				        #"Sorted Rows",
+				        {"Vehicle Registration"},
+				        {
+				            {
+				                "VehicleRows",
+				                each
+				                    let
+				                        IndexedRows = Table.AddIndexColumn(_, "VehicleFillIndex", 0, 1, Int64.Type),
+				                        BufferedRows = Table.Buffer(IndexedRows),
+				                        AddedPreviousOdometer = Table.AddColumn(
+				                            BufferedRows,
+				                            "Previous Odometer",
+				                            each if [VehicleFillIndex] = 0 then null else BufferedRows[Odometer]{[VehicleFillIndex] - 1},
+				                            Int64.Type
+				                        ),
+				                        AddedDistanceDelta = Table.AddColumn(
+				                            AddedPreviousOdometer,
+				                            "Distance Since Previous Fill Km",
+				                            each
+				                                let
+				                                    currentOdometer = [Odometer],
+				                                    previousOdometer = [Previous Odometer]
+				                                in
+				                                    if currentOdometer = null or previousOdometer = null or currentOdometer <= previousOdometer then
+				                                        0
+				                                    else
+				                                        Number.From(currentOdometer - previousOdometer),
+				                            type number
+				                        ),
+				                        AddedIntervalQuantity = Table.AddColumn(
+				                            AddedDistanceDelta,
+				                            "Fuel Quantity for Interval",
+				                            each if [Distance Since Previous Fill Km] > 0 then Number.From([Quantity]) else 0,
+				                            type number
+				                        ),
+				                        AddedIntervalSpend = Table.AddColumn(
+				                            AddedIntervalQuantity,
+				                            "Fuel Spend for Interval",
+				                            each if [Distance Since Previous Fill Km] > 0 then Number.From([Voucher Value]) else 0,
+				                            type number
+				                        ),
+				                        AddedIntervalFlag = Table.AddColumn(
+				                            AddedIntervalSpend,
+				                            "Has Valid Odometer Interval",
+				                            each if [Distance Since Previous Fill Km] > 0 then 1 else 0,
+				                            Int64.Type
+				                        ),
+				                        RemovedHelperColumns = Table.RemoveColumns(AddedIntervalFlag, {"VehicleFillIndex", "Previous Odometer"})
+				                    in
+				                        RemovedHelperColumns
+				            }
+				        }
+				    ),
+				    #"Expanded VehicleRows" = Table.ExpandTableColumn(
+				        #"Grouped Rows",
+				        "VehicleRows",
+				        List.RemoveItems(Table.ColumnNames(#"Sorted Rows"), {"Vehicle Registration"}) & {"Distance Since Previous Fill Km", "Fuel Quantity for Interval", "Fuel Spend for Interval", "Has Valid Odometer Interval"},
+				        List.RemoveItems(Table.ColumnNames(#"Sorted Rows"), {"Vehicle Registration"}) & {"Distance Since Previous Fill Km", "Fuel Quantity for Interval", "Fuel Spend for Interval", "Has Valid Odometer Interval"}
+				    ),
+				    #"Changed Type" = Table.TransformColumnTypes(
+				        #"Expanded VehicleRows",
+				        {
+				            {"Date", type date},
+				            {"Time", type time},
+				            {"Card Number", Int64.Type},
+				            {"Vehicle Registration", type text},
+				            {"Card Holder", type text},
+				            {"Cost Centre", type text},
+				            {"Location ", type text},
+				            {"Voucher", Int64.Type},
+				            {"Odometer", Int64.Type},
+				            {"Product", type text},
+				            {"Quantity", type number},
+				            {"Voucher Value", type number},
+				            {"Invoice Rate", type number},
+				            {"Net Excl GST", type number},
+				            {"dim_asset_key", type number},
+				            {"Distance Since Previous Fill Km", type number},
+				            {"Fuel Quantity for Interval", type number},
+				            {"Fuel Spend for Interval", type number},
+				            {"Has Valid Odometer Interval", Int64.Type}
+				        }
+				    )
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

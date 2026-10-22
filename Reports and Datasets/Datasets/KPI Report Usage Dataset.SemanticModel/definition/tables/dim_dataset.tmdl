@@ -1,0 +1,33 @@
+table dim_dataset
+	lineageTag: 5d6b865b-5454-4e46-b7cc-d46b6b6601a1
+
+	column dataset_name
+		dataType: string
+		isHidden
+		lineageTag: 24e7db7b-fe06-4491-81b3-37e5dfa02c92
+		summarizeBy: none
+		sourceColumn: dataset_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column dataset_hash_key
+		dataType: string
+		isHidden
+		lineageTag: 913c048d-46a4-4060-b3c8-ab830e402034
+		summarizeBy: none
+		sourceColumn: dataset_hash_key
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_dataset = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT DISTINCT#(lf)-- al.bk_dataset_id /* hash key created because bk_dataset_id is not unique and has multiple values for dataset_name in some cases */#(lf)al.dataset_name#(lf),HASHBYTES('MD5',COALESCE(al.bk_dataset_id,'Unknown') + ' (' + COALESCE(al.dataset_name,'') + ')') AS dataset_hash_key#(lf)FROM [edw].[fact_powerbi_activity_log] al#(lf)WHERE al.bk_dataset_id IS NOT NULL"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"dataset_hash_key", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

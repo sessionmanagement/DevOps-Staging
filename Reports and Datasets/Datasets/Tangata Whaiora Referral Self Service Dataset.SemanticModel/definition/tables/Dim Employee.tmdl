@@ -1,0 +1,169 @@
+table 'Dim Employee'
+	isHidden
+	lineageTag: 2008d27f-ad95-4a0c-a479-9da773bdf0af
+
+	column 'Dim Employee KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: c9329ead-1424-4a3c-9c44-0019d2af968d
+		summarizeBy: none
+		sourceColumn: Dim Employee KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 7cb42296-19ff-425f-bda8-6f1fcb74329c
+		summarizeBy: none
+		sourceColumn: Employee ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Employment Status'
+		dataType: string
+		isHidden
+		lineageTag: 9c732d99-9d49-4b96-8487-65e233e2c342
+		summarizeBy: none
+		sourceColumn: Employee Employment Status
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Company Start Date'
+		dataType: dateTime
+		isHidden
+		formatString: General Date
+		lineageTag: fbf77e1c-0a63-4a1d-ab24-79e0dbc69a45
+		summarizeBy: none
+		sourceColumn: Employee Company Start Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Company End Date'
+		dataType: dateTime
+		isHidden
+		formatString: General Date
+		lineageTag: f96a60d0-d7cd-4cf7-a54b-0b19dbf3be1a
+		summarizeBy: none
+		sourceColumn: Employee Company End Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Gender'
+		dataType: string
+		isHidden
+		lineageTag: 66641910-bea6-433e-9bc8-06f12917e1a3
+		summarizeBy: none
+		sourceColumn: Employee Gender
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Age In Year'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 0ad16aba-76bb-4324-9932-730f3a0512e1
+		summarizeBy: none
+		sourceColumn: Employee Age In Year
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Work Type'
+		dataType: string
+		isHidden
+		lineageTag: 39967463-9575-4056-a032-f3d5a73374b4
+		summarizeBy: none
+		sourceColumn: Employee Work Type
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Work Class'
+		dataType: string
+		isHidden
+		lineageTag: 847880d4-70ca-41a4-96fe-d5ab37eb1989
+		summarizeBy: none
+		sourceColumn: Employee Work Class
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Ethnicity'
+		dataType: string
+		isHidden
+		lineageTag: 5b2c69d9-da89-4d61-9e66-3d1d605c047a
+		summarizeBy: none
+		sourceColumn: Employee Ethnicity
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Initial'
+		dataType: string
+		lineageTag: ba537bdc-1226-46ec-8118-10959fbae7f8
+		summarizeBy: none
+		sourceColumn: Employee Initial
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Name'
+		dataType: string
+		lineageTag: 3a6f9c1e-2b4d-4f7a-9c3e-6d8b1a2f5c47
+		summarizeBy: none
+		sourceColumn: Employee Name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Employee' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="select dim_employee_key, employee_id , employee_name, concat(left(employee_first_name,1),' ',left(employee_last_name,1)) as employee_initial,#(lf)employee_employment_status,#(lf)employee_gender, employee_ethnicity, employee_work_type, employee_work_class , employee_age_in_year,#(lf)employee_company_start_date, employee_company_end_date#(lf)#(lf)from edw.dim_employee #(lf)where dwhdmloperation <> 'd'"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_))
+				in
+				    #"Transformed Column Names"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

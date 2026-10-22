@@ -1,0 +1,55 @@
+table fact_incident_category
+	lineageTag: 3cbcfcb0-c9bb-4d6b-af62-a18e67a5e156
+
+	column IncidentDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: ea2b62c6-45e0-4e03-b652-ff217ca8f67e
+		summarizeBy: none
+		sourceColumn: IncidentDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column IncidentKey
+		dataType: int64
+		formatString: 0
+		lineageTag: cd4385eb-4d52-4a76-967c-a44877d27db6
+		summarizeBy: none
+		sourceColumn: IncidentKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentCategoryTypeKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 0b5085cb-e698-4465-8c5f-c71a21e9dfc0
+		summarizeBy: none
+		sourceColumn: IncidentCategoryTypeKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentId
+		dataType: int64
+		formatString: 0
+		lineageTag: 60ee71f3-e945-454e-9fb2-b6092c0784c2
+		summarizeBy: count
+		sourceColumn: IncidentId
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_incident_category-a4c708ee-f564-4fe6-9522-8393afbb020d = m
+		mode: import
+		queryGroup: Facts
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="-- ============================================================#(lf)-- Model:  Incident Reporting Dataset#(lf)-- Table:  fact_incident_category#(lf)-- Source: native query (complex CTE/window) - emitted in full#(lf)-- Used columns: 3 (mapped 3, unmapped 0)  [full query, not trimmed]#(lf)-- Auto-generated from pbi_complete_dump.csv + model M + EDW/ODS schema.#(lf)-- Review before use; verify joins/filters against the model.#(lf)-- ============================================================#(lf)-- USED model columns: IncidentCategoryTypeKey; IncidentDate; IncidentKey#(lf)#(lf)Select#(tab)#(tab)fcic.dim_client_incident_company_key_incident_id_key As IncidentKey,#(lf)#(tab)#(tab)#(tab)fcic.incident_id As IncidentId,#(lf)#(tab)#(tab)#(tab)Cast(dci.incident_date As Date) As IncidentDate,#(lf)#(tab)#(tab)#(tab)fcic.dim_client_incident_company_key_category_type_id_key As IncidentCategoryTypeKey#(lf)From#(tab)#(tab)edw.vw_fact_client_incident_category fcic#(lf)#(tab)Inner Join#(tab)edw.vw_dim_client_incident dci#(lf)#(tab)#(tab)On#(tab)#(tab)fcic.dim_client_incident_key = dci.dim_client_incident_key#(lf)Where#(tab)#(tab)fcic.DWHIsCurrent = 1#(lf)#(tab)And#(tab)#(tab)fcic.DWHDMLOperation <> 'D'#(lf)#(lf)Union All#(lf)#(lf)Select#(tab)#(tab)dci.dim_client_incident_company_key_incident_id_key As IncidentKey,#(lf)#(tab)#(tab)#(tab)dci.incident_id As IncidentId,#(lf)#(tab)#(tab)#(tab)Cast(dci.incident_date As Date) As IncidentDate,#(lf)#(tab)#(tab)#(tab)0 As IncidentCategoryTypeKey#(lf)From#(tab)#(tab)edw.vw_dim_client_incident dci#(lf)Where#(tab)#(tab)dci.DWHIsCurrent = 1#(lf)#(tab)And#(tab)#(tab)dci.DWHDMLOperation <> 'D'#(lf)#(tab)And#(tab)#(tab)dci.dim_client_incident_company_key_incident_id_key > 0#(lf)#(tab)And#(tab)#(tab)Not Exists (#(lf)#(tab)#(tab)#(tab)Select#(tab)#(tab)*#(lf)#(tab)#(tab)#(tab)From#(tab)#(tab)edw.vw_fact_client_incident_category fcic#(lf)#(tab)#(tab)#(tab)Where#(tab)#(tab)dci.dim_client_incident_company_key_incident_id_key = fcic.dim_client_incident_company_key_incident_id_key#(lf)#(tab)#(tab)#(tab)#(tab)And#(tab)#(tab)fcic.DWHIsCurrent = 1#(lf)#(tab)#(tab)#(tab)#(tab)And#(tab)#(tab)fcic.DWHDMLOperation <> 'D');#(lf)"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"IncidentDate", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

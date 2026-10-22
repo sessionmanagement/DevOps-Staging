@@ -1,0 +1,180 @@
+table 'Fact Whanau'
+	lineageTag: 3e590e55-748c-4421-a314-14cb8eb35a7e
+
+	column Personstatus
+		dataType: string
+		lineageTag: 34d3a508-b85a-44f1-a585-32b1aa12df8b
+		summarizeBy: none
+		sourceColumn: Personstatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column Lookuptext
+		dataType: string
+		lineageTag: 3c8c66de-a218-4a70-8b2f-ec5b06a3e536
+		summarizeBy: none
+		sourceColumn: Lookuptext
+
+		annotation SummarizationSetBy = Automatic
+
+	column Primarypersonid
+		dataType: int64
+		formatString: 0
+		lineageTag: fb1d7a1a-011d-4697-adc3-086cd3de0904
+		summarizeBy: sum
+		sourceColumn: Primarypersonid
+
+		annotation SummarizationSetBy = Automatic
+
+	column Linkedpersonid
+		dataType: int64
+		formatString: 0
+		lineageTag: cc2cb8f6-b7d3-4c99-aacf-b76f4b481a1f
+		summarizeBy: sum
+		sourceColumn: Linkedpersonid
+
+		annotation SummarizationSetBy = Automatic
+
+	column Personfirstname
+		dataType: string
+		isHidden
+		lineageTag: d3da41d8-5350-45b1-9734-174eda1a7f39
+		summarizeBy: none
+		sourceColumn: Personfirstname
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Personlastname
+		dataType: string
+		isHidden
+		lineageTag: a6e8df1a-d73a-4013-b4ba-bed911effac2
+		summarizeBy: none
+		sourceColumn: Personlastname
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Teamname
+		dataType: string
+		lineageTag: 30c8152d-bf37-4d20-8ce1-1e6ecee7da2b
+		summarizeBy: none
+		sourceColumn: Teamname
+
+		annotation SummarizationSetBy = Automatic
+
+	column Teamfunctiondescription
+		dataType: string
+		lineageTag: d55d6ffd-cf19-42ff-b853-92b704be5a71
+		summarizeBy: none
+		sourceColumn: Teamfunctiondescription
+
+		annotation SummarizationSetBy = Automatic
+
+	column Accepteddate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: a34a1d06-f62a-4dab-9cc7-880eec43bf16
+		summarizeBy: none
+		sourceColumn: Accepteddate
+
+		variation Variation
+			isDefault
+			relationship: 7447848b-5c5c-4128-a0b3-e7df324a332d
+			defaultHierarchy: LocalDateTable_a5a96311-dfcc-46ab-bea5-feef7750a1eb.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Dischargedate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: a6710bdd-8b27-4db2-90f2-f4303c64a633
+		summarizeBy: none
+		sourceColumn: Dischargedate
+
+		variation Variation
+			isDefault
+			relationship: 6a4d8311-d8a5-4a86-86d9-8628f542a3f0
+			defaultHierarchy: LocalDateTable_6fd09b1c-8052-442d-b47b-d7a8d1960a91.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Snapshot Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 7375fe00-d17a-4843-9862-5e25eabf9688
+		summarizeBy: none
+		sourceColumn: Snapshot Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fy Name'
+		dataType: string
+		lineageTag: f851d56b-27b6-4f9d-b084-bc9e0bf80edb
+		summarizeBy: none
+		sourceColumn: Fy Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Personlinkrelationshipstartdatenew
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 107cf949-44b9-4a5f-802c-c7f70d518ab4
+		summarizeBy: none
+		sourceColumn: Personlinkrelationshipstartdatenew
+
+		variation Variation
+			isDefault
+			relationship: 9d30a1f2-be5e-41f1-aac9-0c620f360449
+			defaultHierarchy: LocalDateTable_59e5ad9c-8b26-4fe4-a001-a59c787425b2.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Personlinkrelationshipenddatenew
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: ff40f420-ed3b-4a3a-a07b-50c5eb2123c5
+		summarizeBy: none
+		sourceColumn: Personlinkrelationshipenddatenew
+
+		variation Variation
+			isDefault
+			relationship: bc79bc5f-84aa-40f7-8fef-94593b1fa3eb
+			defaultHierarchy: LocalDateTable_291613ce-45b4-40a9-af94-31b884360625.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Fact Whanau' = m
+		mode: import
+		queryGroup: Facts
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="-- Creates Fact_Whanau table#(lf)-- OPTIMIZED: Uses CROSS APPLY and a faster JOIN for relationships#(lf)#(lf)DECLARE @MostRecentCompletedFYEnd DATE = DATEFROMPARTS(#(lf)    YEAR(GETDATE()) + CASE WHEN MONTH(GETDATE()) >= 7 THEN 0 ELSE -1 END,#(lf)    6,#(lf)    30#(lf));#(lf)#(lf)WITH#(lf)-- 1. Generate the 5 Financial Years#(lf)FinancialYears AS (#(lf)    SELECT#(lf)        CONCAT('FY', RIGHT(CAST(YEAR(DATEADD(year, -v.n, @MostRecentCompletedFYEnd)) - 1 AS VARCHAR(4)), 2), '/', RIGHT(CAST(YEAR(DATEADD(year, -v.n, @MostRecentCompletedFYEnd)) AS VARCHAR(4)), 2)) AS FY_Name,#(lf)        DATEADD(year, -v.n, @MostRecentCompletedFYEnd) AS endfy,#(lf)        DATEADD(year, -1, DATEADD(day, 1, DATEADD(year, -v.n, @MostRecentCompletedFYEnd))) AS startfy#(lf)    FROM (VALUES (0), (1), (2), (3), (4)) AS v(n) -- 5 years#(lf)),#(lf)-- 2. Generate 12 months#(lf)Months (m) AS (#(lf)    SELECT v.n FROM (VALUES (0),(1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11)) AS v(n)#(lf)),#(lf)-- 3. Create 60 (5x12) monthly snapshot dates#(lf)MonthlySnapshots AS (#(lf)    SELECT#(lf)        fy.FY_Name,#(lf)        EOMONTH(DATEADD(month, m.m, fy.startfy)) AS snapshot_date#(lf)    FROM FinancialYears fy#(lf)    CROSS JOIN Months m -- This is fine, joins 5 rows to 12 rows#(lf)),#(lf)-- 4. Find all referrals and ""explode"" them for each month they were active#(lf)base_referrals AS (#(lf)    SELECT#(lf)        ms.FY_Name, #(lf)        ms.snapshot_date,#(lf)        fr.personid, fr.id AS referralid, dt.teamname, dt.TeamID,#(lf)        CAST(fr.accepteddate AS DATE) AS accepteddate,  #(lf)        CAST(ISNULL(fr.dischargedate, '2999-12-31') AS DATE) AS dischargedate,#(lf)        dtf.TeamFunctionDescription,  #(lf)        dp.personfirstname AS referralpersonfirstname,  #(lf)        dp.personlastname AS referralpersonlastname,#(lf)        fr.SourceReferralID, team2.teamname AS sourceteam#(lf)#(lf)    FROM rbeal.legacyfactreferral fr #(lf)    LEFT JOIN rbeal.dldimteam dt ON fr.teamid = dt.teamid#(lf)    LEFT JOIN rbeal.dldimteamfunction dtf ON dt.teamfunctionid = dtf.teamfunctionid#(lf)    LEFT JOIN rbeal.dldimperson dp ON fr.personid = dp.personid#(lf)    LEFT JOIN rbeal.dlfactreferral dfr ON fr.SourceReferralID = dfr.referralid#(lf)    LEFT JOIN rbeal.dldimteam team2 ON dfr.teamid = team2.teamid#(lf)#(lf)    CROSS APPLY (#(lf)        SELECT #(lf)            FY_Name, #(lf)            snapshot_date#(lf)        FROM MonthlySnapshots#(lf)        WHERE #(lf)            CAST(fr.accepteddate AS DATE) <= snapshot_date#(lf)            AND CAST(ISNULL(fr.dischargedate, '2999-12-31') AS DATE) >= DATEADD(day, 1, EOMONTH(snapshot_date, -1))#(lf)    ) ms#(lf)#(lf)    WHERE #(lf)        fr.DeclineDate IS NULL  #(lf)        AND fr.isinbound = 1#(lf)        AND CAST(ISNULL(fr.dischargedate, GETDATE()) AS DATE) > CAST(fr.accepteddate AS DATE)#(lf)        AND dtf.TeamFunctionDescription LIKE 'Housing Transitional Services (Standalone houses/Hubs/Complexes) - non DHB'#(lf)        AND dt.TeamName NOT LIKE '%f/up%'#(lf)),#(lf)first_referral AS (#(lf)    SELECT * FROM (#(lf)        SELECT ROW_NUMBER() OVER (PARTITION BY FY_Name, snapshot_date, personid ORDER BY accepteddate) AS rn, * FROM base_referrals#(lf)    ) ranked  #(lf)    WHERE rn = 1#(lf)),#(lf)-- *** OPTIMIZATION 1: Get a small, distinct list of people ***#(lf)distinct_people AS (#(lf)    SELECT DISTINCT personid FROM base_referrals#(lf)),#(lf)-- *** OPTIMIZATION 2: Change allinks to use a JOIN ***#(lf)allinks AS (#(lf)    SELECT#(lf)        pl.PrimaryPersonId,  #(lf)        pl.LinkedPersonId,#(lf)        CAST(#(lf)            CASE WHEN CAST(plr.PersonLinkRelationshipStartDate AS DATE) = '1900-01-01'  #(lf)                 THEN plr.personlinkrelationshipcreateddate  #(lf)                 ELSE plr.PersonLinkRelationshipStartDate  #(lf)            END AS DATE#(lf)        ) AS personlinkrelationshipstartdatenew,#(lf)        CAST(ISNULL(plr.PersonLinkRelationshipEndDate, '2999-12-31') AS DATE) AS personlinkrelationshipenddatenew,#(lf)        CAST(plr.PersonLinkRelationshipCreatedDate AS DATE) AS PersonLinkRelationshipCreatedDate,#(lf)        CAST(plr.PersonLinkRelationshipStartDate AS DATE) AS PersonLinkRelationshipStartDate,#(lf)        CAST(plr.personlinkrelationshipenddate AS DATE) AS personlinkrelationshipenddate,#(lf)        lookup.lookuptext#(lf)    FROM rbeal.dlfactpersonlink pl#(lf)    #(lf)    -- Use an INNER JOIN on the small list of people#(lf)    INNER JOIN distinct_people dp ON pl.PrimaryPersonId = dp.personid#(lf)    #(lf)    LEFT JOIN rbeal.dlFactPersonLinkRelationship plr ON pl.personlinkid = plr.personlinkid#(lf)    LEFT JOIN rbeal.dldimlookup lookup ON plr.relationshiptypeid = lookup.LookupID#(lf)),#(lf)finalrelationships AS (#(lf)    -- Self-links#(lf)    SELECT DISTINCT#(lf)        PrimaryPersonId,#(lf)        PrimaryPersonId AS LinkedPersonId,#(lf)        CAST(personlinkrelationshipstartdatenew AS DATE) AS personlinkrelationshipstartdatenew,#(lf)        CAST(personlinkrelationshipenddatenew AS DATE) AS personlinkrelationshipenddatenew,#(lf)        CAST(PersonLinkRelationshipCreatedDate AS DATE) AS PersonLinkRelationshipCreatedDate,#(lf)        CAST(PersonLinkRelationshipStartDate AS DATE) AS PersonLinkRelationshipStartDate,#(lf)        CAST(personlinkrelationshipenddate AS DATE) AS personlinkrelationshipenddate,#(lf)        'Main' AS lookuptext#(lf)    FROM allinks#(lf)    UNION ALL#(lf)    SELECT * FROM allinks#(lf)),#(lf)relationshipswithdemog AS (#(lf)    SELECT  #(lf)        fr.*,  #(lf)        dp.PersonFirstName AS personfirstname,  #(lf)        dp.PersonLastName AS personlastname#(lf)    FROM finalrelationships fr#(lf)    LEFT JOIN rbeal.dldimperson dp ON fr.linkedpersonid = dp.personid#(lf)),#(lf)-- Combine the snapshot-based referrals with the relationships active at that snapshot#(lf)final AS (#(lf)    SELECT DISTINCT * FROM (#(lf)        SELECT  #(lf)            fr.FY_Name, #(lf)            fr.snapshot_date,#(lf)            CASE  #(lf)                WHEN fr.personid = rwd.linkedpersonid THEN 'Primary'#(lf)                WHEN rwd.linkedpersonid IS NULL THEN 'Primary'  #(lf)                ELSE 'Secondary'  #(lf)            END AS personstatus,#(lf)            CASE WHEN rwd.lookuptext IS NULL THEN 'Main' ELSE rwd.lookuptext END AS lookuptext,#(lf)            CASE WHEN rwd.PrimaryPersonId IS NULL THEN fr.personid ELSE rwd.primarypersonid END AS primarypersonid,#(lf)            rwd.linkedpersonid,#(lf)            COALESCE(rwd.personfirstname, fr.referralpersonfirstname) AS personfirstname,#(lf)            COALESCE(rwd.personlastname, fr.referralpersonlastname) AS personlastname,#(lf)            fr.TeamName,#(lf)            fr.TeamFunctionDescription,#(lf)            fr.accepteddate,#(lf)            fr.dischargedate,#(lf)            rwd.personlinkrelationshipstartdatenew,#(lf)            rwd.personlinkrelationshipenddatenew#(lf)#(lf)        FROM first_referral fr #(lf)        #(lf)        -- Reverted to the original logic per your colleague's explanation#(lf)        LEFT JOIN relationshipswithdemog rwd  #(lf)            ON fr.PersonID = rwd.PrimaryPersonId#(lf)            -- Relationship must not have ended before the referral started#(lf)            AND rwd.personlinkrelationshipenddatenew > fr.accepteddate#(lf)            -- Relationship must not have started after the referral ended#(lf)            AND rwd.personlinkrelationshipstartdatenew < fr.dischargedate#(lf)            #(lf)    ) as data1#(lf)),#(lf)-- Filter for Primaries#(lf)finalprimary AS (#(lf)    SELECT *#(lf)    FROM final#(lf)    WHERE personfirstname <> 'single'  #(lf)        AND personlastname <> 'person'#(lf)        AND ISNULL(TeamFunctionDescription,'') IN (#(lf)            'Housing Creating Positive Pathways service: MSD & Corrections (Wellington only)- Non-DHB',#(lf)            'Housing EH Motels- non-DHB',#(lf)            'Housing EH Pilot in Rotorua (3x motels) Non-DHB',#(lf)            'Housing Sustaining Tenancies- non DHB',#(lf)            'Housing Transitional Contracted Motels- non-DHB',#(lf)            'Housing Transitional Follow up (TH contract obligation only)- non DHB',#(lf)            'Housing Transitional Services (Standalone houses/Hubs/Complexes) - non DHB',#(lf)            'Standalones houses but EH Funded as opposed to TH.'#(lf)        )#(lf)        AND personstatus = 'Primary'#(lf)),#(lf)-- Filter for Secondaries#(lf)finalsecondary AS (#(lf)    SELECT *#(lf)    FROM final#(lf)    WHERE personfirstname <> 'single'  #(lf)        AND personlastname <> 'person'#(lf)        AND ISNULL(TeamFunctionDescription,'') IN (#(lf)            'Housing Creating Positive Pathways service: MSD & Corrections (Wellington only)- Non-DHB',#(lf)            'Housing EH Motels- non-DHB',#(lf)            'Housing EH Pilot in Rotorua (3x motels) Non-DHB',#(lf)            'Housing Sustaining Tenancies- non DHB',#(lf)            'Housing Transitional Contracted Motels- non-DHB',#(lf)            'Housing Transitional Follow up (TH contract obligation only)- non DHB',#(lf)            'Housing Transitional Services (Standalone houses/Hubs/Complexes) - non DHB',#(lf)            'Standalones houses but EH Funded as opposed to TH.'#(lf)        )#(lf)        AND personstatus = 'Secondary'#(lf)),#(lf)-- Union them back together#(lf)finalfinal AS (#(lf)    SELECT * FROM finalprimary#(lf)    UNION ALL#(lf)    SELECT * FROM finalsecondary#(lf))#(lf)-- FINAL OUTPUT: Select all columns for the Fact Table#(lf)SELECT *#(lf)FROM finalfinal;"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(#"Source", each ApplyNamingConventions(_))
+				in
+				    #"Transformed Column Names"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

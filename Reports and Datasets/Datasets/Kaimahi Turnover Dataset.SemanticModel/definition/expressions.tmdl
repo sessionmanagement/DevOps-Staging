@@ -1,0 +1,222 @@
+expression 'FactJobs (1) Input Jobs table' =
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT#(lf)jobs_id,#(lf)person_id,#(lf)location_id,#(lf)businessUnit_id,#(lf)businessEntity_id,#(lf)businessUnit_name,#(lf)supervisorPerson_employeeNumber,#(lf)workType,#(lf)workClass,#(lf)turnoverType,#(lf)turnoverReason,#(lf)fte,#(lf)isPrimaryJob,#(lf)jobStatus,#(lf)name AS jobTitle,#(lf)--CAST(companyStartDate AS date) AS companyStartDateUTC,#(lf)CONVERT(datetime, SWITCHOFFSET(CONVERT(datetimeoffset, companystartdate), DATEPART(TZOFFSET,companystartdate AT TIME ZONE 'New Zealand Standard Time'))) AS companyStartDate,#(lf)CAST(companyEndDate AS date) AS CompanyEndDate,#(lf)CASE WHEN companyEndDate IS NULL OR companyEndDate > GETDATE() THEN CAST(GETDATE() AS date) ELSE CAST(companyEndDate AS date) END AS CompanyEndDateOrToday#(lf)FROM IntelliHR.jobs#(lf)WHERE ODSIsCurrent = 1#(lf)"]),
+		    #"Changed Type" = Table.TransformColumnTypes(Source,{{"companyStartDate", Int64.Type}, {"CompanyEndDateOrToday", Int64.Type}}),
+		    #"Reordered Columns" = Table.ReorderColumns(#"Changed Type",{"jobs_id", "person_id", "location_id", "businessUnit_id", "CompanyEndDate", "companyStartDate", "CompanyEndDateOrToday"}),
+		    #"Added Custom" = Table.AddColumn(#"Reordered Columns", "explosion", each {[companyStartDate]..[CompanyEndDateOrToday]}),
+		    #"Expanded explosion" = Table.ExpandListColumn(#"Added Custom", "explosion"),
+		    #"Changed Type1" = Table.TransformColumnTypes(#"Expanded explosion",{{"companyStartDate", type date}, {"CompanyEndDateOrToday", type date}, {"explosion", type date}, {"CompanyEndDate", type date}}),
+		    #"Merged Queries" = Table.NestedJoin(#"Changed Type1", {"person_id"}, FactPeople, {"people_id"}, "intellihr people", JoinKind.LeftOuter),
+		    #"Expanded intellihr people" = Table.ExpandTableColumn(#"Merged Queries", "intellihr people", {"displayName", "dateOfBirth", "gender", "employeeNumber", "employmentStatus"}, {"intellihr people.displayName", "intellihr people.dateOfBirth", "intellihr people.gender", "intellihr people.employeeNumber", "intellihr people.employmentStatus"}),
+		    #"Changed Type2" = Table.TransformColumnTypes(#"Expanded intellihr people",{{"intellihr people.dateOfBirth", type date}, {"CompanyEndDateOrToday", type date}, {"companyStartDate", type date}, {"CompanyEndDate", type date}}),
+		    #"Renamed Columns" = Table.RenameColumns(#"Changed Type2",{{"intellihr people.displayName", "Kaimahi Name"}, {"intellihr people.dateOfBirth", "Date of Birth"}, {"intellihr people.gender", "Gender"}, {"intellihr people.employeeNumber", "Emp ID"}, {"intellihr people.employmentStatus", "Employment Status"}, {"explosion", "Expanded Date"}, {"companyStartDate", "Company Start Date"}, {"CompanyEndDate", "Company End Date"}, {"jobTitle", "Job Title"}, {"jobStatus", "Job Status"}, {"fte", "FTE"}, {"turnoverReason", "Turnover Reason"}, {"turnoverType", "Turnover Type"}, {"workClass", "Work Class"}, {"workType", "Work Type"}})
+		in
+		    #"Renamed Columns"
+	lineageTag: 25c5d129-25cc-40b4-aae6-7dff0b2c598c
+	queryGroup: Workings
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'FactJobs (2) Group for Job Count' =
+		let
+		    Source = #"FactJobs (1) Input Jobs table",
+		    #"Removed Other Columns" = Table.SelectColumns(Source,{"person_id", "Expanded Date"}),
+		    #"Grouped Rows" = Table.Group(#"Removed Other Columns", {"person_id", "Expanded Date"}, {{"Job Count", each Table.RowCount(_), Int64.Type}})
+		in
+		    #"Grouped Rows"
+	lineageTag: a3d4a590-dbe2-4810-bc04-81c0e97d992e
+	queryGroup: Workings
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression FactPeople =
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT people_id,#(lf)#(tab)displayName,#(lf)#(tab)gender,#(lf)#(tab)isSupervisor,#(lf)#(tab)employeeNumber,#(lf)        dateOfBirth,#(lf)#(tab)DATEDIFF(YEAR, dateOfBirth, GETDATE()) - CASE WHEN (MONTH(dateOfBirth) > MONTH(GETDATE())) OR (MONTH(dateOfBirth) = MONTH(GETDATE()) AND DAY(dateOfBirth) > DAY(GETDATE())) THEN 1 ELSE 0 END AS [Total Years]#(lf)FROM IntelliHR.people#(lf)WHERE [autoIncrementIntellihrId] <> 100412#(lf)AND [employeeNumber] is not null and [employeeNumber] <> ''#(lf)AND ODSisCurrent=1"]),
+		    #"Replaced Value" = Table.ReplaceValue(Source,"Other","Another",Replacer.ReplaceText,{"gender"}),
+		    #"Filtered Rows2" = Table.SelectRows(#"Replaced Value", each true)
+		in
+		    #"Filtered Rows2"
+	lineageTag: 95e85f19-85eb-4791-8dc0-44df1f5020d4
+	queryGroup: Workings
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression Parameter1 = #"Sample File" meta [IsParameterQuery=true, BinaryIdentifier=#"Sample File", Type="Binary", IsParameterQueryRequired=true]
+	lineageTag: 6c81ef94-7ee5-4d06-bbfc-42e7b81afc69
+	queryGroup: 'Workings\Transform File from LocationsSP (2)\Helper Queries'
+
+	annotation PBI_ResultType = Binary
+
+expression 'Transform Sample File' =
+		let
+		    Source = Excel.Workbook(Parameter1, null, true),
+		    Sheet1_Sheet = Source{[Item="Sheet1",Kind="Sheet"]}[Data],
+		    #"Promoted Headers" = Table.PromoteHeaders(Sheet1_Sheet, [PromoteAllScalars=true])
+		in
+		    #"Promoted Headers"
+	lineageTag: abaf3919-3859-4fb5-850c-cf1b12de3713
+	queryGroup: 'Workings\Transform File from LocationsSP (2)'
+
+	annotation PBI_ResultType = Table
+
+expression 'Sample File' =
+		let
+		    Source = SharePoint.Files("https://emergeaotearoaltd.sharepoint.com/sites/OPS_ITServices", [ApiVersion = 15]),
+		    #"Filtered Rows" = Table.SelectRows(Source, each [Name] = "Locations.xlsx"),
+		    Navigation1 = #"Filtered Rows"{0}[Content]
+		in
+		    Navigation1
+	lineageTag: 92e13bf6-da89-4a58-9bef-e25133d3201c
+	queryGroup: 'Workings\Transform File from LocationsSP (2)\Helper Queries'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Binary
+
+expression 'Transform File' =
+		let
+		    Source = (Parameter1 as binary) => let
+		    Source = Excel.Workbook(Parameter1, null, true),
+		    Sheet1_Sheet = Source{[Item="Sheet1",Kind="Sheet"]}[Data],
+		    #"Promoted Headers" = Table.PromoteHeaders(Sheet1_Sheet, [PromoteAllScalars=true])
+		in
+		    #"Promoted Headers"
+		in
+		    Source
+	lineageTag: 71003a99-fc34-4a7d-b643-b981e8c6be3a
+	queryGroup: 'Workings\Transform File from LocationsSP (2)\Helper Queries'
+
+	annotation PBI_ResultType = Function
+
+expression DimEmployeeHierarchy =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT * FROM edw.dim_employee_hierarchy
+		WHERE DWHIsCurrent=1"])
+		in
+		    Source
+	lineageTag: c845cf69-9bab-47a4-a349-92d0211df89c
+	queryGroup: Workings
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'Additional Access' =
+		let
+		    // Load data from SharePoint
+		    Source = SharePoint.Tables(
+		        "https://emergeaotearoaltd.sharepoint.com/sites/OPS_ITServices/", [Implementation = "2.0", ViewMode = "All"]
+		    ),
+		    // Access specific table by ID
+		    SelectedTable = Source{[Id = "27e19ae7-4448-4dfe-b172-3ee660e6e1df"]}[Items],
+		    // Expand "Requester" List Column
+		    ExpandedRequesterList = Table.ExpandListColumn(SelectedTable, "Requester"),
+		    // Expand "Requester" Record Column to "email"
+		    ExpandedRequesterEmail = Table.ExpandRecordColumn(
+		        ExpandedRequesterList, "Requester", {"email"}, {"Requester Email"}
+		    ),
+		    // Expand "Person to Impersonate" List Column
+		    ExpandedImpersonateList = Table.ExpandListColumn(ExpandedRequesterEmail, "Person to Impersonate"),
+		    // Expand "Person to Impersonate" Record Column to "email"
+		    ExpandedImpersonateEmail = Table.ExpandRecordColumn(
+		        ExpandedImpersonateList, "Person to Impersonate", {"email"}, {"Person to Impersonate Email"}
+		    ),
+		    // Expand "Approved By" List Column
+		    ExpandedApprovedList = Table.ExpandListColumn(ExpandedImpersonateEmail, "Approved By"),
+		    // Expand "Approved By" Record Column to "email"
+		    ExpandedApprovedEmail = Table.ExpandRecordColumn(
+		        ExpandedApprovedList, "Approved By", {"email"}, {"Approved By Email"}
+		    ),
+		    // Remove unnecessary columns
+		    RemovedUnnecessaryColumns = Table.RemoveColumns(
+		        ExpandedApprovedEmail,
+		        {
+		            "Color Tag",
+		            "Compliance Asset Id",
+		            "ID",
+		            "Content Type",
+		            "Attachments",
+		            "Edit",
+		            "Type",
+		            "Item Child Count",
+		            "Folder Child Count",
+		            "Label setting",
+		            "Retention label",
+		            "Retention label Applied",
+		            "Label applied by",
+		            "Item is a Record",
+		            "App Created By",
+		            "App Modified By"
+		        }
+		    ),
+		    // Expand "Created By" List Column
+		    ExpandedCreatedByList = Table.ExpandListColumn(RemovedUnnecessaryColumns, "Created By"),
+		    // Expand "Created By" Record Column to "email"
+		    ExpandedCreatedByEmail = Table.ExpandRecordColumn(
+		        ExpandedCreatedByList, "Created By", {"email"}, {"Created By Email"}
+		    ),
+		    // Expand "Modified By" List Column
+		    ExpandedModifiedByList = Table.ExpandListColumn(ExpandedCreatedByEmail, "Modified By"),
+		    // Expand "Modified By" Record Column to "email"
+		    ExpandedModifiedByEmail = Table.ExpandRecordColumn(
+		        ExpandedModifiedByList, "Modified By", {"email"}, {"Modified By Email"}
+		    ),
+		    // Change data types of specified columns
+		    ChangedColumnTypes = Table.TransformColumnTypes(
+		        ExpandedModifiedByEmail,
+		        {
+		            {"Person to Impersonate Email", type text},
+		            {"Requester Email", type text},
+		            {"Expiry Date", type date},
+		            {"Access Reason", type text},
+		            {"Approved By Email", type text},
+		            {"Approved Date", type date},
+		            {"Modified", type date},
+		            {"Created", type date},
+		            {"Created By Email", type text},
+		            {"Modified By Email", type text}
+		        }
+		    ),
+		    // Filtering rows where "Expiry Date" is greater than or equal to today
+		    ExpiryDateFilter = Table.SelectRows(ChangedColumnTypes, each [Expiry Date] >= Date.From(DateTime.LocalNow())),
+		    // Lowercase and trim the emails so they match the lowercased, trimmed RLS emails in the case-sensitive merge
+		    #"Lowercased Text" = Table.TransformColumns(ExpiryDateFilter,{{"Requester Email", each Text.Lower(Text.Trim(_)), type text}, {"Person to Impersonate Email", each Text.Lower(Text.Trim(_)), type text}}),
+		    // Filter rows where "Report" is the current report
+		    ReportFilter = Table.SelectRows(#"Lowercased Text", each [Report] = "Kaimahi Turnover")
+		in
+		    ReportFilter
+	lineageTag: fbee3b9c-cded-4bc2-b014-71781a231f6a
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'reference_row_level_security for Additional Access (not appended)' = ```
+		let
+		    // Load both tables
+		    RowLevelSecurity = @#"reference_row_level_security",
+		    AdditionalAccess = #"Additional Access",
+		    
+		    // Join tables
+		    JoinedTable = Table.Join(AdditionalAccess, "Person to Impersonate Email", RowLevelSecurity, "supervisor_email", JoinKind.RightOuter),
+		    #"Added Conditional Column" = Table.AddColumn(JoinedTable, "Custom", each if [Requester Email] = null then [supervisor_email] else [Requester Email]),
+		    #"Renamed Columns" = Table.RenameColumns(#"Added Conditional Column",{{"Custom", "User Principal Name"}}),
+		    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"supervisor_email"}),
+		    #"Renamed Columns1" = Table.RenameColumns(#"Removed Columns",{{"User Principal Name", "supervisor_email"}}),
+		    #"Removed Columns1" = Table.RemoveColumns(#"Renamed Columns1",{"Report", "Requester Email", "Person to Impersonate Email", "Expiry Date", "Access Reason", "Approved By Email", "Approved Date", "Modified", "Created", "Created By Email", "Modified By Email", "Version"}),
+		    #"Reordered Columns" = Table.ReorderColumns(#"Removed Columns1",{"supervisor_person_id", "supervisor_employee_number", "supervisor_display_name", "supervisor_job_title", "supervisor_email", "supervisor_businessEntity_id", "supervisor_businessEntity_name", "supervisor_employment_status", "intellihr_business_unit_id", "business_unit_name", "intellihr_bc_code"})
+		in
+		    #"Reordered Columns"
+		```
+	lineageTag: 9aebb807-1e27-43c9-9cfe-e33deaafb158
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

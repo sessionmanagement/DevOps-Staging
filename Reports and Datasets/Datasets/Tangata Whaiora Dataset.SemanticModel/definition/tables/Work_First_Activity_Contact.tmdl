@@ -1,0 +1,37 @@
+table Work_First_Activity_Contact
+	lineageTag: 8a446593-7f3a-4758-a31f-fc5cd6504fa6
+
+	column 'Dim Tangata Whaiora Referral KEY'
+		formatString: 0
+		lineageTag: cceb2162-a5e1-4e68-82e8-bed6b3014d64
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Fact Tangata Whaiora Activity Breakdown[Dim Tangata Whaiora Referral KEY]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'First Activity Date for Referral Date'
+		formatString: Short Date
+		lineageTag: 2527198c-c078-48d7-a17a-6c70216b9e4b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [First Activity Date for Referral Date]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Work_First_Activity_Contact = calculated
+		mode: import
+		source =
+				
+				SUMMARIZE(
+				    'Fact Tangata Whaiora Activity Breakdown',
+				    'Fact Tangata Whaiora Activity Breakdown'[Dim Tangata Whaiora Referral KEY],
+				    "First Activity Date for Referral Date",
+				    MINX(
+				        'Fact Tangata Whaiora Activity Breakdown',
+				        RELATED('Dim TW Activity Start Date'[Activity Start Calendar Date])
+				    )
+				)
+
+	annotation PBI_Id = 470aeff63ce04d75bfb46030bb59bd11
+

@@ -1,0 +1,40 @@
+table 'Dim Locations'
+	lineageTag: f78bd38c-449b-4dca-aec1-dc000466941c
+
+	column intelliHR_location_id
+		dataType: string
+		lineageTag: 3b16e89f-33b5-4a17-a331-399c694fb6b2
+		summarizeBy: none
+		sourceColumn: intelliHR_location_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Location Name'
+		dataType: string
+		lineageTag: c74dec7c-9ce4-4e0a-8e22-5ba1d21c58e6
+		summarizeBy: none
+		sourceColumn: Location Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Parent Location Name'
+		dataType: string
+		lineageTag: 9ecfc800-ad55-4048-9735-c3e249db225f
+		summarizeBy: none
+		sourceColumn: Parent Location Name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Locations' = m
+		mode: import
+		queryGroup: Dim
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT DISTINCT#(lf)      [intelliHR_location_id]#(lf)      ,[intelliHR_location_name] AS 'Location Name'#(lf)      ,[parent_location_name] AS 'Parent Location Name'#(lf)  FROM [edw].[dim_location_new]#(lf)  WHERE DWHIsCurrent = 1#(lf)  AND DWHDMLOperation <> 'D'#(lf)  AND dim_location_key > 0#(lf)  AND [exists_in_intelliHR] = 1"])
+				in
+				    Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

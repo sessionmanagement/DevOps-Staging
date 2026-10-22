@@ -1,0 +1,118 @@
+expression Server = "sql-prod-aus-svc-datawarehouse-01.database.windows.net" meta [IsParameterQuery=true, List={"sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sql-test-aus-svc-datawarehouse-01.database.windows.net"}, DefaultValue="sql-prod-aus-svc-datawarehouse-01.database.windows.net", Type="Any", IsParameterQueryRequired=true]
+	lineageTag: 8212f8bb-1667-42a6-bdf5-2ed95a11faf2
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+expression Database = "sqldb-prod-datawarehouse-01" meta [IsParameterQuery=true, List={"sqldb-prod-datawarehouse-01", "sqldb-test-datawarehouse-01"}, DefaultValue="sqldb-prod-datawarehouse-01", Type="Any", IsParameterQueryRequired=true]
+	lineageTag: a4dad4da-915a-430b-b9b7-d694b7349bc4
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+expression RLS-Employee =
+		let
+		    Source = Sql.Database(Server, Database, [Query="SELECT [dim_employee_key]#(lf)      ,[employee_id]#(lf)      ,[email] AS 'User Principal Name'#(lf)      ,[mapped_employee_id]#(lf)      ,[mapped_employee_name]#(lf)      ,[mapped_employee_job_title]#(lf)  FROM [edw].[row_level_security_general]#(lf)  WHERE RLS_type = 'Employee'"]),
+		    #"Lowercased Text" = Table.TransformColumns(#"Source",{{"User Principal Name", Text.Lower, type text}}),
+		    #"Removed Duplicates" = Table.Distinct(#"Lowercased Text")
+		in
+		    #"Removed Duplicates"
+	lineageTag: 311aeffa-85d9-4b7d-b9c7-6d243342ef14
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'Additional Access' =
+		let
+		    // Load data from SharePoint
+		    Source = SharePoint.Tables(
+		        "https://emergeaotearoaltd.sharepoint.com/sites/OPS_ITServices/", [Implementation = "2.0", ViewMode = "All"]
+		    ),
+		    // Access specific table by ID
+		    SelectedTable = Source{[Id = "27e19ae7-4448-4dfe-b172-3ee660e6e1df"]}[Items],
+		    // Expand "Requester" List Column
+		    ExpandedRequesterList = Table.ExpandListColumn(SelectedTable, "Requester"),
+		    // Expand "Requester" Record Column to "email"
+		    ExpandedRequesterEmail = Table.ExpandRecordColumn(
+		        ExpandedRequesterList, "Requester", {"email"}, {"Requester Email"}
+		    ),
+		    // Expand "Person to Impersonate" List Column
+		    ExpandedImpersonateList = Table.ExpandListColumn(ExpandedRequesterEmail, "Person to Impersonate"),
+		    // Expand "Person to Impersonate" Record Column to "email"
+		    ExpandedImpersonateEmail = Table.ExpandRecordColumn(
+		        ExpandedImpersonateList, "Person to Impersonate", {"email"}, {"Person to Impersonate Email"}
+		    ),
+		    // Expand "Approved By" List Column
+		    ExpandedApprovedList = Table.ExpandListColumn(ExpandedImpersonateEmail, "Approved By"),
+		    // Expand "Approved By" Record Column to "email"
+		    ExpandedApprovedEmail = Table.ExpandRecordColumn(
+		        ExpandedApprovedList, "Approved By", {"email"}, {"Approved By Email"}
+		    ),
+		    // Remove unnecessary columns
+		    RemovedUnnecessaryColumns = Table.RemoveColumns(
+		        ExpandedApprovedEmail,
+		        {
+		            "Color Tag",
+		            "Compliance Asset Id",
+		            "ID",
+		            "Content Type",
+		            "Attachments",
+		            "Edit",
+		            "Type",
+		            "Item Child Count",
+		            "Folder Child Count",
+		            "Label setting",
+		            "Retention label",
+		            "Retention label Applied",
+		            "Label applied by",
+		            "Item is a Record",
+		            "App Created By",
+		            "App Modified By"
+		        }
+		    ),
+		    // Expand "Created By" List Column
+		    ExpandedCreatedByList = Table.ExpandListColumn(RemovedUnnecessaryColumns, "Created By"),
+		    // Expand "Created By" Record Column to "email"
+		    ExpandedCreatedByEmail = Table.ExpandRecordColumn(
+		        ExpandedCreatedByList, "Created By", {"email"}, {"Created By Email"}
+		    ),
+		    // Expand "Modified By" List Column
+		    ExpandedModifiedByList = Table.ExpandListColumn(ExpandedCreatedByEmail, "Modified By"),
+		    // Expand "Modified By" Record Column to "email"
+		    ExpandedModifiedByEmail = Table.ExpandRecordColumn(
+		        ExpandedModifiedByList, "Modified By", {"email"}, {"Modified By Email"}
+		    ),
+		    // Change data types of specified columns
+		    ChangedColumnTypes = Table.TransformColumnTypes(
+		        ExpandedModifiedByEmail,
+		        {
+		            {"Person to Impersonate Email", type text},
+		            {"Requester Email", type text},
+		            {"Expiry Date", type date},
+		            {"Access Reason", type text},
+		            {"Approved By Email", type text},
+		            {"Approved Date", type date},
+		            {"Modified", type date},
+		            {"Created", type date},
+		            {"Created By Email", type text},
+		            {"Modified By Email", type text}
+		        }
+		    ),
+		    // Filtering rows where "Expiry Date" is greater than or equal to today
+		    ExpiryDateFilter = Table.SelectRows(ChangedColumnTypes, each [Expiry Date] >= Date.From(DateTime.LocalNow())),
+		    #"Lowercased Text" = Table.TransformColumns(ExpiryDateFilter,{{"Requester Email", Text.Lower, type text}, {"Person to Impersonate Email", Text.Lower, type text}}),
+		    // Filter rows where "Report" is the current report
+		    ReportFilter = Table.SelectRows(#"Lowercased Text", each ([Report] = "Web Expenses Dataset"))
+		in
+		    ReportFilter
+	lineageTag: 2da2e612-d12e-46e1-b073-95fdbd3295ed
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

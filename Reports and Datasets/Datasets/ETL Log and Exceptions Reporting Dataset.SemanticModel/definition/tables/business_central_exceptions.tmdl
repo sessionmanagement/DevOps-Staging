@@ -1,0 +1,342 @@
+table business_central_exceptions
+	lineageTag: 74d3ff9d-723f-4fb6-aacb-b69bcd604fb2
+
+	column business_central_name
+		dataType: string
+		lineageTag: 108ddb21-4385-4e4e-ba68-8ffb3c4bb2ef
+		summarizeBy: none
+		sourceColumn: business_central_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column datapay_name
+		dataType: string
+		lineageTag: babeb407-1bb0-4b23-a479-c6a7212b9aad
+		summarizeBy: none
+		sourceColumn: datapay_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column intellihr_name
+		dataType: string
+		lineageTag: ded20e6a-5537-4088-a193-7bff20f4a193
+		summarizeBy: none
+		sourceColumn: intellihr_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_central_code
+		dataType: string
+		lineageTag: 937661ae-e6d7-4259-8954-bb3bdd961938
+		summarizeBy: none
+		sourceColumn: business_central_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column datapay_code
+		dataType: string
+		lineageTag: 32e6a791-cc53-4df2-914c-16546c837832
+		summarizeBy: none
+		sourceColumn: datapay_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column intellihr_code
+		dataType: string
+		lineageTag: ad70fe0d-884d-4048-838c-eecf5c16383b
+		summarizeBy: none
+		sourceColumn: intellihr_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column datapay_status =
+			
+			//IF(ISBLANK(business_central_exceptions[business_central_code]) && ISBLANK(business_central_exceptions[datapay_name]) && NOT(ISBLANK(business_central_exceptions[datapay_name])),"No matching Business Central record",
+			IF(ISBLANK(business_central_exceptions[business_central_code]) && ISBLANK(business_central_exceptions[datapay_code]),"N/A",
+			IF(ISBLANK(business_central_exceptions[business_central_code]),"No matching Business Central record",
+			IF(
+			    NOT(ISBLANK(business_central_exceptions[business_central_code])) && ISBLANK(business_central_exceptions[datapay_code]),
+			    "No match in Datapay for Business Central record",
+			    IF(business_central_exceptions[business_central_name] <> business_central_exceptions[datapay_name], "Name in Datapay does not match Business Central",
+			    "OK"
+			    )
+			)))
+		lineageTag: 965cbca3-b98f-478d-84bb-92891d076c5a
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column intellihr_status =
+			
+			//IF(ISBLANK(business_central_exceptions[business_central_code]) && ISBLANK(business_central_exceptions[intellihr_name]) && NOT(ISBLANK(business_central_exceptions[intellihr_name])),"No matching Business Central record",
+			IF(ISBLANK(business_central_exceptions[business_central_code]) && ISBLANK(business_central_exceptions[intellihr_code]),"N/A",
+			IF(ISBLANK(business_central_exceptions[business_central_code]),"No matching Business Central record",
+			IF(
+			    NOT(ISBLANK(business_central_exceptions[business_central_code])) && ISBLANK(business_central_exceptions[intellihr_code]),
+			    "No match in IntelliHR for Business Central Record",
+			    IF(business_central_exceptions[business_central_name] <> business_central_exceptions[intellihr_name], "Name in IntelliHR does not match Business Central",
+			    "OK"
+			    )
+			)))
+		lineageTag: a667fcbf-e1ba-4cab-9295-ae93b216f320
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column datapay_status_overall =
+			
+			IF(
+			    business_central_exceptions[datapay_status] = "OK" || business_central_exceptions[datapay_status] = "N/A",
+			    "OK",
+			    "Needs fixing"
+			)
+		lineageTag: 7bb5411f-70dd-4770-bc58-7300bafff7aa
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column intellihr_status_overall =
+			
+			IF(
+			    business_central_exceptions[intellihr_status] = "OK" || business_central_exceptions[intellihr_status] = "N/A",
+			    "OK",
+			    "Needs fixing"
+			)
+		lineageTag: dd46f3ef-336b-4fb3-945e-5a95ae60e04a
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column BusinessCentralIssueStatus = ```
+			
+			IF(
+			    [datapay_status_overall] <> "OK" ||
+			    [intellihr_status_overall] <> "OK" ||
+			    [recordbase_status_overall] <> "OK" ||
+			    [emplive_status_overall] <> "OK" ||
+			    [waharoa_status_overall] <> "OK",
+			    "One or more issues to resolve",
+			    "No issues"
+			)
+			
+			```
+		lineageTag: 0c285168-64b2-492a-b112-64d0e7dab047
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column BusinessCentralColumnsToFix = ```
+			
+			VAR _DatapayStatus = IF([datapay_status_overall] <> "OK" && [datapay_status_overall] <> "N/A", business_central_exceptions[datapay_status], "")
+			VAR _IntelliHRStatus = IF([intellihr_status_overall] <> "OK" && [intellihr_status_overall] <> "N/A", business_central_exceptions[intellihr_status], "")
+			VAR _RecordbaseStatus = IF([recordbase_status_overall] <> "OK" && [recordbase_status_overall] <> "N/A", business_central_exceptions[recordbase_status], "")
+			VAR _EmpliveStatus = IF([emplive_status_overall] <> "OK" && [emplive_status_overall] <> "N/A", business_central_exceptions[emplive_status], "")
+			VAR _WaharoaStatus = IF([waharoa_status_overall] <> "OK" && [waharoa_status_overall] <> "N/A", business_central_exceptions[waharoa_status], "")
+			VAR _Concatenated = 
+			    _DatapayStatus & 
+			    IF(_DatapayStatus <> "" && _IntelliHRStatus <> "", ", ", "") & 
+			    _IntelliHRStatus & 
+			    IF((_DatapayStatus <> "" || _IntelliHRStatus <> "") && _RecordbaseStatus <> "", ", ", "") & 
+			    _RecordbaseStatus & 
+			    IF((_DatapayStatus <> "" || _IntelliHRStatus <> "" || _RecordbaseStatus <> "") && _EmpliveStatus <> "", ", ", "") & 
+			    _EmpliveStatus &
+			    IF((_DatapayStatus <> "" || _IntelliHRStatus <> "" || _RecordbaseStatus <> "" || _EmpliveStatus <> "") && _WaharoaStatus <> "", ", ", "") &
+			    _WaharoaStatus
+			RETURN
+			    IF(_Concatenated = "", "No issues", _Concatenated)
+			
+			```
+		lineageTag: 1639452b-c964-4e76-ac2d-dde8b7cd906c
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column recordbase_name
+		dataType: string
+		lineageTag: 1985ed7e-e866-4425-ba18-7c57279e9fbb
+		summarizeBy: none
+		sourceColumn: recordbase_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column recordbase_code
+		dataType: string
+		lineageTag: 8f6b24f9-2972-452b-92bb-11967ab329fb
+		summarizeBy: none
+		sourceColumn: recordbase_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column housing_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: cdf73508-d95c-4e05-bf1f-4816f066d843
+		summarizeBy: sum
+		sourceColumn: housing_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column recordbase_status =
+			
+			IF(ISBLANK(business_central_exceptions[business_central_code]) && ISBLANK(business_central_exceptions[recordbase_code]) && NOT(ISBLANK(business_central_exceptions[recordbase_name])),"No matching Business Central record",
+			IF(ISBLANK(business_central_exceptions[business_central_code]) && ISBLANK(business_central_exceptions[recordbase_code]),"N/A",
+			IF(ISBLANK(business_central_exceptions[business_central_code]),"No matching Business Central record",
+			IF(business_central_exceptions[housing_flag] = 1, "N/A",
+			IF(
+			    NOT(ISBLANK(business_central_exceptions[business_central_code])) && ISBLANK(business_central_exceptions[recordbase_code]),
+			    "No match in RecordBase for Business Central record",
+			    IF(business_central_exceptions[business_central_name] <> business_central_exceptions[recordbase_name], "Name in RecordBase does not match Business Central",
+			    "OK"
+			    )
+			)))))
+		lineageTag: bb5eebb3-e950-446e-b176-fa6d049d1d56
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column recordbase_status_overall =
+			
+			IF(
+			    business_central_exceptions[recordbase_status] = "OK" || business_central_exceptions[recordbase_status] = "N/A",
+			    "OK",
+			    "Needs fixing"
+			)
+		lineageTag: 85cb898e-e004-43c8-b03b-4142fead64d5
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column emplive_name
+		dataType: string
+		lineageTag: 80713c15-83d3-472c-b34b-10f818df2c71
+		summarizeBy: none
+		sourceColumn: emplive_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column emplive_code
+		dataType: string
+		lineageTag: 2807726e-c559-4c81-8666-c2fb5c7d4d45
+		summarizeBy: none
+		sourceColumn: emplive_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_code
+		dataType: string
+		lineageTag: 1903e2d0-ebe3-4883-aef9-f6d452eaca38
+		summarizeBy: none
+		sourceColumn: zav_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_name
+		dataType: string
+		lineageTag: f7533505-b0c0-4b49-90de-978617cc9557
+		summarizeBy: none
+		sourceColumn: zav_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column emplive_status =
+			
+			//IF(ISBLANK(business_central_exceptions[business_central_code]) && ISBLANK(business_central_exceptions[emplive_name]) && NOT(ISBLANK(business_central_exceptions[emplive_name])),"No matching Business Central record",
+			IF(ISBLANK(business_central_exceptions[business_central_code]) && ISBLANK(business_central_exceptions[emplive_code]),"N/A",
+			IF(ISBLANK(business_central_exceptions[business_central_code]),"No matching Business Central record",
+			IF(
+			    NOT(ISBLANK(business_central_exceptions[business_central_code])) && ISBLANK(business_central_exceptions[emplive_code]),
+			    "No match in EmpLive for Business Central Record",
+			    IF(business_central_exceptions[business_central_name] <> business_central_exceptions[emplive_name], "Name in EmpLive does not match Business Central",
+			    "OK"
+			    )
+			)))
+		lineageTag: 4996c1ac-c136-4466-9a0e-374378818173
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column emplive_status_overall =
+			
+			IF(
+			    business_central_exceptions[emplive_status] = "OK" || business_central_exceptions[emplive_status] = "N/A",
+			    "OK",
+			    "Needs fixing"
+			)
+		lineageTag: 89b50525-838b-4d98-8a3c-67ee5fccc37d
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column waharoa_status =
+			
+			//IF(ISBLANK(business_central_exceptions[business_central_code]) && ISBLANK(business_central_exceptions[zav_code]) && NOT(ISBLANK(business_central_exceptions[zav_code])),"No matching Business Central record",
+			IF(ISBLANK(business_central_exceptions[business_central_code]) && ISBLANK(business_central_exceptions[zav_code]),"N/A",
+			IF(ISBLANK(business_central_exceptions[business_central_code]),"No matching Business Central record",
+			IF(business_central_exceptions[housing_flag] = 0, "N/A",
+			IF(
+			    NOT(ISBLANK(business_central_exceptions[business_central_code])) && ISBLANK(business_central_exceptions[zav_code]),
+			    "No match in Waharoa for Business Central Record",
+			    IF(business_central_exceptions[business_central_name] <> business_central_exceptions[zav_name], "Name in Waharoa does not match Business Central",
+			    "OK"
+			    )
+			))))
+		lineageTag: 77930454-9207-48eb-a240-fa514145b9b4
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column waharoa_status_overall =
+			
+			IF(
+			    business_central_exceptions[waharoa_status] = "OK" || business_central_exceptions[waharoa_status] = "N/A",
+			    "OK",
+			    "Needs fixing"
+			)
+		lineageTag: 12a30c17-52c8-4136-8cf2-3b2b5e6fa23d
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column housing_flag_yn =
+			
+			IF(business_central_exceptions[housing_flag] = 1, "Yes", "No")
+		lineageTag: c1959603-08fb-49c4-8b94-dead8b31ce02
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_central_company_name
+		dataType: string
+		lineageTag: 388b7c11-c3ec-4eaf-abfb-4d86f474377d
+		summarizeBy: none
+		sourceColumn: business_central_company_name
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'business_central_company_name Hierarchy'
+		lineageTag: cc04cf01-905a-4e9b-94fe-134c2d1f38b4
+
+		level business_central_company_name
+			lineageTag: b33ee1c4-1703-4bdf-8e0b-01d191866bbd
+			column: business_central_company_name
+
+		level business_central_name
+			lineageTag: ee14d5ce-8a37-47b0-8bb4-d50038c44c0c
+			column: business_central_name
+
+	partition business_central_exceptions = m
+		mode: import
+		queryGroup: 'Vendor Codes'
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="WITH business_central_dimension_values AS (#(lf)SELECT DISTINCT#(lf)       [Company_Name] as business_central_company_name#(lf)      ,[code] AS business_central_code#(lf)      ,[name] AS business_central_name#(lf)#(tab)  ,CASE WHEN Company_Name LIKE '%Housing%' THEN 1 ELSE 0 END AS housing_flag#(lf)  FROM [BusinessCentral].[dimensionValues]#(lf)  WHERE dimensionCode = 'Service Name' #(lf)  AND ODSIsCurrent = 1#(lf)  ),#(lf)  datapay_cost_structures AS (#(lf)  SELECT DISTINCT#(lf)       [level3_code] AS datapay_code#(lf)      ,[level3_name] AS datapay_name#(lf)  FROM [DataPay].[cost_structures]#(lf)  WHERE ODSIsCurrent = 1#(lf)  ),#(lf)  intellihr_business_unit AS (#(lf)  SELECT DISTINCT#(lf)#(tab)   [code] AS intellihr_code#(lf)      ,[name] AS intellihr_name#(lf)  FROM [IntelliHR].[business_unit]#(lf)  WHERE ODSIsCurrent = 1#(lf)  ),#(lf)  recordbase_teams_codes AS (#(lf)  SELECT DISTINCT#(lf)#(tab)[teamUDF5] AS recordbase_code,#(lf)#(tab)[teamName] AS recordbase_name#(lf)#(tab)FROM [RBEAL].[dlDimTeam]#(lf)#(tab)WHERE (TeamEndDate > GETDATE() OR TeamEndDate IS NULL)#(lf)#(tab)UNION#(lf)  SELECT DISTINCT#(lf)#(tab)[teamUDF5],#(lf)#(tab)[teamName]#(lf)#(tab)FROM [RBMNB].[dlDimTeam]#(lf)#(tab)WHERE (TeamEndDate > GETDATE() OR TeamEndDate IS NULL)#(lf)#(tab)),#(lf)#(tab)emplive_services AS (#(lf)  SELECT DISTINCT#(lf)#(tab)[cost_code] AS emplive_code,#(lf)#(tab)[name] AS emplive_name#(lf)#(tab)FROM [EmpLive].[services]#(lf)#(tab)WHERE ODSIsCurrent = 1#(lf)#(tab))#(lf)#(lf)SELECT DISTINCT#(lf)#(tab)ISNULL(business_central_company_name,'**N/A**') AS business_central_company_name,#(lf)    ISNULL(business_central_name,'**N/A**') AS business_central_name,#(lf)#(tab)housing_flag,#(lf)    datapay_name,#(lf)    intellihr_name,#(lf)#(tab)recordbase_name,#(lf)#(tab)emplive_name,#(lf)    business_central_code,#(lf)    datapay_code,#(lf)    intellihr_code,#(lf)#(tab)recordbase_code,#(lf)#(tab)emplive_code#(lf)FROM#(lf)    business_central_dimension_values#(lf)FULL OUTER JOIN#(lf)    datapay_cost_structures ON business_central_dimension_values.business_central_code = datapay_cost_structures.datapay_code#(lf)FULL OUTER JOIN#(lf)    intellihr_business_unit ON business_central_dimension_values.business_central_code = intellihr_business_unit.intellihr_code#(lf)FULL OUTER JOIN#(lf)#(tab)recordbase_teams_codes ON business_central_dimension_values.business_central_code = recordbase_teams_codes.recordbase_code#(lf)FULL OUTER JOIN#(lf)#(tab)emplive_services ON business_central_dimension_values.business_central_code = emplive_services.emplive_code"]),
+				    #"Merged Queries" = Table.NestedJoin(Source, {"business_central_code"}, zavanti_codes, {"zav_code"}, "zavanti_codes", JoinKind.FullOuter),
+				    #"Expanded zavanti_codes" = Table.ExpandTableColumn(#"Merged Queries", "zavanti_codes", {"zav_code", "zav_name"}, {"zav_code", "zav_name"}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Expanded zavanti_codes",null,"**N/A**",Replacer.ReplaceValue,{"business_central_name"})
+				in
+				    #"Replaced Value"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

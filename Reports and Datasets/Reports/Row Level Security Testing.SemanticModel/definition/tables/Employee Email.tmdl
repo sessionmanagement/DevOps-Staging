@@ -1,0 +1,32 @@
+table 'Employee Email'
+	lineageTag: 178cd13d-a6c1-4ef0-887d-2bb54ea34b33
+
+	column employee_name
+		dataType: string
+		lineageTag: 45703a5d-998c-44cb-903c-ac1a5709a04c
+		summarizeBy: none
+		sourceColumn: employee_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column employee_primary_email_address
+		dataType: string
+		lineageTag: f9f5ddbb-d21a-418a-82b0-8afc44df9037
+		summarizeBy: none
+		sourceColumn: employee_primary_email_address
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Employee Email' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="select #(lf)distinct#(lf)employee_primary_email_address,#(lf)employee_name#(lf)#(lf)from edw.dim_employee#(lf)where dwhiscurrent = 1 and dwhdmloperation <> 'd'#(lf)and employee_job_status in ('current job','ending job')"]),
+				    #"Lowercased Text" = Table.TransformColumns(Source,{{"employee_primary_email_address", Text.Lower, type text}})
+				in
+				    #"Lowercased Text"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

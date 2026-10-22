@@ -1,0 +1,138 @@
+table MNB_DimPerson
+	isHidden
+	lineageTag: 364098a7-f2d3-4308-bfe3-87196a2ea5a1
+
+	column CompanyIdentifier
+		dataType: string
+		isHidden
+		lineageTag: e1fbd048-cda3-4fb9-8859-7cc87ade9ff5
+		summarizeBy: none
+		sourceColumn: CompanyIdentifier
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonID
+		dataType: string
+		isHidden
+		lineageTag: e4b42550-ca0c-476a-a2c1-b8bd6525abc2
+		summarizeBy: none
+		sourceColumn: PersonID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderID
+		dataType: string
+		isHidden
+		lineageTag: a4d3cada-10cd-447d-a46e-57efd30f5862
+		summarizeBy: none
+		sourceColumn: GenderID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ethnicity1ID
+		dataType: string
+		isHidden
+		lineageTag: 67dd26fb-c4f7-4ea5-b80f-db4c85ef1e44
+		summarizeBy: none
+		sourceColumn: Ethnicity1ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ethnicity2ID
+		dataType: string
+		isHidden
+		lineageTag: 73897804-79f5-45e1-a5ec-edb2cfdc47be
+		summarizeBy: none
+		sourceColumn: Ethnicity2ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ethnicity3ID
+		dataType: string
+		isHidden
+		lineageTag: c7c18e5a-1dfa-4c58-9927-443c3b325a04
+		summarizeBy: none
+		sourceColumn: Ethnicity3ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ethnicity4ID
+		dataType: string
+		isHidden
+		lineageTag: 5e8ece23-a1c5-4fc4-945e-4a168cf8e937
+		summarizeBy: none
+		sourceColumn: Ethnicity4ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ethnicity5ID
+		dataType: string
+		isHidden
+		lineageTag: cb9175be-1f67-4b88-ae19-f251011598db
+		summarizeBy: none
+		sourceColumn: Ethnicity5ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderIdentityId
+		dataType: string
+		isHidden
+		lineageTag: cbbb8893-3a4e-458c-85cb-fa8a2d6a4c32
+		summarizeBy: none
+		sourceColumn: GenderIdentityId
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonDateOfBirth
+		dataType: dateTime
+		isHidden
+		formatString: General Date
+		lineageTag: a2480c8e-62e9-406e-a0af-314c895a211a
+		summarizeBy: none
+		sourceColumn: PersonDateOfBirth
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FirstNonBlankEthnicityID
+		dataType: string
+		lineageTag: b1ace1f3-116e-4376-b370-d44b1dafa78c
+		summarizeBy: none
+		sourceColumn: FirstNonBlankEthnicityID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition MNB_DimPerson-3649d51e-04de-419f-9ef7-085d840ee5e7 = m
+		mode: import
+		queryGroup: MNB
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)'MNB' AS CompanyIdentifier,#(lf)CASE WHEN [PersonID]IS NOT NULL THEN CONCAT('M',[PersonID]) ELSE NULL END AS [PersonID],#(lf)CASE WHEN [GenderID]IS NOT NULL THEN CONCAT('M',[GenderID]) ELSE NULL END AS [GenderID],#(lf)CASE WHEN [Ethnicity1ID]IS NOT NULL THEN CONCAT('M',[Ethnicity1ID]) ELSE NULL END AS [Ethnicity1ID],#(lf)CASE WHEN [Ethnicity2ID]IS NOT NULL THEN CONCAT('M',[Ethnicity2ID]) ELSE NULL END AS [Ethnicity2ID],#(lf)CASE WHEN [Ethnicity3ID]IS NOT NULL THEN CONCAT('M',[Ethnicity3ID]) ELSE NULL END AS [Ethnicity3ID],#(lf)CASE WHEN [Ethnicity4ID]IS NOT NULL THEN CONCAT('M',[Ethnicity4ID]) ELSE NULL END AS [Ethnicity4ID],#(lf)CASE WHEN [Ethnicity5ID]IS NOT NULL THEN CONCAT('M',[Ethnicity5ID]) ELSE NULL END AS [Ethnicity5ID],#(lf)COALESCE(#(lf)CASE WHEN [Ethnicity1ID]IS NOT NULL THEN CONCAT('M',[Ethnicity1ID]) ELSE NULL END,#(lf)CASE WHEN [Ethnicity2ID]IS NOT NULL THEN CONCAT('M',[Ethnicity2ID]) ELSE NULL END,#(lf)CASE WHEN [Ethnicity3ID]IS NOT NULL THEN CONCAT('M',[Ethnicity3ID]) ELSE NULL END,#(lf)CASE WHEN [Ethnicity4ID]IS NOT NULL THEN CONCAT('M',[Ethnicity4ID]) ELSE NULL END,#(lf)CASE WHEN [Ethnicity5ID]IS NOT NULL THEN CONCAT('M',[Ethnicity5ID]) ELSE NULL END#(lf)) AS FirstNonBlankEthnicityID,#(lf)CASE WHEN [GenderIdentityId]IS NOT NULL THEN CONCAT('M',[GenderIdentityId]) ELSE NULL END AS [GenderIdentityId],#(lf)[PersonDateOfBirth]#(lf)#(lf)FROM RBMNB.dlDimPerson"])
+				in
+				    Source
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

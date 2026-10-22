@@ -1,0 +1,108 @@
+table 'Fact Tangata Whaiora Activity Hours by Week'
+	lineageTag: fecc1bf7-cf09-4639-8bab-a66d3c5c0676
+
+	column 'Dim Tangata Whaiora Referral KEY'
+		formatString: 0
+		lineageTag: 17c6ae6c-b5c1-4a3b-82db-e663d29482c2
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Fact Tangata Whaiora Activity Breakdown[Dim Tangata Whaiora Referral KEY]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Tangata Whaiora Team KEY'
+		formatString: 0
+		lineageTag: f07917d7-9c78-4c19-84c2-f0e56d3a4397
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Fact Tangata Whaiora Activity Breakdown[Dim Tangata Whaiora Team KEY]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Hours in Week'
+		formatString: 0.0
+		lineageTag: 2e109630-bd06-4921-bdbb-6a45298b62b2
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Hours in Week]
+
+		annotation SummarizationSetBy = Automatic
+
+	column RelatedWeek
+		formatString: 0
+		lineageTag: 80923b1c-465a-4606-9b86-3c697c94e7cf
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Fact Tangata Whaiora Activity Breakdown[RelatedWeek]
+
+		annotation SummarizationSetBy = Automatic
+
+	column RelatedWeekStartDate
+		formatString: Short Date
+		lineageTag: f4f8df02-3072-49ec-8732-1b1e66969fc1
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Fact Tangata Whaiora Activity Breakdown[RelatedWeekStartDate]
+
+		annotation SummarizationSetBy = Automatic
+
+	column RelatedWeekEndDate
+		formatString: Short Date
+		lineageTag: f646ece7-c5aa-46e0-a480-e13950891565
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Fact Tangata Whaiora Activity Breakdown[RelatedWeekEndDate]
+
+		annotation SummarizationSetBy = Automatic
+
+	column RelatedYear
+		formatString: 0
+		lineageTag: 89ec6a97-cc38-4b9f-8033-0cf354779250
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Fact Tangata Whaiora Activity Breakdown[RelatedYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Tangata Whaiora KEY'
+		formatString: 0
+		lineageTag: fc44180b-a85c-4e1f-8e5e-7c99fe9b7104
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Dim Tangata Whaiora[Dim Tangata Whaiora KEY]
+
+		annotation SummarizationSetBy = Automatic
+
+	column MoreThan4HoursInWeek =
+			
+			IF(
+			    'Fact Tangata Whaiora Activity Hours by Week'[Hours in Week] >= 4,
+			    "4 hours or more",
+			    "Less than 4 hours"
+			)
+		lineageTag: 6c4cd020-36f9-417f-b5ca-8296934554bb
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Fact Tangata Whaiora Activity Hours by Week' = calculated
+		mode: import
+		source =
+				
+				// This may need to be done in SQL to avoid missing clients with no records in activity breakdown for a week.
+				SUMMARIZECOLUMNS(
+				    'Dim Tangata Whaiora'[Dim Tangata Whaiora KEY],
+				    'Fact Tangata Whaiora Activity Breakdown'[Dim Tangata Whaiora Referral Key],
+				    'Fact Tangata Whaiora Activity Breakdown'[Dim Tangata Whaiora Team Key],
+				    'Fact Tangata Whaiora Activity Breakdown'[RelatedWeek],
+				    'Fact Tangata Whaiora Activity Breakdown'[RelatedWeekStartDate],
+				    'Fact Tangata Whaiora Activity Breakdown'[RelatedWeekEndDate],
+				    'Fact Tangata Whaiora Activity Breakdown'[RelatedYear],
+				    "Hours in Week",
+				    CALCULATE(
+				        SUM('Fact Tangata Whaiora Activity Breakdown'[Tangata Whaiora Activity Duration])/60,
+				        'Fact Tangata Whaiora Activity Breakdown'[Tangata Whaiora Activity Classification Code] <> "T35"
+				))
+
+	annotation PBI_Id = ab7557e791514e3ba98abd9aa41807c9
+

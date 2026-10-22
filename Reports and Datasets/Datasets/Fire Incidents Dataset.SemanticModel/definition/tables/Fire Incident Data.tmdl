@@ -1,0 +1,137 @@
+table 'Fire Incident Data'
+	lineageTag: 1c4b5405-4331-4d7c-b8f5-0711295ad95d
+
+	column incident_source
+		dataType: string
+		lineageTag: 6e108dc2-05a5-46fc-9366-2960cadbd6b6
+		summarizeBy: none
+		sourceColumn: incident_source
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_date_key
+		dataType: double
+		lineageTag: 3c2bb922-3731-4af4-a89c-7cd5287bc48f
+		summarizeBy: none
+		sourceColumn: incident_date_key
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column incident_datetime
+		dataType: string
+		lineageTag: 098b848b-afce-4d73-a444-6938bc74251a
+		summarizeBy: none
+		sourceColumn: incident_datetime
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_id
+		dataType: string
+		lineageTag: 7f5dadff-98cf-4d2b-a083-beaaea1e9c6b
+		summarizeBy: none
+		sourceColumn: incident_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_details
+		dataType: string
+		lineageTag: cafb5123-df66-4283-bd93-2c4dc7604e75
+		summarizeBy: none
+		sourceColumn: incident_details
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_location
+		dataType: string
+		lineageTag: 8237bc00-219e-422e-8d13-3b0f628e4146
+		summarizeBy: none
+		sourceColumn: incident_location
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_in_recordbase
+		dataType: string
+		lineageTag: 0c8d79f5-393f-4a93-adc3-e2d07f243c91
+		summarizeBy: none
+		sourceColumn: incident_in_recordbase
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_recordbase_reference
+		dataType: string
+		lineageTag: 5d835fc1-8275-4c0e-afb2-6620d0a346b0
+		summarizeBy: none
+		sourceColumn: incident_recordbase_reference
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_type_classification
+		dataType: string
+		lineageTag: 255d456c-811c-4b5b-bcac-ff451b68456c
+		summarizeBy: none
+		sourceColumn: incident_type_classification
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_fire_risk_classification
+		dataType: string
+		lineageTag: 31713f5a-9f35-4dd9-b348-53048d5eea2d
+		summarizeBy: none
+		sourceColumn: incident_fire_risk_classification
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_status
+		dataType: string
+		lineageTag: a2ddc1e9-2e88-4933-8bc6-2a6d0cbf7758
+		summarizeBy: none
+		sourceColumn: incident_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column full_address
+		dataType: string
+		lineageTag: f01ee41e-df57-428f-83be-6ca547d3d8de
+		summarizeBy: none
+		sourceColumn: full_address
+
+		annotation SummarizationSetBy = Automatic
+
+	column service_code
+		dataType: string
+		lineageTag: d7997683-c13a-4c8d-915b-e379d7a96b57
+		summarizeBy: none
+		sourceColumn: service_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column district_name
+		dataType: string
+		lineageTag: 07f3b436-0d09-4fe0-8b61-f18619f3f693
+		summarizeBy: none
+		sourceColumn: district_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column region_name
+		dataType: string
+		lineageTag: 5dc469ba-2bda-457b-80a3-09e2b2da7b87
+		summarizeBy: none
+		sourceColumn: region_name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Fire Incident Data' = m
+		mode: import
+		source =
+				let
+				    Source = Table.Combine({#"Waharoa Data", #"RecordBase Data", #"EcoPortal Data"})
+				in
+				    Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

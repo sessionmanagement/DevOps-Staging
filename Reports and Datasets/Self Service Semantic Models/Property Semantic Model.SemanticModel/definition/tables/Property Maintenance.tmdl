@@ -1,0 +1,521 @@
+/// Maintenance work orders for properties at header level, with one row per work order (keyed uniquely and non-null on Property Maintenance ID). Each record carries the workflow state, contractor assignment and a set of boolean workflow flags, while the individual line-item tasks and their costs live in the related Property Maintenance Task table (many-to-one on Property Maintenance ID). It tracks the lifecycle of a request from logging through completion and payment. Note that Maintenance Type holds a single constant value ('Work Task') and the source flag behind Is Completed By Contractor is not loaded, so neither can be used to categorise or slice the records.
+table 'Property Maintenance'
+	lineageTag: a1811850-1b0c-4588-837d-115739ef4f6d
+
+	column 'Dim Property Maintenance KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: e149e90a-c5d9-4496-9bd6-e6b43478e0ec
+		summarizeBy: none
+		sourceColumn: Dim Property Maintenance KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Maintenance ID'
+		dataType: string
+		isHidden
+		lineageTag: d68c24f0-64af-48af-a644-80022765fa9c
+		summarizeBy: none
+		sourceColumn: Property Maintenance ID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// High-level lifecycle state of the maintenance work order, one value per work order. Almost every record is 'Active', with a much smaller group marked 'Inactive' and no blanks. The more detailed workflow status (Request Sent, Contractor Work Comp, Invoiced and so on) is held separately in Task Status, and a further qualifier in Task State Status, so a report should use one of the three to avoid double-labelling.
+	column 'Task State'
+		dataType: string
+		lineageTag: e1c6425d-f625-4946-8bdb-b18eebf6ece3
+		summarizeBy: none
+		sourceColumn: Task State
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Sub-status that qualifies the high-level Task State, one value per work order. In order from most to least common the values are 'Active', 'Cancelled', 'Inactive' and 'On Hold', with no blanks. This overlaps conceptually with Task State and Task Status, so a single column should be used for reporting to avoid double-labelling.
+	column 'Task State Status'
+		dataType: string
+		lineageTag: 4c6db0d4-ca5d-44c3-838a-c36548964695
+		summarizeBy: none
+		sourceColumn: Task State Status
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Record-type discriminator sourced from property_maintenance_type. In the current data every row holds the single constant value 'Work Task', so the column does not distinguish maintenance categories and cannot be used to slice the records. Because the values never include 'Reactive', the Reactive Maintenance Cost % measure, which filters this column to 'Reactive', matches no rows and therefore returns blank.
+	column 'Maintenance Type'
+		dataType: string
+		lineageTag: fa767acb-ce3e-4caf-995e-5f5fccb5b66d
+		summarizeBy: none
+		sourceColumn: Type
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Type of acknowledgment method used for the maintenance request.
+	column 'Acknowledgment Type'
+		dataType: string
+		lineageTag: f9671188-a0fa-4196-bda7-df396a3534e4
+		summarizeBy: none
+		sourceColumn: Acknowledgment Type
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Status of contractor assignment and progress.
+	column 'Contractor Status'
+		dataType: string
+		lineageTag: 76707426-8372-404b-9397-4a7d304e0ebb
+		summarizeBy: none
+		sourceColumn: Contractor Status
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Type of damage being repaired (if applicable).
+	column 'Damage Type'
+		dataType: string
+		lineageTag: ab8c11da-8884-45a3-8b78-52139566a8a7
+		summarizeBy: none
+		sourceColumn: Damage Type
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Instructions for contractor access to the property (e.g., key location, lockbox code).
+	column 'Key Access Information'
+		dataType: string
+		lineageTag: 193f5150-6d5a-4397-82fb-f3c43af4bbe2
+		summarizeBy: none
+		sourceColumn: KEY Access Information
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Occupancy status of the property as recorded on the maintenance work order, one value per work order. In order from most to least common the values are 'OCCUPIED', 'VACANT: Un-tenantable' and 'VACANT: Tenantable', followed by a small number of blanks and a handful of 'RESERVED' records.
+	column 'Property Status'
+		dataType: string
+		lineageTag: 079fa44b-3891-4da3-9a0e-5b8de6b1ae31
+		summarizeBy: none
+		sourceColumn: Property Status
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates who the work order is dispatched to. Values in data: 'Tradesperson', 'EAHT', 'Legal Owner' (plus blank). (The example values 'Internal / External Contractor' do not occur.)
+	column 'Send Workorder To'
+		dataType: string
+		lineageTag: 3a66e54c-0825-4426-b962-a5a6e1552266
+		summarizeBy: none
+		sourceColumn: Send Workorder To
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Detailed workflow status of the maintenance work order, one value per work order. In order from most to least common the values are 'Request Sent', 'Contractor Work Comp', 'New', 'Cancelled', 'Invoiced' and a lone 'Approved' record, with no blanks. This is distinct from the high-level Task State (Active/Inactive) and from Task State Status; the three status columns overlap, so a report should pick the intended grain.
+	column 'Task Status'
+		dataType: string
+		lineageTag: f91be1f5-66be-482f-b495-88b3580d4957
+		summarizeBy: none
+		sourceColumn: Task Status
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Priority or category assigned to the maintenance work order, one value per work order. In order from most to least common the values are 'Standard', 'Urgent', 'Cyclical', 'Emergency', 'Planned', 'Void' and 'Minor upgrade', together with a small number of blanks. There is no 'Routine' value; 'Standard' serves that purpose.
+	column 'Task Urgency'
+		dataType: string
+		lineageTag: 8cc37eb5-d348-4006-bd5d-34cae107dfb6
+		summarizeBy: none
+		sourceColumn: Task Urgency
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Flag indicating if a post-completion inspection has been performed.
+	column 'Is Post Inspection Done'
+		dataType: int64
+		formatString: 0
+		lineageTag: 97fc12f0-79cb-4c5c-ba3b-123033fa245c
+		summarizeBy: sum
+		sourceColumn: Post Inspection Done Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Flag indicating if tenant consent was obtained for the maintenance work.
+	column 'Has Tenant Consent'
+		dataType: int64
+		formatString: 0
+		lineageTag: f325d36e-05b8-4d9c-a3d3-f07829f323a8
+		summarizeBy: sum
+		sourceColumn: Tenant Consent Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Flag indicating if acknowledgment of the maintenance request was sent to tenant.
+	column 'Is Acknowledgment Sent To Tenant'
+		dataType: int64
+		formatString: 0
+		lineageTag: 19f11fc6-9b9d-4af4-ac8c-62a1a8536f1d
+		summarizeBy: sum
+		sourceColumn: Acknowledgment Sent To Tenant Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Flag indicating if the work order was cancelled.
+	column 'Is Work Task Cancelled'
+		dataType: int64
+		formatString: 0
+		lineageTag: 4f426747-3b4c-450c-a2f4-756ae2014c5b
+		summarizeBy: sum
+		sourceColumn: Cancel Work Task Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Flag indicating if the completed work met quality standards.
+	column 'Is Completed Satisfactorily'
+		dataType: int64
+		formatString: 0
+		lineageTag: 8a52427f-2fab-4b0d-92db-e2f826c1ccd1
+		summarizeBy: sum
+		sourceColumn: Completed Satisfactorily Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Flag indicating if the work has been approved for payment to contractor.
+	column 'Is Confirmed For Payment'
+		dataType: int64
+		formatString: 0
+		lineageTag: 8585e9a9-9da1-4e81-a051-8468b742b02d
+		summarizeBy: sum
+		sourceColumn: Confirmed For Payment Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is ECD Queue Processed'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 17d7b4f9-6364-4549-b052-eaa9ff709c0c
+		summarizeBy: sum
+		sourceColumn: Ecd Processed Queue Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Has Email'
+		dataType: int64
+		formatString: 0
+		lineageTag: 6b65f7af-6c37-4a1f-8de7-487e8a95be76
+		summarizeBy: sum
+		sourceColumn: Email Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Exported'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: f40eb29b-4b67-468c-b545-eb7dc4aee85a
+		summarizeBy: sum
+		sourceColumn: Exported Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Flag indicating if the work order has been finalised and closed.
+	column 'Is Work Task Finalised'
+		dataType: int64
+		formatString: 0
+		lineageTag: 27622812-368a-40ac-af39-6752a888fb58
+		summarizeBy: sum
+		sourceColumn: Finalised Work Task Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Flag indicating if this work is funded from flexible/discretionary funds.
+	column 'Is Flexi Fund'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 9f025831-668f-4b8c-93eb-bf2cbe0d86b7
+		summarizeBy: sum
+		sourceColumn: Flexi Fund Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Has Letter'
+		dataType: int64
+		formatString: 0
+		lineageTag: b547eabc-6d5a-4e0e-a78c-603940991aa0
+		summarizeBy: sum
+		sourceColumn: Letter Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Flag indicating if the work order is currently on hold.
+	column 'Is On Hold'
+		dataType: int64
+		formatString: 0
+		lineageTag: 23d8c9fc-eb72-4538-8d2f-7417d99b3fa5
+		summarizeBy: sum
+		sourceColumn: On Hold Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Flag indicating if costs are recoverable from the property owner.
+	column 'Is Owner Recovery'
+		dataType: int64
+		formatString: 0
+		lineageTag: 0e8bd244-1361-4a1e-9dad-a40b1894ac7c
+		summarizeBy: sum
+		sourceColumn: Owner Recovery Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Has Phone Call'
+		dataType: int64
+		formatString: 0
+		lineageTag: bb91b018-0d94-4a21-af38-0ae586f2c8bc
+		summarizeBy: sum
+		sourceColumn: Phone Call Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Send Email When PFM Cancelled'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 12445d29-8ad5-4f43-8d28-95484fe67f44
+		summarizeBy: sum
+		sourceColumn: Send Email Notification When Pfm Cancelled Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Has Support Email'
+		dataType: int64
+		formatString: 0
+		lineageTag: fdefecff-877d-4b4b-8631-73ea576c060b
+		summarizeBy: sum
+		sourceColumn: Support Email Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Tenant Email Suppressed'
+		dataType: int64
+		formatString: 0
+		lineageTag: c1ccb5ad-1313-487d-bda8-4056d6e9599d
+		summarizeBy: sum
+		sourceColumn: Suppress Tenant Email Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Flag indicating if the maintenance is due to tenant-caused damage.
+	column 'Is Tenant Damage'
+		dataType: int64
+		formatString: 0
+		lineageTag: 9ab662df-0c7a-4a13-8893-d33ec2f7200b
+		summarizeBy: sum
+		sourceColumn: Tenant Damage Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Flag indicating if the tenant is liable for the cost of repairs.
+	column 'Is Tenant Liable'
+		dataType: int64
+		formatString: 0
+		lineageTag: f8c1dfc1-11c3-4149-9e8f-c4db6b7967c6
+		summarizeBy: sum
+		sourceColumn: Tenant Liable Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Flag indicating if costs have been charged back to tenants.
+	column 'Are Tenants Charged'
+		dataType: int64
+		formatString: 0
+		lineageTag: 2041aa01-8324-4024-a39f-4bae07182833
+		summarizeBy: sum
+		sourceColumn: Tenants Charged Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Has Tenants Permission'
+		dataType: int64
+		formatString: 0
+		lineageTag: 9effeac5-b66f-4ade-a8d3-db2bdae43b71
+		summarizeBy: sum
+		sourceColumn: Tenants Permission Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Has Text Message'
+		dataType: int64
+		formatString: 0
+		lineageTag: b2180582-60b2-4487-a01a-1d49339a9bd3
+		summarizeBy: sum
+		sourceColumn: Text Message Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Work Quote Queue Processed'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 4bf83d35-36a9-44a0-b455-df718edf0bc3
+		summarizeBy: sum
+		sourceColumn: Work Quote Processed Queue Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Work Task Completion Queue Processed'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 47b4193d-d7e1-40b4-892e-7668896923e4
+		summarizeBy: sum
+		sourceColumn: Work Task Completion Processed Queue Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Inspection ID'
+		dataType: string
+		isHidden
+		lineageTag: 96283428-d382-464b-9c52-d598941576ad
+		summarizeBy: none
+		sourceColumn: Inspection ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Name of person who requested cancellation of the work order.
+	column 'Cancellation Requested By'
+		dataType: string
+		lineageTag: 5a524a14-400e-46eb-9993-ac237620fe34
+		summarizeBy: none
+		sourceColumn: Cancellation Requested By
+
+		annotation SummarizationSetBy = Automatic
+
+	column Client
+		dataType: string
+		isHidden
+		lineageTag: 4cd7b8b4-f1fb-4f63-9e19-29bbaaf5ed2a
+		summarizeBy: none
+		sourceColumn: Client
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Name of the housing officer responsible for this property/tenancy.
+	column 'Housing Officer'
+		dataType: string
+		lineageTag: 845eed1b-9bb1-4032-b26c-6018965bd918
+		summarizeBy: none
+		sourceColumn: Housing Officer
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Name of person who approved the Zero Asset Value (transitional housing) invoice.
+	column 'ZAV Invoice Approved By'
+		dataType: string
+		isHidden
+		lineageTag: bd767ec8-2206-498a-a286-13001a125a4b
+		summarizeBy: none
+		sourceColumn: Zav Invoice Approved By
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Primary support contact for this maintenance work.
+	column 'Key Support Contact'
+		dataType: string
+		lineageTag: 038cf396-28c6-4c27-9443-f24cf4e0c9c7
+		summarizeBy: none
+		sourceColumn: KEY Support Contact
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Legal Owner Primary Contact'
+		dataType: string
+		lineageTag: 8c987202-fbf3-4c9a-af55-f6ae3049575b
+		summarizeBy: none
+		sourceColumn: Legal Owner Primary Contact
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Owning Business Unit Name'
+		dataType: string
+		lineageTag: 302e5358-47e9-4571-85c6-ed8a495dd5ae
+		summarizeBy: none
+		sourceColumn: Owning Business Unit Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Owning User Full Name'
+		dataType: string
+		isHidden
+		lineageTag: 29dd9a15-b0dd-4e79-8306-c0a61a5bc9a0
+		summarizeBy: none
+		sourceColumn: Owning User Full Name
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the contractor status was last updated.
+	column 'Contractor Status Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: d7689469-a2c3-4b5e-b608-ae9ebe2a0c69
+		summarizeBy: none
+		sourceColumn: Contractor Status Date
+
+		variation Variation
+			isDefault
+			relationship: 6cd04a50-9087-4a47-b259-6c5c38047379
+			defaultHierarchy: LocalDateTable_8a4f290d-7df3-4caf-b3f8-4021ac6b43cd.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the maintenance work order was created, derived from property_maintenance_created_datetime and cast to a date (day/month/year). It is populated on every row and ranges from the earliest logged work order up to the latest data load. The column carries an active date-table variation, so it supports date-hierarchy drill-down.
+	column 'Created Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 3636efc1-f907-4d28-bb7e-52a9721f3c2c
+		summarizeBy: none
+		sourceColumn: Created Date
+
+		variation Variation
+			isDefault
+			relationship: 4d969529-bda7-469c-bd3e-a8eedc96b1db
+			defaultHierarchy: LocalDateTable_3e50f040-0249-40f5-9343-b9eab302e3f8.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the maintenance work order was last modified, derived from property_maintenance_modified_datetime and cast to a date (day/month/year). It is populated on every row, on or after that row's Created Date, and ranges up to the latest data load. The column carries an active date-table variation, so it supports date-hierarchy drill-down.
+	column 'Modified Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 5ff3d26b-914b-4d2c-9f10-3d925ac89f99
+		summarizeBy: none
+		sourceColumn: Modified Date
+
+		variation Variation
+			isDefault
+			relationship: d1685e33-da0e-4257-9334-55409d95e039
+			defaultHierarchy: LocalDateTable_ae205238-7cfc-424a-bd97-70e4964f82ed.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Property Maintenance' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT [dim_property_maintenance_key],#(lf)[property_maintenance_id],#(lf)[property_maintenance_task_state] AS [Task State],#(lf)[property_maintenance_task_state_status] AS [Task State Status],#(lf)[property_maintenance_type] AS [Type],#(lf)[property_maintenance_acknowledgment_type] AS [Acknowledgment Type],#(lf)[property_maintenance_contractor_status] AS [Contractor Status],#(lf)CAST([property_maintenance_contractor_status_datetime] AS DATE) AS [Contractor Status Date],#(lf)[property_maintenance_damage_type] AS [Damage Type],#(lf)[property_maintenance_key_access_information] AS [Key Access Information],#(lf)[property_maintenance_property_status] AS [Property Status],#(lf)[property_maintenance_send_workorder_to] AS [Send Workorder To],#(lf)[property_maintenance_task_status] AS [Task Status],#(lf)[property_maintenance_task_urgency] AS [Task Urgency],#(lf)--[property_maintenance_completed_by_contractor_flag] AS [Completed By Contractor Flag],#(lf)[property_maintenance_post_inspection_done_flag] AS [Post Inspection Done Flag],#(lf)[property_maintenance_tenant_consent_flag] AS [Tenant Consent Flag],#(lf)[property_maintenance_acknowledgment_sent_to_tenant_flag] AS [Acknowledgment Sent To Tenant Flag],#(lf)[property_maintenance_cancel_work_task_flag] AS [Cancel Work Task Flag],#(lf)[property_maintenance_completed_satisfactorily_flag] AS [Completed Satisfactorily Flag],#(lf)[property_maintenance_confirmed_for_payment_flag] AS [Confirmed For Payment Flag],#(lf)--[property_maintenance_dummy_completed_but_keep_task_status_flag] AS [Dummy Completed But Keep Task Status Flag],#(lf)[property_maintenance_ecd_processed_queue_flag] AS [ECD Processed Queue Flag],#(lf)[property_maintenance_email_flag] AS [Email Flag],#(lf)[property_maintenance_exported_flag] AS [Exported Flag],#(lf)[property_maintenance_finalised_work_task_flag] AS [Finalised Work Task Flag],#(lf)[property_maintenance_flexi_fund_flag] AS [Flexi Fund Flag],#(lf)--[property_maintenance_invoice_details_processed_queue_flag] AS [Invoice Details Processed Queue Flag],#(lf)[property_maintenance_letter_flag] AS [Letter Flag],#(lf)[property_maintenance_onhold_flag] AS [On Hold Flag],#(lf)[property_maintenance_owner_recovery_flag] AS [Owner Recovery Flag],#(lf)[property_maintenance_phonecall_flag] AS [Phone Call Flag],#(lf)--[property_maintenance_request_received_sent_processed_queue_flag] AS [Request Received Sent Processed Queue Flag],#(lf)[property_maintenance_send_email_notification_when_pfm_cancelled_flag] AS [Send Email Notification When PFM Cancelled Flag],#(lf)[property_maintenance_support_email_flag] AS [Support Email Flag],#(lf)[property_maintenance_suppress_tenant_email_flag] AS [Suppress Tenant Email Flag],#(lf)[property_maintenance_tenant_damage_flag] AS [Tenant Damage Flag],#(lf)[property_maintenance_tenant_liable_flag] AS [Tenant Liable Flag],#(lf)[property_maintenance_tenants_charged_flag] AS [Tenants Charged Flag],#(lf)[property_maintenance_tenants_permission_flag] AS [Tenants Permission Flag],#(lf)[property_maintenance_text_message_flag] AS [Text Message Flag],#(lf)--[property_maintenance_variation_processed_queue_flag] AS [Variation Processed Queue Flag],#(lf)[property_maintenance_work_quote_processed_queue_flag] AS [Work Quote Processed Queue Flag],#(lf)[property_maintenance_work_task_completion_processed_queue_flag] AS [Work Task Completion Processed Queue Flag],#(lf)[property_maintenance_inspection_identifier] AS [Inspection ID],#(lf)[property_maintenance_cancellation_requested_by] AS [Cancellation Requested By],#(lf)[property_maintenance_client] AS [Client],#(lf)[property_maintenance_housing_officer] AS [Housing Officer],#(lf)[property_maintenance_zav_invoice_approved_by] AS [ZAV Invoice Approved By],#(lf)[property_maintenance_key_support_contact] AS [Key Support Contact],#(lf)[property_maintenance_legal_owner_primary_contact] AS [Legal Owner Primary Contact],#(lf)[property_maintenance_owning_business_unit_name] AS [Owning Business Unit Name],#(lf)[property_maintenance_owning_user] AS [Owning User Full Name],#(lf)CAST([property_maintenance_created_datetime] AS DATE) AS [Created Date],#(lf)CAST([property_maintenance_modified_datetime] AS DATE) AS [Modified Date]#(lf)FROM [edw].[dim_property_maintenance]#(lf)WHERE [DWHIsCurrent] = 1#(lf)AND [DWHDMLOperation] <> 'D'#(lf)AND [property_maintenance_id] IS NOT NULL"]),
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, fnApplyNamingConventions)
+				in
+				    #"Transformed Column Names"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

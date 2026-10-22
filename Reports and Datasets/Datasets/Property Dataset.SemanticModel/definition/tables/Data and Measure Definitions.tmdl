@@ -1,0 +1,126 @@
+table 'Data and Measure Definitions'
+	lineageTag: 40916d65-b725-4a50-8541-97deddc0b9a3
+
+	column 'Field name'
+		dataType: string
+		lineageTag: b08b531c-e326-4b31-8171-a13bb88b2dbc
+		summarizeBy: none
+		sourceColumn: Field name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: 8fa7dc47-efb9-4c42-8fce-82f9935ef5d4
+		summarizeBy: none
+		sourceColumn: Description
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Report
+		dataType: string
+		lineageTag: f09a0c08-0a93-4d24-9edb-37678661b5c2
+		summarizeBy: none
+		sourceColumn: Report
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Business Approval'
+		dataType: string
+		lineageTag: f0436afc-68a7-4447-ad50-464bb16c7465
+		summarizeBy: none
+		sourceColumn: Business Approval
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Business Approver'
+		dataType: string
+		lineageTag: ec13d821-346a-4803-8644-922b2c07453e
+		summarizeBy: none
+		sourceColumn: Business Approver
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Approved Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 28d05ac7-13ce-4e5b-9457-62ef3bc3ddea
+		summarizeBy: none
+		sourceColumn: Approved Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Comments
+		dataType: string
+		lineageTag: 8d07364a-557d-482e-a9af-45b176e56303
+		summarizeBy: none
+		sourceColumn: Comments
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sensitivity Rating'
+		dataType: string
+		lineageTag: fc0525ae-1d0d-445e-9368-ce1edf359666
+		summarizeBy: none
+		sourceColumn: Sensitivity Rating
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Data and Measure Definitions' = m
+		mode: import
+		source =
+				let
+				    Source = SharePoint.Tables(
+				        "https://emergeaotearoaltd.sharepoint.com/sites/ITS2/", [Implementation = "2.0", ViewMode = "All"]
+				    ),
+				    #"4c7bcf33-881e-47e1-ac62-ad0c8cdf2806" = Source{[Id = "4c7bcf33-881e-47e1-ac62-ad0c8cdf2806"]}[Items],
+				    #"Filtered Rows" = Table.SelectRows(#"4c7bcf33-881e-47e1-ac62-ad0c8cdf2806", each ([Dataset] = "Property Dataset")),
+				    #"Removed Other Columns" = Table.SelectColumns(
+				        #"Filtered Rows",
+				        {
+				            "Field name",
+				            "Description",
+				            "Report",
+				            "Business Approval",
+				            "Business Approver",
+				            "Approved Date",
+				            "Comments",
+				            "Sensitivity Rating"
+				        }
+				    ),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Removed Other Columns", {{"Approved Date", type date}}),
+				    #"Expanded Business Approver" = Table.ExpandListColumn(#"Changed Type", "Business Approver"),
+				    #"Expanded Business Approver1" = Table.ExpandRecordColumn(
+				        #"Expanded Business Approver", "Business Approver", {"title"}, {"Business Approver.title"}
+				    ),
+				    #"Renamed Columns" = Table.RenameColumns(
+				        #"Expanded Business Approver1", {{"Business Approver.title", "Business Approver"}}
+				    ),
+				    #"Expanded Report" = Table.ExpandListColumn(#"Renamed Columns", "Report")
+				in
+				    #"Expanded Report"
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

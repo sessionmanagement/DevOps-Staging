@@ -1,0 +1,164 @@
+/// Hidden import table sourced from the native SQL query (Property Timeline.sql): builds the void/tenancy interval timeline per property, including Days Interval, Days Between Intervals, Reverse Row Num and a unique Interval Key. Surfaced to the model via the calculated table 'Property Timeline'. Kept separate because a partition type cannot be changed between Calculated and Import in place.
+table 'Property Timeline Source'
+	isHidden
+	lineageTag: 7dd1169a-b0b9-5248-8778-72457852a4c8
+
+	/// Record Type (staging column; see 'Property Timeline' for the surfaced version).
+	column 'Record Type'
+		dataType: string
+		lineageTag: 8cf1f219-ffa0-52b3-b7eb-dc0c8b32bb64
+		summarizeBy: none
+		sourceColumn: Record Type
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Property ID (staging column; see 'Property Timeline' for the surfaced version).
+	column 'Property ID'
+		dataType: string
+		lineageTag: 703a0c30-c0b2-560b-8d7f-191079326cd1
+		summarizeBy: none
+		sourceColumn: Property ID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Interval Start Date (staging column; see 'Property Timeline' for the surfaced version).
+	column 'Interval Start Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 0c0635c5-f807-52ab-85fd-fbad9c468040
+		summarizeBy: none
+		sourceColumn: Interval Start Date
+
+		variation Variation
+			isDefault
+			relationship: 47dc9418-bac7-404f-838b-3a3e970e1186
+			defaultHierarchy: LocalDateTable_901ba74c-9bfa-420c-bf66-ec669e24470f.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Interval End Date (staging column; see 'Property Timeline' for the surfaced version).
+	column 'Interval End Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: c84db9ee-9ef7-5013-8533-7d87739a562d
+		summarizeBy: none
+		sourceColumn: Interval End Date
+
+		variation Variation
+			isDefault
+			relationship: 5d1c57f3-8f68-4ae5-b975-39ed77ffa882
+			defaultHierarchy: LocalDateTable_828f0f2b-447e-48e6-afce-e945c1f83714.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Void Category (staging column; see 'Property Timeline' for the surfaced version).
+	column 'Void Category'
+		dataType: string
+		lineageTag: 6a9bbab4-a603-5ddf-b70c-47cdaef3a887
+		summarizeBy: none
+		sourceColumn: Void Category
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Void Status (staging column; see 'Property Timeline' for the surfaced version).
+	column 'Void Status'
+		dataType: string
+		lineageTag: 66bddfac-0031-57c5-9d2b-31d0617103af
+		summarizeBy: none
+		sourceColumn: Void Status
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Void Comments (staging column; see 'Property Timeline' for the surfaced version).
+	column 'Void Comments'
+		dataType: string
+		lineageTag: 364ef3d4-c4a7-559a-8946-0e90faa9a46e
+		summarizeBy: none
+		sourceColumn: Void Comments
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Tenancy Name (staging column; see 'Property Timeline' for the surfaced version).
+	column 'Tenancy Name'
+		dataType: string
+		lineageTag: 439fe811-f12a-5810-a5d8-10b158ddcd10
+		summarizeBy: none
+		sourceColumn: Tenancy Name
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Tenancy Status (staging column; see 'Property Timeline' for the surfaced version).
+	column 'Tenancy Status'
+		dataType: string
+		lineageTag: 17786ffa-2d50-56e7-bb1d-954e29711a40
+		summarizeBy: none
+		sourceColumn: Tenancy Status
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Void Checklist ID (staging column; see 'Property Timeline' for the surfaced version).
+	column 'Void Checklist ID'
+		dataType: string
+		lineageTag: c4bfc915-5a82-5131-b365-c90e7f5f4172
+		summarizeBy: none
+		sourceColumn: Void Checklist ID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Days Interval (staging column; see 'Property Timeline' for the surfaced version).
+	column 'Days Interval'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 23af6019-5e46-5b4e-8496-a78b3117aca4
+		summarizeBy: sum
+		sourceColumn: Days Interval
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Days Between Intervals (staging column; see 'Property Timeline' for the surfaced version).
+	column 'Days Between Intervals'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 976cb981-faeb-5651-9448-119c9007e22c
+		summarizeBy: sum
+		sourceColumn: Days Between Intervals
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Reverse Row Num (staging column; see 'Property Timeline' for the surfaced version).
+	column 'Reverse Row Num'
+		dataType: int64
+		formatString: 0
+		lineageTag: 8d050430-afe0-5749-8155-0e07d14dbcd2
+		summarizeBy: none
+		sourceColumn: Reverse Row Num
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Interval Key (staging column; see 'Property Timeline' for the surfaced version).
+	column 'Interval Key'
+		dataType: int64
+		formatString: 0
+		lineageTag: e4a77766-5a77-555c-9447-ef9928b09e55
+		summarizeBy: none
+		sourceColumn: Interval Key
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Property Timeline Source' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="/* =============================================================================#(lf)   Property Timeline - native source query for the Property Semantic Model.#(lf)   Replaces the former DAX calculated table (semantic model v1.1.x) for refresh#(lf)   performance. This exact query is embedded in the Property Timeline M partition.#(lf)#(lf)   = the original build script (void + tenancy intervals, lifecycle clamping,#(lf)     PROV / Void Category Change / Cancelled exclusions, latest-void end-date#(lf)     substitution, ReverseRowNum) PLUS three approved enhancements to#(lf)     Days Between Intervals:#(lf)       (1) the most-recent-row count-to-today gap applies to BOTH void and#(lf)           tenancy last rows (original script did void only);#(lf)       (2) it is anchored to the earlier of today or the Confirmed Disposal#(lf)           Date, so disposed properties do not accrue an ever-growing gap;#(lf)       (3) it is clamped to >= 0.#(lf)   @AllowNegativeIntervals is hard-set to allow (= 1 in the original script),#(lf)   matching the DAX Days Interval. Non-last-row gaps use the original script's#(lf)   LEAD (can be negative where intervals overlap).#(lf)   Same-day ties: a void with no ready to let date ranks as ending today, so#(lf)   it takes ReverseRowNum = 1 over a closed interval starting the same day#(lf)   (an open tenancy still wins). The ReverseRowNum = 1 row is always the#(lf)   last row for LEAD. Void checklists with status Reverted to Untenantable#(lf)   are excluded.#(lf)   ============================================================================= */#(lf)WITH NZToday AS#(lf)(#(lf)    SELECT CAST((GETUTCDATE() AT TIME ZONE 'UTC') AT TIME ZONE 'New Zealand Standard Time' AS date) AS TodayNZ#(lf)),#(lf)#(lf)VoidHistory AS#(lf)(#(lf)    SELECT#(lf)        RecordType                       = CAST('VoidInterval' AS varchar(20)),#(lf)        [Property ID]                    = CAST(dp.property_id AS varchar(50)),#(lf)        IntervalStartDate                = CONVERT(date,#(lf)            CASE#(lf)                WHEN vc.void_checklist_void_category_name LIKE 'NEW%'#(lf)                    THEN dp.property_acquired_date#(lf)                ELSE#(lf)                    CASE#(lf)                        WHEN dp.property_acquired_date IS NOT NULL#(lf)                             AND dp.property_acquired_date > COALESCE(vc.void_checklist_date_tenancy_terminated, vc.void_checklist_created_on)#(lf)                        THEN dp.property_acquired_date#(lf)                        ELSE COALESCE(vc.void_checklist_date_tenancy_terminated, vc.void_checklist_created_on)#(lf)                    END#(lf)            END),#(lf)        IntervalEndDate                  = CONVERT(date,#(lf)            COALESCE(vc.void_checklist_date_keys_to_tenancy_team_to_allocate, dp.property_confirmed_disposal_date)),#(lf)        VoidCategoryName                 = CAST(vc.void_checklist_void_category_name AS nvarchar(100)),#(lf)        VoidStatusName                   = CAST(vc.void_checklist_status_name AS nvarchar(100)),#(lf)        VoidComments                     = CAST(vc.void_checklist_crba8_comments AS nvarchar(max)),#(lf)        TenancyName                      = CAST(NULL AS nvarchar(200)),#(lf)        TenancyStatus                    = CAST(NULL AS nvarchar(100)),#(lf)        void_checklist_id                = CAST(vc.void_checklist_id AS varchar(50)),#(lf)        property_confirmed_disposal_date = CONVERT(date, dp.property_confirmed_disposal_date)#(lf)    FROM [edw].[fact_void_checklist] AS vc#(lf)    JOIN [edw].[dim_property] AS dp#(lf)        ON dp.property_id = vc.void_checklist_property_id#(lf)       AND dp.DWHIsCurrent = 1#(lf)       AND dp.DWHDMLOperation <> 'D'#(lf)    WHERE vc.DWHIsCurrent = 1#(lf)      AND vc.DWHDMLOperation <> 'D'#(lf)      AND vc.void_checklist_void_category_name <> 'PROV'#(lf)      AND vc.void_checklist_status_name NOT IN ('Void Category Change', 'Reverted to Untenantable')#(lf)),#(lf)#(lf)TenancyHistory AS#(lf)(#(lf)    SELECT#(lf)        RecordType                       = CAST('TenancyInterval' AS varchar(20)),#(lf)        [Property ID]                    = CAST(dp.property_id AS varchar(50)),#(lf)        IntervalStartDate                = CONVERT(date,#(lf)            CASE#(lf)                WHEN dp.property_acquired_date IS NOT NULL#(lf)                     AND dp.property_acquired_date > pten.property_tenancy_tenancy_start_date#(lf)                THEN dp.property_acquired_date#(lf)                ELSE pten.property_tenancy_tenancy_start_date#(lf)            END),#(lf)        IntervalEndDate                  = CONVERT(date,#(lf)            COALESCE(pten.property_tenancy_vacated_date, dp.property_confirmed_disposal_date, (SELECT TodayNZ FROM NZToday))),#(lf)        VoidCategoryName                 = CAST(NULL AS nvarchar(100)),#(lf)        VoidStatusName                   = CAST(NULL AS nvarchar(100)),#(lf)        VoidComments                     = CAST(NULL AS nvarchar(max)),#(lf)        TenancyName                      = CAST(pten.property_tenancy_tenancy_name AS nvarchar(200)),#(lf)        TenancyStatus                    = CAST(pten.property_tenant_opportunity_status AS nvarchar(100)),#(lf)        void_checklist_id                = CAST(NULL AS varchar(50)),#(lf)        property_confirmed_disposal_date = CONVERT(date, dp.property_confirmed_disposal_date)#(lf)    FROM [edw].[dim_property_tenancy] AS pten#(lf)    JOIN [edw].[dim_property] AS dp#(lf)        ON dp.property_id = pten.property_id#(lf)       AND dp.DWHIsCurrent = 1#(lf)       AND dp.DWHDMLOperation <> 'D'#(lf)    WHERE pten.DWHIsCurrent = 1#(lf)      AND pten.DWHDMLOperation <> 'D'#(lf)      AND pten.property_tenant_opportunity_status <> 'Cancelled'#(lf)),#(lf)#(lf)AllIntervals AS#(lf)(#(lf)    SELECT * FROM VoidHistory#(lf)    UNION ALL#(lf)    SELECT * FROM TenancyHistory#(lf)),#(lf)#(lf)Ordered AS#(lf)(#(lf)    SELECT#(lf)        ai.*,#(lf)        ReverseRowNum = ROW_NUMBER() OVER#(lf)        (#(lf)            PARTITION BY [Property ID]#(lf)            ORDER BY IntervalStartDate DESC,#(lf)                     COALESCE(IntervalEndDate, (SELECT TodayNZ FROM NZToday)) DESC,#(lf)                     CASE WHEN IntervalEndDate IS NULL THEN 1 ELSE 0 END,#(lf)                     RecordType DESC, void_checklist_id DESC, TenancyName DESC#(lf)        )#(lf)    FROM AllIntervals AS ai#(lf)),#(lf)#(lf)Final AS#(lf)(#(lf)    SELECT#(lf)        o.*,#(lf)        NextIntervalStartDate = LEAD(o.IntervalStartDate) OVER#(lf)        (#(lf)            PARTITION BY o.[Property ID]#(lf)            ORDER BY o.IntervalStartDate, CASE WHEN o.ReverseRowNum = 1 THEN 1 ELSE 0 END, o.IntervalEndDate#(lf)        ),#(lf)        IntervalEndDateFinal = CASE#(lf)            WHEN o.ReverseRowNum = 1 AND o.RecordType = 'VoidInterval' AND o.IntervalEndDate IS NULL#(lf)            THEN (SELECT TodayNZ FROM NZToday)#(lf)            ELSE o.IntervalEndDate#(lf)        END,#(lf)        AsOf = CASE#(lf)            WHEN o.property_confirmed_disposal_date IS NULL#(lf)                THEN (SELECT TodayNZ FROM NZToday)#(lf)            WHEN o.property_confirmed_disposal_date < (SELECT TodayNZ FROM NZToday)#(lf)                THEN o.property_confirmed_disposal_date#(lf)            ELSE (SELECT TodayNZ FROM NZToday)#(lf)        END#(lf)    FROM Ordered AS o#(lf))#(lf)#(lf)SELECT#(lf)    [Record Type]            = f.RecordType,#(lf)    [Property ID]            = f.[Property ID],#(lf)    [Interval Start Date]    = f.IntervalStartDate,#(lf)    [Interval End Date]      = f.IntervalEndDateFinal,#(lf)    [Void Category]          = f.VoidCategoryName,#(lf)    [Void Status]            = f.VoidStatusName,#(lf)    [Void Comments]          = f.VoidComments,#(lf)    [Tenancy Name]           = f.TenancyName,#(lf)    [Tenancy Status]         = f.TenancyStatus,#(lf)    [Void Checklist ID]      = f.void_checklist_id,#(lf)    [Days Interval]          = DATEDIFF(DAY, f.IntervalStartDate, f.IntervalEndDateFinal),#(lf)    [Days Between Intervals] = CASE#(lf)        WHEN f.NextIntervalStartDate IS NOT NULL#(lf)            THEN DATEDIFF(DAY, f.IntervalEndDateFinal, f.NextIntervalStartDate)#(lf)        ELSE#(lf)            CASE WHEN f.IntervalEndDateFinal < f.AsOf#(lf)                 THEN DATEDIFF(DAY, f.IntervalEndDateFinal, f.AsOf)#(lf)                 ELSE 0 END#(lf)    END,#(lf)    [Reverse Row Num]        = f.ReverseRowNum,#(lf)    [Interval Key]           = ROW_NUMBER() OVER (ORDER BY f.[Property ID], f.IntervalStartDate, f.IntervalEndDateFinal, f.RecordType, f.void_checklist_id, f.TenancyName)#(lf)FROM Final AS f"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source, {{"Interval Start Date", type date}, {"Interval End Date", type date}, {"Days Interval", Int64.Type}, {"Days Between Intervals", Int64.Type}, {"Reverse Row Num", Int64.Type}, {"Interval Key", Int64.Type}, {"Record Type", type text}, {"Property ID", type text}, {"Void Category", type text}, {"Void Status", type text}, {"Void Comments", type text}, {"Tenancy Name", type text}, {"Tenancy Status", type text}, {"Void Checklist ID", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

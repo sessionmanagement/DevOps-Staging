@@ -1,0 +1,43 @@
+table dim_tenancy
+	lineageTag: a60aa075-c3bd-488d-942a-83d35a5e06dc
+
+	column opportunityid
+		dataType: string
+		isHidden
+		lineageTag: 5070b238-e5fd-49b8-bde1-a185815f2869
+		summarizeBy: none
+		sourceColumn: opportunityid
+
+		annotation SummarizationSetBy = Automatic
+
+	column name
+		dataType: string
+		isHidden
+		lineageTag: ad2cbda9-1498-4042-b2ed-49611f810854
+		summarizeBy: none
+		sourceColumn: name
+
+		annotation SummarizationSetBy = Automatic
+
+	column tenancy_is_active
+		dataType: string
+		lineageTag: 5555cad4-8c25-4fd2-9745-b051fb532bfb
+		summarizeBy: none
+		sourceColumn: tenancy_is_active
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_tenancy = m
+		mode: import
+		queryGroup: dimensions
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT t.property_tenancy_id AS opportunityid, t.property_tenancy_tenancy_name AS name, CAST(t.property_tenancy_vacated_date AS date) AS zav_vacateddate FROM [edw].[dim_property_tenancy] t WHERE t.[DWHIsCurrent] = 1 AND t.[DWHDMLOperation] <> 'D' AND t.property_tenancy_id IS NOT NULL AND t.property_tenant_opportunity_status <> 'Cancelled'"]),
+				    #"Added Conditional Column" = Table.AddColumn(Source, "tenancy_is_active", each if [zav_vacateddate] = null then "Yes" else "No"),
+				    #"Removed Duplicates" = Table.Distinct(#"Added Conditional Column", {"opportunityid"}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Removed Duplicates",{"zav_vacateddate"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+

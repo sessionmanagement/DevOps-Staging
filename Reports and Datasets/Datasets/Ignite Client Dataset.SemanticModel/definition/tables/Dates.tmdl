@@ -1,0 +1,287 @@
+table Dates
+	lineageTag: 7209a237-9108-498b-9bf9-9054866c171d
+
+	measure 'Wellbeing Utilization Ratio - Similar Size' = ```
+			
+			VAR __SUM = CALCULATE([Wellbeing Utilization %]
+			                        ,ALLEXCEPT('Dim Organisation', 'Dim Organisation'[Size of Organisation],'Dim Organisation'[Exclude from Any Comparative Measures])
+			                    )
+			VAR __CALC = IF(ISBLANK([Wellbeing Utilization %]),
+			                0,
+			                DIVIDE([Wellbeing Utilization %],
+			                       __SUM
+			                        )   
+			                -1)
+			RETURN
+			__SUM
+			```
+		lineageTag: a8c782a3-f498-4d7b-b7ff-2ff7feded90f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Date
+		formatString: General Date
+		lineageTag: 866dcff0-1347-4ff4-9d67-a5b4082d898c
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Date]
+
+		variation Variation
+			isDefault
+			relationship: 2b203688-744e-4381-a553-78e3ea83895e
+			defaultHierarchy: LocalDateTable_44fadc0f-74cf-40b1-ae51-ce533d21cb28.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Day
+		formatString: General Date
+		lineageTag: 1c117ea8-509b-4337-99ca-71f519817b4a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Day]
+
+		variation Variation
+			isDefault
+			relationship: 9f90fa69-b26a-4a33-b704-5e36271e3b0a
+			defaultHierarchy: LocalDateTable_464b744a-8e37-4957-9174-7d89dcca5147.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Year
+		formatString: 0
+		lineageTag: d03fef77-e8be-4572-9514-38f82c34f1a4
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Year]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Month Number'
+		formatString: 0
+		lineageTag: b4363924-a132-4df9-be09-9b49c2f404b9
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Month Number]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month
+		lineageTag: 75eacb32-dbde-4d0d-a056-613e5fc83d2a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Month]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Year Month'
+		lineageTag: f06ffea5-256f-41a5-a552-3da98f47720a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Year Month]
+		sortByColumn: YrMonth
+
+		annotation SummarizationSetBy = Automatic
+
+	column YrMonth
+		formatString: 0
+		lineageTag: c139ede5-0d40-4ef6-bc80-deb8238f1f3a
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [YrMonth]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Qtr
+		lineageTag: dd705eba-41e5-4777-aa00-528f3fde5410
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Qtr]
+
+		annotation SummarizationSetBy = Automatic
+
+	column YrMonthQtr
+		lineageTag: 59f047cf-a7df-421c-9f95-6d958be49fd5
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [YrMonthQtr]
+
+		annotation SummarizationSetBy = Automatic
+
+	column YrQtr
+		lineageTag: f8c4e263-9e03-4ba5-b68f-3c81f08abf18
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [YrQtr]
+
+		annotation SummarizationSetBy = Automatic
+
+	column YrMonthQtrday
+		lineageTag: 3d6004b5-0960-4245-a063-1a3a6e42b148
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [YrMonthQtrday]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Current Quarter' = ```
+			
+			VAR DateinQ = MAX(Dates[Date])
+			RETURN
+			    IF(Dates[YrQtr] = 
+			        YEAR (DateinQ) & CONCATENATE ( "Q", CEILING ( MONTH(DateinQ) / 3, 1 ) ) 
+			        ,1
+			        ,0
+			        )
+			```
+		formatString: 0
+		lineageTag: c5e358b8-1924-489e-929f-b41772014b14
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column Q-1 = ```
+			
+			VAR __DateinQ = QUARTER(MAX(Dates[Date]))
+			VAR __DateinY = YEAR(MAX(Dates[Date]))
+			VAR __PrevQuarter = if(__DateinQ > 1
+			                        , __DateinY & "Q" & __DateinQ-1
+			                        , __DateinY-1 & "Q" & 4)
+			
+			//VAR __CurrentQuarter = YEAR ( __DateinQ ) & CONCATENATE ( "Q", CEILING ( MONTH ( __DateinQ ) / 3, 1 ) )
+			
+			RETURN
+			    IF(Dates[YrQtr] = 
+			        __PrevQuarter 
+			        ,1
+			        ,0
+			        )
+			//MAX(Dates[Date])
+			//__DateinY
+			//__CurrentQuarter
+			//__PrevQuarter
+			```
+		formatString: 0
+		lineageTag: f50bc7f0-f471-4b02-8d30-b85fc0d0eb4d
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column Q-2 = ```
+			
+			VAR __DateinQ = QUARTER(MAX(Dates[Date]))
+			VAR __DateinY = YEAR(MAX(Dates[Date]))
+			VAR __PrevQuarter = if(OR(__DateinQ = 3, __DateinQ = 4)
+			                        , __DateinY & "Q" & __DateinQ-2
+			                        , __DateinY-1 & "Q" & __DateinQ+2)
+			
+			//VAR __CurrentQuarter = YEAR ( __DateinQ ) & CONCATENATE ( "Q", CEILING ( MONTH ( __DateinQ ) / 3, 1 ) )
+			
+			RETURN
+			    IF(Dates[YrQtr] = 
+			        __PrevQuarter 
+			        ,1
+			        ,0
+			        )
+			//MAX(Dates[Date])
+			//__DateinY
+			//__CurrentQuarter
+			//__PrevQuarter
+			```
+		formatString: 0
+		lineageTag: 7dac6fe9-0469-45c0-a139-be2fe9960348
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column Q-3 = ```
+			
+			VAR __DateinQ = QUARTER(MAX(Dates[Date]))
+			VAR __DateinY = YEAR(MAX(Dates[Date]))
+			VAR __PrevQuarter = if(__DateinQ = 4
+			                        , __DateinY & "Q1"
+			                        , __DateinY-1 & "Q" & __DateinQ+1)
+			
+			//VAR __CurrentQuarter = YEAR ( __DateinQ ) & CONCATENATE ( "Q", CEILING ( MONTH ( __DateinQ ) / 3, 1 ) )
+			
+			RETURN
+			    IF(Dates[YrQtr] = 
+			        __PrevQuarter 
+			        ,1
+			        ,0
+			        )
+			//MAX(Dates[Date])
+			//__DateinY
+			//__CurrentQuarter
+			//__PrevQuarter
+			```
+		formatString: 0
+		lineageTag: a3bbce9c-a5e1-4cef-8cd8-ccf7e48d7277
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Current Month' =
+			
+			VAR DateinM = MAX(Dates[Date])
+			RETURN
+			    IF(  Dates[YrMonth] = 100 * YEAR(DateinM) + MONTH(DateinM)
+			        ,1
+			        ,0
+			        )
+		formatString: 0
+		lineageTag: 6caa2dc5-6b79-4e92-9674-00e45c6bae33
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dates-f1b7b90c-411c-4a33-b4aa-ce4fe776bd0e = calculated
+		mode: import
+		source = ```
+				
+				VAR MinDate = [Min Date]
+				VAR MaxDate = [Max Date]
+				
+				VAR BaseCalendar =
+				    CALENDAR ( MinDate, MaxDate )
+				RETURN
+				    GENERATE (
+				        BaseCalendar,
+				        VAR BaseDate = [Date]
+				        VAR YearDate =
+				            YEAR ( BaseDate )
+				        VAR MonthNumber =
+				            MONTH ( BaseDate )
+				        VAR YrMonth =
+				            100 * YEAR ( BaseDate )
+				                + MONTH ( BaseDate )
+				        VAR Qtr =
+				            CONCATENATE ( "Q", CEILING ( MONTH ( BaseDate ) / 3, 1 ) )
+				        VAR YrMonthQtr =
+				            100 * YEAR ( BaseDate )
+				                + MONTH ( BaseDate )
+				                & CONCATENATE ( "Q", CEILING ( MONTH ( BaseDate ) / 3, 1 ) )
+				        VAR YrQtr =
+				            YEAR ( BaseDate )
+				                & CONCATENATE ( "Q", CEILING ( MONTH ( BaseDate ) / 3, 1 ) )                
+				        VAR YrMonthQtrDay =
+				            100 * YEAR ( BaseDate )
+				                + MONTH ( BaseDate )
+				                & CONCATENATE ( "Q", CEILING ( MONTH ( BaseDate ) / 3, 1 ) )
+				                & DAY ( BaseDate )
+				        RETURN
+				            ROW (
+				                "Day", BaseDate,
+				                "Year", YearDate,
+				                "Month Number", MonthNumber,
+				                "Month", FORMAT ( BaseDate, "mmmm" ),
+				                "Year Month", FORMAT ( BaseDate, "mmm yy" ),
+				                "YrMonth", YrMonth,
+				                "Qtr", Qtr,
+				                "YrMonthQtr", YrMonthQtr,
+				                "YrQtr", YrQtr,
+				                "YrMonthQtrday", YrMonthQtrDay
+				            ))
+				```
+
+	annotation PBI_Id = 3411ca9b548a48c289c4d4f4820f3050
+

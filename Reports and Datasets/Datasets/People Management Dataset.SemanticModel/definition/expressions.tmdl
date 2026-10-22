@@ -1,0 +1,78 @@
+expression IntelliPeople =
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT [people_id]#(lf)      ,[displayName]#(lf)      ,[dateOfBirth]#(lf)      ,[gender]#(lf)      ,[employeeNumber]#(lf)      ,[primaryEmailAddress_email]#(lf)      ,[employmentStatus]#(lf)  FROM [IntelliHR].[people]#(lf)  WHERE ODSIsCurrent = 1"])
+		in
+		    Source
+	lineageTag: 929ac737-3317-46c9-aeaa-ce2e8b64fac1
+	queryGroup: 'Working Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression IntelliJobs =
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT [jobs_id]#(lf)      ,[person_id]#(lf)      ,[location_id]#(lf)      ,[payGrade_id]#(lf)      ,[businessUnit_id]#(lf)      ,[businessEntity_id]#(lf)      ,[supervisorPerson_displayName]#(lf)      ,[workType]#(lf)      ,[remunerationSchedule_employmentCondition_name] AS 'Employment Condition'#(lf)      ,[remunerationSchedule_baseHourlyRate]#(lf)      ,[remunerationSchedule_baseAnnualSalary]#(lf)      ,[workClass]#(lf)      ,[isPrimaryJob]#(lf)      ,[jobStatus]#(lf)      ,j.[name] AS 'Job Title'#(lf)      ,bu.name AS 'Business Unit'#(lf)      ,[fte]#(lf)      ,[companyStartDate]#(lf)      ,[companyEndDate]#(lf)  FROM [IntelliHR].[jobs] j#(lf)  LEFT JOIN intelliHR.business_unit bu#(lf)  ON j.businessUnit_id = bu.business_unit_id#(lf)  WHERE j.ODSiscurrent = 1#(lf)  AND bu.ODSIsCurrent=1#(lf)  "])
+		in
+		    Source
+	lineageTag: 106fcbaf-646e-4ba3-b8a3-2e4fd0183c83
+	queryGroup: 'Working Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression EmpLiveEmployees =
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT [id]#(lf)      ,[reference_number]#(lf)      ,[is_active]#(lf)      ,[terminal_reference_number]#(lf)      ,[default_service_id]#(lf)      ,[default_service_name_id]#(lf)      ,[employment_type]#(lf)      ,[max_hours_per_period]#(lf)      ,[max_hours_per_day]#(lf)      ,[contract_hours_per_cycle]#(lf)      ,[pay_level_id]#(lf)  FROM [EmpLive].[employees]#(lf)WHERE reference_number NOT LIKE 'z%'#(lf)  AND ODSIsCurrent = 1"]),
+		    #"Filtered Rows" = Table.SelectRows(Source, each ([is_active] = 1)),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Filtered Rows",{{"reference_number", Int64.Type}})
+		in
+		    #"Changed Type"
+	lineageTag: a79a9bb6-c678-4b6f-91ed-7c56c9ded6a8
+	queryGroup: 'Working Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression working_longest_approved_shifts = ```
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="WITH t1 AS (#(lf)    SELECT DISTINCT#(lf)    tse.id AS timesheet_id,#(lf)    wt.is_leave,#(lf)    role_id,#(lf)    approval_status,#(lf)    employee_id,#(lf)    work_type_id,#(lf)    CAST(start_date as date) AS start_date,#(lf)    CAST(end_date as date) AS end_date,#(lf)    DATEADD(HOUR, DATEPART(HOUR, actual_start_time),#(lf)        DATEADD(MINUTE, DATEPART(MINUTE, actual_start_time),#(lf)            DATEADD(SECOND, DATEPART(SECOND, actual_start_time),#(lf)                DATEADD(MILLISECOND, DATEPART(MILLISECOND, actual_start_time),#(lf)                    CAST(CAST(actual_start_date AS DATE) AS DATETIME2)#(lf)                )#(lf)            )#(lf)        )#(lf)    ) AS start_datetime,#(lf)    DATEADD(HOUR, DATEPART(HOUR, actual_end_time),#(lf)        DATEADD(MINUTE, DATEPART(MINUTE, actual_end_time),#(lf)            DATEADD(SECOND, DATEPART(SECOND, actual_end_time),#(lf)                DATEADD(MILLISECOND, DATEPART(MILLISECOND, actual_end_time),#(lf)                    CAST(CAST(actual_end_date AS DATE) AS DATETIME2)#(lf)                )#(lf)            )#(lf)        )#(lf)    ) AS end_datetime#(lf)    FROM [EmpLive].[time_sheets_entries] tse#(lf)    LEFT OUTER JOIN [EmpLive].work_types wt ON tse.work_type_id = wt.id#(lf)    LEFT OUTER JOIN [EmpLive].roles r ON tse.role_id = r.id#(lf)    WHERE (tse.work_type_id = '' OR wt.is_leave = 0)#(lf)    AND approval_status = 'APPROVED'#(lf)    AND (r.name NOT LIKE 'On Call%' OR tse.role_id IS NULL)#(lf)    AND (r.name NOT LIKE 'Test' OR tse.role_id IS NULL)#(lf)), t2 AS (#(lf)    SELECT#(lf)    t1.*,#(lf)    DATEDIFF(MINUTE,t1.start_datetime,t1.end_datetime) AS shift_length_mins,#(lf)    DATEDIFF(MINUTE, LAG(t1.end_datetime) OVER (PARTITION BY employee_id, work_type_id ORDER BY start_datetime), t1.start_datetime) AS time_since_last_shift_mins,#(lf)    LAG(t1.end_datetime) OVER (PARTITION BY employee_id, work_type_id ORDER BY start_datetime) AS prev_end_datetime,#(lf)    CEILING(CAST(DATEDIFF(MINUTE,t1.start_datetime,t1.end_datetime) AS FLOAT) / 60) AS shift_length_hours,#(lf)    DATEDIFF(HOUR, LAG(t1.end_datetime) OVER (PARTITION BY employee_id, work_type_id ORDER BY start_date, start_datetime), t1.start_datetime) AS time_since_last_shift_hours,#(lf)    DATEPART(WEEKDAY,t1.start_date) as day,#(lf)    1 AS count#(lf)    FROM t1#(lf)), t3 AS (#(lf)    SELECT#(lf)    t2.*,#(lf)    CASE WHEN t2.time_since_last_shift_hours >= 2 THEN 1 ELSE 0 END AS new_group_flag#(lf)    FROM t2#(lf)), t4 AS (#(lf)    SELECT#(lf)    t3.*,#(lf)    SUM(t3.new_group_flag) OVER (PARTITION BY t3.employee_id, t3.work_type_id ORDER BY t3.start_datetime) AS group_id,#(lf)    CAST(t3.employee_id AS VARCHAR(20)) + '-' + CAST(t3.work_type_id AS VARCHAR(20)) + '-' + CAST(SUM(t3.new_group_flag) OVER (PARTITION BY t3.employee_id, t3.work_type_id ORDER BY t3.start_datetime) AS VARCHAR(20)) AS group_unique_id#(lf)    FROM t3#(lf))#(lf)SELECT#(lf)t4.*,#(lf)#(lf) #(lf)#(lf)    SUM(#(lf)    CASE WHEN t4.time_since_last_shift_hours < 2 #(lf)    ---added this new_group_flag = 1 to add the first shift into the accummulation#(lf)    or new_group_flag = 1#(lf)    --=======#(lf)    THEN t4.shift_length_hours ELSE 0 END) #(lf)    OVER (PARTITION BY t4.employee_id, t4.work_type_id, t4.group_id ORDER BY t4.start_datetime)#(lf)#(lf) #(lf)#(lf) #(lf)#(lf)AS shift_length_cumulative,#(lf)--====this piece had the number starting at 0, so we've added 1 to make it start at 1.#(lf)(SUM(CASE WHEN t4.time_since_last_shift_hours < 2 #(lf)THEN t4.count ELSE 0 END) OVER (PARTITION BY t4.employee_id, t4.work_type_id, t4.group_id ORDER BY t4.start_datetime)#(lf)) + 1 #(lf)AS number_of_shifts_in_cumulative_sum#(lf)FROM t4#(lf)#(lf)ORDER BY group_id,5,9"])
+		,
+		    #"Added Custom" = Table.AddColumn(
+		    Source, 
+		    "Start Date & Time", 
+		    each DateTime.ToText([start_datetime], "ddd dd MMM, yyyy (h:mm tt)", "en-US")
+		),
+		    #"Added Custom1" = Table.AddColumn(
+		    #"Added Custom", 
+		    "End Date Time", 
+		    each DateTime.ToText([end_datetime], "ddd dd MMM, yyyy (h:mm tt)", "en-US")
+		),
+		    #"Removed Other Columns" = Table.SelectColumns(#"Added Custom1",{"shift_length_cumulative", "group_unique_id"}),
+		    #"Grouped Rows" = Table.Group(#"Removed Other Columns", {"group_unique_id"}, {{"LongestShift", each List.Max([shift_length_cumulative]), type nullable number}})
+		in
+		    #"Grouped Rows"
+		```
+	lineageTag: af300811-57d8-48da-9541-ec95f9d59eb8
+	queryGroup: 'Working Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression RLS-Employee =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT DISTINCT [email] AS 'User Principal Name'#(lf)      ,[mapped_employee_id]#(lf)  FROM [edw].[row_level_security_general]#(lf)  WHERE RLS_type = 'Employee'#(lf)    AND [email] IS NOT NULL#(lf)    AND [mapped_employee_id] IN (#(lf)        SELECT [employee_id]#(lf)          FROM [edw].[dim_employee_hierarchy]#(lf)         WHERE DWHIsCurrent = 1#(lf)           AND DWHDMLOperation <> 'D'#(lf)           AND [dim_employee_key] IS NOT NULL)"]),
+		    #"Lowercased Text" = Table.TransformColumns(Source, {{"User Principal Name", each Text.Lower(Text.Trim(_)), type text}}),
+		    #"Removed Duplicates" = Table.Distinct(#"Lowercased Text")
+		in
+		    #"Removed Duplicates"
+	lineageTag: ec006cec-7a52-4ded-b1be-3d531f4330b9
+	queryGroup: 'Working Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

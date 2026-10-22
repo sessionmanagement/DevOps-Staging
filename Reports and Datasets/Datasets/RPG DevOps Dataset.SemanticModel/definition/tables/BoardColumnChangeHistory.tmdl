@@ -1,0 +1,90 @@
+/// Tracks when work items move between board columns on the Epics board. Derived from daily BoardColumnSnapshots by detecting date-over-date column changes per work item.
+table BoardColumnChangeHistory
+	lineageTag: f6c70a67-5a8b-4775-aa64-3c2788e7c618
+
+	column WorkItemId
+		lineageTag: 3cfd29a1-0c7d-4f80-96bb-6606b64ab23c
+		isNameInferred
+		sourceColumn: [WorkItemId]
+
+	column ChangeDate
+		lineageTag: 6606856d-55d1-4e61-bd0a-5a5f6945f7cc
+		isNameInferred
+		sourceColumn: [ChangeDate]
+
+	column BoardColumn
+		lineageTag: 86c62b7f-832d-43ed-964d-877d2f4bca06
+		isNameInferred
+		sourceColumn: [BoardColumn]
+
+	column PreviousBoardColumn
+		lineageTag: c61b80c5-9110-4d96-a661-a9e477271c2e
+		isNameInferred
+		sourceColumn: [PreviousBoardColumn]
+
+	column IsFirstAppearance
+		lineageTag: 3afeedff-08c4-47f6-b4be-5de7da082116
+		isNameInferred
+		sourceColumn: [IsFirstAppearance]
+
+	/// Title of the work item, looked up from WorkItems table
+	column Title = LOOKUPVALUE(WorkItems[Title], WorkItems[WorkItemId], BoardColumnChangeHistory[WorkItemId])
+		dataType: string
+		lineageTag: 01e717c2-5cda-4d51-9a50-9ce510ca9eb2
+
+	/// Type of the work item (Epic, Feature, etc.), looked up from WorkItems table
+	column WorkItemType = LOOKUPVALUE(WorkItems[WorkItemType], WorkItems[WorkItemId], BoardColumnChangeHistory[WorkItemId])
+		dataType: string
+		lineageTag: 447d5424-1c83-456d-befa-9bd9153fc5f8
+
+	/// Human-readable description of the board column change (e.g., 'New → Prioritized')
+	column ChangeDescription = IF(BoardColumnChangeHistory[IsFirstAppearance], "Initial: " & BoardColumnChangeHistory[BoardColumn], BoardColumnChangeHistory[PreviousBoardColumn] & " → " & BoardColumnChangeHistory[BoardColumn])
+		dataType: string
+		lineageTag: c144a2d6-a7eb-431c-9fac-c2de70bfd979
+
+	partition BoardColumnChangeHistory = calculated
+		mode: import
+		source =
+				VAR _Snapshots =
+				    ADDCOLUMNS(
+				        BoardColumnSnapshots,
+				        "PrevColumnName",
+				            VAR _id = BoardColumnSnapshots[WorkItemId]
+				            VAR _dt = BoardColumnSnapshots[DateValue]
+				            RETURN CALCULATE(
+				                MAX(BoardColumnSnapshots[ColumnName]),
+				                REMOVEFILTERS(),
+				                BoardColumnSnapshots[WorkItemId] = _id,
+				                BoardColumnSnapshots[DateValue] < _dt,
+				                TOPN(1,
+				                    FILTER(ALL(BoardColumnSnapshots),
+				                        BoardColumnSnapshots[WorkItemId] = _id
+				                        && BoardColumnSnapshots[DateValue] < _dt),
+				                    BoardColumnSnapshots[DateValue], DESC)
+				            ),
+				        "IsFirst",
+				            VAR _id = BoardColumnSnapshots[WorkItemId]
+				            VAR _dt = BoardColumnSnapshots[DateValue]
+				            VAR _minDate = CALCULATE(
+				                MIN(BoardColumnSnapshots[DateValue]),
+				                REMOVEFILTERS(),
+				                BoardColumnSnapshots[WorkItemId] = _id
+				            )
+				            RETURN _dt = _minDate
+				    )
+				VAR _Changes =
+				    FILTER(
+				        _Snapshots,
+				        [IsFirst]
+				        || [ColumnName] <> [PrevColumnName]
+				    )
+				RETURN
+				    SELECTCOLUMNS(
+				        _Changes,
+				        "WorkItemId", [WorkItemId],
+				        "ChangeDate", [DateValue],
+				        "BoardColumn", [ColumnName],
+				        "PreviousBoardColumn", IF([IsFirst], BLANK(), [PrevColumnName]),
+				        "IsFirstAppearance", [IsFirst]
+				    )
+

@@ -1,0 +1,77 @@
+table 'Fact Employee Leave'
+	lineageTag: 6d8b61e7-e881-46d0-8dc8-e97e1aed3fd0
+
+	column dim_employee_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 3cd4b068-a6fb-4026-bcfb-aabcf02242da
+		summarizeBy: none
+		sourceColumn: dim_employee_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column employee_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 24d03ae7-329e-4f0a-8bca-24a2ea7955ab
+		summarizeBy: sum
+		sourceColumn: employee_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column leave_type_id
+		dataType: string
+		lineageTag: 97253fdd-85ee-4b5c-ba19-be95ad3e9081
+		summarizeBy: none
+		sourceColumn: leave_type_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column ethnicity_id
+		dataType: string
+		lineageTag: 52b092ba-97c0-4a24-b8aa-63382f9421da
+		summarizeBy: none
+		sourceColumn: ethnicity_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_unit_id
+		dataType: string
+		lineageTag: 0d227ad3-c54e-4691-abbb-f7db4d13364b
+		summarizeBy: none
+		sourceColumn: business_unit_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column primary_ethnicity
+		dataType: string
+		lineageTag: 57454bbd-c8d9-4c80-8072-8bc681b224db
+		summarizeBy: none
+		sourceColumn: primary_ethnicity
+
+		annotation SummarizationSetBy = Automatic
+
+	column employee_leave_effective_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: bc6dfa64-1993-40db-a0c7-523a09edb554
+		summarizeBy: none
+		sourceColumn: employee_leave_effective_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition 'Fact Employee Leave' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT TOP 10000#(lf)      [dim_employee_key],#(lf)      TRY_CONVERT(date, CONVERT(varchar(8), [employee_leave_effective_date_key]), 112) #(lf)          AS [employee_leave_effective_date],#(lf)      [employee_id],#(lf)      [leave_type_id],#(lf)      [ethnicity_id],#(lf)      [business_unit_id],#(lf)      [primary_ethnicity]#(lf)FROM [edw].[vw_fact_employee_leave];"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"employee_leave_effective_date", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

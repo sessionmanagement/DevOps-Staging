@@ -1,0 +1,74 @@
+table DimDate
+	lineageTag: 988d1d8c-bd90-43aa-9540-a9bb6c98bc6a
+
+	column calendar_year
+		dataType: int64
+		formatString: 0
+		lineageTag: 5bc64c3d-b449-45e7-bfea-9c023545bbe5
+		summarizeBy: none
+		sourceColumn: calendar_year
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_month_num
+		dataType: int64
+		formatString: 0
+		lineageTag: 88fb240f-0254-47ad-b216-093cb886b00e
+		summarizeBy: none
+		sourceColumn: calendar_month_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: af613112-2cd4-425e-83eb-f6ec42f25cef
+		summarizeBy: none
+		sourceColumn: calendar_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column financial_last_day_of_year_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 30ca7308-d863-45c5-8f71-f7260d62e058
+		summarizeBy: none
+		sourceColumn: financial_last_day_of_year_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column financial_first_day_of_year_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 33e906b9-6d14-4c64-9c4d-aa6066d31935
+		summarizeBy: none
+		sourceColumn: financial_first_day_of_year_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_month_name_short
+		dataType: string
+		lineageTag: f1fb0c42-7494-4f8a-af57-24715d76b77d
+		summarizeBy: none
+		sourceColumn: calendar_month_name_short
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimDate-29c228d0-fbf3-4b0f-98dd-43db5648ffc3 = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT calendar_year#(lf)       ,calendar_month_num,#(lf)       calendar_date,#(lf)       financial_first_day_of_year_date,#(lf)       financial_last_day_of_year_date,#(lf)       calendar_month_name_short#(lf) FROM edw.dim_date#(lf)WHERE dim_date_key <> 0"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"calendar_date", type date}, {"financial_last_day_of_year_date", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

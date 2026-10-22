@@ -1,0 +1,193 @@
+table Changelog
+	lineageTag: cc6fba2c-e3b3-44df-8c62-e5d641a381f2
+
+	measure 'Latest Version' =
+			
+			VAR LatestChangeID =
+			    MAX ( 'Changelog'[Change ID] )
+			VAR LatestVersion =
+			    MAXX (
+			        FILTER ( 'Changelog', 'Changelog'[Change ID] = LatestChangeID ),
+			        'Changelog'[Version]
+			    )
+			RETURN
+			    "Ignite Client Dataset - v" & LatestVersion
+		lineageTag: fe50b8b2-4a70-42e9-9f95-1b0f4126aa76
+
+	column 'Change ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 1f7bd03b-8d0f-4d67-a874-9f17087f03b7
+		summarizeBy: count
+		sourceColumn: Change ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Version
+		dataType: string
+		lineageTag: f1a458e6-aeec-454a-a8c0-b077fe921a97
+		summarizeBy: none
+		sourceColumn: Version
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Change Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: b6cd2508-56bc-4527-8789-94c2872b5598
+		summarizeBy: none
+		sourceColumn: Change Date
+
+		variation Variation
+			isDefault
+			relationship: 2c04fcd5-9ad4-486c-981a-90199c4290ff
+			defaultHierarchy: LocalDateTable_8f237f0b-215d-423d-ac93-84f76c5724a0.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Changed By'
+		dataType: string
+		lineageTag: 8fb4ebb4-d447-4ebb-8cf2-ab09617dc694
+		summarizeBy: none
+		sourceColumn: Changed By
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'User Story ID'
+		dataType: string
+		lineageTag: 79d2ab53-5766-48e2-8b95-d033157f6787
+		summarizeBy: none
+		sourceColumn: User Story ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: f1a69929-9879-416c-bc39-9a5a028c421d
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Changelog = m
+		mode: import
+		queryGroup: Changelog
+		source =
+				let
+				    // Define the table schema with the entries reversed
+				    InitialTable = #table(
+				        {"Version", "Change Date", "Changed By", "User Story ID", "Description"},
+				        {
+				            {
+				                "0.0.12", /* Version */
+				                #date(2026, 01, 08),  /* Change Date */
+				                "Mike G",  /* Changed By */
+				                "#12277",  /* User Story ID */
+				                "Added macron to Rongoā Practitioner in Support Session Data"  /* Description */
+				            },
+				            {
+				                "0.0.11", /* Version */
+				                #date(2025, 12, 03),  /* Change Date */
+				                "Thijs B",  /* Changed By */
+				                "#11892",  /* User Story ID */
+				                "Refined import data logic to handle underscores in source data"  /* Description */
+				            },
+				            // Add new entries at the top here
+				            {
+				                "0.0.10", /* Version */
+				                #date(2025, 11, 26),  /* Change Date */
+				                "Greg H",  /* Changed By */
+				                "#11820",  /* User Story ID */
+				                "Changed wellbeing average scores and rating to decimal rather than Int64 to better reflect true scores/ratings."  /* Description */
+				            },
+				{
+				                "0.0.9", /* Version */
+				                #date(2025, 08, 27),  /* Change Date */
+				                "Thijs B",  /* Changed By */
+				                "#11061",  /* User Story ID */
+				                "Change the transform data steps in Import Data Powerquery to handle _ in source files going forward"  /* Description */
+				            },
+				{
+				                "0.0.8", /* Version */
+				                #date(2025, 07, 28),  /* Change Date */
+				                "Thijs B",  /* Changed By */
+				                "#11059",  /* User Story ID */
+				                "Add two new providers in Import Data, TransformFile, Sample File and Support Session Data"  /* Description */
+				            },
+				            {
+				                "0.0.7", /* Version */
+				                #date(2025, 07, 28),  /* Change Date */
+				                "Greg H",  /* Changed By */
+				                "#10922",  /* User Story ID */
+				                "Adding logos for Port Nicholson and Housing Foundation"  /* Description */
+				            },
+				            {
+				                "0.0.6", /* Version */
+				                #date(2025, 01, 09),  /* Change Date */
+				                "Thijs B",  /* Changed By */
+				                "#10716",  /* User Story ID */
+				                "Add two new columns into 'Import Data' step"  /* Description */
+				            },
+				            {
+				                "0.0.5", /* Version */
+				                #date(2025, 06, 17),  /* Change Date */
+				                "Greg H",  /* Changed By */
+				                "#10505",  /* User Story ID */
+				                "Fixing Moana Logo"  /* Description */
+				            },
+				            {
+				                "0.0.4", /* Version */
+				                #date(2025, 05, 06),  /* Change Date */
+				                "Greg H",  /* Changed By */
+				                "#10191",  /* User Story ID */
+				                "Adding new logos for Marissa"  /* Description */
+				            },
+				            {
+				                "0.0.3", /* Version */
+				                #date(2025, 02, 25),  /* Change Date */
+				                "Chris N",  /* Changed By */
+				                "#xxxx",  /* User Story ID */
+				                "Corrected spelling within a Template item: thier to their"  /* Description */
+				            },
+				            {
+				                "0.0.2", /* Version */
+				                #date(2025, 01, 13),  /* Change Date */
+				                "Chris N",  /* Changed By */
+				                "#9540",  /* User Story ID */
+				                "Added additional images and the organisation links"  /* Description */
+				            },
+				            {
+				                "0.0.1", /* Version */
+				                #date(2025, 01, 09),  /* Change Date */
+				                "Mike G",  /* Changed By */
+				                "#9534",  /* User Story ID */
+				                "Adding Cange Log table"  /* Description */
+				            },
+				            {
+				                "0.0.0", /* Version */
+				                #date(2025, 01, 09),  /* Change Date */
+				                "Chris N",  /* Changed By */
+				                "#9534",  /* User Story ID */
+				                "Initial load into GIT"  /* Description */
+				            }
+				        }
+				    ),
+				
+				    // Reverse the order of the rows so new entries are at the top
+				    ReversedTable = Table.ReverseRows(InitialTable),
+				
+				    // Add an Index column to generate incremental numbers
+				    TableWithIndex = Table.AddIndexColumn(ReversedTable, "Change ID", 1, 1, Int64.Type),
+				
+				    // Reorder the columns to place ChangeID first
+				    ReorderedColumns = Table.ReorderColumns(TableWithIndex, {"Change ID", "Version", "Change Date", "Changed By", "User Story ID", "Description"}),
+				    #"Changed Type" = Table.TransformColumnTypes(ReorderedColumns,{{"Change Date", type date}, {"Version", type text}, {"Changed By", type text}, {"User Story ID", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

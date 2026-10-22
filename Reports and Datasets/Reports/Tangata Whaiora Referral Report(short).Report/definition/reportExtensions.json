@@ -1,0 +1,708 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/reportExtension/1.0.0/schema.json",
+  "name": "extension",
+  "entities": [
+    {
+      "name": "Fact Tangata Whaiora Referral",
+      "measures": [
+        {
+          "name": "__TotalReferrals",
+          "dataType": "Double",
+          "expression": "\n\ncalculate(sum('Fact Tangata Whaiora Referral'[Accepted])+sum('Fact Tangata Whaiora Referral'[Pending])+sum('Fact Tangata Whaiora Referral'[Waitlist])\n\n)"
+        },
+        {
+          "name": "ReportingDate",
+          "dataType": "Date",
+          "expression": "UTCTODAY() ",
+          "formatString": "dddd\\, mmmm d\\, yyyy"
+        },
+        {
+          "name": "__TotalReferralsCurrentAccepted",
+          "dataType": "Double",
+          "expression": "\ncalculate(countrows('Fact Tangata Whaiora Referral'),'Fact Tangata Whaiora Referral'[Referral Status]=\"Accepted\"&&'Fact Tangata Whaiora Referral'[Calendar Date]=TODAY()-1)",
+          "formatString": "#,0"
+        },
+        {
+          "name": "__TotalReferralsCurrentPending",
+          "dataType": "Double",
+          "expression": "\n\ncalculate(countrows('Fact Tangata Whaiora Referral'),'Fact Tangata Whaiora Referral'[Referral Status]=\"Pending\"&&'Fact Tangata Whaiora Referral'[Calendar Date]=TODAY()-1)"
+        },
+        {
+          "name": "__TotalReferralsCurrentWaitlisted",
+          "dataType": "Double",
+          "expression": "\n\ncalculate(countrows('Fact Tangata Whaiora Referral'),'Fact Tangata Whaiora Referral'[Referral Status]=\"Waitlisted\"&&'Fact Tangata Whaiora Referral'[Calendar Date]=TODAY()-1)"
+        },
+        {
+          "name": "__TotalReferralsMonthEndAccepted",
+          "dataType": "Double",
+          "expression": "\nVar EndofMonthAccepted= calculate(max('Dim Date'[Calendar Date]),'Dim Date'[Calendar Last Day Of Month Flag]=1)\nReturn\ncalculate(countrows('Fact Tangata Whaiora Referral'),'Fact Tangata Whaiora Referral'[Referral Status]=\"Accepted\"&&'Fact Tangata Whaiora Referral'[Calendar Date]=EndofMonthAccepted)"
+        },
+        {
+          "name": "__TotalReferralsMonthEndPending",
+          "dataType": "Double",
+          "expression": "\nVar EndofMonthPending =  calculate(max('Dim Date'[Calendar Date]),'Dim Date'[Calendar Last Day Of Month Flag]=1)\nReturn\ncalculate(countrows('Fact Tangata Whaiora Referral'),'Fact Tangata Whaiora Referral'[Referral Status]=\"Pending\"&&'Fact Tangata Whaiora Referral'[Calendar Date]=EndofMonthPending)"
+        },
+        {
+          "name": "__TotalReferralsMonthEndWaitlisted",
+          "dataType": "Double",
+          "expression": "\nVar EndofMonthWaitlisted= calculate(max('Dim Date'[Calendar Date]),'Dim Date'[Calendar Last Day Of Month Flag]=1)\nReturn\ncalculate(countrows('Fact Tangata Whaiora Referral'),'Fact Tangata Whaiora Referral'[Referral Status]=\"Waitlisted\"&&'Fact Tangata Whaiora Referral'[Calendar Date]=EndofMonthWaitlisted)"
+        },
+        {
+          "name": "__DeclineMaori",
+          "dataType": "Double",
+          "expression": "\ncalculate(sum('Fact Tangata Whaiora Referral'[Declined]),'Dim Tangata Whaiora'[Tangata Whaiora Maori Flag]=1)\n"
+        },
+        {
+          "name": "__DeclineALL",
+          "dataType": "Double",
+          "expression": "\nsum('Fact Tangata Whaiora Referral'[Declined])"
+        },
+        {
+          "name": "__BedDaysperMonthCapacity",
+          "dataType": "Double",
+          "expression": "\n/*VAR TeamCapacity = Calculate(max(,REMOVEFILTERS('Dim Date'))\nVAR TeamCap2 = TeamCapacity*1.0\nVAR MonthDays = max('Dim Date'[Calendar Date])\n\n/*TeamCapacity*MonthDays*/\nRETURN\nIF(\n    NOT(ISBLANK(TeamCap2)),\n    TeamCap2 * MonthDays,\n    BLANK())\n    */\n\n  /*  VAR TeamCapacity =MAXX(Values('Dim Tangata Whaiora Team'[Tangata Whaiora Team Bed Number]),'Dim Tangata Whaiora Team'[Tangata Whaiora Team Bed Number])\n   VAR MonthDays = maxx(Values('Dim Date'[Calendar Date]),'Dim Date'[Calendar Date])\n   RETURN\n   IF(\n    NOT(ISBLANK(TeamCapacity)),\n    TeamCapacity * MonthDays,\n    BLANK()) */\n/*VAR TeamCapacity = MAX('Dim Tangata Whaiora Team'[Tangata Whaiora Team Bed Number])\nVAR MonthDays = SELECTEDVALUE('Dim Date'[Calendar Days In Month Num])\n\nRETURN\nIF(\n    NOT(ISBLANK(TeamCapacity)) && NOT(ISBLANK(MonthDays)),\n    TeamCapacity * MonthDays,\n    BLANK()\n)*/\n\n--VAR TeamCapacity =  MAX('Dim Tangata Whaiora Team'[Tangata Whaiora Team Bed Number])\n--VAR MonthDays = MAX('Dim Date'[Calendar Days In Month Num])\n\n--RETURN\n--IF(\n --   ISBLANK(TeamCapacity) || ISBLANK(MonthDays),\n --   BLANK(),\n --   TeamCapacity * MonthDays\n--)\n--[__TotalBedspermonth]*[__TotalDayspermonth]\nVAR _Summary = SUMMARIZE(\n    'Fact Tangata Whaiora Referral',\n    'Dim Date'[Calendar Month Name Long],\n    \"Total Days\", [__TotalBedspermonth]*[__TotalDayspermonth])\n\n \nRETURN\nSUMX(_Summary, [Total Days])\n\n",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalBedspermonth"
+              },
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalDayspermonth"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__DeclinePasifika",
+          "dataType": "Double",
+          "expression": "\ncalculate(sum('Fact Tangata Whaiora Referral'[Declined]),'Dim Tangata Whaiora'[Tangata Whaiora Pasifika Flag]=1)"
+        },
+        {
+          "name": "__%DeclineMaori",
+          "dataType": "Double",
+          "expression": "\n\niferror(([__DeclineMaori]/[__DeclineALL]),Blank())",
+          "formatString": "0.0\\ %;-0.0\\ %;0.0\\ %",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__DeclineMaori"
+              },
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__DeclineALL"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__%DeclinePasifika",
+          "dataType": "Double",
+          "expression": "\n\niferror(([__DeclinePasifika]/[__DeclineALL]),Blank())",
+          "formatString": "0.0\\ %;-0.0\\ %;0.0\\ %",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__DeclinePasifika"
+              },
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__DeclineALL"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__CurrentAccReferralsMāori",
+          "dataType": "Double",
+          "expression": "\n\ncalculate(countrows('Fact Tangata Whaiora Referral'),'Fact Tangata Whaiora Referral'[Referral Status]=\"Accepted\",'Fact Tangata Whaiora Referral'[Calendar Date]=TODAY()-1,'Dim Tangata Whaiora'[Latest Tangata Whaiora Maori]=\"Māori\")"
+        },
+        {
+          "name": "__CurrentAccReferralsPasifika",
+          "dataType": "Double",
+          "expression": "\n\ncalculate(countrows('Fact Tangata Whaiora Referral'),'Fact Tangata Whaiora Referral'[Referral Status]=\"Accepted\",'Fact Tangata Whaiora Referral'[Calendar Date]=TODAY()-1,'Dim Tangata Whaiora'[Latest Tangata Whaiora Pasifika]=\"Pasifika\")"
+        },
+        {
+          "name": "__CurrentAccReferralsGenderD",
+          "dataType": "Double",
+          "expression": "\nif (isblank(\ncalculate(countrows('Fact Tangata Whaiora Referral'),'Fact Tangata Whaiora Referral'[Referral Status]=\"Accepted\",'Fact Tangata Whaiora Referral'[Calendar Date]=TODAY()-1,'Dim Tangata Whaiora'[Latest Tangata Whaiora Gender]=\"Gender Diverse / He ira kē anō\")),0)"
+        },
+        {
+          "name": "__TotalReferralsDischarged",
+          "dataType": "Double",
+          "expression": "\n\ncalculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Tangata Whaiora Referral ID]),'Fact Tangata Whaiora Referral'[Referral Discharged Date]='Fact Tangata Whaiora Referral'[Calendar Date])\n",
+          "formatString": "#,0"
+        },
+        {
+          "name": "__TotalReferralsReceived",
+          "dataType": "Double",
+          "expression": "\n\ncalculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Tangata Whaiora Referral ID]),'Fact Tangata Whaiora Referral'[Referral Received Date]='Fact Tangata Whaiora Referral'[Calendar Date])",
+          "formatString": "#,0"
+        },
+        {
+          "name": "__TotalReferralsActiveDuringMonth",
+          "dataType": "Double",
+          "expression": "\n\ncalculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Tangata Whaiora Referral ID]),'Fact Tangata Whaiora Referral'[Referral Status]=\"Accepted\")",
+          "formatString": "#,0.00"
+        },
+        {
+          "name": "__Active Maori Referrals in Month",
+          "dataType": "Double",
+          "expression": "calculate([__TotalReferralsActiveDuringMonth],'Dim Tangata Whaiora'[Latest Tangata Whaiora Ethnicity Group] = \"Maori\")",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsActiveDuringMonth"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__TotalClientsActiveDuringMonth",
+          "dataType": "Double",
+          "expression": "\n\ncalculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Tangata Whaiora ID]),'Fact Tangata Whaiora Referral'[Referral Status]=\"Accepted\")",
+          "formatString": "#,0"
+        },
+        {
+          "name": "__Active Maori Clients in Month",
+          "dataType": "Double",
+          "expression": "calculate([__TotalClientsActiveDuringMonth],'Dim Tangata Whaiora'[Latest Tangata Whaiora Ethnicity Group] = \"Maori\")",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalClientsActiveDuringMonth"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__Active Pasifika Clients in Month",
+          "dataType": "Double",
+          "expression": "calculate([__TotalClientsActiveDuringMonth],'Dim Tangata Whaiora'[Latest Tangata Whaiora Ethnicity Group] = \"Pasifika\")",
+          "formatString": "#,0",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalClientsActiveDuringMonth"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__Active Pasifika Referrals in Month",
+          "dataType": "Double",
+          "expression": "calculate([__TotalReferralsActiveDuringMonth],'Dim Tangata Whaiora'[Latest Tangata Whaiora Ethnicity Group] = \"Pasifika\")",
+          "formatString": "#,0",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsActiveDuringMonth"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__TotalClientsCurrentAccepted",
+          "dataType": "Double",
+          "expression": "\r\ncalculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Tangata Whaiora ID]),'Fact Tangata Whaiora Referral'[Referral Status]=\"Accepted\"&&'Fact Tangata Whaiora Referral'[Calendar Date]=TODAY()-1)",
+          "formatString": "#,0"
+        },
+        {
+          "name": "__LengthofStay_Discharged",
+          "dataType": "Double",
+          "expression": "\nDATEDIFF(\n FIRSTDATE('Fact Tangata Whaiora Referral'[Referral Accepted Date]),lastdate('Fact Tangata Whaiora Referral'[Referral Discharged Date]),DAY)\n",
+          "formatString": "#,0"
+        },
+        {
+          "name": "__PendingDays",
+          "dataType": "Double",
+          "expression": "calculate(sum('Fact Tangata Whaiora Referral'[Lengthofpending]),'Fact Tangata Whaiora Referral'[Lengthofpending]<999)"
+        },
+        {
+          "name": "__TotalBednightsDuringMonth",
+          "dataType": "Double",
+          "expression": "\n\ncalculate(sum('Fact Tangata Whaiora Referral'[Active Accepted Flag]))",
+          "formatString": "#,0"
+        },
+        {
+          "name": "__Bednightspermonth",
+          "dataType": "Double",
+          "expression": "\n--VAR TotalBeds = summarize('Dim Tangata Whaiora Team','Dim Tangata Whaiora Team'[Tangata Whaiora Team Name],'Dim Date'[Financial Year]'Dim Tangata --Whaiora Team'[Tangata Whaiora Team Bed Number])\n\n\n--VAR DaysinMonth = max('Dim Date'[Calendar Days In Month Num])\n\n--RETURN TotalBeds*DaysinMonth\n\n--Total Beds by Month =\nVAR _Summary = SUMMARIZE(\n    'Fact Tangata Whaiora Referral',\n    'Dim Date'[Calendar Month Name Long],\n    \"Total Beds\", SUM('Fact Tangata Whaiora Referral'[Active Accepted Flag])\n)\n \nRETURN\nSUMX(_Summary, [Total Beds])\n \n \n",
+          "formatString": "#,0"
+        },
+        {
+          "name": "%Bednights_Capacity",
+          "dataType": "Double",
+          "expression": "[__Bednightspermonth]/[__BedDaysperMonthCapacity]",
+          "formatString": "0.0\\ %;-0.0\\ %;0.0\\ %",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__Bednightspermonth"
+              },
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__BedDaysperMonthCapacity"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__BednightCapacitypermonth",
+          "dataType": "Double",
+          "expression": "\n--VAR TotalBeds = summarize('Dim Tangata Whaiora Team','Dim Tangata Whaiora Team'[Tangata Whaiora Team Name],'Dim Date'[Financial Year]'Dim Tangata --Whaiora Team'[Tangata Whaiora Team Bed Number])\n\n\n--VAR DaysinMonth = max('Dim Date'[Calendar Days In Month Num])\n\n--RETURN TotalBeds*DaysinMonth\n\n--Total Beds by Month =\n\n--VAR _Summary = SUMMARIZE(\n  --  'Fact Tangata Whaiora Referral',\n --   'Dim Date'[Calendar Month Name Long],\n  --  \"Total Beds\", SUM('Fact Tangata Whaiora Referral'[Active Accepted Flag])\n--)\n \n--RETURN\n--SUMX(_Summary, [Total Beds])\n[__TotalDayspermonth]\n ",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalDayspermonth"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__TotalBedspermonth",
+          "dataType": "Double",
+          "expression": "\n--VAR TotalBeds = summarize('Dim Tangata Whaiora Team','Dim Tangata Whaiora Team'[Tangata Whaiora Team Name],'Dim Date'[Financial Year]'Dim Tangata --Whaiora Team'[Tangata Whaiora Team Bed Number])\n\n\n--VAR DaysinMonth = max('Dim Date'[Calendar Days In Month Num])\n\n--RETURN TotalBeds*DaysinMonth\n\n--Total Beds by Month =\nVAR _Summary = SUMMARIZE(\n    'Fact Tangata Whaiora Referral',\n    'Dim Date'[Calendar Month Name Long],\n    \"Total Beds\", calculate(sum('Dim Tangata Whaiora Team'[Tangata Whaiora Team Bed Number]),'Dim Date'[Calendar First Day Of Month Date] = 1||'Dim Date'[Calendar Last Day Of Month Flag]=1)\n)\n \nRETURN\nSUMX(_Summary, [Total Beds])\n ",
+          "formatString": "#,0"
+        },
+        {
+          "name": "__TotalDayspermonth",
+          "dataType": "Double",
+          "expression": "\nVAR _Summary = SUMMARIZE(\n    'Fact Tangata Whaiora Referral',\n    'Dim Date'[Calendar First Day Of Month Date],\n    \"Total Days\", calculate(DISTINCT('Dim Date'[Calendar Days In Month Num])--,'Dim Date'[Calendar First Day Of Month Flag] = 1\n       )\n)\n RETURN\nSUMX(_Summary, [Total Days])"
+        },
+        {
+          "name": "__TotalReferralsActiveDuringMonth_CRM",
+          "dataType": "Double",
+          "expression": "\n\ncalculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Tangata Whaiora ID]),'Fact Tangata Whaiora Referral'[Referral Status] = \"Accepted\",filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-1),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))",
+          "formatString": "#,0"
+        },
+        {
+          "name": "__TotalReferralsActiveDuringMonth_CRM_LY",
+          "dataType": "Double",
+          "expression": "\n\ncalculate(DISTINCTCOUNT('Fact Tangata Whaiora Referral'[Tangata Whaiora ID]),'Fact Tangata Whaiora Referral'[Referral Status] = \"Accepted\",filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-13),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))",
+          "formatString": "#,0"
+        },
+        {
+          "name": "__TotalReferralsActive Change",
+          "dataType": "Double",
+          "expression": "\n--(divide([__TotalReferralsActiveDuringMonth_CRM],[__TotalReferralsActiveDuringMonth_CRM_LY],\"\"))-1\n\n--(divide([__TotalReferralsAcceptedDuringMonth_CRM],[__TotalReferralsAcceptedDuringMonth_CRM_LY],\"\"))-1\nVAR current_R = [__TotalReferralsActiveDuringMonth_CRM]\nVAR previous = [__TotalReferralsActiveDuringMonth_CRM_LY]\nRETURN\n\nIF(\n    ISBLANK(current_r) || ISBLANK(previous),\n    BLANK(),\n    DIVIDE(current_r, previous) - 1\n)",
+          "formatString": "0\\ %;-0\\ %;0\\ %",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsActiveDuringMonth_CRM"
+              },
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsActiveDuringMonth_CRM_LY"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__TotalReferralsDischargedDuringMonth_CRM",
+          "dataType": "Double",
+          "expression": "\n\ncalculate([__TotalReferralsDischarged],filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-1),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))",
+          "formatString": "#,0",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsDischarged"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__TotalReferralsDischargedDuringMonth_CRM_LY",
+          "dataType": "Double",
+          "expression": "\n\ncalculate([__TotalReferralsDischarged],filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-13),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))",
+          "formatString": "#,0",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsDischarged"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__TotalReferralsDischarged Change",
+          "dataType": "Double",
+          "expression": "\n--(divide([__TotalReferralsDischargedDuringMonth_CRM],[__TotalReferralsDischargedDuringMonth_CRM_LY],\"\"))-1\n\nVAR current_R = [__TotalReferralsDischargedDuringMonth_CRM]\nVAR previous = [__TotalReferralsDischargedDuringMonth_CRM_LY]\nRETURN\n\nIF(\n    ISBLANK(current_r) || ISBLANK(previous),\n    BLANK(),\n    DIVIDE(current_r, previous) - 1\n)",
+          "formatString": "0.00\\ %;-0.00\\ %;0.00\\ %",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsDischargedDuringMonth_CRM"
+              },
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsDischargedDuringMonth_CRM_LY"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__TotalReferralsAcceptedDuringMonth_CRM",
+          "dataType": "Double",
+          "expression": "\r\nCALCULATE(\r\n    COUNTROWS(\r\n        FILTER(\r\n            'Fact Tangata Whaiora Referral',\r\n            'Fact Tangata Whaiora Referral'[Accepted] = 1\r\n        )\r\n    ),\r\n    FILTER(\r\n        'Dim Date',\r\n        'Dim Date'[Current Date Rolling Month Offset] = -1\r\n    ),\r\n    USERELATIONSHIP(\r\n        'Fact Tangata Whaiora Referral'[Dim Date KEY],\r\n        'Dim Date'[Dim Date KEY]\r\n    )\r\n)\r\n\r\n"
+        },
+        {
+          "name": "__TotalReferralsAcceptedDuringMonth_CRM_LY",
+          "dataType": "Double",
+          "expression": "\r\nCALCULATE(\r\n    COUNTROWS(\r\n        FILTER(\r\n            'Fact Tangata Whaiora Referral',\r\n            'Fact Tangata Whaiora Referral'[Accepted] = 1\r\n        )\r\n    ),\r\n    FILTER(\r\n        'Dim Date',\r\n        'Dim Date'[Current Date Rolling Month Offset] = -13\r\n    ),\r\n    USERELATIONSHIP(\r\n        'Fact Tangata Whaiora Referral'[Dim Date KEY],\r\n        'Dim Date'[Dim Date KEY]\r\n    )\r\n)\r\n",
+          "formatString": "#,0"
+        },
+        {
+          "name": "__TotalReferralsAccepted Change",
+          "dataType": "Double",
+          "expression": "\n--(divide([__TotalReferralsAcceptedDuringMonth_CRM],[__TotalReferralsAcceptedDuringMonth_CRM_LY],\"\"))-1\nVAR current_R = [__TotalReferralsAcceptedDuringMonth_CRM]\nVAR previous = [__TotalReferralsAcceptedDuringMonth_CRM_LY]\nRETURN\n\nIF(\n    ISBLANK(current_r) || ISBLANK(previous),\n    BLANK(),\n    DIVIDE(current_r, previous) - 1\n)",
+          "formatString": "0.00\\ %;-0.00\\ %;0.00\\ %",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsAcceptedDuringMonth_CRM"
+              },
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsAcceptedDuringMonth_CRM_LY"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__TotalReferralsDeclinedDuringMonth_CRM",
+          "dataType": "Double",
+          "expression": "\r\nCALCULATE(\r\n    COUNTROWS(\r\n        FILTER(\r\n            'Fact Tangata Whaiora Referral',\r\n            'Fact Tangata Whaiora Referral'[Declined] = 1\r\n        )\r\n    ),\r\n    FILTER(\r\n        'Dim Date',\r\n        'Dim Date'[Current Date Rolling Month Offset] = -1\r\n    ),\r\n    USERELATIONSHIP(\r\n        'Fact Tangata Whaiora Referral'[Dim Date KEY],\r\n        'Dim Date'[Dim Date KEY]\r\n    )\r\n)\r\n"
+        },
+        {
+          "name": "__TotalReferralsDeclinedDuringMonth_CRM_LY",
+          "dataType": "Double",
+          "expression": "\r\nCALCULATE(\r\n    COUNTROWS(\r\n        FILTER(\r\n            'Fact Tangata Whaiora Referral',\r\n            'Fact Tangata Whaiora Referral'[Declined] = 1\r\n        )\r\n    ),\r\n    FILTER(\r\n        'Dim Date',\r\n        'Dim Date'[Current Date Rolling Month Offset] = -13\r\n    ),\r\n    USERELATIONSHIP(\r\n        'Fact Tangata Whaiora Referral'[Dim Date KEY],\r\n        'Dim Date'[Dim Date KEY]\r\n    )\r\n)\r\n"
+        },
+        {
+          "name": "__TotalReferralsDeclined Change",
+          "dataType": "Double",
+          "expression": "\n--(divide([__TotalReferralsDeclinedDuringMonth_CRM],[__TotalReferralsDeclinedDuringMonth_CRM_LY],\"\"))-1\n\nVAR current_R = [__TotalReferralsDeclinedDuringMonth_CRM]\nVAR previous = [__TotalReferralsDeclinedDuringMonth_CRM_LY]\nRETURN\n\nIF(\n    ISBLANK(current_r) || ISBLANK(previous),\n    BLANK(),\n    DIVIDE(current_r, previous) - 1\n)",
+          "formatString": "0.00\\ %;-0.00\\ %;0.00\\ %",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsDeclinedDuringMonth_CRM"
+              },
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsDeclinedDuringMonth_CRM_LY"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__TotalReferralsReceivedDuringMonth_CRM",
+          "dataType": "Double",
+          "expression": "\n\ncalculate([__TotalReferralsReceived],filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-1),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsReceived"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__TotalReferralsReceivedDuringMonth_CRM_LY",
+          "dataType": "Double",
+          "expression": "\n\ncalculate([__TotalReferralsReceived],filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-13),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsReceived"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__TotalReferralsReceived Change",
+          "dataType": "Double",
+          "expression": "\n-- (divide([__TotalReferralsReceivedDuringMonth_CRM],[__TotalReferralsReceivedDuringMonth_CRM_LY],\"\"))-1\n\nVAR current_R = [__TotalReferralsReceivedDuringMonth_CRM]\nVAR previous = [__TotalReferralsReceivedDuringMonth_CRM_LY]\n\nRETURN \nIF(\n    ISBLANK(current_r) || ISBLANK(previous),\n    BLANK(),\n    DIVIDE(current_r, previous) - 1\n)",
+          "formatString": "0.00\\ %;-0.00\\ %;0.00\\ %",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsReceivedDuringMonth_CRM"
+              },
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsReceivedDuringMonth_CRM_LY"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__TotalReferralsPendingEOM_CRM",
+          "dataType": "Double",
+          "expression": "\n\ncalculate([__TotalReferralsMonthEndPending],filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-1),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsMonthEndPending"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__TotalReferralsPendingEOM_CRM_LY",
+          "dataType": "Double",
+          "expression": "\n\ncalculate([__TotalReferralsMonthEndPending],filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-13),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsMonthEndPending"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__TotalReferralsPending EOM Change",
+          "dataType": "Double",
+          "expression": "\n--(divide([__TotalReferralsPendingEOM_CRM],[__TotalReferralsPendingEOM_CRM_LY],\"\"))-1\n\nVAR current_R = [__TotalReferralsPendingEOM_CRM]\nVAR previous = [__TotalReferralsPendingEOM_CRM_LY]\nRETURN\n\nIF(\n    ISBLANK(current_r) || ISBLANK(previous),\n    BLANK(),\n    DIVIDE(current_r, previous) - 1\n)",
+          "formatString": "0.00\\ %;-0.00\\ %;0.00\\ %",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsPendingEOM_CRM"
+              },
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsPendingEOM_CRM_LY"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__TotalReferralsWaitlistedEOM_CRM",
+          "dataType": "Double",
+          "expression": "\n\ncalculate([__TotalReferralsMonthEndWaitlisted],filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-1),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsMonthEndWaitlisted"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__TotalReferralsWaitlistedEOM_CRM_LY",
+          "dataType": "Double",
+          "expression": "\n\ncalculate([__TotalReferralsMonthEndWaitlisted],filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-13),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsMonthEndWaitlisted"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__TotalReferralsWaiting EOM Change",
+          "dataType": "Double",
+          "expression": "\n--(divide([__TotalReferralsWaitlistedEOM_CRM],[__TotalReferralsWaitlistedEOM_CRM_LY],\"\"))-1\n\nVAR current_R = [__TotalReferralsWaitlistedEOM_CRM]\nVAR previous = [__TotalReferralsWaitlistedEOM_CRM_LY]\nRETURN\n\nIF(\n    ISBLANK(current_r) || ISBLANK(previous),\n    BLANK(),\n    DIVIDE(current_r, previous) - 1\n)",
+          "formatString": "0.00\\ %;-0.00\\ %;0.00\\ %",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsWaitlistedEOM_CRM"
+              },
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalReferralsWaitlistedEOM_CRM_LY"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__TotalBedNightsDuringMonth_CRM",
+          "dataType": "Double",
+          "expression": "\n\ncalculate([__TotalBednightsDuringMonth],filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-1),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))",
+          "formatString": "#,0",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalBednightsDuringMonth"
+              }
+            ]
+          }
+        },
+        {
+          "name": "__TotalBedNightsDuringMonth_CRM_LY",
+          "dataType": "Double",
+          "expression": "\n\ncalculate([__TotalBednightsDuringMonth],filter('Dim Date','Dim Date'[Current Date Rolling Month Offset]=-13),userelationship('Fact Tangata Whaiora Referral'[Dim Date KEY],'Dim Date'[Dim Date KEY]))",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalBednightsDuringMonth"
+              }
+            ]
+          }
+        },
+        {
+          "name": "_TotalBednights Change",
+          "dataType": "Double",
+          "expression": "\nVAR current_R = [__TotalBedNightsDuringMonth_CRM]\nVAR previous = [__TotalBedNightsDuringMonth_CRM_LY]\nRETURN\n\nIF(\n    ISBLANK(current_r) || ISBLANK(previous),\n    BLANK(),\n    DIVIDE(current_r, previous) - 1\n)",
+          "formatString": "0.00\\ %;-0.00\\ %;0.00\\ %",
+          "references": {
+            "measures": [
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalBedNightsDuringMonth_CRM"
+              },
+              {
+                "schema": "extension",
+                "entity": "Fact Tangata Whaiora Referral",
+                "name": "__TotalBedNightsDuringMonth_CRM_LY"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "LastRefreshed",
+      "measures": [
+        {
+          "name": "RefreshedAt_forDisplay",
+          "dataType": "Double",
+          "expression": "\n\"Data Last Refreshed: \"\n    & FORMAT (\n        LASTDATE ( LastRefreshed[Date Last Refreshed] ),\n        \"dd/MM/YYYY - hh:mm AM/PM\"\n    )"
+        }
+      ]
+    },
+    {
+      "name": "Changelog",
+      "measures": [
+        {
+          "name": "FiltersAppliedRefs",
+          "dataType": "Double",
+          "expression": "\nVAR __ParentAreas =\n    ADDCOLUMNS (\n        TOPN (\n            10,\n            FILTER (\n                VALUES ( 'Dim Service'[Company Name] ),\n                NOT ( ISBLANK ( 'Dim Service'[Company Name] ) )\n            ),\n            'Dim Service'[Company Name], ASC\n        ),\n        \"AreaParentName_display\", 'Dim Service'[Company Name]\n    )\nVAR __ParentAreasCount =\n    IF (\n        ISFILTERED ( 'Dim Service'[Company Name] ),\n        COUNTROWS ( VALUES ( 'Dim Service'[Company Name] ) ),\n        0\n    )\nVAR __MoreParentAreas =\n    IF (\n        __ParentAreasCount > 10,\n        \" and \" & ( __ParentAreasCount - 10 ) & \" more\",\n        \"\"\n    )\nVAR __Services =\n    ADDCOLUMNS (\n        TOPN (\n            10,\n            FILTER (\n                VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ),\n                NOT ( ISBLANK ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ) )\n            ),\n            'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name], ASC\n        ),\n        \"TeamName_display\", 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name]\n    )\nVAR __ServicesCount =\n    IF (\n        ISFILTERED ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ),\n        COUNTROWS ( VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ) ),\n        0\n    )\nVAR __MoreServices =\n    IF ( __ServicesCount > 10, \" and \" & ( __ServicesCount - 10 ) & \" more\", \"\" )\nVAR _FC_ParentAreas =\n    IF (\n        __ParentAreasCount > 0,\n        \"| Company: \" & CONCATENATEX ( __ParentAreas, [AreaParentName_display], \", \" ),\n        BLANK ()\n    )\nVAR _FC_MoreParentAreas =\n    IF (\n        __ParentAreasCount > 5,\n        \" and \" & ( __ParentAreasCount - 10 ) & \" more\",\n        \"\"\n    )\nVAR _FC_Services =\n    IF (\n        __ServicesCount > 0,\n        \"| Teams chosen: \" & CONCATENATEX ( __Services, [TeamName_display], \", \" ),\n        BLANK ()\n    )\nVAR _FC_MoreServices =\n    IF ( __ServicesCount > 5, \" and \" & ( __ServicesCount - 10 ) & \" more\", \"\" )\nVAR __ParentRegion =\n    ADDCOLUMNS (\n        TOPN (\n            10,\n            FILTER (\n                VALUES ( 'Dim Service'[Region Name] ),\n                NOT ( ISBLANK ( 'Dim Service'[Region Name] ) )\n            ),\n            'Dim Service'[Region Name], ASC\n        ),\n        \"AreaParentRegionName_display\", 'Dim Service'[Region Name]\n    )\nVAR __ParentRegionCount =\n    IF (\n        ISFILTERED ( 'Dim Service'[Region Name] ),\n        COUNTROWS ( VALUES ( 'Dim Service'[Region Name] ) ),\n        0\n    )\nVAR _FC_ParentRegion =\n    IF (\n        __ParentRegionCount > 0,\n        \"| Region: \"\n            & CONCATENATEX ( __ParentRegion, [AreaParentRegionName_display], \", \" ),\n        BLANK ()\n    )\nVAR _FC_MoreParentRegionAreas =\n    IF (\n        __ParentRegionCount > 5,\n        \" and \" & ( __ParentRegionCount - 10 ) & \" more\",\n        \"\"\n    )\nVAR __ParentDistrict =\n    ADDCOLUMNS (\n        TOPN (\n            10,\n            FILTER (\n                VALUES ( 'Dim Service'[District Name] ),\n                NOT ( ISBLANK ( 'Dim Service'[District Name] ) )\n            ),\n            'Dim Service'[District Name], ASC\n        ),\n        \"AreaParentDistrictName_display\", 'Dim Service'[District Name]\n    )\nVAR __ParentDistrictCount =\n    IF (\n        ISFILTERED ( 'Dim Service'[District Name] ),\n        COUNTROWS ( VALUES ( 'Dim Service'[District Name] ) ),\n        0\n    )\nVAR _FC_ParentDistrict =\n    IF (\n        __ParentDistrictCount > 0,\n        \"| District: \"\n            & CONCATENATEX ( __ParentDistrict, [AreaParentDistrictName_display], \", \" ),\n        BLANK ()\n    )\nVAR _FC_MoreParentDistrictAreas =\n    IF (\n        __ParentDistrictCount > 5,\n        \" and \" & ( __ParentDistrictCount - 10 ) & \" more\",\n        \"\"\n    )\nVAR __ParentServiceType =\n    ADDCOLUMNS (\n        TOPN (\n            10,\n            FILTER (\n                VALUES ( 'Dim Service'[Service Type Name] ),\n                NOT ( ISBLANK ( 'Dim Service'[Service Type Name] ) )\n            ),\n            'Dim Service'[Service Type Name], ASC\n        ),\n        \"AreaParentServiceTypeName_display\", 'Dim Service'[Service Type Name]\n    )\nVAR __ParentServiceTypeCount =\n    IF (\n        ISFILTERED ( 'Dim Service'[Service Type Name] ),\n        COUNTROWS ( VALUES ( 'Dim Service'[Service Type Name] ) ),\n        0\n    )\nVAR _FC_ParentServiceType =\n    IF (\n        __ParentServiceTypeCount > 0,\n        \"| Service Type: \"\n            & CONCATENATEX ( __ParentServiceType, [AreaParentServiceTypeName_display], \", \" ),\n        BLANK ()\n    )\nVAR _FC_MoreParentServiceTypeAreas =\n    IF (\n        __ParentServiceTypeCount > 5,\n        \" and \" & ( __ParentServiceTypeCount - 10 ) & \" more\",\n        \"\"\n    )\nVAR __ParentTeamFunction =\n    ADDCOLUMNS (\n        TOPN (\n            10,\n            FILTER (\n                VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] ),\n                NOT ( ISBLANK ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] ) )\n            ),\n            'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function], ASC\n        ),\n        \"AreaParentTeamFunction_display\", 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function]\n    )\nVAR __ParentTeamFunctionCount =\n    IF (\n        ISFILTERED ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] ),\n        COUNTROWS (\n            VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] )\n        ),\n        0\n    )\nVAR _FC_ParentTeamFunction =\n    IF (\n        __ParentTeamFunctionCount > 0,\n        \"| Team Function: \"\n            & CONCATENATEX ( __ParentTeamFunction, [AreaParentTeamFunction_display], \", \" ),\n        BLANK ()\n    )\nVAR _FC_MoreParentTeamFunctionAreas =\n    IF (\n        __ParentTeamFunctionCount > 5,\n        \" and \" & ( __ParentTeamFunctionCount - 10 ) & \" more\",\n        \"\"\n    )\nVAR __FinancialYears =\n    ADDCOLUMNS (\n        TOPN (\n            10,\n            FILTER (\n                VALUES ( 'Dim Date'[Financial Year Desc] ),\n                NOT ( ISBLANK ( 'Dim Date'[Financial Year Desc] ) )\n            ),\n            'Dim Date'[Financial Year Desc], ASC\n        ),\n        \"FinancialYearNum\", 'Dim Date'[Financial Year Desc]\n    )\nVAR __FYearCount =\n    IF (\n        ISFILTERED ( 'Dim Date'[Financial Year Desc] ),\n        COUNTROWS ( VALUES ( 'Dim Date'[Financial Year Desc] ) ),\n        0\n    )\nVAR __MoreFinYears =\n    IF (\n        __FYearCount > 10,\n        \" and \" & ( __FYearCount - 10 ) & \" more\",\n        \"\"\n    )\n    VAR ___FinYearDisplay =\n    IF (\n        __FYearCount > 0,\n        \"| Financial Year/s: \" & CONCATENATEX ( __FinancialYears, [FinancialYearNum], \", \" ),\n        BLANK ()\n    )\nRETURN\n     \" -- Summary of filters applied to page: \" & \" \" & _FC_ParentAreas & _FC_MoreParentAreas & \" \" & _FC_ParentRegion & _FC_MoreParentRegionAreas\n        & UNICHAR ( 10 )\n        & UNICHAR ( 13 ) & \" \" \n        &___FinYearDisplay & \" \"        \n        \n        & _FC_ParentDistrict & _FC_MoreParentDistrictAreas & \" \" & _FC_ParentServiceType & _FC_MoreParentServiceTypeAreas & _FC_ParentTeamFunction & _FC_MoreParentTeamFunctionAreas & _FC_Services & _FC_MoreServices"
+        },
+        {
+          "name": "__AverageLengthofStay",
+          "dataType": "Double",
+          "expression": "calculate(sum('Fact Tangata Whaiora Referral'[Lengthofstay]),'Fact Tangata Whaiora Referral'[Lengthofstay]<9999999)",
+          "formatString": "0.0"
+        }
+      ]
+    },
+    {
+      "name": "_Measures Table",
+      "measures": [
+        {
+          "name": "IsTwoYearsAgoByDate",
+          "dataType": "Double",
+          "expression": "\nVAR FYStartMonth = 7\nVAR ThisFYStart =\n    DATE(YEAR(TODAY()) - IF(MONTH(TODAY()) < FYStartMonth, 1, 0), FYStartMonth, 1)\nVAR StartDate = EDATE(ThisFYStart, -24)\nVAR EndDate = EDATE(ThisFYStart, -13) + DAY(ThisFYStart) - 1\nRETURN\nIF(\n    SELECTEDVALUE('Dim Date'[Calendar Date]) >= StartDate &&\n    SELECTEDVALUE('Dim Date'[Calendar Date]) <= EndDate,\n    1,\n    0\n)"
+        },
+        {
+          "name": "Measure",
+          "dataType": "Double",
+          "expression": "",
+          "annotations": [
+            {
+              "name": "43dbc3e8-3a1c-4b6f-9923-b49ff7d6691c",
+              "value": "True"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Dim Date",
+      "measures": [
+        {
+          "name": "FinancialMonthDisplay",
+          "dataType": "Double",
+          "expression": "\nVAR FinMonthNum = calculate(max('Dim Date'[Financial Month Num]))\nVAR MonthName = FORMAT(DATE(2000, FinMonthNum + 6, 1), \"MMM\") \n    // +6 shifts so 1=Jul, 12=Jun\nRETURN\nFinMonthNum & \" - \" & MonthNam"
+        },
+        {
+          "name": "__Reporting Month",
+          "dataType": "Date",
+          "expression": "calculate(max('Dim Date'[Calendar First Day Of Month Date]),'Dim Date'[Current Date Rolling Month Offset] = -1)",
+          "formatString": "mmmm yyyy"
+        },
+        {
+          "name": "__Reporting Month LY",
+          "dataType": "Date",
+          "expression": "calculate(max('Dim Date'[Calendar First Day Of Month Date]),'Dim Date'[Current Date Rolling Month Offset] = -13)",
+          "formatString": "mmmm yyyy"
+        },
+        {
+          "name": "__Percent Change Label",
+          "dataType": "Double",
+          "expression": "\"% Change\""
+        }
+      ]
+    }
+  ]
+}

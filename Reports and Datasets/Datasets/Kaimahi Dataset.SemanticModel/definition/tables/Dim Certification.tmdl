@@ -1,0 +1,166 @@
+table 'Dim Certification'
+	lineageTag: d8184720-7200-47a3-a341-3b514d4c0c50
+
+	column 'Dim Certification KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: b8ca4018-50bc-43a9-ab5c-231758c2c5e1
+		summarizeBy: sum
+		sourceColumn: Dim Certification KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Certification Full Name'
+		dataType: string
+		lineageTag: 52117484-3856-4d80-a601-7223639fa2cb
+		summarizeBy: none
+		sourceColumn: Certification Full Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Certification Available From Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: ff10e5a7-25f5-4b61-b72f-432c6a356c6e
+		summarizeBy: none
+		sourceColumn: Certification Available From Date
+
+		variation Variation
+			isDefault
+			relationship: 9891aedd-423b-4698-8dae-b9018f43402c
+			defaultHierarchy: LocalDateTable_fe81fa47-2dce-4f62-822e-c50c90561f41.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Certification End Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 25f19cd6-94e7-4f06-ac2c-06cb53469f8d
+		summarizeBy: none
+		sourceColumn: Certification End Date
+
+		variation Variation
+			isDefault
+			relationship: f983a67e-7511-4545-9f5c-3b76533c1e6f
+			defaultHierarchy: LocalDateTable_0087a627-4953-4ab4-80e7-3e4f5b83fc12.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Certification Created Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 7dd35a15-94c5-47e8-8994-dcf3545e1ad5
+		summarizeBy: none
+		sourceColumn: Certification Created Date
+
+		variation Variation
+			isDefault
+			relationship: fd12f236-53f8-465f-80fa-99c558f990a8
+			defaultHierarchy: LocalDateTable_585a9280-fbff-4339-b8bb-484050c02a0c.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Certification Category Name'
+		dataType: string
+		lineageTag: 3a3b0bcf-1a31-49e4-8da9-7b786b0baec7
+		summarizeBy: none
+		sourceColumn: Certification Category Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Effective From'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: f13b7ddf-1091-4a0e-8359-23261e47c32e
+		summarizeBy: none
+		sourceColumn: DWH Effective From
+
+		variation Variation
+			isDefault
+			relationship: 084258d7-59ed-48c3-a6bf-5fc456749974
+			defaultHierarchy: LocalDateTable_5d775a54-687a-4f52-89e4-f5eb859b1b11.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Effective To'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 96a92f09-c6ac-423f-bfd9-7f02e2a26d46
+		summarizeBy: none
+		sourceColumn: DWH Effective To
+
+		variation Variation
+			isDefault
+			relationship: acc65929-7757-4071-9994-42b5b6ca0ec4
+			defaultHierarchy: LocalDateTable_3a2ebe41-414f-4627-8f3e-8f8070f72c74.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Is Current'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 03a04633-ef48-4c8d-830e-6bfea09112a2
+		summarizeBy: none
+		sourceColumn: DWH Is Current
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Certification' = m
+		mode: import
+		queryGroup: Dim
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)    [dim_certification_key],#(lf)    [certification_full_name],#(lf)    [certification_available_from_date],#(lf)    [certification_end_date],#(lf)    [certification_created_date],#(lf)    [certification_category_name],#(lf)    [DWHEffectiveFrom],#(lf)    [DWHEffectiveTo],#(lf)    [DWHIsCurrent]#(lf)FROM [edw].[dim_certification]#(lf)WHERE ([DWHDMLOperation] <> 'D')#(lf)AND DWHiscurrent=1"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceKaimahi = Text.Replace(columnName, "employee_", "Kaimahi_"),
+				            replaceClient = Text.Replace(replaceKaimahi, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transform Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				    // New step to add and convert date key columns
+				    #"Added and Converted Date Columns" = List.Accumulate(
+				        List.Select(Table.ColumnNames(#"Transform Column Names"), each Text.EndsWith(_, " Date KEY")),
+				        #"Transform Column Names",
+				        (state, columnName) =>
+				            Table.AddColumn(
+				                state,
+				                Text.BeforeDelimiter(columnName, " KEY"),
+				                each
+				                    if Record.Field(_, columnName) <> null then
+				                        let
+				                            dateValue = Text.From(Record.Field(_, columnName)),
+				                            yearPart = Text.Start(dateValue, 4),
+				                            monthPart = Text.Middle(dateValue, 4, 2),
+				                            dayPart = Text.End(dateValue, 2),
+				                            formattedDate = yearPart & "-" & monthPart & "-" & dayPart
+				                        in
+				                            if Text.Length(dateValue) = 8 then
+				                                Date.FromText(formattedDate)
+				                            else
+				                                null
+				                    else
+				                        null,
+				                type date
+				            )
+				    )
+				in
+				    #"Added and Converted Date Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

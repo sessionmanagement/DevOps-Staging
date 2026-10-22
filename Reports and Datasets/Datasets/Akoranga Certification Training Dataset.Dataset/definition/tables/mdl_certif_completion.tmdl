@@ -1,0 +1,122 @@
+table mdl_certif_completion
+	isHidden
+	lineageTag: d2f6f282-9313-4275-a0eb-272eda3c754e
+
+	column id
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: fffb0e43-9584-4a45-9a57-449357830db0
+		summarizeBy: sum
+		sourceColumn: id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column certifid
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 1d761e81-8ccf-4d29-92c8-b2585dda3b8f
+		summarizeBy: sum
+		sourceColumn: certifid
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column userid
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 5aeca572-2e57-4adb-880d-be57d3ce047c
+		summarizeBy: sum
+		sourceColumn: userid
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ExpiringDate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: b69548ab-d2f2-4d47-985f-988ab53888b6
+		summarizeBy: none
+		sourceColumn: ExpiringDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column CompletedDate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 625b4709-1eb8-4eb2-987b-11545ef79933
+		summarizeBy: none
+		sourceColumn: CompletedDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition mdl_certif_completion-d9f7dc79-ad60-4c26-af50-5aad8b45034e = m
+		mode: import
+		queryGroup: Akoranga
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT [id] AS [id]#(lf)      ,[certif_id] AS [certifid]#(lf)      ,[user_id] AS [userid]#(lf)      ,[certif_path] AS [certifpath]#(lf)      ,[status] AS [status]#(lf)      ,[renewal_status] AS [renewalstatus]#(lf)      ,[time_window_opens] AS [timewindowopens]#(lf)      ,[time_expires] AS [timeexpires]#(lf)      ,[baseline_time_expires] AS [baselinetimeexpires]#(lf)      ,[time_completed] AS [timecompleted]#(lf)      ,[time_modified] AS [timemodified]#(lf)      ,[ODSIsCurrent] AS [ODSIsCurrent]#(lf)      ,[ODSEffectiveFrom] AS [ODSEffectiveFrom]#(lf)      ,[ODSEffectiveTo] AS [ODSEffectiveTo]#(lf)      ,[ODSDMLOperation] AS [ODSDMLOperation]#(lf)      ,[ODSBatchId] AS [ODSBatchId]#(lf)      ,[ODSSourceSystem] AS [ODSSourceSystem]#(lf)  FROM [Akoranga].[mdl_certif_completion]#(lf)  WHERE [ODSIsCurrent] = 1#(lf)  AND [ODSDMLOperation] <> 'D'#(lf)"]),
+				    // Selecting specific columns
+				    #"Removed Other Columns" = Table.SelectColumns(
+				        Source, {"id", "certifid", "userid", "timeexpires", "timecompleted"}
+				    ),
+				
+				    // Adding custom column for ExpiringDate
+				    #"Added Custom" = Table.AddColumn(#"Removed Other Columns", "ExpiringDate", each #date(1970, 1, 1) + #duration(0, 0, 0, [timeexpires] + 46800)),
+				
+				    // Changing type of ExpiringDate column
+				    #"Changed Type" = Table.TransformColumnTypes(#"Added Custom",{{"ExpiringDate", type date}}),
+				
+				    // Removing timeexpires column
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"timeexpires"}),
+				
+				    // Adding custom column for CompletedDate
+				    #"Added Custom1" = Table.AddColumn(#"Removed Columns", "CompletedDate", each #date(1970, 1, 1) + #duration(0, 0, 0, [timecompleted] + 46800)),
+				
+				    // Changing type of CompletedDate column
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Added Custom1",{{"CompletedDate", type date}}),
+				
+				    // Removing timecompleted column
+				    #"Removed Columns1" = Table.RemoveColumns(#"Changed Type1",{"timecompleted"}),
+				
+				    // Merging with mdl_user table
+				    #"Merged Queries" = Table.NestedJoin(#"Removed Columns1", {"userid"}, mdl_user, {"id"}, "mdl_user", JoinKind.Inner),
+				
+				    // Removing the merged table column
+				    #"Removed Columns2" = Table.RemoveColumns(#"Merged Queries",{"mdl_user"}),
+				
+				    // Sorting rows by ID
+				    #"Sorted Rows" = Table.Sort(#"Removed Columns2",{{"id", Order.Ascending}}),
+				
+				    // Merging with mdl_prog_user_assignment table
+				    #"Merged Queries1" = Table.NestedJoin(#"Sorted Rows", {"userid", "certifid"}, mdl_prog_user_assignment, {"userid", "programid"}, "mdl_prog_user_assignment", JoinKind.LeftOuter),
+				
+				    // Expanding the merged table column
+				    #"Expanded mdl_prog_user_assignment" = Table.ExpandTableColumn(#"Merged Queries1", "mdl_prog_user_assignment", {"assignmentid"}, {"mdl_prog_user_assignment.assignmentid"}),
+				
+				    // Filtering out rows where programs do not match the current list
+				    #"Filter Out Where the Programs do Not Match the Current List" = Table.SelectRows(#"Expanded mdl_prog_user_assignment", each true),
+				
+				    // Removing the merged table column
+				    #"Removed Columns3" = Table.RemoveColumns(#"Filter Out Where the Programs do Not Match the Current List",{"mdl_prog_user_assignment.assignmentid"})
+				in
+				    #"Removed Columns3"
+
+	annotation PBI_ResultType = Table
+

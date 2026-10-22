@@ -1,0 +1,59 @@
+table fact_28_day_avg
+	lineageTag: 47406de9-8ea8-4e93-bf48-cdb9fe076ef9
+
+	column table_key
+		formatString: 0
+		lineageTag: 0e1ad227-233c-4954-82e5-0488b4cafd78
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: fact_etl_log_overview_simple[table_key]
+
+		annotation SummarizationSetBy = Automatic
+
+	column EndDate
+		formatString: General Date
+		lineageTag: 1271ecfa-6d0f-40fe-b620-5e41ec0b563c
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [EndDate]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 28DayAvgDurationSeconds
+		lineageTag: 573fcb8e-c99d-4289-8a42-17146e6f1ac4
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [28DayAvgDurationSeconds]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition fact_28_day_avg = calculated
+		mode: import
+		source = ```
+				
+				VAR _Today = MAXX(FILTER(ALL(dim_date), dim_date[date_offset] = 0), dim_date[calendar_date])
+				RETURN
+				SUMMARIZECOLUMNS(
+				    fact_etl_log_overview_simple[table_key],
+				    "EndDate", _Today,
+				    "28DayAvgDurationSeconds", CALCULATE(
+				        AVERAGEX(
+				            DATESBETWEEN(
+				                dim_date[calendar_date], 
+				                _Today - 29, 
+				                _Today - 1
+				            ), 
+				            CALCULATE(
+				                SUM(
+				                    fact_etl_log_overview_simple[DurationSeconds]
+				                    )
+				            )
+				        )
+				    )
+				)
+				```
+
+	annotation PBI_Id = a6b494f360464e1dace84ac6e71198fc
+

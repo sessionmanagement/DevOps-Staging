@@ -1,0 +1,1556 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Report MustUnderstand="df" xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner" xmlns:df="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition/defaultfontfamily" xmlns:am="http://schemas.microsoft.com/sqlserver/reporting/authoringmetadata">
+  <rd:ReportUnitType>Mm</rd:ReportUnitType>
+  <rd:ReportID>a9a3fab5-7d7b-48c6-b336-c06c9c049a80</rd:ReportID>
+  <am:AuthoringMetadata>
+    <am:CreatedBy>
+      <am:Name>PBIRB</am:Name>
+      <am:Version>15.7.1809.28</am:Version>
+    </am:CreatedBy>
+    <am:UpdatedBy>
+      <am:Name>PBIRB</am:Name>
+      <am:Version>15.7.1809.28</am:Version>
+    </am:UpdatedBy>
+    <am:LastModifiedTimestamp>2024-06-24T20:13:12.8013373Z</am:LastModifiedTimestamp>
+  </am:AuthoringMetadata>
+  <df:DefaultFontFamily>Segoe UI</df:DefaultFontFamily>
+  <AutoRefresh>0</AutoRefresh>
+  <DataSources>
+    <DataSource Name="RB_EAL_Elite">
+      <rd:SecurityType>DataBase</rd:SecurityType>
+      <ConnectionProperties>
+        <DataProvider>SQLAZURE</DataProvider>
+        <ConnectString>Data Source=synapseausprod-ondemand.sql.azuresynapse.net;Initial Catalog=ODS;Authentication=ActiveDirectoryInteractive</ConnectString>
+        <Prompt>Specify a user name and password for data source RB_EAL_Elite:</Prompt>
+      </ConnectionProperties>
+      <rd:DataSourceID>2597f8e6-c6ff-4b67-909d-93960ec434db</rd:DataSourceID>
+    </DataSource>
+  </DataSources>
+  <DataSets>
+    <DataSet Name="ClientsNotSeen">
+      <Query>
+        <DataSourceName>RB_EAL_Elite</DataSourceName>
+        <rd:UseGenericDesigner>true</rd:UseGenericDesigner>
+        <CommandText>-- CTEs to replace temporary tables
+WITH referrals
+AS (
+	SELECT dldimteam.teamid,
+		dldimteam.teamname,
+		dlDimArea.AreaName,
+		dldimteamfunction.teamfunctionname,
+		dldimteamfunction.teamfunctioncode,
+		dldimteam.companyid,
+		dldimperson.personid,
+		dldimperson.personfirstname + ' ' + dldimperson.personlastname AS ClientName,
+		dldimperson.personpreferredname,
+		dldimperson.persondateofbirth,
+		dlfactreferral.referralid,
+		dlfactreferral.referralreferraltype,
+		dlfactreferral.referralcreateddate,
+		CAST('2099-12-31' AS DATE) AS ProxyEndDate
+	FROM RBEAL.dlfactreferral
+	INNER JOIN RBEAL.dldimteam ON dlfactreferral.teamid = dldimteam.teamid
+	INNER JOIN RBEAL.dlDimArea ON dldimteam.AreaID = dlDimArea.AreaID
+	INNER JOIN RBEAL.dldimteamfunction ON dldimteam.teamfunctionid = dldimteamfunction.teamfunctionid
+	INNER JOIN RBEAL.dldimperson ON dlfactreferral.personid = dldimperson.personid
+	INNER JOIN RBEAL.dldimreferralstatustype ON dlfactreferral.currentreferralstatustypeid = dldimreferralstatustype.referralstatustypeid
+	WHERE dldimteam.teamenddate IS NULL
+		AND dlfactreferral.referralenddate IS NULL
+		AND dldimreferralstatustype.referralstatustypecode = 'Accepted'
+		AND dldimteamfunction.teamfunctioncode IN (
+			'CM',
+			'DP',
+			'YCM',
+			'YDP'
+			)
+	),
+caseworker
+AS (
+	SELECT ROW_NUMBER() OVER (
+			PARTITION BY dlfactpersonrelationship.personid ORDER BY dlfactpersonrelationship.personid,
+				personrelationshipstartdate DESC
+			) AS relationshipcount,
+		dlfactpersonrelationship.personid,
+		dldimuser.userfirstname + ' ' + dldimuser.userlastname AS CaseWorker,
+		dldimrelationshiptype.relationshiptypetext,
+		dlfactpersonrelationship.referralid,
+		dlfactpersonrelationship.personrelationshipstartdate,
+		dlfactpersonrelationship.personrelationshipenddate
+	FROM RBEAL.dlfactpersonrelationship
+	INNER JOIN RBEAL.dldimrelationshiptype ON dlfactpersonrelationship.relationshiptypeid = dldimrelationshiptype.relationshiptypeid
+	INNER JOIN RBEAL.dldimuser ON dlfactpersonrelationship.userid = dldimuser.userid
+	WHERE (
+			dlfactpersonrelationship.personrelationshipenddate IS NULL
+			OR dlfactpersonrelationship.personrelationshipenddate &gt;= GETDATE()
+			)
+		AND dldimrelationshiptype.relationshiptypetext IN (
+			'Support Worker',
+			'Keyworker',
+			'Peer Support Worker',
+			'Employment Consultant',
+			'Health Professional'
+			)
+		AND dlfactpersonrelationship.personid IN (
+			SELECT personid
+			FROM referrals
+			)
+	),
+AllActivities
+AS (
+	SELECT DISTINCT dlfactactivityparticipant.entityid,
+		dlfactactivityparticipant.referralid,
+		ActivityBreakdownTypeName,
+		ActivityTypeCode,
+		ActivityClassificationCode,
+		ActivityClassificationName,
+		ActivityBreakdownTypeParentID,
+		ActivityStartDate
+	FROM RBEAL.dlfactactivity
+	LEFT JOIN RBEAL.dlfactactivityparticipant ON dlfactactivity.activityid = dlfactactivityparticipant.activityid
+	LEFT JOIN RBEAL.dldimactivitytype ON dlfactactivity.activitytypeid = dldimactivitytype.activitytypeid
+	LEFT JOIN RBEAL.dlfactactivitybreakdown ON dlfactactivity.activityid = dlfactactivitybreakdown.activityid
+	LEFT JOIN RBEAL.dldimactivitybreakdowntype ON dlfactactivitybreakdown.activitybreakdowntypeid = dldimactivitybreakdowntype.activitybreakdowntypeid
+	LEFT JOIN RBEAL.dldimactivityclassification ON dlfactactivity.activityclassificationid = dldimactivityclassification.activityclassificationid
+	LEFT JOIN RBEAL.dldimperson ON dlfactactivityparticipant.entityid = dldimperson.personid
+	LEFT JOIN RBEAL.dlfactreferral ON dlfactactivityparticipant.referralid = dlfactreferral.referralid
+	WHERE dlfactactivityparticipant.activityparticipantentitytype = 'Person'
+		AND dlfactactivity.activitystartdate &lt; GETDATE()
+		AND ActivityClassificationName NOT LIKE '%DNA%'
+		AND ActivityClassificationName NOT LIKE '%Did not attend%'
+		AND ActivityClassificationName NOT LIKE '%Cancelled%'
+		AND ActivityClassificationName NOT IN (
+			'T99 Travel (Non PRIMHD)',
+			'T37 On leave',
+			'SLTT5 Travel Time',
+			'F2F unsuccessful-Client rescheduled',
+			'F2F unsuccessful-Client missed appt'
+			)
+		AND ActivityBreakdownTypeName NOT LIKE '%Cancelled%'
+		AND ActivityBreakdownTypeName NOT IN (
+			'Did not attend',
+			'Travel',
+			'Additional Travel'
+			)
+		AND EntityID IN (
+			SELECT PersonID
+			FROM referrals
+			)
+	),
+FaceToFaceActivity
+AS (
+	SELECT ROW_NUMBER() OVER (
+			PARTITION BY entityid,
+			referralid ORDER BY entityid,
+				referralid,
+				ActivityStartDate DESC
+			) AS PersonCount,
+		entityid,
+		referralid,
+		ActivityStartDate AS maxActivityStartDate,
+		ActivityClassificationName,
+		ActivityBreakdownTypeName
+	FROM AllActivities
+	WHERE ActivityBreakdownTypeName NOT IN ('Other contact (non face to face)')
+		AND (
+			ActivityBreakdownTypeName LIKE 'Face%'
+			OR ActivityBreakdownTypeParentID = 10108
+			)
+		AND ActivityTypeCode NOT IN (
+			'AV',
+			'WR',
+			'PH',
+			'SM',
+			'xx',
+			'ACCNF',
+			'ACCSD',
+			'OM'
+			)
+		AND ActivityTypeCode IS NOT NULL
+		AND ActivityClassificationCode NOT IN (
+			'T32',
+			'T35',
+			'99',
+			'NC',
+			'*T35',
+			'T47',
+			'T49',
+			'T99',
+			'SEMDNA',
+			'SEMTT5',
+			'SLTT5',
+			'ACCPH',
+			'CCD1',
+			'TLE',
+			'ACCAD',
+			'CCS',
+			'CC1',
+			'T02',
+			'T03',
+			'T04',
+			'T05',
+			'T11',
+			'T12',
+			'T13',
+			'T14',
+			'T16',
+			'T20',
+			'T21',
+			'T25',
+			'T26',
+			'T27',
+			'T28',
+			'T29',
+			'T30',
+			'T33',
+			'T34',
+			'T37',
+			'T48'
+			)
+	),
+NonFaceToFaceActivity
+AS (
+	SELECT ROW_NUMBER() OVER (
+			PARTITION BY entityid,
+			referralid ORDER BY entityid,
+				referralid,
+				ActivityStartDate DESC
+			) AS PersonCount,
+		entityid,
+		referralid,
+		ActivityStartDate AS maxActivityStartDate,
+		ActivityClassificationName,
+		ActivityBreakdownTypeName
+	FROM AllActivities
+	)
+-- Main query
+SELECT r.teamid,
+	REPLACE(REPLACE(r.teamname, CHAR(10), ''), CHAR(13), '') AS TeamName,
+	REPLACE(REPLACE(r.AreaName, CHAR(10), ''), CHAR(13), '') AS AreaName,
+	r.teamfunctionname,
+	r.companyid,
+	r.personid,
+	r.clientname,
+	r.personpreferredname,
+	r.persondateofbirth,
+	r.referralid,
+	r.referralreferraltype,
+	cw.caseworker AS caseworker,
+	cw.RelationshipTypeText,
+	f2f.maxActivityStartDate AS LastF2FActivityDate,
+	DATEDIFF(day, f2f.maxActivityStartDate, GETDATE()) AS DaysSinceLastF2FActivity,
+	ISNULL(f2f.ActivityClassificationName, 'No Activity') AS F2FClassification,
+	nf2f.maxActivityStartDate AS LastAnyActivityDate,
+	DATEDIFF(day, nf2f.maxActivityStartDate, GETDATE()) AS DaysSinceLastAnyActivity,
+	ISNULL(nf2f.ActivityClassificationName, 'No Activity') AS AnyClassification
+FROM referrals r
+LEFT JOIN caseworker cw ON r.personid = cw.personid
+	AND cw.relationshipcount = 1
+LEFT JOIN FaceToFaceActivity f2f ON r.personid = f2f.entityid
+	AND f2f.referralid = r.referralid
+	AND f2f.PersonCount = 1
+LEFT JOIN NonFaceToFaceActivity nf2f ON r.personid = nf2f.entityid
+	AND nf2f.referralid = r.referralid
+	AND nf2f.PersonCount = 1
+	-- Uncomment the following WHERE clause to filter for those not seen in the last 8 days
+	/*
+WHERE f2f.maxActivityStartDate IS NULL
+    OR DATEDIFF(day, f2f.maxActivityStartDate, GETDATE()) &gt; 8
+*/</CommandText>
+      </Query>
+      <Fields>
+        <Field Name="TeamID">
+          <rd:TypeName>System.Int32</rd:TypeName>
+          <DataField>teamid</DataField>
+        </Field>
+        <Field Name="TeamName">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>TeamName</DataField>
+        </Field>
+        <Field Name="teamfunctionname">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>teamfunctionname</DataField>
+        </Field>
+        <Field Name="CompanyID">
+          <rd:TypeName>System.Int32</rd:TypeName>
+          <DataField>companyid</DataField>
+        </Field>
+        <Field Name="PersonID">
+          <rd:TypeName>System.Int32</rd:TypeName>
+          <DataField>personid</DataField>
+        </Field>
+        <Field Name="ClientName">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>clientname</DataField>
+        </Field>
+        <Field Name="PersonPreferredName">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>personpreferredname</DataField>
+        </Field>
+        <Field Name="PersonDateOfBirth">
+          <rd:TypeName>System.DateTime</rd:TypeName>
+          <DataField>persondateofbirth</DataField>
+        </Field>
+        <Field Name="ReferralID">
+          <rd:TypeName>System.Int32</rd:TypeName>
+          <DataField>referralid</DataField>
+        </Field>
+        <Field Name="ReferralReferralType">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>referralreferraltype</DataField>
+        </Field>
+        <Field Name="CaseWorker">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>caseworker</DataField>
+        </Field>
+        <Field Name="RelationshipTypeText">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>RelationshipTypeText</DataField>
+        </Field>
+        <Field Name="LastAnyActivityDate">
+          <rd:TypeName>System.DateTime</rd:TypeName>
+          <DataField>LastAnyActivityDate</DataField>
+        </Field>
+        <Field Name="LastF2FActivityDate">
+          <rd:TypeName>System.DateTime</rd:TypeName>
+          <DataField>LastF2FActivityDate</DataField>
+        </Field>
+        <Field Name="DaysSinceLastF2FActivity">
+          <rd:TypeName>System.Int32</rd:TypeName>
+          <DataField>DaysSinceLastF2FActivity</DataField>
+        </Field>
+        <Field Name="AreaName">
+          <rd:UserDefined>true</rd:UserDefined>
+          <DataField>AreaName</DataField>
+        </Field>
+        <Field Name="AnyClassification">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>AnyClassification</DataField>
+        </Field>
+        <Field Name="F2FClassification">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>F2FClassification</DataField>
+        </Field>
+        <Field Name="DaysSinceLastSeenAnyActivity">
+          <Value>=
+   Iif(IsNothing( Fields!LastAnyActivityDate.Value ) , 
+        "Never Seen",
+
+        Fields!DaysSinceLastAnyActivity.Value)</Value>
+        </Field>
+        <Field Name="DaysSinceLastAnyActivity">
+          <rd:TypeName>System.Int32</rd:TypeName>
+          <DataField>DaysSinceLastAnyActivity</DataField>
+        </Field>
+        <Field Name="DaysSinceLastSeenF2FActivity">
+          <Value>=   Iif(IsNothing( Fields!LastF2FActivityDate.Value ) , 
+        "Never Seen",
+
+      Fields!DaysSinceLastF2FActivity.Value)</Value>
+        </Field>
+      </Fields>
+    </DataSet>
+  </DataSets>
+  <ReportSections>
+    <ReportSection>
+      <Body>
+        <ReportItems>
+          <Textbox Name="ReportTitle">
+            <rd:WatermarkTextbox>Title</rd:WatermarkTextbox>
+            <rd:DefaultName>ReportTitle</rd:DefaultName>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>Clients Not Seen - Community Services</Value>
+                    <Style>
+                      <FontFamily>Segoe UI Light</FontFamily>
+                      <FontSize>28pt</FontSize>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
+              </Paragraph>
+            </Paragraphs>
+            <Top>0mm</Top>
+            <Left>0mm</Left>
+            <Height>13.70556mm</Height>
+            <Width>277.35459mm</Width>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+              <BackgroundColor>LightGrey</BackgroundColor>
+              <VerticalAlign>Top</VerticalAlign>
+              <PaddingLeft>2pt</PaddingLeft>
+              <PaddingRight>2pt</PaddingRight>
+              <PaddingTop>2pt</PaddingTop>
+              <PaddingBottom>2pt</PaddingBottom>
+            </Style>
+          </Textbox>
+          <Tablix Name="Aaaa">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn>
+                  <Width>43.12666mm</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>36.64677mm</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>19.50716mm</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>49.89797mm</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>30.54189mm</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>35.72071mm</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>33.86238mm</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>28.98464mm</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>23.29953mm</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>30.84797mm</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>28.99589mm</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>23.70422mm</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>28.86674mm</Width>
+                </TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+                <TablixRow>
+                  <Height>8.16076mm</Height>
+                  <TablixCells>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox5">
+                          <rd:DefaultName>Textbox5</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>Team Name</Value>
+                                  <Style>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>DimGray</BackgroundColor>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox47">
+                          <rd:DefaultName>Textbox47</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>Area Name</Value>
+                                  <Style>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>DimGray</BackgroundColor>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox13">
+                          <rd:DefaultName>Textbox13</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>Client ID</Value>
+                                  <Style>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>DimGray</BackgroundColor>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox17">
+                          <rd:DefaultName>Textbox17</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>Client Name</Value>
+                                  <Style>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>DimGray</BackgroundColor>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox11">
+                          <rd:DefaultName>Textbox11</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>Client DOB</Value>
+                                  <Style>
+                                    <FontFamily>Arial</FontFamily>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>DimGray</BackgroundColor>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox4">
+                          <rd:DefaultName>Textbox4</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>Case Worker</Value>
+                                  <Style>
+                                    <FontFamily>Arial</FontFamily>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>DimGray</BackgroundColor>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox21">
+                          <rd:DefaultName>Textbox21</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>Relationship Type</Value>
+                                  <Style>
+                                    <FontFamily>Arial</FontFamily>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value />
+                                  <Style>
+                                    <FontFamily>Arial</FontFamily>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>DimGray</BackgroundColor>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox7">
+                          <rd:DefaultName>Textbox7</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>Last Any Activity</Value>
+                                  <Style>
+                                    <FontFamily>Arial</FontFamily>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>DimGray</BackgroundColor>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox8">
+                          <rd:DefaultName>Textbox8</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value># Days Since</Value>
+                                  <Style>
+                                    <FontFamily>Arial</FontFamily>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>DimGray</BackgroundColor>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox23">
+                          <rd:DefaultName>Textbox23</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>Activity Type</Value>
+                                  <Style>
+                                    <FontFamily>Arial</FontFamily>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>DimGray</BackgroundColor>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox25">
+                          <rd:DefaultName>Textbox25</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>Last F2F Activity</Value>
+                                  <Style>
+                                    <FontFamily>Arial</FontFamily>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>DimGray</BackgroundColor>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox28">
+                          <rd:DefaultName>Textbox28</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value># Days Since</Value>
+                                  <Style>
+                                    <FontFamily>Arial</FontFamily>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>DimGray</BackgroundColor>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox30">
+                          <rd:DefaultName>Textbox30</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>Activity Type</Value>
+                                  <Style>
+                                    <FontFamily>Arial</FontFamily>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>DimGray</BackgroundColor>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                  </TablixCells>
+                </TablixRow>
+                <TablixRow>
+                  <Height>8.95451mm</Height>
+                  <TablixCells>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="TeamName">
+                          <rd:DefaultName>TeamName</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!TeamName.Value</Value>
+                                  <Style />
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="AreaName">
+                          <rd:DefaultName>AreaName</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!AreaName.Value</Value>
+                                  <Style />
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="PersonID1">
+                          <rd:DefaultName>PersonID1</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!PersonID.Value</Value>
+                                  <Style />
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="ClientName">
+                          <rd:DefaultName>ClientName</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!ClientName.Value</Value>
+                                  <Style />
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="PersonDateOfBirth">
+                          <rd:DefaultName>PersonDateOfBirth</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!PersonDateOfBirth.Value</Value>
+                                  <Style>
+                                    <FontFamily>Arial</FontFamily>
+                                    <Format>=Format(Fields!PersonDateOfBirth.Value, "dd/MM/yyyy")</Format>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="CaseWorker">
+                          <rd:DefaultName>CaseWorker</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!CaseWorker.Value</Value>
+                                  <Style>
+                                    <FontFamily>Arial</FontFamily>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="RelationshipTypeText">
+                          <rd:DefaultName>RelationshipTypeText</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!RelationshipTypeText.Value</Value>
+                                  <Style>
+                                    <FontFamily>Arial</FontFamily>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="LastAnyActivityDate">
+                          <rd:DefaultName>LastAnyActivityDate</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!LastAnyActivityDate.Value</Value>
+                                  <Style>
+                                    <FontFamily>Arial</FontFamily>
+                                    <Format>=Format(Fields!LastAnyActivityDate.Value, "dd/MM/yyyy")</Format>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="DaysSinceLastSeenAnyActivity">
+                          <rd:DefaultName>DaysSinceLastSeenAnyActivity</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!DaysSinceLastSeenAnyActivity.Value</Value>
+                                  <Style>
+                                    <FontFamily>Arial</FontFamily>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <ToolTip>Days Since Last Any Activity</ToolTip>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="AnyClassification">
+                          <rd:DefaultName>AnyClassification</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!AnyClassification.Value</Value>
+                                  <Style>
+                                    <FontFamily>Arial</FontFamily>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="LastF2FActivityDate">
+                          <rd:DefaultName>LastF2FActivityDate</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!LastF2FActivityDate.Value</Value>
+                                  <Style>
+                                    <FontFamily>Arial</FontFamily>
+                                    <Format>=Format(Fields!LastF2FActivityDate.Value, "dd/MM/yyyy")</Format>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="DaysSinceLastSeenF2FActivity">
+                          <rd:DefaultName>DaysSinceLastSeenF2FActivity</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!DaysSinceLastSeenF2FActivity.Value</Value>
+                                  <Style>
+                                    <FontFamily>Arial</FontFamily>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="F2FClassification">
+                          <rd:DefaultName>F2FClassification</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!F2FClassification.Value</Value>
+                                  <Style>
+                                    <FontFamily>Arial</FontFamily>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                  </TablixCells>
+                </TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy>
+              <TablixMembers>
+                <TablixMember />
+                <TablixMember />
+                <TablixMember />
+                <TablixMember />
+                <TablixMember />
+                <TablixMember />
+                <TablixMember />
+                <TablixMember />
+                <TablixMember />
+                <TablixMember />
+                <TablixMember />
+                <TablixMember />
+                <TablixMember />
+              </TablixMembers>
+            </TablixColumnHierarchy>
+            <TablixRowHierarchy>
+              <TablixMembers>
+                <TablixMember>
+                  <KeepWithGroup>After</KeepWithGroup>
+                </TablixMember>
+                <TablixMember>
+                  <Group Name="Details" />
+                </TablixMember>
+              </TablixMembers>
+            </TablixRowHierarchy>
+            <DataSetName>ClientsNotSeen</DataSetName>
+            <PageName>Clients Not Seen</PageName>
+            <SortExpressions>
+              <SortExpression>
+                <Value>=Fields!TeamName.Value</Value>
+              </SortExpression>
+              <SortExpression>
+                <Value>=Fields!ClientName.Value</Value>
+              </SortExpression>
+            </SortExpressions>
+            <Top>19.35278mm</Top>
+            <Left>0mm</Left>
+            <Height>17.11527mm</Height>
+            <Width>414.00253mm</Width>
+            <ZIndex>1</ZIndex>
+            <ToolTip>bbbb</ToolTip>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+            </Style>
+          </Tablix>
+          <Textbox Name="Textbox1">
+            <rd:DefaultName>Textbox1</rd:DefaultName>
+            <CanGrow>true</CanGrow>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>="Clients not seen as at "+Format(Globals!ExecutionTime,"dd-MMM-yyyy")</Value>
+                    <Style>
+                      <FontStyle>Italic</FontStyle>
+                      <FontSize>12pt</FontSize>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
+              </Paragraph>
+            </Paragraphs>
+            <Top>13.70556mm</Top>
+            <Left>0mm</Left>
+            <Height>6mm</Height>
+            <Width>414.00251mm</Width>
+            <ZIndex>2</ZIndex>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+              <BackgroundColor>LightSteelBlue</BackgroundColor>
+              <PaddingLeft>2pt</PaddingLeft>
+              <PaddingRight>2pt</PaddingRight>
+              <PaddingTop>2pt</PaddingTop>
+              <PaddingBottom>2pt</PaddingBottom>
+            </Style>
+          </Textbox>
+          <Tablix Name="Tablix3">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn>
+                  <Width>413.64973mm</Width>
+                </TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+                <TablixRow>
+                  <Height>7.15288mm</Height>
+                  <TablixCells>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox33">
+                          <rd:DefaultName>Textbox33</rd:DefaultName>
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>** end of list of clients not seen **</Value>
+                                  <Style />
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Center</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>PaleTurquoise</BackgroundColor>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                  </TablixCells>
+                </TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy>
+              <TablixMembers>
+                <TablixMember />
+              </TablixMembers>
+            </TablixColumnHierarchy>
+            <TablixRowHierarchy>
+              <TablixMembers>
+                <TablixMember />
+              </TablixMembers>
+            </TablixRowHierarchy>
+            <DataSetName>ClientsNotSeen</DataSetName>
+            <PageBreak>
+              <BreakLocation>End</BreakLocation>
+            </PageBreak>
+            <Top>36.46805mm</Top>
+            <Left>0.35278mm</Left>
+            <Height>7.15288mm</Height>
+            <Width>413.64973mm</Width>
+            <ZIndex>3</ZIndex>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+            </Style>
+          </Tablix>
+          <Textbox Name="Textbox9">
+            <rd:DefaultName>Textbox9</rd:DefaultName>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>Report Version - 19 July 22</Value>
+                    <Style>
+                      <FontStyle>Italic</FontStyle>
+                      <FontSize>8pt</FontSize>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Center</TextAlign>
+                </Style>
+              </Paragraph>
+            </Paragraphs>
+            <Top>0mm</Top>
+            <Left>277.35459mm</Left>
+            <Height>13.70556mm</Height>
+            <Width>136.64792mm</Width>
+            <ZIndex>4</ZIndex>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+              <BackgroundColor>LightGrey</BackgroundColor>
+              <VerticalAlign>Middle</VerticalAlign>
+              <PaddingLeft>2pt</PaddingLeft>
+              <PaddingRight>2pt</PaddingRight>
+              <PaddingTop>2pt</PaddingTop>
+              <PaddingBottom>2pt</PaddingBottom>
+            </Style>
+          </Textbox>
+        </ReportItems>
+        <Height>155.98423mm</Height>
+        <Style>
+          <Border>
+            <Style>None</Style>
+          </Border>
+        </Style>
+      </Body>
+      <Width>414.00253mm</Width>
+      <Page>
+        <PageFooter>
+          <Height>121.23208mm</Height>
+          <PrintOnFirstPage>true</PrintOnFirstPage>
+          <PrintOnLastPage>true</PrintOnLastPage>
+          <Style>
+            <Border>
+              <Style>None</Style>
+            </Border>
+          </Style>
+        </PageFooter>
+        <PageHeight>29.7cm</PageHeight>
+        <PageWidth>21cm</PageWidth>
+        <LeftMargin>2cm</LeftMargin>
+        <RightMargin>2cm</RightMargin>
+        <TopMargin>2cm</TopMargin>
+        <BottomMargin>2cm</BottomMargin>
+        <ColumnSpacing>0.13cm</ColumnSpacing>
+        <Style />
+      </Page>
+    </ReportSection>
+  </ReportSections>
+  <ReportParametersLayout>
+    <GridLayoutDefinition>
+      <NumberOfColumns>4</NumberOfColumns>
+      <NumberOfRows>2</NumberOfRows>
+    </GridLayoutDefinition>
+  </ReportParametersLayout>
+</Report>

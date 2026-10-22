@@ -1,0 +1,306 @@
+table _Measures
+	lineageTag: ed0c1696-2b27-484e-aa11-546df4b7b894
+
+	measure BlankValue =
+			
+			BLANK()
+		formatString: 0
+		isHidden
+		lineageTag: b351ba0c-66cf-4242-ac6f-5db4ad9883ff
+
+	measure RefreshedAt_forDisplay = "Data last refreshed: " & FORMAT(LASTDATE(LastRefreshed[Date Last Refreshed]), "dd/MM/YYYY - hh:mm AM/PM")
+		lineageTag: 248b571d-3bcd-456e-b75b-d38ee1c280ec
+
+	measure 'Activity Count (Not Blank)' =
+			
+			IF(
+			    ISBLANK([Activity Count]),
+			        0,
+			        [Activity Count]
+			)
+		formatString: 0
+		lineageTag: a4132291-8fea-46a7-bf9f-c4b993d5e6b9
+
+	measure FiltersApplied = ```
+			
+			// Date Filters
+			VAR YearFilter = IF(ISFILTERED(dim_date[calendar_year]), CONCATENATEX(FILTERS(dim_date[calendar_year]), dim_date[calendar_year], ", "), BLANK())
+			VAR MonthFilter = IF(ISFILTERED(dim_date[calendar_month_name_short]), CONCATENATEX(FILTERS(dim_date[calendar_month_name_short]), dim_date[calendar_month_name_short], ", "), BLANK())
+			
+			// Object Name Filter Summary
+			VAR ObjectNamesFiltered = TOPN(10, FILTER(VALUES(dim_item[item_name]), NOT(ISBLANK(dim_item[item_name]))), dim_item[item_name], ASC)
+			VAR ObjectNamesCount = IF(ISFILTERED(dim_item[item_name]), COUNTROWS(VALUES(dim_item[item_name])), 0)
+			VAR MoreObjectNames = IF(ObjectNamesCount > 10, " and " & (ObjectNamesCount - 10) & " more", "")
+			VAR ObjectNameFilterSummary = IF(ObjectNamesCount > 0, "| OBJECT NAMES CHOSEN: " & CONCATENATEX(ObjectNamesFiltered, dim_item[item_name], ", "), BLANK()) & MoreObjectNames
+			
+			// L2 Business Unit Level Name Filter Summary
+			VAR L2BusinessUnitsFiltered = TOPN(10, FILTER(VALUES(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_2]), NOT(ISBLANK(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_2]))), dim_employee_hierarchy[employee_people_leader_business_unit_name_level_2], ASC)
+			VAR L2BusinessUnitsCount = IF(ISFILTERED(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_2]), COUNTROWS(VALUES(dim_employee_hierarchy[employee_people_leader_business_unit_name_level_2])), 0)
+			VAR MoreL2BusinessUnits = IF(L2BusinessUnitsCount > 10, " and " & (L2BusinessUnitsCount - 10) & " more", "")
+			VAR L2BusinessUnitFilterSummary = IF(L2BusinessUnitsCount > 0, "| L2 BUSINESS UNITS CHOSEN: " & CONCATENATEX(L2BusinessUnitsFiltered, dim_employee_hierarchy[employee_people_leader_business_unit_name_level_2], ", "), BLANK()) & MoreL2BusinessUnits
+			
+			// Employee Name Filter Summary
+			VAR EmployeeNamesFiltered = TOPN(10, FILTER(VALUES(dim_employee_hierarchy[employee_name]), NOT(ISBLANK(dim_employee_hierarchy[employee_name]))), dim_employee_hierarchy[employee_name], ASC)
+			VAR EmployeeNamesCount = IF(ISFILTERED(dim_employee_hierarchy[employee_name]), COUNTROWS(VALUES(dim_employee_hierarchy[employee_name])), 0)
+			VAR MoreEmployeeNames = IF(EmployeeNamesCount > 10, " and " & (EmployeeNamesCount - 10) & " more", "")
+			VAR EmployeeNameFilterSummary = IF(EmployeeNamesCount > 0, "| EMPLOYEE NAMES CHOSEN: " & CONCATENATEX(EmployeeNamesFiltered, dim_employee_hierarchy[employee_name], ", "), BLANK()) & MoreEmployeeNames
+			
+			// Consumption Method Filter Summary
+			VAR ConsumptionMethodsFiltered = TOPN(10, FILTER(VALUES(fact_activity_log[consumption_method]), NOT(ISBLANK(fact_activity_log[consumption_method]))), fact_activity_log[consumption_method], ASC)
+			VAR ConsumptionMethodsCount = IF(ISFILTERED(fact_activity_log[consumption_method]), COUNTROWS(VALUES(fact_activity_log[consumption_method])), 0)
+			VAR MoreConsumptionMethods = IF(ConsumptionMethodsCount > 10, " and " & (ConsumptionMethodsCount - 10) & " more", "")
+			VAR ConsumptionMethodFilterSummary = IF(ConsumptionMethodsCount > 0, "| CONSUMPTION METHODS CHOSEN: " & CONCATENATEX(ConsumptionMethodsFiltered, fact_activity_log[consumption_method], ", "), BLANK()) & MoreConsumptionMethods
+			
+			// Workspace Name Filter Summary
+			VAR WorkspaceNamesFiltered = TOPN(10, FILTER(VALUES(dim_item[workspace_name]), NOT(ISBLANK(dim_item[workspace_name]))), dim_item[workspace_name], ASC)
+			VAR WorkspaceNamesCount = IF(ISFILTERED(dim_item[workspace_name]), COUNTROWS(VALUES(dim_item[workspace_name])), 0)
+			VAR MoreWorkspaceNames = IF(WorkspaceNamesCount > 10, " and " & (WorkspaceNamesCount - 10) & " more", "")
+			VAR WorkspaceNameFilterSummary = IF(WorkspaceNamesCount > 0, "| WORKSPACE NAMES CHOSEN: " & CONCATENATEX(WorkspaceNamesFiltered, dim_item[workspace_name], ", "), BLANK()) & MoreWorkspaceNames
+			
+			// Activity Type Filter Summary
+			VAR ActivityTypesFiltered = TOPN(10, FILTER(VALUES(dim_activity_type[activity]), NOT(ISBLANK(dim_activity_type[activity]))), dim_activity_type[activity], ASC)
+			VAR ActivityTypesCount = IF(ISFILTERED(dim_activity_type[activity]), COUNTROWS(VALUES(dim_activity_type[activity])), 0)
+			VAR MoreActivityTypes = IF(ActivityTypesCount > 10, " and " & (ActivityTypesCount - 10) & " more", "")
+			VAR ActivityTypeFilterSummary = IF(ActivityTypesCount > 0, "| ACTIVITY TYPES CHOSEN: " & CONCATENATEX(ActivityTypesFiltered, dim_activity_type[activity], ", "), BLANK()) & MoreActivityTypes
+			
+			// Date Range Calculation with Error Handling
+			VAR StartDate = MIN(dim_date[date])
+			VAR EndDate = MAX(dim_date[date])
+			VAR DateRange = IF(
+			    NOT(ISBLANK(StartDate)) && NOT(ISBLANK(EndDate)),
+			    "Please note that all data shown is based on the following date range: " & FORMAT(StartDate, "dd/MM/YYYY") & " - " & FORMAT(EndDate, "dd/MM/YYYY") & " ",
+			    "Date range not available. "
+			)
+			
+			// Final Output Construction
+			RETURN
+			    DateRange &
+			    IF(
+			        ISBLANK(YearFilter) && ISBLANK(MonthFilter) && ISBLANK(ObjectNameFilterSummary) && ISBLANK(L2BusinessUnitFilterSummary) && ISBLANK(EmployeeNameFilterSummary) && ISBLANK(ConsumptionMethodFilterSummary) && ISBLANK(WorkspaceNameFilterSummary) && ISBLANK(ActivityTypeFilterSummary),
+			        "",
+			        "-- Summary of filters applied to page: " & YearFilter & " " & MonthFilter & " " & ObjectNameFilterSummary & " " & L2BusinessUnitFilterSummary & " " & EmployeeNameFilterSummary & " " & ConsumptionMethodFilterSummary & " " & WorkspaceNameFilterSummary & " " & ActivityTypeFilterSummary
+			    )
+			
+			```
+		isHidden
+		lineageTag: 04075ac3-e49a-4235-8c8d-0544e1986707
+
+	measure 'Activity Count' =
+			
+			COUNT(fact_activity_log[fact_powerbi_activity_log_key])
+		formatString: 0
+		lineageTag: 5493c535-4f55-4eca-aecc-012686374259
+
+	measure 'Activity Count SPLY' =
+			
+			CALCULATE(
+			    [Activity Count (Not Blank)],
+			    SAMEPERIODLASTYEAR(dim_date[Date])
+			)
+		formatString: 0
+		lineageTag: 7a868033-8ffc-463a-8132-6f322cd1dd90
+
+	measure 'Activity Count Last Month' =
+			
+			CALCULATE(
+			    [Activity Count (Not Blank)],
+			    ALL(dim_date),
+			    PREVIOUSMONTH(dim_date[Date])
+			)
+		formatString: 0
+		lineageTag: dcdbb384-1d71-4191-b9a5-321ffad02b94
+
+	measure 'Activity 12MR' =
+			
+			VAR _EndDate = MAX(dim_date[Date])
+			VAR _CurrentMonthNumber = MONTH(MAX(dim_date[Date]))
+			VAR _CurrentYearNumber = YEAR(MAX(dim_date[date]))
+			VAR _StartDate = EOMONTH(DATE(_CurrentYearNumber-1,_CurrentMonthNumber,01),1)+1
+			RETURN
+			CALCULATE(
+			    [Activity Count (Not Blank)],
+			    ALL(dim_date),
+			    dim_date[Date] >= _StartDate,
+			    dim_date[Date] <= _EndDate
+			)
+			
+			/*
+			VAR _MaxDate = MAX(dim_date[Date])
+			VAR _Year = MAX(dim_date[calendar_year])
+			RETURN
+			CALCULATE(
+			    [Activity Count (Not Blank)],
+			    ALL(dim_date),
+			    dim_date[calendar_year] = _Year,
+			    dim_date[Date] <= _MaxDate
+			)
+			*/
+		formatString: 0
+		lineageTag: f2338856-2aad-4d02-b9a3-9f32a1bb7c61
+
+	measure 'Activity L12MR' =
+			
+			CALCULATE(
+			    [Activity 12MR],
+			    ALL(dim_date),
+			    SAMEPERIODLASTYEAR(dim_date[Date])
+			)
+		formatString: 0
+		lineageTag: 19176655-90e5-431f-98f3-2136e681a493
+
+	measure 'Employee Count (dim_employee_hierarchy)' =
+			
+			DISTINCTCOUNT(dim_employee_hierarchy[dim_employee_key])
+		formatString: 0
+		lineageTag: aa87ba90-391d-4331-80e2-21048b82310b
+
+	measure 'Employee Count (fact_activity_log)' =
+			
+			IF(
+			    ISBLANK(DISTINCTCOUNT(fact_activity_log[user_id])),
+			    0,
+			    DISTINCTCOUNT(fact_activity_log[user_id])
+			)
+		formatString: 0
+		lineageTag: 303a59c8-3737-4c4e-8fe7-bcc11d8d97c5
+
+	measure 'Percentage of employees with activity' =
+			
+			IF(
+			    ISBLANK(
+			        DIVIDE(
+			            [Employee Count (fact_activity_log)],
+			            [Employee Count (dim_employee_hierarchy)]
+			        )),
+			        0,
+			        DIVIDE(
+			            [Employee Count (fact_activity_log)],
+			            [Employee Count (dim_employee_hierarchy)]
+			        )
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 3e1f9283-1300-47e6-99f7-3615b368ad4e
+
+	measure 'Average Activity Per Employee' =
+			
+			DIVIDE(
+			    [Activity Count (Not Blank)],
+			    [Employee Count (dim_employee_hierarchy)]
+			)
+		lineageTag: ad315940-28d0-4637-8042-b616b24f56a2
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Days Since Last Used' =
+			
+			DATEDIFF(
+			    MAX(
+			        fact_activity_log[nz_create_date]),
+			        TODAY(),
+			        DAY
+			)
+		formatString: 0
+		lineageTag: 07cb1d29-a146-4d1c-835e-4ec4c8593bcb
+
+	measure 'Fact Activity Log Employee Count (Not Blank)' =
+			
+			IF(
+			    ISBLANK([Employee Count (fact_activity_log)]),
+			        0,
+			        [Employee Count (fact_activity_log)]
+			)
+		formatString: 0
+		lineageTag: 5881e119-ca80-4dbb-b5b1-4465360bc6ee
+
+	measure 'Unique Users Last Month' =
+			
+			CALCULATE(
+			    [Employee Count (fact_activity_log)],
+			    ALL(dim_date),
+			    PREVIOUSMONTH(dim_date[Date])
+			)
+		formatString: 0
+		lineageTag: 6ff9f0b0-d748-4eba-9cea-b904b834a40b
+
+	measure 'Unique Users L12MR' =
+			
+			CALCULATE(
+			    [Unique Users 12MR],
+			    ALL(dim_date),
+			    SAMEPERIODLASTYEAR(dim_date[Date])
+			)
+		formatString: 0
+		lineageTag: 9e4ff878-9850-41a0-96dd-f0850d2bfef0
+
+	measure 'Unique Users 12MR' =
+			
+			VAR _EndDate = MAX(dim_date[Date])
+			VAR _CurrentMonthNumber = MONTH(MAX(dim_date[Date]))
+			VAR _CurrentYearNumber = YEAR(MAX(dim_date[date]))
+			VAR _StartDate = EOMONTH(DATE(_CurrentYearNumber-1,_CurrentMonthNumber,01),1)+1
+			RETURN
+			CALCULATE(
+			    [Employee Count (fact_activity_log)],
+			    ALL(dim_date),
+			    dim_date[Date] >= _StartDate,
+			    dim_date[Date] <= _EndDate
+			)
+			
+			
+			/*
+			VAR _MaxDate = MAX(dim_date[Date])
+			VAR _Year = MAX(dim_date[calendar_year])
+			RETURN
+			CALCULATE(
+			    [Employee Count (fact_activity_log)],
+			    ALL(dim_date),
+			    dim_date[calendar_year] = _Year,
+			    dim_date[Date] <= _MaxDate
+			)
+			*/
+		formatString: 0
+		lineageTag: 05dff8cd-6c0e-4702-9b01-67b9c4382d04
+
+	measure 'Distinct count of date' =
+			
+			DISTINCTCOUNT(fact_activity_log[nz_create_date])
+		formatString: 0
+		lineageTag: 32a3c9d2-c691-4bb9-9428-577049a2279d
+
+	measure 'Days between earliest and latest activity' =
+			
+			DATEDIFF(
+			    MIN(
+			        fact_activity_log[nz_create_date]),
+			        MAX(
+			            fact_activity_log[nz_create_date]),
+			            DAY
+			)
+			+1
+		formatString: 0
+		lineageTag: 101ddb88-1aaf-4930-85d6-48b193b2989f
+
+	measure 'Daily Utilisation Over Est. Lifespan' =
+			
+			DIVIDE(
+			    [Distinct count of date],
+			    [Days between earliest and latest activity]
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		isHidden
+		lineageTag: 9df8d1c9-e5cb-4468-9e9b-45741b3e4a2e
+
+	partition _Measures-0ee86b1b-a58d-4d7a-aaf2-e12618900831 = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

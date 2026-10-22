@@ -1,0 +1,54 @@
+expression ALL_DimTeam =
+		let
+		    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)'EAL' AS CompanyIdentifier,#(lf)CASE WHEN [TeamID]IS NOT NULL THEN CONCAT('E',[TeamID]) ELSE NULL END AS [TeamID],#(lf)CASE WHEN [CompanyID]IS NOT NULL THEN CONCAT('E',[CompanyID]) ELSE NULL END AS [CompanyID],#(lf)CASE WHEN [ContractID]IS NOT NULL THEN CONCAT('E',[ContractID]) ELSE NULL END AS [ContractID],#(lf)CASE WHEN [TeamFunctionID]IS NOT NULL THEN CONCAT('E',[TeamFunctionID]) ELSE NULL END AS [TeamFunctionID],#(lf)CASE WHEN [OldTeamID]IS NOT NULL THEN CONCAT('E',[OldTeamID]) ELSE NULL END AS [OldTeamID],#(lf)CASE WHEN [OldSupportLevelID]IS NOT NULL THEN CONCAT('E',[OldSupportLevelID]) ELSE NULL END AS [OldSupportLevelID],#(lf)CASE WHEN [SupportLevelTypeID]IS NOT NULL THEN CONCAT('E',[SupportLevelTypeID]) ELSE NULL END AS [SupportLevelTypeID],#(lf)CASE WHEN [TaskProcessID]IS NOT NULL THEN CONCAT('E',[TaskProcessID]) ELSE NULL END AS [TaskProcessID],#(lf)CASE WHEN [EmploymentPlanTemplateID]IS NOT NULL THEN CONCAT('E',[EmploymentPlanTemplateID]) ELSE NULL END AS [EmploymentPlanTemplateID],#(lf)CASE WHEN [AreaID]IS NOT NULL THEN CONCAT('E',[AreaID]) ELSE NULL END AS [AreaID],#(lf)CASE WHEN [DynamicFormID]IS NOT NULL THEN CONCAT('E',[DynamicFormID]) ELSE NULL END AS [DynamicFormID],#(lf)[TeamCode],#(lf)[TeamName],#(lf)[TeamDescription],#(lf)[TeamAutoAccept],#(lf)[TeamCapacity],#(lf)[TeamStartDate],#(lf)[TeamEndDate],#(lf)[TeamUDF1],#(lf)[TeamUDF2],#(lf)[TeamUDF3],#(lf)[TeamUDF4],#(lf)[TeamUDF5],#(lf)[TeamUDF6],#(lf)[TeamUDF7],#(lf)[TeamUDF8],#(lf)[TeamUDF9],#(lf)[TeamUDF10],#(lf)[TeamLUDF1],#(lf)[TeamLUDF2],#(lf)[TeamLUDF3],#(lf)[TeamLUDF4],#(lf)[TeamLUDF5],#(lf)[TeamRecentlyDischargedPeriodDaysOverride],#(lf)[TeamIsEmploymentTeam],#(lf)[TeamIsAllocatedSupportTimeTeam],#(lf)[TeamReferenceNumberRequired],#(lf)[TeamIsFosterCarerTeam],#(lf)[TeamIsFosterChildTeam],#(lf)[TeamShowGlobalActivityTemplate]#(lf)FROM RBEAL.dlDimTeam"]),
+		    #"Appended Query" = Table.Combine({Source, MNB_DimTeam})
+		in
+		    #"Appended Query"
+	lineageTag: 254ca1cc-93cf-4cbf-b61d-a1af97fa09f8
+	queryGroup: 'All (Unioned Data)'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression RB_UserTeamAccess =
+		let
+		    Source = Sql.Database(Server, Database, [Query="SELECT ut.UserID#(lf)#(tab),ut.TeamID#(lf)#(tab),u.UserEmailAddress#(lf)#(tab),u.UserEmployeeNumber#(lf)#(tab),t.TeamUDF5#(lf)#(tab),-- Finance Cost Centers#(lf)#(tab)t.TeamCode#(lf)#(tab),t.TeamName#(lf)#(tab),CASE #(lf)#(tab)#(tab)WHEN [TeamFunctionID] IS NOT NULL#(lf)#(tab)#(tab)#(tab)THEN CONCAT (#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)'E'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab),[TeamFunctionID]#(lf)#(tab)#(tab)#(tab)#(tab)#(tab))#(lf)#(tab)#(tab)ELSE NULL#(lf)#(tab)#(tab)END AS [TeamFunctionID]#(lf)FROM rbeal.dlFactUserTeam ut#(lf)INNER JOIN rbeal.dlDimUser u ON u.UserID = ut.UserID#(lf)INNER JOIN rbeal.dlDimTeam t ON t.TeamID = ut.TeamID#(lf)INNER JOIN rbeal.dlDimUserType ty ON ty.UserTypeID = u.UserTypeID#(lf)WHERE t.TeamEndDate IS NULL#(lf)#(tab)AND ty.UserTypeIsHidden = 0#(lf)#(tab)AND ut.UserTeamDeletedDate IS NULL#(lf)#(tab)AND u.UserDisabledDate IS NULL#(lf)#(tab)-- remove Finance/Quality Team users who have overarching access#(lf)#(tab)AND upper(u.UserEmailAddress) NOT IN (#(lf)#(tab)#(tab)'BASIL.DRAIN@EMERGEAOTEAORA.ORG.NZ'#(lf)#(tab)#(tab),'DAVID.VANTURNHOUT@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab),'BRAD.PALMER@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab),'JAY.GONSAL-KORALE@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab),'NICOLENE.PIENAAR@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab),'JASMINE.MOHAMMED@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab),'RIKKI-LEE.JOYCE@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab),'GONDA.SOLLIE@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab),'TREVOR.COOPER@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab),'STEFEN.HASSELBERG@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab),'GREG.HUBBARD@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab),'KATHY.CRIBBETT@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab),'CATHERINE.BENNETT@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab),'ANDY.DIMOND@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab),'WENDY.BECK@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab),'NATHAN.BARTHOW@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab),'MICHELLE.BRADSHAW@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab),'ANDREW.BOLITHO@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab),'HELEN.EGAN@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab),'MARVIN.KAGIRI@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab),'FAYE.LOGAN@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab),'COLLEEN.ZIMRI@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab),'JOHN.COOK@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab),'CELENE.JOHNSON@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab),'CHRIS.MAXWELL@EMERGEAOTEAROA.ORG.NZ'#(lf)#(tab)#(tab))"]),
+		    #"Uppercased Text" = Table.TransformColumns(Source,{{"UserEmailAddress", Text.Upper, type text}})
+		in
+		    #"Uppercased Text"
+	lineageTag: a53e1ee6-0720-4791-b859-aeace3a5f990
+	queryGroup: RLS
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression RB_UserTeamAccessMIB =
+		let
+		    Source = Sql.Database(Server, Database, [Query="#(lf)select ut.UserID,#(lf)       ut.TeamID,#(lf)#(tab)   u.UserEmailAddress,#(lf)#(tab)   u.UserEmployeeNumber,#(lf)#(tab)   t.TeamUDF5,    -- Finance Cost Centers#(lf)#(tab)   t.TeamCode,#(lf)#(tab)   t.TeamName,#(lf)#(tab)   CASE WHEN [TeamFunctionID] IS NOT NULL THEN CONCAT('M',[TeamFunctionID]) ELSE NULL END AS [TeamFunctionID]#(lf)from       RBMNB.dlFactUserTeam    ut#(lf)inner join RBMNB.dlDimUser         u  on u.UserID      = ut.UserID#(lf)inner join RBMNB.dlDimTeam         t  on t.TeamID      = ut.TeamID#(lf)inner join RBMNB.dlDimUserType     ty on ty.UserTypeID = u.UserTypeID#(lf)where t.TeamEndDate         is   null#(lf)and   ty.UserTypeIsHidden   =    0#(lf)and   ut.UserTeamDeletedDate is null#(lf)and   u.UserDisabledDate     is null#(lf)-- remove Finance/Quality Team users who have overarching access#(lf)and   upper(u.UserEmailAddress) not in #(lf)        (#(lf)         'BASIL.DRAIN@EMERGEAOTEAORA.ORG.NZ'#(lf)        ,'DAVID.VANTURNHOUT@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'BRAD.PALMER@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'ELLA.LYNCH@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'JAY.GONSAL-KORALE@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'NICOLENE.PIENAAR@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'JASMINE.MOHAMMED@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'CHAMARA.ILLAN@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'RIKKI-LEE.JOYCE@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'GONDA.SOLLIE@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'TREVOR.COOPER@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'STEFEN.HASSELBERG@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'GREG.HUBBARD@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'KATHY.CRIBBETT@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'CATHERINE.BENNETT@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'ANDY.DIMOND@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'WENDY.BECK@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'NATHAN.BARTHOW@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'MICHELLE.BRADSHAW@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'ANDREW.BOLITHO@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'HELEN.EGAN@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'MARVIN.KAGIRI@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'FAYE.LOGAN@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'COLLEEN.ZIMRI@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'JOHN.COOK@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'CELENE.JOHNSON@EMERGEAOTEAROA.ORG.NZ'#(lf)        ,'CHRIS.MAXWELL@EMERGEAOTEAROA.ORG.NZ'#(lf)        )"])
+		in
+		    Source
+	lineageTag: 2fe354f3-7f9d-4f6d-9053-dd3cc01ae1b2
+	queryGroup: RLS
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression Database = "ODS" meta [IsParameterQuery=true, Type="Any", IsParameterQueryRequired=true]
+	lineageTag: ca2050c3-0ec7-4f28-8408-a14349e42a90
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+expression Server = "synapseausprod-ondemand.sql.azuresynapse.net" meta [IsParameterQuery=true, Type="Any", IsParameterQueryRequired=true]
+	lineageTag: 2bf0a866-ef90-4cd2-9d40-093d648d424e
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+

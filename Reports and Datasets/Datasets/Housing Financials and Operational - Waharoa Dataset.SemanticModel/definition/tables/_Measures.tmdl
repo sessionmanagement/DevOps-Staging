@@ -1,0 +1,1006 @@
+table _Measures
+	lineageTag: ed0c1696-2b27-484e-aa11-546df4b7b894
+
+	measure IsActiveDuringSelectedFY =
+			
+			VAR SelectedFinancialYearStart = CALCULATE(MIN('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num]))
+			VAR SelectedFinancialYearEnd = CALCULATE(MAX('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num]))
+			
+			RETURN
+			IF (
+			    NOT ISBLANK(SELECTEDVALUE(fact_tenancy[zav_tenancystartdate])) &&
+			    CALCULATE (
+			        COUNTROWS (
+			            FILTER (
+			                fact_tenancy,
+			                SELECTEDVALUE(fact_tenancy[zav_tenancystartdate]) <= SelectedFinancialYearEnd &&
+			                (ISBLANK(SELECTEDVALUE(fact_tenancy[zav_vacateddate])) || SELECTEDVALUE(fact_tenancy[zav_vacateddate]) > SelectedFinancialYearStart)
+			            )
+			        )
+			    ) > 0,
+			    1,
+			    0
+			)
+		formatString: #,0
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 50a5ed40-8ef8-4fbe-817a-b4a7667d018c
+
+	measure 'Average Tenancy Length (Days)' = ```
+			
+			VAR SelectedFinancialYearStart = CALCULATE(MIN('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num]))
+			VAR SelectedFinancialYearEnd = CALCULATE(MAX('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num]))
+			
+			RETURN
+			CALCULATE (
+			    AVERAGE (fact_tenancy[Tenancy Length (Days)]),
+			    FILTER (
+			        ALL (dim_date),
+			        'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num])
+			    ),
+			    FILTER (
+			        fact_tenancy,
+			        NOT ISBLANK(fact_tenancy[zav_tenancystartdate]) &&
+			        fact_tenancy[zav_tenancystartdate] <= SelectedFinancialYearEnd &&
+			        (ISBLANK(fact_tenancy[zav_vacateddate]) || fact_tenancy[zav_vacateddate] > SelectedFinancialYearStart)
+			    )
+			)
+			
+			```
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 7f4817e6-88aa-460d-8306-ec4bbc84a8d1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Average Tenancy Length (All)' =
+			
+			//CALCULATE(AVERAGE(fact_tenancy[Tenancy Length (Days)]),ALL(dim_date), SELECTEDVALUE(dim_date[financial_year_num]) >= dim_date[financial_year_num]) --old measure that didn't account for the selected FY i.e. not include tenancy lengths after the end of the FY.
+			CALCULATE(AVERAGE(TenancyDaysByFY[tenancy_active_days_from_actual_start_to_end_in_fy]),ALL(dim_date),SELECTEDVALUE(dim_date[financial_year_num]) >= dim_date[financial_year_num])
+		formatString: 0
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 4d0da421-24d6-4090-acf1-b79403dae271
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Average Tenancy Length for Tenancies Ended in Selected FY (Days)' =
+			
+			VAR SelectedFinancialYearStart = CALCULATE(MIN('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num]))
+			VAR SelectedFinancialYearEnd = CALCULATE(MAX('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num]))
+			
+			RETURN
+			CALCULATE (
+			    AVERAGE (fact_tenancy[Tenancy Length (Days)]),
+			    ALL(dim_date),
+			    fact_tenancy[zav_vacateddate] >= SelectedFinancialYearStart,
+			    fact_tenancy[zav_vacateddate] <= SelectedFinancialYearEnd
+			)
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 6da0043e-b5cb-41c2-816d-72755db7791d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Average Tenancy Length for Tenancies Started in Selected FY (Days)' = ```
+			
+			VAR SelectedFinancialYearStart = CALCULATE(MIN('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num]))
+			VAR SelectedFinancialYearEnd = CALCULATE(MAX('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num]))
+			
+			RETURN
+			CALCULATE (
+			    AVERAGE (fact_tenancy[Tenancy Length (Days)]),
+			    ALLSELECTED(dim_date),
+			    fact_tenancy[zav_tenancystartdate] >= SelectedFinancialYearStart,
+			    fact_tenancy[zav_tenancystartdate] <= SelectedFinancialYearEnd
+			    )
+			
+			```
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: c735a198-8eec-4af6-94a3-e4b72f4476f5
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Average Property Ownership Length (All)' =
+			
+			//CALCULATE(AVERAGE(fact_property[length_of_ownership_days]),ALL(dim_date))
+			AVERAGE(PropertyOwnershipDaysByFY[DaysPropertyOwnedAtFYEndOrToday])
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: a3215e3f-4382-4080-bc38-f2e98c70013b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Average Age of Housing (Days)' =
+			
+			/*CALCULATE(
+			    AVERAGE(fact_property[house_age_days])///365,
+			    ALL(dim_date)
+			)*/
+			CALCULATE(AVERAGE(PropertyOwnershipDaysByFY[PropertyAgeDaysAtFYEndOrToday]),dim_property[zav_propertyownership] = "Owned")
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 4f9346b2-d0e3-432f-940d-af8b23fce1ae
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'YoY Growth in Housing Portfolio %' = ```
+			
+			
+			--date variables
+			VAR SelectedFinancialYearStart = CALCULATE(MIN('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num]))
+			VAR SelectedFinancialYearEnd = CALCULATE(MAX('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num]))
+			VAR PrevFinancialYearStart = CALCULATE(MIN('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num])-1)
+			VAR PrevFinancialYearEnd = CALCULATE(MAX('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num])-1)
+			
+			--housing count variables
+			VAR PrevFinancialYearCount = 
+			CALCULATE(
+			    COUNTROWS(fact_property),
+			    ALL(dim_date),
+			    dim_property[zav_acquireddate] <= PrevFinancialYearEnd,
+			    OR(ISBLANK(dim_property[zav_confirmeddisposaldate]),dim_property[zav_confirmeddisposaldate] > PrevFinancialYearEnd)
+			)
+			
+			VAR SelectedFinancialYearCount = 
+			CALCULATE(
+			    COUNTROWS(fact_property),
+			    ALL(dim_date),
+			    dim_property[zav_acquireddate] <= SelectedFinancialYearEnd,
+			    OR(ISBLANK(dim_property[zav_confirmeddisposaldate]),dim_property[zav_confirmeddisposaldate] > SelectedFinancialYearEnd)
+			)
+			
+			RETURN
+			(SelectedFinancialYearCount - PrevFinancialYearCount) / SelectedFinancialYearCount
+			```
+		formatString: 0%;-0%;0%
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 990643cd-409c-454c-bec2-b2381ea90294
+
+	measure 'YoY Growth in Housing Portfolio #' = ```
+			
+			VAR _Acquired = IF(
+			    ISBLANK(DISTINCTCOUNT(fact_property[zav_propertyid])),0,DISTINCTCOUNT(fact_property[zav_propertyid]))
+			VAR _Disposed = IF(
+			    ISBLANK(DISTINCTCOUNT(fact_property_for_disposed[zav_propertyid])),0,DISTINCTCOUNT(fact_property_for_disposed[zav_propertyid]))
+			
+			RETURN
+			_Acquired - _Disposed
+			
+			/*
+			
+			--Simplified measure above. Original below.
+			
+			--date variables
+			VAR SelectedFinancialYearStart = CALCULATE(MIN('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num]))
+			VAR SelectedFinancialYearEnd = CALCULATE(MAX('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num]))
+			VAR PrevFinancialYearStart = CALCULATE(MIN('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num])-1)
+			VAR PrevFinancialYearEnd = CALCULATE(MAX('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num])-1)
+			
+			--housing count variables
+			VAR PrevFinancialYearCount = 
+			CALCULATE(
+			    COUNTROWS(fact_property),
+			    ALL(dim_date),
+			    dim_property[zav_acquireddate] <= PrevFinancialYearEnd,
+			    OR(ISBLANK(dim_property[zav_confirmeddisposaldate]),dim_property[zav_confirmeddisposaldate] > PrevFinancialYearEnd)
+			)
+			
+			VAR SelectedFinancialYearCount = 
+			CALCULATE(
+			    COUNTROWS(fact_property),
+			    ALL(dim_date),
+			    dim_property[zav_acquireddate] <= SelectedFinancialYearEnd,
+			    OR(ISBLANK(dim_property[zav_confirmeddisposaldate]),dim_property[zav_confirmeddisposaldate] > SelectedFinancialYearEnd)
+			)
+			
+			RETURN
+			SelectedFinancialYearCount - PrevFinancialYearCount
+			*/
+			```
+		formatString: 0
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 85674381-7c5e-485f-8d34-6da328c470d3
+
+	measure 'Housing Portfolio Count (by Year) 2' =
+			
+			VAR _FYStart = SELECTEDVALUE(dim_date[financial_first_day_of_year_date])
+			VAR _FYEnd = SELECTEDVALUE(dim_date[financial_last_day_of_year_date])
+			RETURN
+			CALCULATE(
+			    COUNTROWS(dim_property),
+			    ALL(dim_date),
+			    PropertyOwnershipDaysByFY[BeginPropertyOwnershipDateForFY] >= _FYStart,
+			    PropertyOwnershipDaysByFY[BeginPropertyOwnershipDateForFY] <= _FYEnd
+			)
+		formatString: #,0
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 16e2b431-16c5-4d01-a7bf-d55560396eca
+
+	measure 'YoY Growth in Housing Portfolio % (limited to before today)' =
+			
+			IF(
+			    MAX(dim_date[financial_year_num]) > YEAR(TODAY()),
+			        BLANK(),
+			        CALCULATE([YoY Growth in Housing Portfolio %])
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: b3f38610-0c20-4be8-9658-bbc7ed54abd8
+
+	measure 'YoY Growth in Housing Portfolio # (limited to before today)' =
+			
+			IF(
+			    MAX(dim_date[financial_year_num]) > YEAR(TODAY()),
+			        BLANK(),
+			        CALCULATE([YoY Growth in Housing Portfolio #])
+			)
+		formatString: 0
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: d0b316d5-92f0-435f-8d79-79d0a8f6be2a
+
+	measure 'Housing Portfolio Count (Basic)' =
+			
+			COUNTROWS(fact_property)
+		formatString: #,0
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 35bea909-0f1d-4635-8d70-005cceaf2caf
+
+	measure 'Average Number of Household Members for Tenancies Active in Selected FY' =
+			
+			/*VAR SelectedFinancialYearStart = CALCULATE(MIN('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num]))
+			VAR SelectedFinancialYearEnd = CALCULATE(MAX('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num]))
+			
+			RETURN
+			CALCULATE (
+			    AVERAGE (FactHouseholdMembersByFY[MaxHouseholdMembersForTenancyInFY]),
+			    ALL(dim_date),
+			    fact_tenancy[zav_tenancystartdate] <= SelectedFinancialYearEnd,
+			    OR(fact_tenancy[zav_vacateddate] >= SelectedFinancialYearStart,ISBLANK(fact_tenancy[zav_vacateddate]))
+			)*/
+			AVERAGE(FactHouseholdMembersByFY[MaxHouseholdMembersForTenancyInFY])
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 91709c72-cb24-40dd-9fea-3dbc08079af1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Number of Household Members for Tenancies Active in Selected FY' =
+			
+			/*VAR SelectedFinancialYearStart = CALCULATE(MIN('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num]))
+			VAR SelectedFinancialYearEnd = CALCULATE(MAX('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num]))
+			
+			RETURN
+			CALCULATE (
+			    SUM(FactHouseholdMembersByFY[MaxHouseholdMembersForTenancyInFY]),
+			    ALL(dim_date),
+			    fact_tenancy[zav_tenancystartdate] <= SelectedFinancialYearEnd,
+			    OR(fact_tenancy[zav_vacateddate] >= SelectedFinancialYearStart,ISBLANK(fact_tenancy[zav_vacateddate]))
+			)*/
+			/*CALCULATE(
+			    SUM(FactHouseholdMembersByFY[MaxHouseholdMembersForTenancyInFY]),
+			    FactHouseholdMembersByFY[LastDayOfFY] = SELECTEDVALUE(dim_date[financial_last_day_of_year_date])
+			)
+			*/
+			SUM(FactHouseholdMembersByFY[MaxHouseholdMembersForTenancyInFY])
+		formatString: #,0
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 5931f58b-256b-496a-9841-e291397de728
+
+	measure 'Number of Tenanted Properties' =
+			
+			VAR SelectedFinancialYearStart = CALCULATE(MIN('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num]))
+			VAR SelectedFinancialYearEnd = CALCULATE(MAX('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num]))
+			RETURN
+			    CALCULATE(DISTINCTCOUNT(dim_property[zav_propertyid]),
+			    ALL(dim_date),
+			    dim_property[zav_acquireddate] <= SelectedFinancialYearEnd,
+			    OR(dim_property[zav_confirmeddisposaldate] > SelectedFinancialYearEnd, ISBLANK(dim_property[zav_confirmeddisposaldate])),
+			    fact_tenancy[zav_tenancystartdate] <= SelectedFinancialYearEnd,
+			    OR(fact_tenancy[zav_vacateddate] > SelectedFinancialYearEnd, ISBLANK(fact_tenancy[zav_vacateddate]))
+			    )
+		formatString: #,0
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 04048443-2a6d-4811-8684-f9f1349f2d6e
+
+	measure 'Number of Untenanted Properties' =
+			
+			VAR SelectedFinancialYearStart = CALCULATE(MIN('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num]))
+			VAR SelectedFinancialYearEnd = CALCULATE(MAX('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num]))
+			RETURN
+			    CALCULATE(DISTINCTCOUNT(dim_property[zav_propertyid]),
+			    ALL(dim_date),
+			    dim_property[zav_acquireddate] <= SelectedFinancialYearEnd,
+			    OR(dim_property[zav_confirmeddisposaldate] > SelectedFinancialYearEnd, ISBLANK(dim_property[zav_confirmeddisposaldate])),
+			    OR(fact_tenancy[zav_tenancystartdate] > SelectedFinancialYearEnd, fact_tenancy[zav_tenancystartdate] < SelectedFinancialYearStart),
+			    OR(fact_tenancy[zav_vacateddate] < SelectedFinancialYearStart, fact_tenancy[zav_vacateddate] > SelectedFinancialYearEnd)
+			    )
+		formatString: #,0
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: abf296dd-24ca-45e4-816b-af4186d2087b
+
+	measure 'Property Tenanted % for FY' =
+			
+			IFERROR(SELECTEDVALUE(TenancyDaysByFY[TenancyActiveDaysInFY]) / SELECTEDVALUE(PropertyOwnershipDaysByFY[PropertyOwnershipDaysInFY]),0)
+		formatString: 0.00%;-0.00%;0.00%
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 5811a5d7-950b-4564-ab0f-ef0053e7e0cb
+
+	measure 'Prev FY Tenancy Active %' =
+			
+			VAR _year = SELECTEDVALUE(dim_date[financial_year_num])-1
+			RETURN
+			CALCULATE(
+			    [Tenancy Active in FY % (Multiple Properties)],
+			    ALL(dim_date),
+			    dim_date[financial_year_num] = _year
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 39a79539-058a-4460-a889-96011539dad2
+
+		changedProperty = FormatString
+
+	measure 'Prev FY-1 Tenancy Active %' =
+			
+			VAR _year = SELECTEDVALUE(dim_date[financial_year_num])-2
+			RETURN
+			CALCULATE(
+			    [Tenancy Active in FY % (Multiple Properties)],
+			    ALL(dim_date),
+			    dim_date[financial_year_num] = _year
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 47156c13-ab65-43e2-850f-5cf73f3e40a6
+
+		changedProperty = FormatString
+
+	measure 'Title: Utilisation for FY (Current)' =
+			
+			CONCATENATE("Utilisation / Occupancy Rate for FY ", SELECTEDVALUE(dim_date[financial_year_num]))
+		isHidden
+		displayFolder: 1. Titles
+		lineageTag: f7e8f634-6f6f-4666-a7cb-6c008bf6397e
+
+	measure 'Prev FY-2 Tenancy Active %' =
+			
+			VAR _year = SELECTEDVALUE(dim_date[financial_year_num])-3
+			RETURN
+			CALCULATE(
+			    [Tenancy Active in FY % (Multiple Properties)],
+			    ALL(dim_date),
+			    dim_date[financial_year_num] = _year
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: c1acfa3b-a6d8-4593-bba0-074f5a521abd
+
+		changedProperty = FormatString
+
+	measure 'Housing Portfolio Count (by Year)' =
+			
+			/*
+			--date variables
+			VAR SelectedFinancialYearStart = CALCULATE(MIN('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num]))
+			VAR SelectedFinancialYearEnd = CALCULATE(MAX('dim_date'[calendar_date]), ALL('dim_date'), 'dim_date'[financial_year_num] = SELECTEDVALUE('dim_date'[financial_year_num]))
+			
+			RETURN
+			IF(MAX(dim_date[financial_year_num]) > YEAR(TODAY()),BLANK(),
+			CALCULATE(
+			    COUNTROWS(fact_property),
+			    ALL(dim_date),
+			    dim_property[zav_acquireddate] <= SelectedFinancialYearEnd,
+			    OR(ISBLANK(dim_property[zav_confirmeddisposaldate]),dim_property[zav_confirmeddisposaldate] > SelectedFinancialYearEnd)
+			))
+			*/
+			DISTINCTCOUNT(PropertyOwnershipDaysByFY[zav_propertyid])
+		formatString: #,0
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: bbf0f0f8-7eab-4a6a-9fdb-273ca0f8816a
+
+	measure 'Title: Owner (for Register)' = CONCATENATE(SELECTEDVALUE(dim_property[zav_legalowneridname]) & " | FY ",SELECTEDVALUE(dim_date[financial_year_num]))
+		isHidden
+		displayFolder: 1. Titles
+		lineageTag: ed26c495-e88b-4346-a737-a59ce67e6725
+
+	measure FiltersApplied =
+			
+			VAR __1FinYear = IF(ISFILTERED(dim_date[financial_year_num]), CONCATENATEX(FILTERS(dim_date[financial_year_num]), dim_date[financial_year_num], ", "), BLANK())
+			
+			VAR __2LegalOwnerIDNames = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_property[zav_legalowneridname]), NOT(ISBLANK(dim_property[zav_legalowneridname]))), dim_property[zav_legalowneridname], ASC),
+			    "LegalOwnerIDName_display", dim_property[zav_legalowneridname]
+			)
+			VAR __3LegalOwnerIDNamesCount = IF(ISFILTERED(dim_property[zav_legalowneridname]), COUNTROWS(VALUES(dim_property[zav_legalowneridname])), 0)
+			VAR __4MoreLegalOwnerIDNames = IF(__3LegalOwnerIDNamesCount > 10, " and " & (__3LegalOwnerIDNamesCount - 10) & " more", "")
+			
+			VAR __5ProgramNames = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_subprogram[program_name]), NOT(ISBLANK(dim_subprogram[program_name]))), dim_subprogram[program_name], ASC),
+			    "ProgramName_display", dim_subprogram[program_name]
+			)
+			VAR __6ProgramNamesCount = IF(ISFILTERED(dim_subprogram[program_name]), COUNTROWS(VALUES(dim_subprogram[program_name])), 0)
+			VAR __7MoreProgramNames = IF(__6ProgramNamesCount > 10, " and " & (__6ProgramNamesCount - 10) & " more", "")
+			
+			VAR __8SubprogramNames = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_subprogram[subprogram_name]), NOT(ISBLANK(dim_subprogram[subprogram_name]))), dim_subprogram[subprogram_name], ASC),
+			    "SubprogramName_display", dim_subprogram[subprogram_name]
+			)
+			VAR __9SubprogramNamesCount = IF(ISFILTERED(dim_subprogram[subprogram_name]), COUNTROWS(VALUES(dim_subprogram[subprogram_name])), 0)
+			VAR __10MoreSubprogramNames = IF(__9SubprogramNamesCount > 10, " and " & (__9SubprogramNamesCount - 10) & " more", "")
+			
+			VAR __11FullAddresses = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES(dim_property[zav_fulladdress]), NOT(ISBLANK(dim_property[zav_fulladdress]))), dim_property[zav_fulladdress], ASC),
+			    "FullAddress_display", dim_property[zav_fulladdress]
+			)
+			VAR __12FullAddressesCount = IF(ISFILTERED(dim_property[zav_fulladdress]), COUNTROWS(VALUES(dim_property[zav_fulladdress])), 0)
+			VAR __13MoreFullAddresses = IF(__12FullAddressesCount > 5, " and " & (__12FullAddressesCount - 5) & " more", "")
+			
+			// New Filter for Rent Name
+			VAR __14RentNames = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(fact_tenancy_transaction_details[zav_rentname]), NOT(ISBLANK(fact_tenancy_transaction_details[zav_rentname]))), fact_tenancy_transaction_details[zav_rentname], ASC),
+			    "RentName_display", fact_tenancy_transaction_details[zav_rentname]
+			)
+			VAR __15RentNamesCount = IF(ISFILTERED(fact_tenancy_transaction_details[zav_rentname]), COUNTROWS(VALUES(fact_tenancy_transaction_details[zav_rentname])), 0)
+			VAR __16MoreRentNames = IF(__15RentNamesCount > 10, " and " & (__15RentNamesCount - 10) & " more", "")
+			
+			// New Filter for Account Type Name
+			VAR __17AccountTypeNames = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(fact_tenancy_transaction_details[zav_accounttypename]), NOT(ISBLANK(fact_tenancy_transaction_details[zav_accounttypename]))), fact_tenancy_transaction_details[zav_accounttypename], ASC),
+			    "AccountTypeName_display", fact_tenancy_transaction_details[zav_accounttypename]
+			)
+			VAR __18AccountTypeNamesCount = IF(ISFILTERED(fact_tenancy_transaction_details[zav_accounttypename]), COUNTROWS(VALUES(fact_tenancy_transaction_details[zav_accounttypename])), 0)
+			VAR __19MoreAccountTypeNames = IF(__18AccountTypeNamesCount > 10, " and " & (__18AccountTypeNamesCount - 10) & " more", "")
+			
+			// New Filter for Transaction Type Name
+			VAR __20TransactionTypeNames = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(fact_tenancy_transaction_details[zav_transactiontypename]), NOT(ISBLANK(fact_tenancy_transaction_details[zav_transactiontypename]))), fact_tenancy_transaction_details[zav_transactiontypename], ASC),
+			    "TransactionTypeName_display", fact_tenancy_transaction_details[zav_transactiontypename]
+			)
+			VAR __21TransactionTypeNamesCount = IF(ISFILTERED(fact_tenancy_transaction_details[zav_transactiontypename]), COUNTROWS(VALUES(fact_tenancy_transaction_details[zav_transactiontypename])), 0)
+			VAR __22MoreTransactionTypeNames = IF(__21TransactionTypeNamesCount > 10, " and " & (__21TransactionTypeNamesCount - 10) & " more", "")
+			
+			
+			VAR _FC_1FinYear = IF(ISBLANK(__1FinYear), BLANK(), "FINANCIAL YEAR CHOSEN: " & __1FinYear)
+			VAR _FC_2LegalOwnerIDNames = IF(__3LegalOwnerIDNamesCount > 0, "-- OWNERS CHOSEN: " & CONCATENATEX(__2LegalOwnerIDNames, [LegalOwnerIDName_display], ", "), BLANK())
+			VAR _FC_3MoreLegalOwnerIDNames = IF(__3LegalOwnerIDNamesCount > 10, " and " & (__3LegalOwnerIDNamesCount - 10) & " more", "")
+			VAR _FC_4ProgramNames = IF(__6ProgramNamesCount > 0, "-- PROGRAMS CHOSEN: " & CONCATENATEX(__5ProgramNames, [ProgramName_display], ", "), BLANK())
+			VAR _FC_5MoreProgramNames = IF(__6ProgramNamesCount > 10, " and " & (__6ProgramNamesCount - 10) & " more", "")
+			
+			VAR _FC_6SubprogramNames = IF(__9SubprogramNamesCount > 0, "-- SUBPROGRAMS CHOSEN: " & CONCATENATEX(__8SubprogramNames, [SubprogramName_display], ", "), BLANK())
+			VAR _FC_7MoreSubprogramNames = IF(__9SubprogramNamesCount > 10, " and " & (__9SubprogramNamesCount - 10) & " more", "")
+			
+			VAR _FC_8FullAddresses = IF(__12FullAddressesCount > 0, "-- PROPERTY ADDRESSES CHOSEN: " & CONCATENATEX(__11FullAddresses, [FullAddress_display], ", "), BLANK())
+			VAR _FC_9MoreFullAddresses = IF(__12FullAddressesCount > 5, " and " & (__12FullAddressesCount - 5) & " more", "")
+			
+			VAR _FC_10RentNames = IF(__15RentNamesCount > 0, "-- RENT TYPES CHOSEN: " & CONCATENATEX(__14RentNames, [RentName_display], ", "), BLANK())
+			VAR _FC_11MoreRentNames = IF(__15RentNamesCount > 10, " and " & (__15RentNamesCount - 10) & " more", "")
+			VAR _FC_12AccountTypeNames = IF(__18AccountTypeNamesCount > 0, "-- ACCOUNT TYPES CHOSEN: " & CONCATENATEX(__17AccountTypeNames, [AccountTypeName_display], ", "), BLANK())
+			VAR _FC_13MoreAccountTypeNames = IF(__18AccountTypeNamesCount > 10, " and " & (__18AccountTypeNamesCount - 10) & " more", "")
+			VAR _FC_14TransactionTypeNames = IF(__21TransactionTypeNamesCount > 0, "-- TRANSACTION TYPES CHOSEN: " & CONCATENATEX(__20TransactionTypeNames, [TransactionTypeName_display], ", "), BLANK())
+			VAR _FC_15MoreTransactionTypeNames = IF(__21TransactionTypeNamesCount > 10, " and " & (__21TransactionTypeNamesCount - 10) & " more", "")
+			
+			VAR _FirstDate = MIN(dim_date[calendar_date])
+			VAR _LastDate = MAX(dim_date[calendar_date])
+			RETURN
+			"(" & FORMAT(_FirstDate, "dd/MM/YYYY") & " - " & FORMAT(_LastDate, "dd/MM/YYYY") & ") " &
+			IF(
+			    ISBLANK(_FC_2LegalOwnerIDNames) && ISBLANK(_FC_4ProgramNames) && ISBLANK(_FC_6SubprogramNames) && ISBLANK(_FC_8FullAddresses) && ISBLANK(_FC_10RentNames) && ISBLANK(_FC_12AccountTypeNames) && ISBLANK(_FC_14TransactionTypeNames),
+			    "",
+			    "and other selected fields: " & " " & _FC_2LegalOwnerIDNames & _FC_3MoreLegalOwnerIDNames & " " & _FC_4ProgramNames & _FC_5MoreProgramNames & " " & _FC_6SubprogramNames & _FC_7MoreSubprogramNames & " " & _FC_8FullAddresses & _FC_9MoreFullAddresses & " " & _FC_10RentNames & _FC_11MoreRentNames & " " & _FC_12AccountTypeNames & _FC_13MoreAccountTypeNames & " " & _FC_14TransactionTypeNames & _FC_15MoreTransactionTypeNames
+			)
+		isHidden
+		displayFolder: 3. Applied Filters
+		lineageTag: ec2bd5a0-bb55-4fde-bb1d-eb6301709819
+
+	measure 'Title: Summary Page' =
+			
+			CONCATENATE("Waharoa Summary | FY ",SELECTEDVALUE(dim_date[financial_year_num]))
+		isHidden
+		displayFolder: 1. Titles
+		lineageTag: 28003bcb-368a-437b-a6a3-d5b6540a1d23
+
+	measure 'Filters Applied (Has No Selected FY)' = "Please be aware that data is displayed for the previous 7 financial years " & [FiltersApplied]
+		isHidden
+		displayFolder: 3. Applied Filters
+		lineageTag: e59c3209-16e6-4835-b950-a9ef0c4b2503
+
+	measure 'Title: Housing Stock Detail' =
+			
+			CONCATENATE("Housing Stock Detail | FY ",SELECTEDVALUE(dim_date[financial_year_num]))
+		isHidden
+		displayFolder: 1. Titles
+		lineageTag: 1c439961-4d33-4a81-99d4-c3516cf5c5a8
+
+	measure 'Title: Accommodation Utilisation Detail' =
+			
+			CONCATENATE("Accommodation Utilisation Detail | FY ",SELECTEDVALUE(dim_date[financial_year_num]))
+		isHidden
+		displayFolder: 1. Titles
+		lineageTag: 19a19ad1-f21b-475e-a5a3-020b7feca82b
+
+	measure 'Title: Accommodation Utilisation Analysis' =
+			
+			CONCATENATE("Accommodation Utilisation Analysis | FY ",SELECTEDVALUE(dim_date[financial_year_num]))
+		isHidden
+		displayFolder: 1. Titles
+		lineageTag: d48f80dc-cecc-4cb5-905a-c5cfc4bd9d5e
+
+	measure 'Number Tenanted Days in FY (Not Blank)' =
+			
+			IF(
+			    ISBLANK(SELECTEDVALUE(TenancyDaysByFY[TenancyActiveDaysInFY])),
+			    0,
+			    SELECTEDVALUE(TenancyDaysByFY[TenancyActiveDaysInFY])
+			)
+		formatString: #,0
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 4395174a-9dc9-4062-84a9-fa5efd8d9114
+
+	measure 'Tenancy Active in FY % (Multiple Properties)' =
+			
+			/*IFERROR(
+			        IF(
+			        ISBLANK(
+			           SUM(TenancyDaysByFY[TenancyActiveDaysInFY])),
+			           0,
+			           SUM(TenancyDaysByFY[TenancyActiveDaysInFY]) / SUM(PropertyOwnershipDaysByFY[PropertyOwnershipDaysInFY])
+			    ),
+			    "N/A"
+			)*/
+			
+			IFERROR(
+			    SUM(TenancyDaysByFY[TenancyActiveDaysInFY]) / SUM(PropertyOwnershipDaysByFY[PropertyOwnershipDaysInFY]),0
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: f1dbd75e-c828-447f-a6d9-cf4eee3902f9
+
+	measure 'Filters Applied (Has Selected FY)' = "Please be aware all numbers are based on the currently selected time period " & [FiltersApplied]
+		isHidden
+		displayFolder: 3. Applied Filters
+		lineageTag: b8364ac7-2feb-4c0c-832c-543a78894fc6
+
+	measure 'Number of properties owned in FY' =
+			
+			CALCULATE(
+			    [Housing Portfolio Count (by Year)],
+			    dim_property[zav_propertyownership] = "Owned"
+			)
+		formatString: #,0
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: ee41d9b9-d346-4a59-b034-3bb8c7aeb525
+
+		changedProperty = IsHidden
+
+	measure 'Number of properties leased in FY' =
+			
+			CALCULATE(
+			    [Housing Portfolio Count (by Year)],
+			    dim_property[zav_propertyownership] = "Leased"
+			)
+		formatString: #,0
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: cb010af0-b220-4d78-bc6c-0d62c9843df7
+
+		changedProperty = IsHidden
+
+	measure 'Basic dim_property count' =
+			
+			IF(
+			    ISBLANK(DISTINCTCOUNT(dim_property[zav_propertyid])),
+			    0,
+			    DISTINCTCOUNT(dim_property[zav_propertyid])
+			)
+		formatString: #,0
+		displayFolder: 2. Measures
+		lineageTag: 24afcac6-abae-4a42-9444-b19073b017a7
+
+		changedProperty = IsHidden
+
+	measure 'Format: basic dim_property count (0 is bad, greater than 0 is ok)' =
+			
+			IF(
+			    [Basic dim_property count] = 0, "#F47C20", "black"
+			)
+		isHidden
+		displayFolder: 5. Formatting
+		lineageTag: 843f98b5-132c-4c66-8941-f15497999fb7
+
+		changedProperty = IsHidden
+
+	measure 'Format: basic dim_property count (0 is ok, greater than 0 is bad)' =
+			
+			IF(
+			    [Basic dim_property count] = 0, "black", "#F47C20"
+			)
+		isHidden
+		displayFolder: 5. Formatting
+		lineageTag: b02cd0d0-681d-45ce-ad84-ee96a8233e74
+
+		changedProperty = IsHidden
+
+	measure 'Tenancy Balance' = ```
+			
+			    SUM(fact_tenancy_transaction_details[zav_amount])
+			```
+		formatString: $#,##0.00;($#,##0.00)
+		isHidden
+		displayFolder: 4. Rental/Transactions
+		lineageTag: 4b70a811-985a-4395-ae6a-0e3db465dad3
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Amount (Same Period Last Year)' =
+			
+			CALCULATE(
+			    SUM(
+			        fact_tenancy_transaction_details[zav_amount]
+			    )
+			    ,SAMEPERIODLASTYEAR(dim_date[calendar_date])
+			)
+		formatString: $#,##0.00;($#,##0.00)
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 7ff86285-6183-467f-b2ba-a932c78b4d82
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Difference in Amount (Selected Period v Same Time Last Year)' =
+			
+			IFERROR(
+			    CALCULATE(
+			        ([Amount (Same Period Last Year)] - SUM(fact_tenancy_transaction_details[zav_amount])) / [Amount (Same Period Last Year)]
+			        *-1
+			    ),
+			    0
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: dcc1baf5-a32b-4b75-8303-4a29e388f94c
+
+		changedProperty = IsHidden
+
+	measure 'Title: Tenancy Name' =
+			
+			SELECTEDVALUE(dim_tenancy[name])
+		isHidden
+		displayFolder: 1. Titles
+		lineageTag: 3d5adc9a-bf58-49e6-9cbe-ba2825729840
+
+		changedProperty = IsHidden
+
+	measure 'Amount (Last Month)' =
+			
+			CALCULATE(
+			    SUM(
+			        fact_tenancy_transaction_details[zav_amount]
+			    )
+			    ,PREVIOUSMONTH(dim_date[calendar_date])
+			)
+		formatString: $#,##0.00;($#,##0.00)
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 89750630-5fa6-4a85-92f7-ef9f4cc7e1d1
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Difference in Amount (Selected Month v Prev Month)' =
+			
+			IFERROR(
+			    CALCULATE(
+			        ([Amount (Last Month)] - SUM(fact_tenancy_transaction_details[zav_amount])) / [Amount (Last Month)]
+			        *-1
+			    ),
+			    0
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: e0c6ba27-c8d3-46ed-a13b-47fe7f9ff050
+
+		changedProperty = IsHidden
+
+	measure 'Title: Tenancy Manager Name' =
+			
+			CONCATENATE("Tenancy Manager: ", SELECTEDVALUE(dim_tenancy_manager[fullname]))
+		isHidden
+		displayFolder: 1. Titles
+		lineageTag: 5964a061-5303-48c2-b1a5-eda99ac84bc8
+
+		changedProperty = IsHidden
+
+	measure RefreshedAt_forDisplay = "Data last refreshed: " & FORMAT(LASTDATE(LastRefreshed[Date Last Refreshed]), "dd/MM/YYYY - hh:mm AM/PM")
+		isHidden
+		displayFolder: 6. Misc
+		lineageTag: 3c297c5a-04d0-4476-9937-2a142bfacbdc
+
+		changedProperty = IsHidden
+
+	measure 'Tenancy Balance as at Date' =
+			
+			VAR MaxDate = MAX(dim_date[calendar_date])
+			RETURN
+			CALCULATE(
+			    SUM(fact_tenancy_transaction_details[zav_amount]),
+			    ALL(dim_date),
+			    fact_tenancy_transaction_details[zav_date] <= MaxDate
+			)
+		formatString: $#,##0.00;($#,##0.00)
+		displayFolder: 2. Measures
+		lineageTag: a6986581-7433-4a4c-84f3-3c79f633c365
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure '% undamaged assets' = ```
+			
+			VAR _totalAssets = 
+			    COUNTROWS(
+			        fact_inspection_detail)
+			VAR _undamagedAssets = 
+			    CALCULATE(
+			        COUNTROWS(
+			            fact_inspection_detail),
+			            fact_inspection_detail[zav_undamagedname] = "Yes"
+			    )
+			RETURN
+			_undamagedAssets / _totalAssets
+			```
+		formatString: 0%;-0%;0%
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: ecfa2c1a-76d2-4033-a785-4e2e90f48b94
+
+	measure '% clean assets' = ```
+			
+			VAR _totalAssets = 
+			    COUNTROWS(
+			        fact_inspection_detail)
+			VAR _cleanAssets = 
+			    CALCULATE(
+			        COUNTROWS(
+			            fact_inspection_detail),
+			            fact_inspection_detail[zav_cleanname] = "Yes"
+			    )
+			RETURN
+			_cleanAssets / _totalAssets
+			```
+		formatString: 0%;-0%;0%
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 769f0718-9be4-4b67-ab92-38e13ca4e905
+
+	measure '% working assets' = ```
+			
+			VAR _totalAssets = 
+			    COUNTROWS(
+			        fact_inspection_detail)
+			VAR _workingAssets = 
+			    CALCULATE(
+			        COUNTROWS(
+			            fact_inspection_detail),
+			            fact_inspection_detail[zav_workingname] = "Yes"
+			    )
+			RETURN
+			_workingAssets / _totalAssets
+			```
+		formatString: 0%;-0%;0%
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: cb2f4c42-ef49-4ffa-b7d3-ea827db90f1a
+
+	measure 'Balance formatting (chosen period; red and black)' =
+			
+			IF([Tenancy Balance] < 0, "#F47C20", "black")
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 044790ea-8c2d-46a5-999f-042c4db8b926
+
+		changedProperty = IsHidden
+
+	measure 'Balance formatting (red and black)' =
+			
+			IF([Tenancy Balance (Total)] < 0, "#F47C20", "black")
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: c83bb9ed-b7f9-4dcb-b791-133d30114123
+
+		changedProperty = IsHidden
+
+	measure 'Balance formatting (red and blue)' =
+			
+			IF([Tenancy Balance (Total)] < 0, "#F47C20", "#018DB1")
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: f520d55f-9544-47a2-8c81-c4d60d0b66a4
+
+		changedProperty = IsHidden
+
+	measure 'Count of tenancies (facttransactiondetails)' =
+			
+			IF(
+			    ISBLANK(
+			        DISTINCTCOUNT(fact_tenancy_transaction_details[zav_tenancy])),
+			        0,
+			        DISTINCTCOUNT(fact_tenancy_transaction_details[zav_tenancy])
+			)
+		formatString: #,0
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 960c523e-493a-475d-ac50-a49d1ae1aa60
+
+		changedProperty = IsHidden
+
+	measure 'Count of Tenancy Breaches' =
+			
+			IF(
+			    ISBLANK(
+			        COUNTROWS(fact_tenancybreach)),
+			        0,
+			        COUNTROWS(fact_tenancybreach)
+			)
+		formatString: #,0
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 170b121a-030d-4808-b760-5812317dbe15
+
+		changedProperty = IsHidden
+
+	measure 'Count of transactions' =
+			
+			IF(
+			    ISBLANK(
+			        COUNTROWS(fact_tenancy_transaction_details)),
+			        0,
+			        COUNTROWS(fact_tenancy_transaction_details)
+			)
+		formatString: #,0
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: b4e4461b-1e93-41b9-8df8-dac01519a5da
+
+		changedProperty = IsHidden
+
+	measure 'Current Housing Portfolio Size' =
+			
+			VAR _year = MAX(dim_date[financial_year_num])
+			RETURN
+			CALCULATE([Housing Portfolio Count (by Year)],dim_date[financial_year_num] = _year)
+		formatString: #,0
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 8c0ab1a9-332f-4a63-a63d-6110bb3038cd
+
+		changedProperty = IsHidden
+
+	measure 'Number of tenancies ended in FY' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT(fact_tenancy[opportunityid]),
+			    USERELATIONSHIP(dim_date[calendar_date],fact_tenancy[zav_vacateddate])
+			)
+		formatString: #,0
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 239af2ec-860b-4280-aa85-f01723a56ac0
+
+		changedProperty = IsHidden
+
+	measure 'Number of tenancies started in FY' =
+			
+			DISTINCTCOUNT(fact_tenancy[opportunityid])
+		formatString: #,0
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 4fe05c24-09b6-459d-b07e-32f4edd8c9a9
+
+		changedProperty = IsHidden
+
+	measure 'Tenancy Balance (Total)' = ```
+			
+			    CALCULATE(
+			        SUM(fact_tenancy_transaction_details[zav_amount])
+			        ,
+			       ALL(dim_date)
+			        //,SELECTEDVALUE(fact_tenancy_transaction_details[zav_tenancy]) = fact_tenancy_transaction_details[zav_tenancy]
+			        //,SELECTEDVALUE(fact_tenancy[tenancymanagerid]) = fact_tenancy_transaction_details[tenancymanagerid]
+			    )
+			```
+		formatString: $#,##0.00;($#,##0.00)
+		displayFolder: 2. Measures
+		lineageTag: 5cb4f5fb-d5fa-484f-9630-6037fef7be3c
+
+		changedProperty = IsHidden
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Title - Visual - Tenancy Breaches' =
+			
+			CONCATENATE("Tenancy Breaches (" & [Count of Tenancy Breaches],")")
+		isHidden
+		displayFolder: 1. Titles
+		lineageTag: d3408423-d7a6-49c0-9b65-5ee1a6adb757
+
+		changedProperty = IsHidden
+
+	measure 'Title - Visual - Transactions with Count' =
+			
+			CONCATENATE("Transactions (", [Count of transactions] & ")")
+		isHidden
+		displayFolder: 1. Titles
+		lineageTag: 1003705e-16e3-4565-aef8-becbe96f8b53
+
+		changedProperty = IsHidden
+
+	measure 'Count of inspections' =
+			
+			IF(
+			    ISBLANK(
+			        COUNTROWS(fact_inspection)),
+			        0,
+			        COUNTROWS(fact_inspection)
+			)
+		formatString: #,0
+		isHidden
+		displayFolder: 2. Measures
+		lineageTag: 749834ae-8b70-4d3b-8c5f-f7f8d7c66128
+
+	measure 'Title - Visual - Inspections' =
+			
+			CONCATENATE("Inspections (" & [Count of inspections],")")
+		isHidden
+		displayFolder: 1. Titles
+		lineageTag: c3f2f0fb-1e61-4e71-bdb9-6f1d7d0f9690
+
+	measure 'Title - Visual - Tenancy Manager''s Tenancies' =
+			
+			CONCATENATE("Tenancy Manager's Tenancies (" & [Count of tenancies (facttransactiondetails)],")")
+		isHidden
+		displayFolder: 1. Titles
+		lineageTag: a3b886c6-4c50-4a3a-a285-fd3c1ee2200d
+
+	measure 'Filters Applied (Shows All-Time Data)' = "Please be aware all numbers are based on all-time data " & [FiltersApplied]
+		isHidden
+		lineageTag: 9311704c-94a1-4d0c-aae8-3ed17aafa879
+
+		changedProperty = IsHidden
+
+	partition _Measures-0ee86b1b-a58d-4d7a-aaf2-e12618900831 = m
+		mode: import
+		queryGroup: helpers
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+

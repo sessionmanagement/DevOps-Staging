@@ -1,0 +1,862 @@
+/// Azure SQL Server
+expression Server = "sql-prod-aus-svc-datawarehouse-01.database.windows.net" meta [IsParameterQuery=true, List={"sql-dev-aue-svc-datawarehouse-01.database.windows.net", "sql-prod-aus-svc-datawarehouse-01.database.windows.net"}, DefaultValue="sql-prod-aus-svc-datawarehouse-01.database.windows.net", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 9e060f00-24de-4456-b7ff-9dce584b0963
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+/// SQL Database
+expression Database = "sqldb-prod-datawarehouse-01" meta [IsParameterQuery=true, List={"sqldb-dev-datawarehouse-01", "sqldb-prod-datawarehouse-01"}, DefaultValue="sqldb-prod-datawarehouse-01", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: d5b8fc89-2a7b-40dd-a2cb-7dd31a8893a2
+	queryGroup: Parameters
+
+	annotation PBI_ResultType = Text
+
+expression 'Leave balance does not exceed 200hrs' =
+		let
+		    // Parameters
+		    SFA_Rollup_ID = "OK2",
+		    SFA_Rollup_Area = "OUR KAIMAHI",
+		    KPI_Description = "Leave balance does not exceed 200hrs",
+		    Leave_Type_ID = "hzr623_8QIrUXJcOpKO36g",
+		    // Additional Parameter
+		    // Source KPI SharePoint List
+		    SourceKPIList = #"KPI SharePoint List",
+		    // Filter KPI SharePoint List
+		    FilteredKPIList = Table.SelectRows(
+		        SourceKPIList,
+		        each
+		            [#"SFA Rollup Areas: Rollup ID"] = SFA_Rollup_ID
+		            and [#"SFA Rollup Areas: Strategic Focus Area (SFA)"] = SFA_Rollup_Area
+		            and [#"What is measured?"] = KPI_Description
+		    ),
+		    // Get KPI thresholds and signs
+		    KPIInfo = Table.FirstN(FilteredKPIList, 1),
+		    GreenThreshold = KPIInfo{0}[#"KPI-G Value"],
+		    AmberThreshold = KPIInfo{0}[#"KPI-A Value"],
+		    GreenSign = KPIInfo{0}[#"KPI-G Sign"],
+		    AmberSign = KPIInfo{0}[#"KPI-A Sign"],
+		    KPIName = KPIInfo{0}[#"What is measured?"],
+		    DimKpiKey = KPIInfo{0}[#"Dim KPI Key"],
+		    // Get additional KPI Rollup values
+		    RollupGreenThreshold = KPIInfo{0}[#"KPI-RU-G Value"],
+		    RollupGreenSign = KPIInfo{0}[#"KPI-RU-G Sign"],
+		    RollupAmberThreshold = KPIInfo{0}[#"KPI-RU-A Value"],
+		    RollupAmberSign = KPIInfo{0}[#"KPI-RU-A Sign"],
+		    // Source Fact Table: Change to the appropriate fact table
+		    SourceFactTable = #"Fact Kaimahi Leave",
+		    // Process Fact Data: Adjust grouping and operations as needed
+		    ProcessedFactData = Table.Group(
+		        Table.SelectRows(SourceFactTable, each [#"Leave Type ID"] = Leave_Type_ID),
+		        {"Dim Company KEY", "Kaimahi ID"},
+		        {{"KPI Value", each List.Sum([#"Kaimahi Leave Balance Hours"]), type number}}
+		    ),
+		    // Add KPI details
+		    AddKPIDetails = Table.AddColumn(ProcessedFactData, "KPI Name", each KPIName),
+		    AddGreenThreshold = Table.AddColumn(AddKPIDetails, "Green Threshold", each GreenThreshold),
+		    AddAmberThreshold = Table.AddColumn(AddGreenThreshold, "Amber Threshold", each AmberThreshold),
+		    AddGreenSign = Table.AddColumn(AddAmberThreshold, "Green Sign", each GreenSign),
+		    AddAmberSign = Table.AddColumn(AddGreenSign, "Amber Sign", each AmberSign),
+		    // Add Rollup KPI details
+		    AddRollupGreenThreshold = Table.AddColumn(AddAmberSign, "Rollup Green Threshold", each RollupGreenThreshold),
+		    AddRollupGreenSign = Table.AddColumn(AddRollupGreenThreshold, "Rollup Green Sign", each RollupGreenSign),
+		    AddRollupAmberThreshold = Table.AddColumn(
+		        AddRollupGreenSign, "Rollup Amber Threshold", each RollupAmberThreshold
+		    ),
+		    AddRollupAmberSign = Table.AddColumn(AddRollupAmberThreshold, "Rollup Amber Sign", each RollupAmberSign),
+		    // Calculate KPI Status
+		    AddKPIStatus = Table.AddColumn(
+		        AddRollupAmberSign,
+		        "KPI Status",
+		        each
+		            let
+		                CurrentValue = [#"KPI Value"],
+		                GreenCheck =
+		                    if GreenSign = ">=" then
+		                        CurrentValue >= GreenThreshold
+		                    else if GreenSign = ">" then
+		                        CurrentValue > GreenThreshold
+		                    else if GreenSign = "<=" then
+		                        CurrentValue <= GreenThreshold
+		                    else if GreenSign = "<" then
+		                        CurrentValue < GreenThreshold
+		                    else if GreenSign = "=" then
+		                        CurrentValue = GreenThreshold
+		                    else
+		                        false,
+		                AmberCheck =
+		                    if AmberSign = ">=" then
+		                        CurrentValue >= AmberThreshold
+		                    else if AmberSign = ">" then
+		                        CurrentValue > AmberThreshold
+		                    else if AmberSign = "<=" then
+		                        CurrentValue <= AmberThreshold
+		                    else if AmberSign = "<" then
+		                        CurrentValue < AmberThreshold
+		                    else if AmberSign = "=" then
+		                        CurrentValue = AmberThreshold
+		                    else
+		                        false
+		            in
+		                if CurrentValue = null then
+		                    null
+		                else if GreenCheck then
+		                    "Green"
+		                else if AmberCheck then
+		                    "Amber"
+		                else
+		                    "Red"
+		    ),
+		    AddDimKPIKEY = Table.AddColumn(AddKPIStatus, "Dim KPI Key", each DimKpiKey),
+		    ChangeType = Table.TransformColumnTypes(
+		        AddDimKPIKEY,
+		        {
+		            {"KPI Status", type text},
+		            {"Rollup Amber Sign", type text},
+		            {"Rollup Amber Threshold", type number},
+		            {"Rollup Green Sign", type text},
+		            {"Rollup Green Threshold", type number},
+		            {"Amber Sign", type text},
+		            {"Green Sign", type text},
+		            {"Amber Threshold", type number},
+		            {"Green Threshold", type number},
+		            {"KPI Name", type text},
+		            {"Dim KPI Key", Int64.Type}
+		        }
+		    ),
+		    #"Added Custom" = Table.AddColumn(ChangeType, "Entity KEY", each "K" & Text.From([Kaimahi ID])),
+		    #"Removed Columns" = Table.RemoveColumns(#"Added Custom", {"Kaimahi ID"})
+		in
+		    #"Removed Columns"
+	lineageTag: 358ace84-958f-4360-b0cb-9142790d24ef
+	queryGroup: 'KPI Calculations'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'Fact Kaimahi Leave' =
+		let
+		    Source = Sql.Database(Server, Database),
+		    edw_fact_client_referral_goal = Source{[Schema = "edw", Item = "vw_fact_employee_leave"]}[Data],
+		    ApplyNamingConventions = (columnName as text) as text =>
+		        let
+		            replaceKaimahi = Text.Replace(columnName, "employee_", "Kaimahi_"),
+		            replaceClient = Text.Replace(replaceKaimahi, "client_", "Tangata_Whaiora_"),
+		            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+		            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+		            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+		            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+		            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+		            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+		            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+		            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+		            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+		            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+		            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+		            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+		            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH"),
+		            capitaliseKPI = Text.Replace(capitaliseDWH, "Kpi", "KPI")
+		        in
+		            capitaliseKPI,
+		    #"Transform Column Names" = Table.TransformColumnNames(
+		        edw_fact_client_referral_goal, each ApplyNamingConventions(_)
+		    ),
+		    #"Filtered Rows" = Table.SelectRows(#"Transform Column Names", each ([DWH Is Current] = true))
+		in
+		    #"Filtered Rows"
+	lineageTag: 6682aa24-77bb-4b27-a834-83899cbcc77b
+	queryGroup: 'EDW Fact Tables'
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression 'Dim Leave Type' =
+		let
+		    Source = Sql.Database(Server, Database),
+		    edw_dim_service = Source{[Schema="edw",Item="vw_dim_leave_type"]}[Data],
+		    ApplyNamingConventions = (columnName as text) as text =>
+		        let
+		            replaceKaimahi = Text.Replace(columnName, "employee_", "Kaimahi_"),
+		            replaceClient = Text.Replace(replaceKaimahi, "client_", "Tangata_Whaiora_"),
+		            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+		            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+		            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+		            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+		            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+		            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+		            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+		            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+		            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+		            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+		            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+		            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+		            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+		        in
+		            capitaliseDWH,
+		    #"Transformed Column Names" = Table.TransformColumnNames(edw_dim_service, each ApplyNamingConventions(_)),
+		    #"Filtered Rows" = Table.SelectRows(#"Transformed Column Names", each ([Edwdmloperation] <> "D"))
+		in
+		    #"Filtered Rows"
+	lineageTag: 75b23648-4026-4c19-8a4e-477c52ded2cf
+	queryGroup: 'EDW Dim Tables'
+
+	annotation PBI_ResultType = Table
+
+expression 'Hours worked in fortnights < 96hrs [including external hrs]' = ```
+		let
+		    // Parameters
+		    KPI_Rollup_Area = "OK - 2. Kaimahi are enabled / supported / resourced to deliver services in an evidence-based, effective & safe manner",
+		    Specific_Measure = "Hours worked in fortnights < 96hrs",
+		    KPI_Description = "Hours worked in fortnights < 96hrs [including external hrs]",
+		    
+		    // Source KPI SharePoint List
+		    SourceKPIList = #"KPI SharePoint List",
+		    
+		    // Filter KPI SharePoint List
+		    FilteredKPIList = Table.SelectRows(SourceKPIList, each 
+		        [#"SFA Rollup Area"] = KPI_Rollup_Area and
+		        [#"Specific measure"] = Specific_Measure and
+		        [#"What is measured?"] = KPI_Description
+		    ),
+		    
+		    // Get KPI thresholds and signs
+		    KPIInfo = Table.FirstN(FilteredKPIList, 1),
+		    GreenThreshold = KPIInfo{0}[#"KPI-G Value"],
+		    AmberThreshold = KPIInfo{0}[#"KPI-A Value"],
+		    GreenSign = KPIInfo{0}[#"KPI-G Sign"],
+		    AmberSign = KPIInfo{0}[#"KPI-A Sign"],
+		    KPIName = KPIInfo{0}[#"What is measured?"],
+		    DimKpiKey = KPIInfo{0}[#"Dim KPI Key"],
+		    
+		    // Get additional KPI Rollup values
+		    RollupGreenThreshold = KPIInfo{0}[#"KPI-RU-G Value"],
+		    RollupGreenSign = KPIInfo{0}[#"KPI-RU-G Sign"],
+		    RollupAmberThreshold = KPIInfo{0}[#"KPI-RU-A Value"],
+		    RollupAmberSign = KPIInfo{0}[#"KPI-RU-A Sign"],
+		    
+		    // Source Fact Table: Change to the appropriate fact table
+		    SourceFactTable = #"ODS Employee with Payslips (< 96hrs)",
+		    
+		    // Process Fact Data: Adjust grouping and operations as needed
+		    ProcessedFactData = Table.Group(SourceFactTable, {"Dim Company KEY", "EmpID"}, {{"KPI Value", each List.Sum([Total_Hours]), type nullable number}}),
+		    
+		    // Add KPI details
+		    AddKPIDetails = Table.AddColumn(ProcessedFactData, "KPI Name", each KPIName),
+		    AddGreenThreshold = Table.AddColumn(AddKPIDetails, "Green Threshold", each GreenThreshold),
+		    AddAmberThreshold = Table.AddColumn(AddGreenThreshold, "Amber Threshold", each AmberThreshold),
+		    AddGreenSign = Table.AddColumn(AddAmberThreshold, "Green Sign", each GreenSign),
+		    AddAmberSign = Table.AddColumn(AddGreenSign, "Amber Sign", each AmberSign),
+		    
+		    // Add Rollup KPI details
+		    AddRollupGreenThreshold = Table.AddColumn(AddAmberSign, "Rollup Green Threshold", each RollupGreenThreshold),
+		    AddRollupGreenSign = Table.AddColumn(AddRollupGreenThreshold, "Rollup Green Sign", each RollupGreenSign),
+		    AddRollupAmberThreshold = Table.AddColumn(AddRollupGreenSign, "Rollup Amber Threshold", each RollupAmberThreshold),
+		    AddRollupAmberSign = Table.AddColumn(AddRollupAmberThreshold, "Rollup Amber Sign", each RollupAmberSign),
+		    
+		    // Calculate KPI Status
+		    AddKPIStatus = Table.AddColumn(AddRollupAmberSign, "KPI Status", each 
+		        let
+		            CurrentValue = [#"KPI Value"],
+		            GreenCheck = if GreenSign = ">=" then CurrentValue >= GreenThreshold else
+		                         if GreenSign = ">" then CurrentValue > GreenThreshold else
+		                         if GreenSign = "<=" then CurrentValue <= GreenThreshold else
+		                         if GreenSign = "<" then CurrentValue < GreenThreshold else
+		                         if GreenSign = "=" then CurrentValue = GreenThreshold else false,
+		            AmberCheck = if AmberSign = ">=" then CurrentValue >= AmberThreshold else
+		                         if AmberSign = ">" then CurrentValue > AmberThreshold else
+		                         if AmberSign = "<=" then CurrentValue <= AmberThreshold else
+		                         if AmberSign = "<" then CurrentValue < AmberThreshold else
+		                         if AmberSign = "=" then CurrentValue = AmberThreshold else false
+		        in
+		            if CurrentValue = null then null else
+		            if GreenCheck then "Green" else
+		            if AmberCheck then "Amber" else "Red"
+		    ),
+		    AddDimKPIKEY = Table.AddColumn(AddKPIStatus, "Dim KPI Key", each DimKpiKey),
+		    
+		    ChangeType = Table.TransformColumnTypes(AddDimKPIKEY,{{"KPI Status", type text}, {"Rollup Amber Sign", type text}, {"Rollup Amber Threshold", type number}, {"Rollup Green Sign", type text}, {"Rollup Green Threshold", type number}, {"Amber Sign", type text}, {"Green Sign", type text}, {"Amber Threshold", type number}, {"Green Threshold", type number}, {"KPI Name", type text}, {"Dim KPI Key", Int64.Type}}),
+		    #"Added Custom" = Table.AddColumn(ChangeType, "Entity KEY", each "K" & Text.From([EmpID])),
+		    #"Removed Columns" = Table.RemoveColumns(#"Added Custom",{"EmpID"})
+		in
+		    #"Removed Columns"
+		```
+	lineageTag: a688266e-3c00-41a3-b3f9-1335bd4b73a9
+	queryGroup: 'Work In Progress\ODS'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'New KPI Template Old' = ```
+		let
+		    // Parameters
+		    KPI_Rollup_Area = "OK - 2. Kaimahi are enabled / supported / resourced to deliver services in an evidence-based, effective & safe manner",
+		    Specific_Measure = "Hours worked in fortnights < 96hrs",
+		    KPI_Description = "Hours worked in fortnights < 96hrs [including external hrs]",
+		    
+		    // Source KPI SharePoint List
+		    SourceKPIList = #"KPI SharePoint List",
+		    
+		    // Filter KPI SharePoint List
+		    FilteredKPIList = Table.SelectRows(SourceKPIList, each 
+		        [#"SFA Rollup Area"] = KPI_Rollup_Area and
+		        [#"Specific measure"] = Specific_Measure and
+		        [#"What is measured?"] = KPI_Description
+		    ),
+		    
+		    // Get KPI thresholds and signs
+		    KPIInfo = Table.FirstN(FilteredKPIList, 1),
+		    GreenThreshold = KPIInfo{0}[#"KPI-G Value"],
+		    AmberThreshold = KPIInfo{0}[#"KPI-A Value"],
+		    GreenSign = KPIInfo{0}[#"KPI-G Sign"],
+		    AmberSign = KPIInfo{0}[#"KPI-A Sign"],
+		    KPIName = KPIInfo{0}[#"What is measured?"],
+		    
+		    // Get additional KPI Rollup values
+		    RollupGreenThreshold = KPIInfo{0}[#"KPI-RU-G Value"],
+		    RollupGreenSign = KPIInfo{0}[#"KPI-RU-G Sign"],
+		    RollupAmberThreshold = KPIInfo{0}[#"KPI-RU-A Value"],
+		    RollupAmberSign = KPIInfo{0}[#"KPI-RU-A Sign"],
+		    
+		    // Source Fact Table: Change to the appropriate fact table
+		    SourceFactTable = #"ODS Employee with Payslips (< 96hrs)",
+		    
+		    // Process Fact Data: Adjust grouping and operations as needed
+		    ProcessedFactData = Table.Group(SourceFactTable, {"Dim Company KEY", "Dim Kaimahi KEY", "gross_name"}, {{"KPI Value", each List.Sum([Total_Hours]), type nullable number}}),
+		    
+		    // Add KPI details
+		    AddKPIDetails = Table.AddColumn(ProcessedFactData, "KPI Name", each KPIName),
+		    AddGreenThreshold = Table.AddColumn(AddKPIDetails, "Green Threshold", each GreenThreshold),
+		    AddAmberThreshold = Table.AddColumn(AddGreenThreshold, "Amber Threshold", each AmberThreshold),
+		    AddGreenSign = Table.AddColumn(AddAmberThreshold, "Green Sign", each GreenSign),
+		    AddAmberSign = Table.AddColumn(AddGreenSign, "Amber Sign", each AmberSign),
+		    
+		    // Add Rollup KPI details
+		    AddRollupGreenThreshold = Table.AddColumn(AddAmberSign, "Rollup Green Threshold", each RollupGreenThreshold),
+		    AddRollupGreenSign = Table.AddColumn(AddRollupGreenThreshold, "Rollup Green Sign", each RollupGreenSign),
+		    AddRollupAmberThreshold = Table.AddColumn(AddRollupGreenSign, "Rollup Amber Threshold", each RollupAmberThreshold),
+		    AddRollupAmberSign = Table.AddColumn(AddRollupAmberThreshold, "Rollup Amber Sign", each RollupAmberSign),
+		    
+		    // Calculate KPI Status
+		    AddKPIStatus = Table.AddColumn(AddRollupAmberSign, "KPI Status", each 
+		        let
+		            CurrentValue = [#"KPI Value"],
+		            GreenCheck = if GreenSign = ">=" then CurrentValue >= GreenThreshold else
+		                         if GreenSign = ">" then CurrentValue > GreenThreshold else
+		                         if GreenSign = "<=" then CurrentValue <= GreenThreshold else
+		                         if GreenSign = "<" then CurrentValue < GreenThreshold else
+		                         if GreenSign = "=" then CurrentValue = GreenThreshold else false,
+		            AmberCheck = if AmberSign = ">=" then CurrentValue >= AmberThreshold else
+		                         if AmberSign = ">" then CurrentValue > AmberThreshold else
+		                         if AmberSign = "<=" then CurrentValue <= AmberThreshold else
+		                         if AmberSign = "<" then CurrentValue < AmberThreshold else
+		                         if AmberSign = "=" then CurrentValue = AmberThreshold else false
+		        in
+		            if CurrentValue = null then null else
+		            if GreenCheck then "Green" else
+		            if AmberCheck then "Amber" else "Red"
+		    ),
+		    
+		    ChangeType = Table.TransformColumnTypes(AddKPIStatus,{{"KPI Status", type text}, {"Rollup Amber Sign", type text}, {"Rollup Amber Threshold", type number}, {"Rollup Green Sign", type text}, {"Rollup Green Threshold", type number}, {"Amber Sign", type text}, {"Green Sign", type text}, {"Amber Threshold", type number}, {"Green Threshold", type number}, {"KPI Name", type text}})
+		in
+		    ChangeType
+		```
+	lineageTag: 0d49c363-ede3-424f-b6fb-a23d4918a8d9
+	queryGroup: 'KPI Templates'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'ODS Employee with Payslips (< 96hrs)' =
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="-- CTE for dim_people#(lf)WITH dim_people AS (#(lf)    SELECT DE.[id]#(lf)        ,DE.[company_id]#(lf)        ,DE.[code] AS EmpID#(lf)        ,IP.[people_id]#(lf)        ,IP.[displayName] AS Kaimahi#(lf)        ,IP.[dateOfBirth]#(lf)        ,IP.[gender]#(lf)        ,IP.[primaryEmailAddress_email]#(lf)        ,IP.[employmentStatus]#(lf)        ,IJ.jobs_id#(lf)        ,IJ.businessUnit_id#(lf)        ,IJ.supervisorPerson_displayName AS Supervisor#(lf)        ,IJ.workType AS 'Work Type'#(lf)        ,IJ.workClass AS 'Work Class'#(lf)        ,IJ.isPrimaryJob#(lf)        ,IJ.jobStatus AS 'Job Status'#(lf)        ,IJ.name AS 'Job Title'#(lf)        ,IJ.fte#(lf)        ,IJ.companyStartDate#(lf)        ,IJ.companyEndDate#(lf)        ,EE.id AS EmpLive_EmpID#(lf)        ,EE.is_active#(lf)        ,IJ.remunerationSchedule_type#(lf)    FROM [Datapay].[employees] DE#(lf)    LEFT JOIN EmpLive.employees EE ON CAST(DE.code AS NVARCHAR(20)) = EE.reference_number#(lf)    LEFT JOIN IntelliHR.people IP ON CAST(DE.code AS NVARCHAR(20)) = IP.employeeNumber#(lf)    LEFT JOIN [IntelliHR].[jobs] IJ ON CAST(DE.code AS NVARCHAR(20)) = IJ.person_employeeNumber#(lf)    WHERE#(lf)        DE.ODSIsCurrent = 1#(lf)        AND EE.ODSIsCurrent = 1#(lf)        AND IP.ODSIsCurrent = 1#(lf)        AND IJ.ODSIsCurrent = 1#(lf)),#(lf)#(lf)-- CTEs for fact_pay_slips#(lf)JobsData AS (#(lf)    SELECT e.id AS employee_id#(lf)        ,e.code AS employee_code#(lf)        ,e.company_id#(lf)        ,i.businessUnit_name#(lf)        ,i.businessUnit_id AS IntellihrServiceID#(lf)        ,i.jobs_id#(lf)        ,i.positionStartDate#(lf)        ,ROW_NUMBER() OVER (#(lf)            PARTITION BY e.id ORDER BY i.positionStartDate#(lf)            ) AS JobNo#(lf)    FROM [DataPay].[employees] e#(lf)    LEFT JOIN [IntelliHR].[jobs] i ON e.code = i.person_employeeNumber#(lf)    WHERE e.ODSIsCurrent = 1#(lf)    GROUP BY e.id#(lf)        ,e.code#(lf)        ,e.company_id#(lf)        ,i.businessUnit_name#(lf)        ,i.businessUnit_id#(lf)        ,i.jobs_id#(lf)        ,i.positionStartDate#(lf)),#(lf)#(lf)EmployeeData AS (#(lf)    SELECT employee_id#(lf)        ,employee_code#(lf)        ,company_id#(lf)        ,businessUnit_name#(lf)        ,IntellihrServiceID#(lf)        ,jobs_id#(lf)        ,CAST(positionStartDate AS DATE) AS PositionStartDate#(lf)        ,JobNo#(lf)        ,COALESCE(CAST(LEAD(positionStartDate) OVER (#(lf)                    PARTITION BY employee_id ORDER BY JobNo#(lf)                    ) AS DATE), CAST(GETDATE() AS DATE)) AS PositionEndDate#(lf)    FROM JobsData#(lf)),#(lf)#(lf)PaySlipData AS (#(lf)    SELECT ps.pay_packet_id#(lf)        ,ps.employee_id#(lf)        ,ps.pay_period_start_date#(lf)        ,ps.pay_period_end_date#(lf)        ,ps.pay_packet_type#(lf)    FROM Datapay.pay_slips ps#(lf)    WHERE ps.pay_packet_type IN (#(lf)            'main'#(lf)            ,'manual'#(lf)            )#(lf)),#(lf)#(lf)GrossData AS (#(lf)    SELECT DISTINCT psg.pay_packet_row_id#(lf)        ,psg.pay_packet_id#(lf)        ,psg.employee_id#(lf)        ,e.employee_code#(lf)        ,e.company_id#(lf)        ,e.jobs_id#(lf)        ,e.businessUnit_name#(lf)        ,e.IntellihrServiceID#(lf)        ,CASE #(lf)            WHEN psg.gross_name LIKE '%addtional%'#(lf)                THEN 'Additional Hours'#(lf)            ELSE psg.gross_name#(lf)            END AS gross_name#(lf)        ,ps.pay_period_start_date#(lf)        ,ps.pay_period_end_date#(lf)        ,ps.pay_packet_type#(lf)        ,psg.gross_summary#(lf)        ,TRY_CAST(LEFT(psg.gross_summary, CHARINDEX(' ', psg.gross_summary) - 1) AS DECIMAL(18, 8)) AS numeric_value#(lf)        ,CASE #(lf)            WHEN psg.gross_summary LIKE '%hours%'#(lf)                THEN 'hours'#(lf)            WHEN psg.gross_summary LIKE '%day%'#(lf)                THEN 'days'#(lf)            WHEN psg.gross_summary LIKE '%weeks%'#(lf)                THEN 'weeks'#(lf)            ELSE 'other'#(lf)            END AS unit_type#(lf)        ,ROW_NUMBER() OVER (#(lf)            PARTITION BY psg.pay_packet_row_id ORDER BY psg.ODSEffectiveFrom DESC#(lf)            ) AS duplicateRowID#(lf)    FROM Datapay.pay_slips_gross psg#(lf)    JOIN PaySlipData ps ON psg.pay_packet_id = ps.pay_packet_id#(lf)    JOIN EmployeeData e ON ps.employee_id = e.employee_id#(lf)        AND ps.pay_period_start_date <= e.PositionENDDate#(lf)        AND ps.pay_period_end_date >= e.PositionStartDate#(lf)    WHERE psg.gross_name IN (#(lf)            'Addtional Hours'#(lf)            ,'Alternative Holiday Payment'#(lf)            ,'Annual Leave Payment'#(lf)            ,'Annual Leave Payment - Parental Rate'#(lf)            ,'Bereavement Leave Payment'#(lf)            ,'Birthday Leave Payment'#(lf)            ,'COVID-19 Leave Payment'#(lf)            ,'Cultural Contribution Payment'#(lf)            ,'Discretionary Leave Payment'#(lf)            ,'Discretionary Payment'#(lf)            ,'Disturbed Hours'#(lf)            ,'Domestic Violence Leave Payment'#(lf)            ,'In Lieu Of Notice - Extra Pay'#(lf)            ,'Long Service Leave Payment'#(lf)            ,'Meeting Hours'#(lf)            ,'Ordinary Pay'#(lf)            ,'Overtime x0.5'#(lf)            ,'Public Holiday Payment'#(lf)            ,'Sick Leave Payment'#(lf)            ,'Study Leave Payment'#(lf)            ,'Union Leave Payment'#(lf)            ,'Well Being Leave Payment'#(lf)            )#(lf)),#(lf)#(lf)GrossPayData AS (#(lf)    SELECT pay_packet_row_id#(lf)        ,pay_packet_id#(lf)        ,employee_id#(lf)        ,employee_code#(lf)        ,company_id#(lf)        ,jobs_id#(lf)        ,businessUnit_name#(lf)        ,IntellihrServiceID#(lf)        ,gross_name#(lf)        ,gross_summary#(lf)        ,numeric_value#(lf)        ,unit_type#(lf)        ,pay_period_start_date#(lf)        ,pay_period_end_date#(lf)        ,pay_packet_type#(lf)        ,NULL AS home_costing_percentage#(lf)        ,'Primary Cost Center' AS allocation_type#(lf)    FROM GrossData gd#(lf)    WHERE duplicateRowID = 1#(lf)),#(lf)#(lf)PaySlipAllocations AS (#(lf)    SELECT psg.pay_packet_row_id#(lf)        ,ps.pay_packet_id#(lf)        ,e.id AS employee_id#(lf)        ,e.code AS employee_code#(lf)        ,ca.home_cost_box_division AS company_id#(lf)        ,ca.home_cost_box_sub_department_code AS jobs_id#(lf)        ,ib.name AS businessUnit_name#(lf)        ,ib.business_unit_id AS IntellihrServiceID#(lf)        ,psg.gross_name#(lf)        ,psg.gross_summary#(lf)        ,TRY_CAST(LEFT(psg.gross_summary, CHARINDEX(' ', psg.gross_summary) - 1) AS DECIMAL(18, 8)) AS numeric_value#(lf)        ,CASE #(lf)            WHEN psg.gross_summary LIKE '%hours%'#(lf)                THEN 'hours'#(lf)            WHEN psg.gross_summary LIKE '%day%'#(lf)                THEN 'days'#(lf)            WHEN psg.gross_summary LIKE '%weeks%'#(lf)                THEN 'weeks'#(lf)            ELSE 'other'#(lf)            END AS unit_type#(lf)        ,ps.pay_period_start_date#(lf)        ,ps.pay_period_end_date#(lf)        ,ps.pay_packet_type#(lf)        ,ca.home_costing_percentage#(lf)        ,'Allocated Cost Center' AS allocation_type#(lf)    FROM Datapay.employees e#(lf)    JOIN Datapay.pay_slips ps ON e.id = ps.employee_id#(lf)    JOIN Datapay.pay_slips_gross psg ON ps.pay_packet_id = psg.pay_packet_id#(lf)    RIGHT JOIN [Datapay].[cost_allocations] ca ON e.code = ca.employee_code#(lf)        AND ps.pay_period_start_date <= ca.ODSEffectiveTo#(lf)        AND ps.pay_period_end_date >= ca.ODSEffectiveFrom#(lf)    LEFT JOIN [IntelliHR].[business_unit] ib ON ca.net_home_cost_box_sub_department_code = ib.code#(lf)    WHERE e.ODSIsCurrent = 1#(lf)        AND ps.pay_packet_type = 'Main'#(lf)        AND psg.gross_name IN (#(lf)            'Addtional Hours'#(lf)            ,'Alternative Holiday Payment'#(lf)            ,'Annual Leave Payment'#(lf)            ,'Annual Leave Payment - Parental Rate'#(lf)            ,'Bereavement Leave Payment'#(lf)            ,'Birthday Leave Payment'#(lf)            ,'COVID-19 Leave Payment'#(lf)            ,'Cultural Contribution Payment'#(lf)            ,'Discretionary Leave Payment'#(lf)            ,'Discretionary Payment'#(lf)            ,'Disturbed Hours'#(lf)            ,'Domestic Violence Leave Payment'#(lf)            ,'In Lieu Of Notice - Extra Pay'#(lf)            ,'Long Service Leave Payment'#(lf)            ,'Meeting Hours'#(lf)            ,'Ordinary Pay'#(lf)            ,'Overtime x0.5'#(lf)            ,'Public Holiday Payment'#(lf)            ,'Sick Leave Payment'#(lf)            ,'Study Leave Payment'#(lf)            ,'Union Leave Payment'#(lf)            ,'Well Being Leave Payment'#(lf)            )#(lf)),#(lf)#(lf)JOINED AS (#(lf)    SELECT *#(lf)    FROM GrossPayData#(lf)    #(lf)    UNION#(lf)    #(lf)    SELECT *#(lf)    FROM PaySlipAllocations#(lf)),#(lf)#(lf)HoursConversion AS (#(lf)    SELECT jd.pay_packet_row_id#(lf)        ,jd.pay_packet_id#(lf)        ,jd.employee_id#(lf)        ,jd.employee_code#(lf)        ,jd.company_id#(lf)        ,jd.jobs_id#(lf)        ,jd.businessUnit_name#(lf)        ,jd.IntellihrServiceID#(lf)        ,jd.gross_name#(lf)        ,jd.gross_summary#(lf)        ,CASE #(lf)            WHEN jd.unit_type = 'hours'#(lf)                THEN jd.numeric_value#(lf)            WHEN jd.unit_type = 'days'#(lf)                THEN jd.numeric_value * 8#(lf)            WHEN jd.unit_type = 'weeks'#(lf)                THEN jd.numeric_value * 40#(lf)            ELSE 0#(lf)            END AS Total_Hours#(lf)        ,jd.pay_period_start_date#(lf)        ,jd.pay_period_end_date#(lf)        ,COUNT(*) OVER (PARTITION BY jd.pay_packet_row_id) AS allocation_count#(lf)        ,ROW_NUMBER() OVER (#(lf)            PARTITION BY jd.pay_packet_row_id ORDER BY jd.home_costing_percentage#(lf)            ) AS rn#(lf)        ,jd.pay_packet_type#(lf)        ,jd.home_costing_percentage AS OLD_home_costing_percentage#(lf)        ,CASE #(lf)            WHEN jd.home_costing_percentage IS NULL#(lf)                THEN 1 - SUM(home_costing_percentage) OVER (PARTITION BY jd.pay_packet_row_id)#(lf)            ELSE jd.home_costing_percentage#(lf)            END AS NEW_home_costing_percentage#(lf)        ,'PAYE' AS deductions_name#(lf)        ,jd.allocation_type#(lf)    FROM JOINED jd#(lf)),#(lf)#(lf)fact_pay_slips AS (#(lf)    SELECT pay_packet_row_id#(lf)        ,pay_packet_id#(lf)        ,employee_id#(lf)        ,employee_code#(lf)        ,company_id#(lf)        ,jobs_id#(lf)        ,businessUnit_name#(lf)        ,IntellihrServiceID#(lf)        ,gross_name#(lf)        ,gross_summary#(lf)        ,Total_Hours#(lf)        ,COALESCE(Total_Hours * NEW_home_costing_percentage, CASE #(lf)                WHEN rn = 1#(lf)                    THEN Total_Hours#(lf)                ELSE 0#(lf)                END) AS allocated_hours#(lf)        ,pay_period_start_date#(lf)        ,pay_period_end_date#(lf)        ,allocation_count#(lf)        ,rn#(lf)        ,pay_packet_type#(lf)        ,OLD_home_costing_percentage#(lf)        ,NEW_home_costing_percentage#(lf)        ,deductions_name#(lf)    FROM HoursConversion#(lf))#(lf)#(lf)-- Main query joining dim_people and fact_pay_slips#(lf)SELECT #(lf)    dp.*,#(lf)    fps.*#(lf)FROM #(lf)    dim_people dp#(lf)JOIN #(lf)    fact_pay_slips fps ON dp.EmpID = fps.employee_code AND dp.company_id = fps.company_id#(lf)WHERE #(lf)    fps.pay_period_start_date = (SELECT MAX(pay_period_start_date) FROM fact_pay_slips)#(lf)#(tab)AND (gross_name = 'Ordinary Pay'#(lf)#(tab)OR gross_name like '%hours%')#(tab);"]),
+		    #"Merged Queries" = Table.NestedJoin(Source, {"company_id"}, #"Dim Company", {"Dim Company Datapay KEY"}, "Dim Company", JoinKind.LeftOuter),
+		    #"Expanded Dim Company" = Table.ExpandTableColumn(#"Merged Queries", "Dim Company", {"Dim Company KEY", "Company Name"}, {"Dim Company KEY", "Company Name"})
+		in
+		    #"Expanded Dim Company"
+	lineageTag: 730875d7-2826-480e-b729-65aadec7da6b
+	queryGroup: 'Work In Progress\ODS'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'New KPI Template New' =
+		let
+		    // Parameters
+		    SFA_Rollup_ID = "OK2",
+		    SFA_Rollup_Area = "OUR KAIMAHI",
+		    KPI_Description = "Leave balance does not exceed 200hrs",
+		    Leave_Type_ID = "hzr623_8QIrUXJcOpKO36g",
+		    // Additional Parameter
+		    // Source KPI SharePoint List
+		    SourceKPIList = #"KPI SharePoint List",
+		    // Filter KPI SharePoint List
+		    FilteredKPIList = Table.SelectRows(
+		        SourceKPIList,
+		        each
+		            [#"SFA Rollup Areas: Rollup ID"] = SFA_Rollup_ID
+		            and [#"SFA Rollup Areas: Strategic Focus Area (SFA)"] = SFA_Rollup_Area
+		            and [#"What is measured?"] = KPI_Description
+		    ),
+		    // Get KPI thresholds and signs
+		    KPIInfo = Table.FirstN(FilteredKPIList, 1),
+		    GreenThreshold = KPIInfo{0}[#"KPI-G Value"],
+		    AmberThreshold = KPIInfo{0}[#"KPI-A Value"],
+		    GreenSign = KPIInfo{0}[#"KPI-G Sign"],
+		    AmberSign = KPIInfo{0}[#"KPI-A Sign"],
+		    KPIName = KPIInfo{0}[#"What is measured?"],
+		    DimKpiKey = KPIInfo{0}[#"Dim KPI Key"],
+		    // Get additional KPI Rollup values
+		    RollupGreenThreshold = KPIInfo{0}[#"KPI-RU-G Value"],
+		    RollupGreenSign = KPIInfo{0}[#"KPI-RU-G Sign"],
+		    RollupAmberThreshold = KPIInfo{0}[#"KPI-RU-A Value"],
+		    RollupAmberSign = KPIInfo{0}[#"KPI-RU-A Sign"],
+		    // Source Fact Table: Change to the appropriate fact table
+		    SourceFactTable = #"Fact Kaimahi Leave",
+		    // Process Fact Data: Adjust grouping and operations as needed
+		    ProcessedFactData = Table.Group(
+		        Table.SelectRows(SourceFactTable, each [#"Leave Type ID"] = Leave_Type_ID),
+		        {"Dim Company KEY", "Kaimahi ID"},
+		        {{"KPI Value", each List.Sum([#"Kaimahi Leave Balance Hours"]), type number}}
+		    ),
+		    // Add KPI details
+		    AddKPIDetails = Table.AddColumn(ProcessedFactData, "KPI Name", each KPIName),
+		    AddGreenThreshold = Table.AddColumn(AddKPIDetails, "Green Threshold", each GreenThreshold),
+		    AddAmberThreshold = Table.AddColumn(AddGreenThreshold, "Amber Threshold", each AmberThreshold),
+		    AddGreenSign = Table.AddColumn(AddAmberThreshold, "Green Sign", each GreenSign),
+		    AddAmberSign = Table.AddColumn(AddGreenSign, "Amber Sign", each AmberSign),
+		    // Add Rollup KPI details
+		    AddRollupGreenThreshold = Table.AddColumn(AddAmberSign, "Rollup Green Threshold", each RollupGreenThreshold),
+		    AddRollupGreenSign = Table.AddColumn(AddRollupGreenThreshold, "Rollup Green Sign", each RollupGreenSign),
+		    AddRollupAmberThreshold = Table.AddColumn(
+		        AddRollupGreenSign, "Rollup Amber Threshold", each RollupAmberThreshold
+		    ),
+		    AddRollupAmberSign = Table.AddColumn(AddRollupAmberThreshold, "Rollup Amber Sign", each RollupAmberSign),
+		    // Calculate KPI Status
+		    AddKPIStatus = Table.AddColumn(
+		        AddRollupAmberSign,
+		        "KPI Status",
+		        each
+		            let
+		                CurrentValue = [#"KPI Value"],
+		                GreenCheck =
+		                    if GreenSign = ">=" then
+		                        CurrentValue >= GreenThreshold
+		                    else if GreenSign = ">" then
+		                        CurrentValue > GreenThreshold
+		                    else if GreenSign = "<=" then
+		                        CurrentValue <= GreenThreshold
+		                    else if GreenSign = "<" then
+		                        CurrentValue < GreenThreshold
+		                    else if GreenSign = "=" then
+		                        CurrentValue = GreenThreshold
+		                    else
+		                        false,
+		                AmberCheck =
+		                    if AmberSign = ">=" then
+		                        CurrentValue >= AmberThreshold
+		                    else if AmberSign = ">" then
+		                        CurrentValue > AmberThreshold
+		                    else if AmberSign = "<=" then
+		                        CurrentValue <= AmberThreshold
+		                    else if AmberSign = "<" then
+		                        CurrentValue < AmberThreshold
+		                    else if AmberSign = "=" then
+		                        CurrentValue = AmberThreshold
+		                    else
+		                        false
+		            in
+		                if CurrentValue = null then
+		                    null
+		                else if GreenCheck then
+		                    "Green"
+		                else if AmberCheck then
+		                    "Amber"
+		                else
+		                    "Red"
+		    ),
+		    AddDimKPIKEY = Table.AddColumn(AddKPIStatus, "Dim KPI Key", each DimKpiKey),
+		    ChangeType = Table.TransformColumnTypes(
+		        AddDimKPIKEY,
+		        {
+		            {"KPI Status", type text},
+		            {"Rollup Amber Sign", type text},
+		            {"Rollup Amber Threshold", type number},
+		            {"Rollup Green Sign", type text},
+		            {"Rollup Green Threshold", type number},
+		            {"Amber Sign", type text},
+		            {"Green Sign", type text},
+		            {"Amber Threshold", type number},
+		            {"Green Threshold", type number},
+		            {"KPI Name", type text},
+		            {"Dim KPI Key", Int64.Type}
+		        }
+		    ),
+		    #"Added Custom" = Table.AddColumn(ChangeType, "Entity KEY", each "K" & Text.From([Kaimahi ID])),
+		    #"Removed Columns" = Table.RemoveColumns(#"Added Custom", {"Kaimahi ID"})
+		in
+		    #"Removed Columns"
+	lineageTag: 685aef8a-0f7f-45db-ba8b-28f42688de63
+	queryGroup: 'KPI Templates'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression Entity_backup_pre_Kaimahi_addition =
+		let
+		    Source = Sql.Database(Server, Database, [Query="WITH hierarchy_cte AS (#(lf)    -- Level 1 to Level 2#(lf)    SELECT #(lf)        business_unit_hierarchy_level1_name AS parent,#(lf)        business_unit_hierarchy_level2_name AS child,#(lf)#(tab)#(tab)'Business Unit' AS type#(lf)    FROM [edw].[vw_dim_business_unit_hierarchy]#(lf)    WHERE [EDWDMLOperation] <> 'D'#(lf)        AND [dim_business_unit_hierarchy_key] > 0#(lf)        AND business_unit_hierarchy_level2_name IS NOT NULL#(lf)    #(lf)    UNION ALL#(lf)    #(lf)    -- Level 2 to Level 3#(lf)    SELECT #(lf)        business_unit_hierarchy_level2_name AS parent,#(lf)        business_unit_hierarchy_level3_name AS child,#(lf)#(tab)#(tab)'Business Unit' AS type#(lf)    FROM [edw].[vw_dim_business_unit_hierarchy]#(lf)    WHERE [EDWDMLOperation] <> 'D'#(lf)        AND [dim_business_unit_hierarchy_key] > 0#(lf)        AND business_unit_hierarchy_level3_name IS NOT NULL#(lf)    #(lf)    UNION ALL#(lf)    #(lf)    -- Level 3 to Level 4#(lf)    SELECT #(lf)        business_unit_hierarchy_level3_name AS parent,#(lf)        business_unit_hierarchy_level4_name AS child,#(lf)#(tab)#(tab)'Business Unit' AS type#(lf)    FROM [edw].[vw_dim_business_unit_hierarchy]#(lf)    WHERE [EDWDMLOperation] <> 'D'#(lf)        AND [dim_business_unit_hierarchy_key] > 0#(lf)        AND business_unit_hierarchy_level4_name IS NOT NULL#(lf)    #(lf)    UNION ALL#(lf)    #(lf)    -- Level 4 to Level 5#(lf)    SELECT #(lf)        business_unit_hierarchy_level4_name AS parent,#(lf)        business_unit_hierarchy_level5_name AS child,#(lf)#(tab)#(tab)'Business Unit' AS type#(lf)    FROM [edw].[vw_dim_business_unit_hierarchy]#(lf)    WHERE [EDWDMLOperation] <> 'D'#(lf)        AND [dim_business_unit_hierarchy_key] > 0#(lf)        AND business_unit_hierarchy_level5_name IS NOT NULL#(lf)    #(lf)    UNION ALL#(lf)    #(lf)    -- Level 5 to Level 6#(lf)    SELECT #(lf)        business_unit_hierarchy_level5_name AS parent,#(lf)        business_unit_hierarchy_level6_name AS child,#(lf)#(tab)#(tab)'Business Unit' AS type#(lf)    FROM [edw].[vw_dim_business_unit_hierarchy]#(lf)    WHERE [EDWDMLOperation] <> 'D'#(lf)        AND [dim_business_unit_hierarchy_key] > 0#(lf)        AND business_unit_hierarchy_level6_name IS NOT NULL#(lf)    #(lf)    UNION ALL#(lf)    #(lf)    -- Level 6 to Level 7#(lf)    SELECT #(lf)        business_unit_hierarchy_level6_name AS parent,#(lf)        business_unit_hierarchy_level7_name AS child,#(lf)#(tab)#(tab)'Business Unit' AS type#(lf)    FROM [edw].[vw_dim_business_unit_hierarchy]#(lf)    WHERE [EDWDMLOperation] <> 'D'#(lf)        AND [dim_business_unit_hierarchy_key] > 0#(lf)        AND business_unit_hierarchy_level7_name IS NOT NULL#(lf)    #(lf)    UNION ALL#(lf)    #(lf)    -- Level 7 to Final Business Unit#(lf)    SELECT #(lf)        business_unit_hierarchy_level7_name AS parent,#(lf)        business_unit_name AS child,#(lf)#(tab)#(tab)'Business Unit' AS type#(lf)    FROM [edw].[vw_dim_business_unit_hierarchy]#(lf)    WHERE [EDWDMLOperation] <> 'D'#(lf)        AND [dim_business_unit_hierarchy_key] > 0#(lf)        AND business_unit_name IS NOT NULL#(lf))#(lf),Business_Hierarchy_CTE AS (#(lf)    SELECT DISTINCT #(lf)        h.parent AS [Parent BU],#(lf)        h.child AS [Child BU],#(lf)        ps.dim_service_key AS [Parent Dim Service Key],#(lf)        cs.dim_service_key AS [Child Dim Service Key],#(lf)#(tab)#(tab)type AS Type#(lf)    FROM hierarchy_cte h#(lf)    LEFT JOIN [edw].[vw_dim_service] ps ON h.parent = ps.[service_name]#(lf)    LEFT JOIN [edw].[vw_dim_service] cs ON h.child = cs.[service_name]#(lf)    WHERE h.parent <> h.child#(lf)        AND (ps.[DWHIsCurrent] = 1 OR ps.[DWHIsCurrent] IS NULL)#(lf)        AND (cs.[DWHIsCurrent] = 1 OR cs.[DWHIsCurrent] IS NULL)#(lf))#(lf)SELECT DISTINCT#(lf)    [Child BU] AS EntityName,#(lf)    [Parent Dim Service Key] AS ParentEntityKey,#(lf)    [Child Dim Service Key] AS EntityKey,#(lf)#(tab)Type#(lf)FROM Business_Hierarchy_CTE#(lf)WHERE [Parent BU] <> 'Previous Business Unit/s'#(lf)#(lf)UNION ALL#(lf)#(lf)-- Include top-level nodes with no parent#(lf)SELECT DISTINCT#(lf)    business_unit_hierarchy_level1_name AS [Child BU],#(lf)    NULL AS [Parent Dim Service Key],#(lf)    cs.dim_service_key AS [Child Dim Service Key],#(lf)#(tab)'Business Unit' AS Type#(lf)FROM [edw].[vw_dim_business_unit_hierarchy] buh#(lf)LEFT JOIN [edw].[vw_dim_service] cs ON buh.business_unit_hierarchy_level1_name = cs.[service_name]#(lf)WHERE [EDWDMLOperation] <> 'D'#(lf)    AND [dim_business_unit_hierarchy_key] > 0#(lf)    AND business_unit_hierarchy_level1_name IS NOT NULL#(lf)    AND (cs.[DWHIsCurrent] = 1)#(lf)#(lf)UNION ALL#(lf)#(lf)-- Include employees at the bottom level of the hierarchy#(lf)SELECT DISTINCT#(lf)    employee_displayname AS EntityName,#(lf)    cs.dim_service_key AS ParentEntityKey,#(lf)    dim_employee_key AS EntityKey,#(lf)#(tab)'Kaimahi' AS Type#(lf)FROM (#(lf)    SELECT DISTINCT#(lf)        COALESCE(#(lf)            employee_people_leader_business_unit_name_level_9,#(lf)            employee_people_leader_business_unit_name_level_8,#(lf)            employee_people_leader_business_unit_name_level_7,#(lf)            employee_people_leader_business_unit_name_level_6,#(lf)            employee_people_leader_business_unit_name_level_5,#(lf)            employee_people_leader_business_unit_name_level_4,#(lf)            employee_people_leader_business_unit_name_level_3,#(lf)            employee_people_leader_business_unit_name_level_2,#(lf)            employee_people_leader_business_unit_name_level_1#(lf)        ) AS last_non_null,#(lf)        deh.employee_displayname,#(lf)#(tab)#(tab)deh.dim_employee_key#(lf)    FROM [edw].[vw_dim_employee_hierarchy] deh#(lf)#(tab)INNER JOIN [edw].[vw_dim_employee] de ON deh.[dim_employee_key] = de.[dim_employee_key]#(lf)    WHERE #(lf)#(tab)#(tab)de.employee_employment_status IN ('Current Staff', 'Exiting Staff')#(lf)#(tab)#(tab)AND deh.DWHDMLOperation <> 'D'#(lf)        AND deh.DWHIsCurrent = 1#(lf)        AND deh.dim_employee_key > 0#(lf)#(tab)#(tab)AND de.DWHDMLOperation <> 'D'#(lf)        AND de.DWHIsCurrent = 1#(lf)        AND de.dim_employee_key > 0#(lf)) AS EmployeeHierarchy#(lf)INNER JOIN [edw].[vw_dim_service] cs ON EmployeeHierarchy.last_non_null = cs.[service_name]#(lf)WHERE cs.[DWHIsCurrent] = 1;"]),
+		    #"Removed Duplicates" = Table.Distinct(Source, {"EntityName"}),
+		    #"Filtered Rows" = Table.SelectRows(#"Removed Duplicates", each ([EntityKey] <> null))
+		in
+		    #"Filtered Rows"
+	lineageTag: 33499a91-20b2-41bd-a7fb-a31ba396e179
+	queryGroup: 'EDW Dim Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression Entity_Errors = ```
+		let
+		    Source = Load_Entity_Data,
+		    #"Filtered Rows" = Table.SelectRows(Source, each ([EntityKey] <> null)),
+		    
+		    // Step 3: Create a list of all EntityKey values
+		    EntityKeys = #"Filtered Rows"[EntityKey],
+		    
+		    // Step 4: Filter rows where ParentEntityKey is not null AND does NOT exist in EntityKeys
+		    #"Filtered ParentEntityKey" = Table.SelectRows(
+		        #"Filtered Rows", 
+		        each
+		             ([ParentEntityKey] <> null) and 
+		             not List.Contains(EntityKeys, [ParentEntityKey])
+		    )
+		in
+		    #"Filtered ParentEntityKey"
+		```
+	lineageTag: fe401bbf-ea52-485d-9a81-a65e918f1e3b
+	queryGroup: 'EDW Dim Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Exception
+
+expression Load_Entity_Data =
+		let
+		    Source = Sql.Database(Server, Database, [Query="WITH CurrentServices AS (#(lf)    SELECT#(lf)        service_id,#(lf)        dim_service_key#(lf)    FROM [edw].[vw_dim_service]#(lf)    WHERE DWHIsCurrent = 1#(lf)    AND DWHDMLOperation <> 'D'#(lf)),#(lf)#(lf)-- Define the hierarchy of business units#(lf)hierarchy_cte AS (#(lf)    -- Level 1 to Level 2#(lf)    SELECT #(lf)        business_unit_hierarchy_level1_name AS parent,#(lf)        business_unit_hierarchy_level2_name AS child,#(lf)        'Business Unit' AS type#(lf)    FROM [edw].[vw_dim_business_unit_hierarchy]#(lf)    WHERE [EDWDMLOperation] <> 'D'#(lf)        AND [dim_business_unit_hierarchy_key] > 0#(lf)        AND business_unit_hierarchy_level2_name IS NOT NULL#(lf)    #(lf)    UNION ALL#(lf)    #(lf)    -- Continue for levels 2 to 7#(lf)    SELECT #(lf)        business_unit_hierarchy_level2_name AS parent,#(lf)        business_unit_hierarchy_level3_name AS child,#(lf)        'Business Unit' AS type#(lf)    FROM [edw].[vw_dim_business_unit_hierarchy]#(lf)    WHERE [EDWDMLOperation] <> 'D'#(lf)        AND [dim_business_unit_hierarchy_key] > 0#(lf)        AND business_unit_hierarchy_level3_name IS NOT NULL#(lf)    #(lf)    UNION ALL#(lf)    #(lf)    SELECT #(lf)        business_unit_hierarchy_level3_name AS parent,#(lf)        business_unit_hierarchy_level4_name AS child,#(lf)        'Business Unit' AS type#(lf)    FROM [edw].[vw_dim_business_unit_hierarchy]#(lf)    WHERE [EDWDMLOperation] <> 'D'#(lf)        AND [dim_business_unit_hierarchy_key] > 0#(lf)        AND business_unit_hierarchy_level4_name IS NOT NULL#(lf)    #(lf)    UNION ALL#(lf)    #(lf)    SELECT #(lf)        business_unit_hierarchy_level4_name AS parent,#(lf)        business_unit_hierarchy_level5_name AS child,#(lf)        'Business Unit' AS type#(lf)    FROM [edw].[vw_dim_business_unit_hierarchy]#(lf)    WHERE [EDWDMLOperation] <> 'D'#(lf)        AND [dim_business_unit_hierarchy_key] > 0#(lf)        AND business_unit_hierarchy_level5_name IS NOT NULL#(lf)    #(lf)    UNION ALL#(lf)    #(lf)    SELECT #(lf)        business_unit_hierarchy_level5_name AS parent,#(lf)        business_unit_hierarchy_level6_name AS child,#(lf)        'Business Unit' AS type#(lf)    FROM [edw].[vw_dim_business_unit_hierarchy]#(lf)    WHERE [EDWDMLOperation] <> 'D'#(lf)        AND [dim_business_unit_hierarchy_key] > 0#(lf)        AND business_unit_hierarchy_level6_name IS NOT NULL#(lf)    #(lf)    UNION ALL#(lf)    #(lf)    SELECT #(lf)        business_unit_hierarchy_level6_name AS parent,#(lf)        business_unit_hierarchy_level7_name AS child,#(lf)        'Business Unit' AS type#(lf)    FROM [edw].[vw_dim_business_unit_hierarchy]#(lf)    WHERE [EDWDMLOperation] <> 'D'#(lf)        AND [dim_business_unit_hierarchy_key] > 0#(lf)        AND business_unit_hierarchy_level7_name IS NOT NULL#(lf)    #(lf)    UNION ALL#(lf)    #(lf)    SELECT #(lf)        business_unit_hierarchy_level7_name AS parent,#(lf)        business_unit_name AS child,#(lf)        'Business Unit' AS type#(lf)    FROM [edw].[vw_dim_business_unit_hierarchy]#(lf)    WHERE [EDWDMLOperation] <> 'D'#(lf)        AND [dim_business_unit_hierarchy_key] > 0#(lf)        AND business_unit_name IS NOT NULL#(lf)),#(lf)#(lf)-- Existing Housing Records CTE#(lf)ExistingHousingRecords AS (#(lf)    SELECT DISTINCT#(lf)        dp.property_name AS EntityName,#(lf)        CONCAT('BU', ds.dim_service_key) AS ParentEntityKey,#(lf)        CONCAT('H', dp.dim_property_key) AS EntityKey,#(lf)        'Housing' AS Type#(lf)    FROM #(lf)        [edw].[vw_dim_property] dp#(lf)    INNER JOIN [edw].[vw_dim_service] ds#(lf)        ON ds.service_name = dp.property_bc_service_name#(lf)    WHERE #(lf)        dp.DWHIsCurrent = 1#(lf)        AND dp.DWHDMLOperation <> 'D'#(lf)        AND ds.DWHIsCurrent = 1#(lf)        AND ds.DWHDMLOperation <> 'D'#(lf)),#(lf)#(lf)-- Additional Housing Records CTE#(lf)AdditionalHousingRecords AS (#(lf)    SELECT#(lf)        ds.service_name AS EntityName,#(lf)        NULL AS ParentEntityKey,#(lf)        CONCAT('BU', ds.dim_service_key) AS EntityKey,#(lf)        'Housing' AS Type#(lf)    FROM#(lf)        [edw].[vw_dim_service] ds#(lf)    WHERE #(lf)        ds.dim_company_key = 2#(lf)        AND ds.DWHIsCurrent = 1#(lf)        AND ds.DWHDMLOperation <> 'D'#(lf)        AND NOT EXISTS (#(lf)            SELECT 1#(lf)            FROM ExistingHousingRecords ehr#(lf)            WHERE ehr.EntityKey = CONCAT('H', ds.dim_service_key)#(lf)        )#(lf)),#(lf)#(lf)-- Business Hierarchy CTE#(lf)Business_Hierarchy_CTE AS (#(lf)    SELECT DISTINCT #(lf)        h.parent AS [Parent BU],#(lf)        h.child AS [Child BU],#(lf)        ps.dim_service_key AS [Parent Dim Service Key],#(lf)        cs.dim_service_key AS [Child Dim Service Key],#(lf)        type AS Type#(lf)    FROM hierarchy_cte h#(lf)    LEFT JOIN [edw].[vw_dim_service] ps ON h.parent = ps.[service_name]#(lf)    LEFT JOIN [edw].[vw_dim_service] cs ON h.child = cs.[service_name]#(lf)    WHERE h.parent <> h.child#(lf)        AND (ps.[DWHIsCurrent] = 1 OR ps.[DWHIsCurrent] IS NULL)#(lf)        AND (cs.[DWHIsCurrent] = 1 OR cs.[DWHIsCurrent] IS NULL)#(lf))#(lf)#(lf)-- Main Query#(lf)SELECT DISTINCT#(lf)    [Child BU] AS EntityName,#(lf)    CONCAT('BU',[Parent Dim Service Key]) AS ParentEntityKey,#(lf)    CONCAT('BU',[Child Dim Service Key]) AS EntityKey,#(lf)    Type#(lf)FROM Business_Hierarchy_CTE#(lf)WHERE [Parent BU] <> 'Previous Business Unit/s'#(lf)#(lf)UNION ALL#(lf)#(lf)-- Include top-level nodes with no parent#(lf)SELECT DISTINCT#(lf)    business_unit_hierarchy_level1_name AS [Child BU],#(lf)    NULL AS [Parent Dim Service Key],#(lf)    CONCAT('BU',cs.dim_service_key) AS [Child Dim Service Key],#(lf)    'Business Unit' AS Type#(lf)FROM [edw].[vw_dim_business_unit_hierarchy] buh#(lf)LEFT JOIN [edw].[vw_dim_service] cs ON buh.business_unit_hierarchy_level1_name = cs.[service_name]#(lf)WHERE [EDWDMLOperation] <> 'D'#(lf)    AND [dim_business_unit_hierarchy_key] > 0#(lf)    AND business_unit_hierarchy_level1_name IS NOT NULL#(lf)    AND (cs.[DWHIsCurrent] = 1)#(lf)#(lf)UNION ALL#(lf)#(lf)-- Include employees at the bottom level of the hierarchy#(lf)SELECT DISTINCT#(lf)    employee_displayname AS EntityName,#(lf)    CONCAT('BU',cs.dim_service_key) AS ParentEntityKey,#(lf)    CONCAT('K',employee_id) AS EntityKey,#(lf)    'Kaimahi' AS Type#(lf)FROM (#(lf)    SELECT DISTINCT#(lf)        COALESCE(#(lf)            employee_people_leader_business_unit_name_level_9,#(lf)            employee_people_leader_business_unit_name_level_8,#(lf)            employee_people_leader_business_unit_name_level_7,#(lf)            employee_people_leader_business_unit_name_level_6,#(lf)            employee_people_leader_business_unit_name_level_5,#(lf)            employee_people_leader_business_unit_name_level_4,#(lf)            employee_people_leader_business_unit_name_level_3,#(lf)            employee_people_leader_business_unit_name_level_2,#(lf)            employee_people_leader_business_unit_name_level_1#(lf)        ) AS last_non_null,#(lf)        deh.employee_displayname,#(lf)        deh.employee_id#(lf)    FROM [edw].[vw_dim_employee_hierarchy] deh#(lf)    INNER JOIN [edw].[vw_dim_employee] de ON deh.[dim_employee_key] = de.[dim_employee_key]#(lf)    WHERE #(lf)        de.employee_employment_status IN ('Current Staff', 'Exiting Staff')#(lf)        AND deh.DWHDMLOperation <> 'D'#(lf)        AND deh.DWHIsCurrent = 1#(lf)        AND deh.dim_employee_key > 0#(lf)        AND de.DWHDMLOperation <> 'D'#(lf)        AND de.DWHIsCurrent = 1#(lf)        AND de.dim_employee_key > 0#(lf)) AS EmployeeHierarchy#(lf)INNER JOIN [edw].[vw_dim_service] cs ON EmployeeHierarchy.last_non_null = cs.[service_name]#(lf)WHERE cs.[DWHIsCurrent] = 1#(lf)#(lf)UNION ALL#(lf)#(lf)-- Include Kaimahi based on service for currently active referrals#(lf)SELECT DISTINCT#(lf)CONCAT('PersonID:',dc.client_id) AS EntityName,#(lf)CONCAT('BU',cs.dim_service_key) AS ParentEntityKey,#(lf)CONCAT('TW',fcr.client_id) AS EntityKey,#(lf)'Tangata Whaiora' AS Type#(lf)FROM#(lf)    [edw].[vw_fact_client_referral] fcr#(lf)INNER JOIN #(lf)    [edw].[vw_dim_client_referral] dcr#(lf)    ON fcr.dim_client_referral_key = dcr.dim_client_referral_key#(lf)INNER JOIN#(lf)    [edw].[vw_dim_client] dc#(lf)    ON dc.client_id = fcr.client_id#(lf)LEFT JOIN#(lf)    [edw].[vw_dim_service] ds_original#(lf)    ON ds_original.dim_service_key = fcr.dim_service_key#(lf)LEFT JOIN#(lf)    CurrentServices cs#(lf)    ON cs.service_id = ds_original.service_id#(lf)WHERE#(lf)    dcr.client_referral_status = 'Accepted'#(lf)    AND dcr.client_referral_type = 'InboundReferral'#(lf)    AND dc.DWHDMLOperation <> 'D'#(lf)    AND dc.DWHIsCurrent = 1#(lf)    AND dcr.DWHDMLOperation <> 'D'#(lf)    AND fcr.DWHDMLOperation <> 'D'#(lf)#(tab)--AND dc.client_id = 111257;#(lf)#(lf)UNION ALL#(lf)-- Select housing data from CTEs#(lf)SELECT#(lf)EntityName,#(lf)ParentEntityKey,#(lf)EntityKey,#(lf)Type#(lf)FROM ExistingHousingRecords#(lf)#(lf)UNION ALL#(lf)#(lf)SELECT#(lf)EntityName,#(lf)'EAHT',#(lf)EntityKey,#(lf)Type#(lf)FROM AdditionalHousingRecords#(lf)#(lf)UNION ALL#(lf)#(lf)SELECT #(lf)'EAHT' AS EntityName,#(lf)NULL AS ParentEntityKey,#(lf)'EAHT' AS EntityKey,#(lf)'Housing' AS Type"]),
+		    #"Removed Duplicates" = Table.Distinct(Source, {"EntityKey"})
+		in
+		    #"Removed Duplicates"
+	lineageTag: 6154f8f0-16ca-400d-a160-cae743cf5777
+	queryGroup: 'EDW Dim Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'All households have an occupancy agreement' =
+		let
+		    // Parameters
+		    SFA_Rollup_ID = "OP1",
+		    SFA_Rollup_Area = "OUR PERFORMANCE",
+		    KPI_Description = "All households have an occupancy agreement [TH Motel, Navigator responsibility]",
+		    // Source KPI SharePoint List
+		    SourceKPIList = #"KPI SharePoint List",
+		    // Filter KPI SharePoint List
+		    FilteredKPIList = Table.SelectRows(
+		        SourceKPIList,
+		        each
+		            [#"SFA Rollup Areas: Rollup ID"] = SFA_Rollup_ID
+		            and [#"SFA Rollup Areas: Strategic Focus Area (SFA)"] = SFA_Rollup_Area
+		            and [#"What is measured?"] = KPI_Description
+		    ),
+		    // Get KPI thresholds and signs
+		    KPIInfo = Table.FirstN(FilteredKPIList, 1),
+		    GreenThreshold = KPIInfo{0}[#"KPI-G Value"],
+		    AmberThreshold = KPIInfo{0}[#"KPI-A Value"],
+		    GreenSign = KPIInfo{0}[#"KPI-G Sign"],
+		    AmberSign = KPIInfo{0}[#"KPI-A Sign"],
+		    KPIName = KPIInfo{0}[#"What is measured?"],
+		    DimKpiKey = KPIInfo{0}[#"Dim KPI Key"],
+		    // Get additional KPI Rollup values
+		    RollupGreenThreshold = KPIInfo{0}[#"KPI-RU-G Value"],
+		    RollupGreenSign = KPIInfo{0}[#"KPI-RU-G Sign"],
+		    RollupAmberThreshold = KPIInfo{0}[#"KPI-RU-A Value"],
+		    RollupAmberSign = KPIInfo{0}[#"KPI-RU-A Sign"],
+		    // Source Fact Table: Change to the appropriate fact table
+		    SourceFactTable = #"work_all households have an occupancy agreement",
+		    // Process Fact Data: Adjust grouping and operations as needed
+		    ProcessedFactData = SourceFactTable,
+		    // Add KPI details
+		    AddKPIDetails = Table.AddColumn(ProcessedFactData, "KPI Name", each KPIName),
+		    AddGreenThreshold = Table.AddColumn(AddKPIDetails, "Green Threshold", each GreenThreshold),
+		    AddAmberThreshold = Table.AddColumn(AddGreenThreshold, "Amber Threshold", each AmberThreshold),
+		    AddGreenSign = Table.AddColumn(AddAmberThreshold, "Green Sign", each GreenSign),
+		    AddAmberSign = Table.AddColumn(AddGreenSign, "Amber Sign", each AmberSign),
+		    // Add Rollup KPI details
+		    AddRollupGreenThreshold = Table.AddColumn(AddAmberSign, "Rollup Green Threshold", each RollupGreenThreshold),
+		    AddRollupGreenSign = Table.AddColumn(AddRollupGreenThreshold, "Rollup Green Sign", each RollupGreenSign),
+		    AddRollupAmberThreshold = Table.AddColumn(
+		        AddRollupGreenSign, "Rollup Amber Threshold", each RollupAmberThreshold
+		    ),
+		    AddRollupAmberSign = Table.AddColumn(AddRollupAmberThreshold, "Rollup Amber Sign", each RollupAmberSign),
+		    // Calculate KPI Status
+		    AddKPIStatus = Table.AddColumn(
+		        AddRollupAmberSign,
+		        "KPI Status",
+		        each
+		            let
+		                CurrentValue = [#"KPI Value"],
+		                GreenCheck =
+		                    if GreenSign = ">=" then
+		                        CurrentValue >= GreenThreshold
+		                    else if GreenSign = ">" then
+		                        CurrentValue > GreenThreshold
+		                    else if GreenSign = "<=" then
+		                        CurrentValue <= GreenThreshold
+		                    else if GreenSign = "<" then
+		                        CurrentValue < GreenThreshold
+		                    else if GreenSign = "=" then
+		                        CurrentValue = GreenThreshold
+		                    else
+		                        false,
+		                AmberCheck =
+		                    if AmberSign = ">=" then
+		                        CurrentValue >= AmberThreshold
+		                    else if AmberSign = ">" then
+		                        CurrentValue > AmberThreshold
+		                    else if AmberSign = "<=" then
+		                        CurrentValue <= AmberThreshold
+		                    else if AmberSign = "<" then
+		                        CurrentValue < AmberThreshold
+		                    else if AmberSign = "=" then
+		                        CurrentValue = AmberThreshold
+		                    else
+		                        false
+		            in
+		                if CurrentValue = null then
+		                    null
+		                else if GreenCheck then
+		                    "Green"
+		                else if AmberCheck then
+		                    "Amber"
+		                else
+		                    "Red"
+		    ),
+		    AddDimKPIKEY = Table.AddColumn(AddKPIStatus, "Dim KPI Key", each DimKpiKey),
+		    ChangeType = Table.TransformColumnTypes(
+		        AddDimKPIKEY,
+		        {
+		            {"KPI Status", type text},
+		            {"Rollup Amber Sign", type text},
+		            {"Rollup Amber Threshold", type number},
+		            {"Rollup Green Sign", type text},
+		            {"Rollup Green Threshold", type number},
+		            {"Amber Sign", type text},
+		            {"Green Sign", type text},
+		            {"Amber Threshold", type number},
+		            {"Green Threshold", type number},
+		            {"KPI Name", type text},
+		            {"Dim KPI Key", Int64.Type}
+		        }
+		    ),
+		    #"Added Custom" = Table.AddColumn(ChangeType, "Entity KEY", each "H" & Text.From([Dim Property KEY]))
+		in
+		    #"Added Custom"
+	lineageTag: f9f90933-95d6-4c1a-b7e2-0a358a29f7cd
+	queryGroup: 'KPI Calculations'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'work_all households have an occupancy agreement' =
+		let
+		    Source = Sql.Database("sql-dev-aue-svc-datawarehouse-01.database.windows.net", "sqldb-dev-datawarehouse-01", [Query="SELECT DISTINCT#(lf)         fpt.dim_property_key#(lf)#(tab),ds.dim_service_key#(lf)    ,CASE WHEN [property_tenant_tenancy_lease_agreement_date_key] > 0 THEN 1 ELSE  0 END AS ""KPI Value""#(lf)FROM #(lf)    [edw].[vw_fact_property_tenant] fpt#(lf)INNER JOIN [edw].[vw_dim_property] dp#(lf)#(tab)ON fpt.dim_property_key = fpt.dim_property_key#(lf)INNER JOIN [edw].[vw_dim_service] ds#(lf)#(tab)ON ds.service_name = dp.property_bc_service_name#(lf)WHERE fpt.DWHDMLOperation <> 'D'#(lf)#(tab)AND dp.DWHIsCurrent = 1#(lf)#(tab)AND dp.DWHDMLOperation <> 'D'#(lf)#(tab)AND ds.DWHIsCurrent = 1#(lf)#(tab)AND ds.DWHDMLOperation <> 'D'"]),
+		        ApplyNamingConventions = (columnName as text) as text =>
+		        let
+		            replaceKaimahi = Text.Replace(columnName, "employee_", "Kaimahi_"),
+		            replaceClient = Text.Replace(replaceKaimahi, "client_", "Tangata_Whaiora_"),
+		            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+		            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+		            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+		            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+		            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+		            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+		            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+		            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+		            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+		            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+		            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+		            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+		            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH"),
+		            capitaliseKPI = Text.Replace(capitaliseDWH, "Kpi", "KPI")
+		        in
+		            capitaliseKPI,
+		    #"Transform Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_))
+		in
+		    #"Transform Column Names"
+	lineageTag: 35186552-9e76-4c5d-9a15-e9faacaef616
+	queryGroup: 'Work In Progress\EDW\dev'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'Time since last leave < 6 months' =
+		let
+		    // Parameters
+		    SFA_Rollup_ID = "OK2",
+		    SFA_Rollup_Area = "OUR KAIMAHI",
+		    KPI_Description = "Time since last leave taken < 6 months",
+		    // Additional Parameter
+		    // Source KPI SharePoint List
+		    SourceKPIList = #"KPI SharePoint List",
+		    // Filter KPI SharePoint List
+		    FilteredKPIList = Table.SelectRows(
+		        SourceKPIList,
+		        each
+		            [#"SFA Rollup Areas: Rollup ID"] = SFA_Rollup_ID
+		            and [#"SFA Rollup Areas: Strategic Focus Area (SFA)"] = SFA_Rollup_Area
+		            and [#"What is measured?"] = KPI_Description
+		    ),
+		    // Get KPI thresholds and signs
+		    KPIInfo = Table.FirstN(FilteredKPIList, 1),
+		    GreenThreshold = KPIInfo{0}[#"KPI-G Value"],
+		    AmberThreshold = KPIInfo{0}[#"KPI-A Value"],
+		    GreenSign = KPIInfo{0}[#"KPI-G Sign"],
+		    AmberSign = KPIInfo{0}[#"KPI-A Sign"],
+		    KPIName = KPIInfo{0}[#"What is measured?"],
+		    DimKpiKey = KPIInfo{0}[#"Dim KPI Key"],
+		    // Get additional KPI Rollup values
+		    RollupGreenThreshold = KPIInfo{0}[#"KPI-RU-G Value"],
+		    RollupGreenSign = KPIInfo{0}[#"KPI-RU-G Sign"],
+		    RollupAmberThreshold = KPIInfo{0}[#"KPI-RU-A Value"],
+		    RollupAmberSign = KPIInfo{0}[#"KPI-RU-A Sign"],
+		    // Source Fact Table: Change to the appropriate fact table
+		    SourceFactTable = #"work_time since last leave < 6 months",
+		    // Add KPI details
+		    AddKPIDetails = Table.AddColumn(SourceFactTable, "KPI Name", each KPIName),
+		    AddGreenThreshold = Table.AddColumn(AddKPIDetails, "Green Threshold", each GreenThreshold),
+		    AddAmberThreshold = Table.AddColumn(AddGreenThreshold, "Amber Threshold", each AmberThreshold),
+		    AddGreenSign = Table.AddColumn(AddAmberThreshold, "Green Sign", each GreenSign),
+		    AddAmberSign = Table.AddColumn(AddGreenSign, "Amber Sign", each AmberSign),
+		    // Add Rollup KPI details
+		    AddRollupGreenThreshold = Table.AddColumn(AddAmberSign, "Rollup Green Threshold", each RollupGreenThreshold),
+		    AddRollupGreenSign = Table.AddColumn(AddRollupGreenThreshold, "Rollup Green Sign", each RollupGreenSign),
+		    AddRollupAmberThreshold = Table.AddColumn(
+		        AddRollupGreenSign, "Rollup Amber Threshold", each RollupAmberThreshold
+		    ),
+		    AddRollupAmberSign = Table.AddColumn(AddRollupAmberThreshold, "Rollup Amber Sign", each RollupAmberSign),
+		    // Calculate KPI Status
+		    AddKPIStatus = Table.AddColumn(
+		        AddRollupAmberSign,
+		        "KPI Status",
+		        each
+		            let
+		                CurrentValue = [#"KPI Value"],
+		                GreenCheck =
+		                    if GreenSign = ">=" then
+		                        CurrentValue >= GreenThreshold
+		                    else if GreenSign = ">" then
+		                        CurrentValue > GreenThreshold
+		                    else if GreenSign = "<=" then
+		                        CurrentValue <= GreenThreshold
+		                    else if GreenSign = "<" then
+		                        CurrentValue < GreenThreshold
+		                    else if GreenSign = "=" then
+		                        CurrentValue = GreenThreshold
+		                    else
+		                        false,
+		                AmberCheck =
+		                    if AmberSign = ">=" then
+		                        CurrentValue >= AmberThreshold
+		                    else if AmberSign = ">" then
+		                        CurrentValue > AmberThreshold
+		                    else if AmberSign = "<=" then
+		                        CurrentValue <= AmberThreshold
+		                    else if AmberSign = "<" then
+		                        CurrentValue < AmberThreshold
+		                    else if AmberSign = "=" then
+		                        CurrentValue = AmberThreshold
+		                    else
+		                        false
+		            in
+		                if CurrentValue = null then
+		                    null
+		                else if GreenCheck then
+		                    "Green"
+		                else if AmberCheck then
+		                    "Amber"
+		                else
+		                    "Red"
+		    ),
+		    AddDimKPIKEY = Table.AddColumn(AddKPIStatus, "Dim KPI Key", each DimKpiKey),
+		    ChangeType = Table.TransformColumnTypes(
+		        AddDimKPIKEY,
+		        {
+		            {"KPI Status", type text},
+		            {"Rollup Amber Sign", type text},
+		            {"Rollup Amber Threshold", type number},
+		            {"Rollup Green Sign", type text},
+		            {"Rollup Green Threshold", type number},
+		            {"Amber Sign", type text},
+		            {"Green Sign", type text},
+		            {"Amber Threshold", type number},
+		            {"Green Threshold", type number},
+		            {"KPI Name", type text},
+		            {"Dim KPI Key", Int64.Type}
+		        }
+		    ),
+		    #"Added Conditional Column" = Table.AddColumn(ChangeType, "Entity KEY", each "K" & Text.From([Kaimahi ID])),
+		    #"Removed Columns" = Table.RemoveColumns(#"Added Conditional Column", {"Kaimahi ID"})
+		    // Add K to Dim Kaimahi Key to correctly join on Entity Key
+		in
+		    #"Removed Columns"
+	lineageTag: faf14ff6-281b-4f43-b353-37095034e8ab
+	queryGroup: 'KPI Calculations'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'work_time since last leave < 6 months' =
+		let
+		    Source = Sql.Database(Server, Database, [Query="WITH employees AS (#(lf)    SELECT DISTINCT#(lf)        deh.employee_displayname AS EntityName,#(lf)        deh.dim_employee_key,#(lf)        de.employee_employment_status,#(lf)        de.employee_id,#(lf)        de.employee_start_date,  -- Included employee_start_date#(lf)        'Kaimahi' AS Type#(lf)    FROM [edw].[vw_dim_employee_hierarchy] deh#(lf)    INNER JOIN [edw].[vw_dim_employee] de ON deh.dim_employee_key = de.dim_employee_key#(lf)    INNER JOIN [edw].[vw_dim_service] cs ON COALESCE(#(lf)        deh.employee_people_leader_business_unit_name_level_9,#(lf)        deh.employee_people_leader_business_unit_name_level_8,#(lf)        deh.employee_people_leader_business_unit_name_level_7,#(lf)        deh.employee_people_leader_business_unit_name_level_6,#(lf)        deh.employee_people_leader_business_unit_name_level_5,#(lf)        deh.employee_people_leader_business_unit_name_level_4,#(lf)        deh.employee_people_leader_business_unit_name_level_3,#(lf)        deh.employee_people_leader_business_unit_name_level_2,#(lf)        deh.employee_people_leader_business_unit_name_level_1#(lf)    ) = cs.service_name#(lf)    WHERE #(lf)        de.employee_employment_status IN ('Current Staff', 'Exiting Staff')#(lf)        AND deh.DWHDMLOperation <> 'D'#(lf)        AND deh.DWHIsCurrent = 1#(lf)        AND deh.dim_employee_key > 0#(lf)        AND de.DWHDMLOperation <> 'D'#(lf)        AND de.DWHIsCurrent = 1#(lf)        AND de.dim_employee_key > 0#(lf)        AND cs.DWHIsCurrent = 1#(lf))#(lf)#(lf), cte_leave AS (#(lf)    SELECT#(lf)        fel.fact_employee_leave_key,#(lf)        dpc.payroll_category_name,#(lf)        fel.employee_leave_effective_date_key,#(lf)        fel.employee_id,#(lf)        fel.employee_leave_taken_hours#(lf)    FROM [edw].[vw_fact_employee_leave] fel#(lf)    INNER JOIN [edw].[vw_dim_payroll_category] dpc ON fel.dim_payroll_category_key = dpc.dim_payroll_category_key#(lf)    WHERE dpc.payroll_category_name = 'Annual leave'#(lf)        AND fel.employee_leave_taken_hours > 0  -- Directly consider records where leave was taken#(lf)        AND CONVERT(DATE, CONVERT(VARCHAR(8), fel.employee_leave_effective_date_key), 112) <= GETDATE()  -- Exclude future dates#(lf))#(lf)#(lf), last_leave AS (#(lf)    SELECT#(lf)        cl.employee_id,#(lf)        MAX(cl.employee_leave_effective_date_key) AS last_leave_effective_date_key#(lf)    FROM cte_leave cl#(lf)    GROUP BY cl.employee_id#(lf))#(lf)#(lf)SELECT #(lf)    --e.dim_employee_key,#(lf)    e.employee_id,#(lf)    --e.employee_employment_status,#(lf)    --e.employee_start_date,#(lf)    -- Calculate last_leave_date#(lf)   -- COALESCE(#(lf)   --     CONVERT(DATE, CONVERT(VARCHAR(8), l.last_leave_effective_date_key), 112), #(lf)   --     --CASE #(lf)   --     --    WHEN DATEDIFF(month, e.employee_start_date, GETDATE()) <= 6 THEN#(lf)#(tab)#(tab)#(tab)--e.employee_start_date#(lf)   --         --ELSE NULL END#(lf)   -- ) AS last_leave_date,#(lf)    -- Identify employees who haven't taken leave within the last 6 months#(lf)     DATEDIFF(MONTH, #(lf)            COALESCE(#(lf)                CONVERT(DATE, CONVERT(VARCHAR(8), l.last_leave_effective_date_key), 112), #(lf)                e.employee_start_date#(lf)            ), GETDATE()#(lf)#(tab)#(tab)#(tab)) AS [KPI Value]#(lf)FROM employees e#(lf)LEFT JOIN last_leave l ON e.employee_id = l.employee_id#(lf)ORDER BY e.employee_id;"]),
+		        ApplyNamingConventions = (columnName as text) as text =>
+		        let
+		            replaceKaimahi = Text.Replace(columnName, "employee_", "Kaimahi_"),
+		            replaceClient = Text.Replace(replaceKaimahi, "client_", "Tangata_Whaiora_"),
+		            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+		            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+		            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+		            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+		            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+		            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+		            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+		            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+		            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+		            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+		            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+		            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+		            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH"),
+		            capitaliseKPI = Text.Replace(capitaliseDWH, "Kpi", "KPI")
+		        in
+		            capitaliseKPI,
+		    #"Transform Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_))
+		in
+		    #"Transform Column Names"
+	lineageTag: 1ae5dc94-2775-422e-b628-a1bcdf1e2f12
+	queryGroup: 'Work In Progress\EDW\prod'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

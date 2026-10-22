@@ -1,0 +1,102 @@
+table RB_UserTeamAccess_Combined
+	lineageTag: b737929d-c8d0-4edc-a579-09ecb08c1571
+
+	column UserID
+		dataType: int64
+		formatString: 0
+		lineageTag: 15bc8e32-76d0-46bd-ab91-61c610260945
+		summarizeBy: count
+		sourceColumn: UserID
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamID
+		dataType: int64
+		formatString: 0
+		lineageTag: f59dca61-bb5a-4858-9be3-d69ebe61d7fd
+		summarizeBy: count
+		sourceColumn: TeamID
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserEmailAddress
+		dataType: string
+		lineageTag: 24916874-3d73-4276-9317-0d02a6920c87
+		summarizeBy: none
+		sourceColumn: UserEmailAddress
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserEmployeeNumber
+		dataType: string
+		lineageTag: 30cfbada-c524-4cd1-83ad-b33d21ed858b
+		summarizeBy: none
+		sourceColumn: UserEmployeeNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamUDF5
+		dataType: string
+		lineageTag: ee4ba0e0-0f79-4c7b-8fd9-4402c019fb6b
+		summarizeBy: none
+		sourceColumn: TeamUDF5
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamCode
+		dataType: string
+		lineageTag: a0f1c1e6-97e1-4334-a228-0c114d48c127
+		summarizeBy: none
+		sourceColumn: TeamCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamName
+		dataType: string
+		lineageTag: b721cf11-8afa-441c-9801-eb1a2361b797
+		summarizeBy: none
+		sourceColumn: TeamName
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Surrogate Key'
+		dataType: string
+		lineageTag: 0e732349-01f5-4ede-9bfb-4856ea3f6e0c
+		summarizeBy: none
+		sourceColumn: Surrogate Key
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionID
+		dataType: string
+		lineageTag: 8ea0e8e2-87ad-47e9-a611-bfdecf61aae5
+		summarizeBy: none
+		sourceColumn: TeamFunctionID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition RB_UserTeamAccess_Combined = m
+		mode: import
+		queryGroup: RLS
+		source =
+				let
+				    // Load the first source table
+				    Source1 = RB_UserTeamAccess,
+				    // Add a new column to indicate the source
+				    Source1WithSourceColumn = Table.AddColumn(Source1, "Surrogate Key", each Text.From([TeamFunctionID]) & "E" & Text.From([TeamID]), type text),
+				
+				
+				    // Load the second source table
+				    Source2 = RB_UserTeamAccessMIB,
+				    // Add a new column to indicate the source
+				    Source2WithSourceColumn = Table.AddColumn(Source2, "Surrogate Key", each Text.From([TeamFunctionID]) & "M" & Text.From([TeamID]), type text),
+				
+				    // Combine the two tables
+				    CombinedTable = Table.Combine({Source1WithSourceColumn, Source2WithSourceColumn})
+				in
+				    CombinedTable
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

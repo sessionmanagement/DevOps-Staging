@@ -1,0 +1,101 @@
+table WorkTypes
+	lineageTag: d32c86e5-4293-44fe-98a0-705c01bc9829
+
+	column id
+		dataType: string
+		lineageTag: 9cd56f63-5116-4789-a707-95ff1bb79756
+		summarizeBy: none
+		sourceColumn: id
+
+		annotation SummarizationSetBy = Automatic
+
+	column name
+		dataType: string
+		lineageTag: 12d52816-b6cd-43cf-98c1-1f3dd333024e
+		summarizeBy: none
+		sourceColumn: name
+
+		annotation SummarizationSetBy = Automatic
+
+	column abbreviation
+		dataType: string
+		lineageTag: ec53989a-1c7a-4fbf-bee7-125d759a0813
+		summarizeBy: none
+		sourceColumn: abbreviation
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_leave
+		dataType: int64
+		formatString: 0
+		lineageTag: c42c2bad-90db-46a1-b634-e6b2a1ef6092
+		summarizeBy: sum
+		sourceColumn: is_leave
+
+		annotation SummarizationSetBy = Automatic
+
+	column ODSIsCurrent
+		dataType: int64
+		formatString: 0
+		lineageTag: e5820f83-a6f0-42ea-bf56-a8b08fd9c3cd
+		summarizeBy: sum
+		sourceColumn: ODSIsCurrent
+
+		annotation SummarizationSetBy = Automatic
+
+	column ODSEffectiveFrom
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: e98525aa-f120-4021-b537-fd166d757994
+		summarizeBy: none
+		sourceColumn: ODSEffectiveFrom
+
+		annotation SummarizationSetBy = Automatic
+
+	column ODSEffectiveTo
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: aa2fa852-b21e-4ad4-990a-7fa6f8712f22
+		summarizeBy: none
+		sourceColumn: ODSEffectiveTo
+
+		annotation SummarizationSetBy = Automatic
+
+	column ODSDMLOperation
+		dataType: string
+		lineageTag: cf57d356-4256-40bd-9224-65024cac48b3
+		summarizeBy: none
+		sourceColumn: ODSDMLOperation
+
+		annotation SummarizationSetBy = Automatic
+
+	column ODSBatchId
+		dataType: int64
+		formatString: 0
+		lineageTag: 010c11dc-62dc-41b5-9786-c4bed006be3c
+		summarizeBy: count
+		sourceColumn: ODSBatchId
+
+		annotation SummarizationSetBy = Automatic
+
+	column ODSSourceSystem
+		dataType: string
+		lineageTag: ab70883a-9ea7-4fb6-9c13-348cc5306737
+		summarizeBy: none
+		sourceColumn: ODSSourceSystem
+
+		annotation SummarizationSetBy = Automatic
+
+	partition WorkTypes = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT *#(lf)  FROM [EmpLive].[work_types]#(lf)  WHERE ODSIsCurrent=1"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,147 @@
+createOrReplace
+
+	ref table '_Report Components'
+
+		measure 'Data Last Refreshed' = "Data Last Refreshed: " & FORMAT(LASTDATE(LastRefreshed[Date Last Refreshed]), "dd/MM/YYYY - hh:mm am/pm")
+			lineageTag: f1a96072-9c64-4c46-b41d-17a04d1d7221
+
+	ref table _Measures
+
+		measure 'Filters Applied' =
+				
+				VAR _FC_dim_date_calendar_date = IF(ISFILTERED('Dim Date'[calendar_date]), "INCIDENT DATE RANGE: " & FORMAT(MIN('Dim Date'[calendar_date]), "dd/MM/yyyy") & " - " & FORMAT(MAX('Dim Date'[calendar_date]), "dd/MM/yyyy"), BLANK())
+				
+				VAR _dim_date_calendar_year = ADDCOLUMNS(
+				    TOPN(5, FILTER(VALUES('Dim Date'[calendar_year]), NOT(ISBLANK('Dim Date'[calendar_year]))), 'Dim Date'[calendar_year], ASC),
+				    "calendar_year_display", 'Dim Date'[calendar_year]
+				)
+				VAR _dim_date_calendar_yearCount = IF(ISFILTERED('Dim Date'[calendar_year]), COUNTROWS(VALUES('Dim Date'[calendar_year])), 0)
+				VAR _More_dim_date_calendar_year = IF(_dim_date_calendar_yearCount > 5, " and " & (_dim_date_calendar_yearCount - 5) & " more", "")
+				VAR _FC_dim_date_calendar_year = IF(_dim_date_calendar_yearCount > 0, "CALENDAR YEARS CHOSEN: " & CONCATENATEX(_dim_date_calendar_year, [calendar_year_display], ", "), BLANK()) & _More_dim_date_calendar_year
+				
+				VAR _dim_date_calendar_quarter_full = ADDCOLUMNS(
+				    TOPN(5, FILTER(VALUES('Dim Date'[calendar_quarter_full]), NOT(ISBLANK('Dim Date'[calendar_quarter_full]))), 'Dim Date'[calendar_quarter_full], ASC),
+				    "calendar_quarter_full_display", 'Dim Date'[calendar_quarter_full]
+				)
+				VAR _dim_date_calendar_quarter_fullCount = IF(ISFILTERED('Dim Date'[calendar_quarter_full]), COUNTROWS(VALUES('Dim Date'[calendar_quarter_full])), 0)
+				VAR _More_dim_date_calendar_quarter_full = IF(_dim_date_calendar_quarter_fullCount > 5, " and " & (_dim_date_calendar_quarter_fullCount - 5) & " more", "")
+				VAR _FC_dim_date_calendar_quarter_full = IF(_dim_date_calendar_quarter_fullCount > 0, "QUARTER CHOSEN: " & CONCATENATEX(_dim_date_calendar_quarter_full, [calendar_quarter_full_display], ", "), BLANK()) & _More_dim_date_calendar_quarter_full
+				
+				VAR _dim_date_calendar_month_name_short = ADDCOLUMNS(
+				    TOPN(5, FILTER(VALUES('Dim Date'[calendar_month_name_short]), NOT(ISBLANK('Dim Date'[calendar_month_name_short]))), 'Dim Date'[calendar_month_name_short], ASC),
+				    "calendar_month_name_short_display", 'Dim Date'[calendar_month_name_short]
+				)
+				VAR _dim_date_calendar_month_name_shortCount = IF(ISFILTERED('Dim Date'[calendar_month_name_short]), COUNTROWS(VALUES('Dim Date'[calendar_month_name_short])), 0)
+				VAR _More_dim_date_calendar_month_name_short = IF(_dim_date_calendar_month_name_shortCount > 5, " and " & (_dim_date_calendar_month_name_shortCount - 5) & " more", "")
+				VAR _FC_dim_date_calendar_month_name_short = IF(_dim_date_calendar_month_name_shortCount > 0, "MONTHS CHOSEN: " & CONCATENATEX(_dim_date_calendar_month_name_short, [calendar_month_name_short_display], ", "), BLANK()) & _More_dim_date_calendar_month_name_short
+				
+				//VAR _dim_team_area_Company = ADDCOLUMNS(
+				//    TOPN(5, FILTER(VALUES(dim_team_area[Company]), NOT(ISBLANK(dim_team_area[Company]))), dim_team_area[Company], ASC),
+				//    "Company_display", dim_team_area[Company]
+				//)
+				//VAR _dim_team_area_CompanyCount = IF(ISFILTERED(dim_team_area[Company]), COUNTROWS(VALUES(dim_team_area[Company])), 0)
+				//VAR _More_dim_team_area_Company = IF(_dim_team_area_CompanyCount > 5, " and " & (_dim_team_area_CompanyCount - 5) & " more", "")
+				//VAR _FC_dim_team_area_Company = IF(_dim_team_area_CompanyCount > 0, "COMPANY CHOSEN: " & CONCATENATEX(_dim_team_area_Company, [Company_display], ", "), BLANK()) & _More_dim_team_area_Company
+				
+				//VAR _dim_team_area_AreaParentName = ADDCOLUMNS(
+				//    TOPN(5, FILTER(VALUES(dim_team_area[AreaParentName]), NOT(ISBLANK(dim_team_area[AreaParentName]))), dim_team_area[AreaParentName], ASC),
+				//    "AreaParentName_display", dim_team_area[AreaParentName]
+				//)
+				//VAR _dim_team_area_AreaParentNameCount = IF(ISFILTERED(dim_team_area[AreaParentName]), COUNTROWS(VALUES(dim_team_area[AreaParentName])), 0)
+				//VAR _More_dim_team_area_AreaParentName = IF(_dim_team_area_AreaParentNameCount > 5, " and " & (_dim_team_area_AreaParentNameCount - 5) & " more", "")
+				//VAR _FC_dim_team_area_AreaParentName = IF(_dim_team_area_AreaParentNameCount > 0, "RB PARENT AREAS CHOSEN: " & CONCATENATEX(_dim_team_area_AreaParentName, [AreaParentName_display], ", "), BLANK()) & _More_dim_team_area_AreaParentName
+				
+				//VAR _dim_team_area_AreaName = ADDCOLUMNS(
+				//    TOPN(5, FILTER(VALUES(dim_team_area[AreaName]), NOT(ISBLANK(dim_team_area[AreaName]))), dim_team_area[AreaName], ASC),
+				//    "AreaName_display", dim_team_area[AreaName]
+				//)
+				//VAR _dim_team_area_AreaNameCount = IF(ISFILTERED(dim_team_area[AreaName]), COUNTROWS(VALUES(dim_team_area[AreaName])), 0)
+				//VAR _More_dim_team_area_AreaName = IF(_dim_team_area_AreaNameCount > 5, " and " & (_dim_team_area_AreaNameCount - 5) & " more", "")
+				//VAR _FC_dim_team_area_AreaName = IF(_dim_team_area_AreaNameCount > 0, "RB AREAS CHOSEN: " & CONCATENATEX(_dim_team_area_AreaName, [AreaName_display], ", "), BLANK()) & _More_dim_team_area_AreaName
+				
+				//VAR _dim_team_area_TeamName = ADDCOLUMNS(
+				//    TOPN(5, FILTER(VALUES(dim_team_area[TeamName]), NOT(ISBLANK(dim_team_area[TeamName]))), dim_team_area[TeamName], ASC),
+				//    "TeamName_display", dim_team_area[TeamName]
+				//)
+				//VAR _dim_team_area_TeamNameCount = IF(ISFILTERED(dim_team_area[TeamName]), COUNTROWS(VALUES(dim_team_area[TeamName])), 0)
+				//VAR _More_dim_team_area_TeamName = IF(_dim_team_area_TeamNameCount > 5, " and " & (_dim_team_area_TeamNameCount - 5) & " more", "")
+				//VAR _FC_dim_team_area_TeamName = IF(_dim_team_area_TeamNameCount > 0, "RB SERVICES CHOSEN: " & CONCATENATEX(_dim_team_area_TeamName, [TeamName_display], ", "), BLANK()) & _More_dim_team_area_TeamName
+				
+				//VAR _dim_team_area_bc_region_name = ADDCOLUMNS(
+				//    TOPN(5, FILTER(VALUES(dim_team_area[bc.region_name]), NOT(ISBLANK(dim_team_area[bc.region_name]))), dim_team_area[bc.region_name], ASC),
+				//    "bc.region_name_display", dim_team_area[bc.region_name]
+				//)
+				//VAR _dim_team_area_bc_region_nameCount = IF(ISFILTERED(dim_team_area[bc.region_name]), COUNTROWS(VALUES(dim_team_area[bc.region_name])), 0)
+				//VAR _More_dim_team_area_bc_region_name = IF(_dim_team_area_bc_region_nameCount > 5, " and " & (_dim_team_area_bc_region_nameCount - 5) & " more", "")
+				//VAR _FC_dim_team_area_bc_region_name = IF(_dim_team_area_bc_region_nameCount > 0, "BC REGIONS CHOSEN: " & CONCATENATEX(_dim_team_area_bc_region_name, [bc.region_name_display], ", "), BLANK()) & _More_dim_team_area_bc_region_name
+				
+				//VAR _dim_team_area_bc_district_name = ADDCOLUMNS(
+				//    TOPN(5, FILTER(VALUES(dim_team_area[bc.district_name]), NOT(ISBLANK(dim_team_area[bc.district_name]))), dim_team_area[bc.district_name], ASC),
+				//    "bc.district_name_display", dim_team_area[bc.district_name]
+				//)
+				//VAR _dim_team_area_bc_district_nameCount = IF(ISFILTERED(dim_team_area[bc.district_name]), COUNTROWS(VALUES(dim_team_area[bc.district_name])), 0)
+				//VAR _More_dim_team_area_bc_district_name = IF(_dim_team_area_bc_district_nameCount > 5, " and " & (_dim_team_area_bc_district_nameCount - 5) & " more", "")
+				//VAR _FC_dim_team_area_bc_district_name = IF(_dim_team_area_bc_district_nameCount > 0, "BC DISTRICTS CHOSEN: " & CONCATENATEX(_dim_team_area_bc_district_name, [bc.district_name_display], ", "), BLANK()) & _More_dim_team_area_bc_district_name
+				
+				//VAR _dim_team_area_bc_department_name = ADDCOLUMNS(
+				//    TOPN(5, FILTER(VALUES(dim_team_area[bc.department_name]), NOT(ISBLANK(dim_team_area[bc.department_name]))), dim_team_area[bc.department_name], ASC),
+				//    "bc.department_name_display", dim_team_area[bc.department_name]
+				//)
+				//VAR _dim_team_area_bc_department_nameCount = IF(ISFILTERED(dim_team_area[bc.department_name]), COUNTROWS(VALUES(dim_team_area[bc.department_name])), 0)
+				//VAR _More_dim_team_area_bc_department_name = IF(_dim_team_area_bc_department_nameCount > 5, " and " & (_dim_team_area_bc_department_nameCount - 5) & " more", "")
+				//VAR _FC_dim_team_area_bc_department_name = IF(_dim_team_area_bc_department_nameCount > 0, "BC DEPARTMENTS CHOSEN: " & CONCATENATEX(_dim_team_area_bc_department_name, [bc.department_name_display], ", "), BLANK()) & _More_dim_team_area_bc_department_name
+				
+				//VAR _dim_team_area_bc_service_name = ADDCOLUMNS(
+				//    TOPN(5, FILTER(VALUES(dim_team_area[bc.service_name]), NOT(ISBLANK(dim_team_area[bc.service_name]))), dim_team_area[bc.service_name], ASC),
+				//    "bc.service_name_display", dim_team_area[bc.service_name]
+				//)
+				//VAR _dim_team_area_bc_service_nameCount = IF(ISFILTERED(dim_team_area[bc.service_name]), COUNTROWS(VALUES(dim_team_area[bc.service_name])), 0)
+				//VAR _More_dim_team_area_bc_service_name = IF(_dim_team_area_bc_service_nameCount > 5, " and " & (_dim_team_area_bc_service_nameCount - 5) & " more", "")
+				//VAR _FC_dim_team_area_bc_service_name = IF(_dim_team_area_bc_service_nameCount > 0, "BC SERVICES CHOSEN: " & CONCATENATEX(_dim_team_area_bc_service_name, [bc.service_name_display], ", "), BLANK()) & _More_dim_team_area_bc_service_name
+				
+				//VAR _dim_team_area_bc_service_type_name = ADDCOLUMNS(
+				//    TOPN(5, FILTER(VALUES(dim_team_area[bc.service_type_name]), NOT(ISBLANK(dim_team_area[bc.service_type_name]))), dim_team_area[bc.service_type_name], ASC),
+				//    "bc.service_type_name_display", dim_team_area[bc.service_type_name]
+				//)
+				//VAR _dim_team_area_bc_service_type_nameCount = IF(ISFILTERED(dim_team_area[bc.service_type_name]), COUNTROWS(VALUES(dim_team_area[bc.service_type_name])), 0)
+				//VAR _More_dim_team_area_bc_service_type_name = IF(_dim_team_area_bc_service_type_nameCount > 5, " and " & (_dim_team_area_bc_service_type_nameCount - 5) & " more", "")
+				//VAR _FC_dim_team_area_bc_service_type_name = IF(_dim_team_area_bc_service_type_nameCount > 0, "BC SERVICE TYPES CHOSEN: " & CONCATENATEX(_dim_team_area_bc_service_type_name, [bc.service_type_name_display], ", "), BLANK()) & _More_dim_team_area_bc_service_type_name
+				
+				//VAR _dim_team_area_bc_client_team_name = ADDCOLUMNS(
+				//    TOPN(5, FILTER(VALUES(dim_team_area[bc.client_team_name]), NOT(ISBLANK(dim_team_area[bc.client_team_name]))), dim_team_area[bc.client_team_name], ASC),
+				//    "bc.client_team_name_display", dim_team_area[bc.client_team_name]
+				//)
+				//VAR _dim_team_area_bc_client_team_nameCount = IF(ISFILTERED(dim_team_area[bc.client_team_name]), COUNTROWS(VALUES(dim_team_area[bc.client_team_name])), 0)
+				//VAR _More_dim_team_area_bc_client_team_name = IF(_dim_team_area_bc_client_team_nameCount > 5, " and " & (_dim_team_area_bc_client_team_nameCount - 5) & " more", "")
+				//VAR _FC_dim_team_area_bc_client_team_name = IF(_dim_team_area_bc_client_team_nameCount > 0, "BC CLIENT TEAMS CHOSEN: " & CONCATENATEX(_dim_team_area_bc_client_team_name, [bc.client_team_name_display], ", "), BLANK()) & _More_dim_team_area_bc_client_team_name
+				
+				//VAR _dim_incident_category_IncidentCategoryFull = ADDCOLUMNS(
+				//    TOPN(5, FILTER(VALUES(dim_incident_category[IncidentCategoryFull]), NOT(ISBLANK(dim_incident_category[IncidentCategoryFull]))), dim_incident_category[IncidentCategoryFull], ASC),
+				//    "IncidentCategoryFull_display", dim_incident_category[IncidentCategoryFull]
+				//)
+				//VAR _dim_incident_category_IncidentCategoryFullCount = IF(ISFILTERED(dim_incident_category[IncidentCategoryFull]), COUNTROWS(VALUES(dim_incident_category[IncidentCategoryFull])), 0)
+				//VAR _More_dim_incident_category_IncidentCategoryFull = IF(_dim_incident_category_IncidentCategoryFullCount > 5, " and " & (_dim_incident_category_IncidentCategoryFullCount - 5) & " more", "")
+				//VAR _FC_dim_incident_category_IncidentCategoryFull = IF(_dim_incident_category_IncidentCategoryFullCount > 0, "INCIDENT CATEGORIES CHOSEN: " & CONCATENATEX(_dim_incident_category_IncidentCategoryFull, [IncidentCategoryFull_display], ", "), BLANK()) & _More_dim_incident_category_IncidentCategoryFull
+				
+				//VAR _dim_severity_IncidentSeverityText = ADDCOLUMNS(
+				//    TOPN(5, FILTER(VALUES(dim_severity[IncidentSeverityText]), NOT(ISBLANK(dim_severity[IncidentSeverityText]))), dim_severity[IncidentSeverityText], ASC),
+				//    "IncidentSeverityText_display", dim_severity[IncidentSeverityText]
+				//)
+				//VAR _dim_severity_IncidentSeverityTextCount = IF(ISFILTERED(dim_severity[IncidentSeverityText]), COUNTROWS(VALUES(dim_severity[IncidentSeverityText])), 0)
+				//VAR _More_dim_severity_IncidentSeverityText = IF(_dim_severity_IncidentSeverityTextCount > 5, " and " & (_dim_severity_IncidentSeverityTextCount - 5) & " more", "")
+				//VAR _FC_dim_severity_IncidentSeverityText = IF(_dim_severity_IncidentSeverityTextCount > 0, "INCIDENT SEVERITIES CHOSEN: " & CONCATENATEX(_dim_severity_IncidentSeverityText, [IncidentSeverityText_display], ", "), BLANK()) & _More_dim_severity_IncidentSeverityText
+				
+				RETURN
+				IF(
+				    (ISBLANK(_FC_dim_date_calendar_date) || _FC_dim_date_calendar_date = "") && (ISBLANK(_FC_dim_date_calendar_year) || _FC_dim_date_calendar_year = "") && (ISBLANK(_FC_dim_date_calendar_quarter_full) || _FC_dim_date_calendar_quarter_full = "") && (ISBLANK(_FC_dim_date_calendar_month_name_short) || _FC_dim_date_calendar_month_name_short = "")
+				//     && (ISBLANK(_FC_dim_team_area_Company) || _FC_dim_team_area_Company = "") && (ISBLANK(_FC_dim_team_area_AreaParentName) || _FC_dim_team_area_AreaParentName = "") && (ISBLANK(_FC_dim_team_area_AreaName) || _FC_dim_team_area_AreaName = "") && (ISBLANK(_FC_dim_team_area_TeamName) || _FC_dim_team_area_TeamName = "") && (ISBLANK(_FC_dim_team_area_bc_region_name) || _FC_dim_team_area_bc_region_name = "") && (ISBLANK(_FC_dim_team_area_bc_district_name) || _FC_dim_team_area_bc_district_name = "") && (ISBLANK(_FC_dim_team_area_bc_department_name) || _FC_dim_team_area_bc_department_name = "") && (ISBLANK(_FC_dim_team_area_bc_service_name) || _FC_dim_team_area_bc_service_name = "") && (ISBLANK(_FC_dim_team_area_bc_service_type_name) || _FC_dim_team_area_bc_service_type_name = "") && (ISBLANK(_FC_dim_team_area_bc_client_team_name) || _FC_dim_team_area_bc_client_team_name = "") && (ISBLANK(_FC_dim_incident_category_IncidentCategoryFull) || _FC_dim_incident_category_IncidentCategoryFull = "") && (ISBLANK(_FC_dim_severity_IncidentSeverityText) || _FC_dim_severity_IncidentSeverityText = "")
+				,
+				    "No filters are currently applied to this page.",
+				    "Please note that the following filters are currently applied to this page: " &
+				    CONCATENATEX(FILTER({ _FC_dim_date_calendar_date, _FC_dim_date_calendar_year, _FC_dim_date_calendar_quarter_full, _FC_dim_date_calendar_month_name_short
+				//     _FC_dim_team_area_Company, _FC_dim_team_area_AreaParentName, _FC_dim_team_area_AreaName, _FC_dim_team_area_TeamName, _FC_dim_team_area_bc_region_name, _FC_dim_team_area_bc_district_name, _FC_dim_team_area_bc_department_name, _FC_dim_team_area_bc_service_name, _FC_dim_team_area_bc_service_type_name, _FC_dim_team_area_bc_client_team_name, _FC_dim_incident_category_IncidentCategoryFull, _FC_dim_severity_IncidentSeverityText
+				 },
+				     [Value] <> BLANK()), [Value], " | ")
+				)
+			lineageTag: 325921a9-1fb6-43a4-94b3-2a0afd83b8d0
+

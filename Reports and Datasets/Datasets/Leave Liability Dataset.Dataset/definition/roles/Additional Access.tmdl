@@ -1,0 +1,114 @@
+role 'Additional Access'
+	modelPermission: read
+
+	tablePermission DimPeopleHierarchy = ```
+			OR(
+				upper( UserName() )
+				  in
+				{ 
+				  upper( [employee_primary_email_address]        ),
+				  upper( [employee_people_leader_email_level_1] ),
+				  upper( [employee_people_leader_email_level_2] ),
+				  upper( [employee_people_leader_email_level_3] ),
+				  upper( [employee_people_leader_email_level_4] ),
+				  upper( [employee_people_leader_email_level_5] ),
+				  upper( [employee_people_leader_email_level_6] ),
+				  upper( [employee_people_leader_email_level_7] ),
+				  upper( [employee_people_leader_email_level_8] )
+				 }
+			,
+			
+			OR(
+				upper( [employee_primary_email_address] ) IN
+					SELECTCOLUMNS(
+					FILTER( 'Additional Access', 
+							  'Additional Access'[Requester Email]
+							   = upper( UserName() ) ), 
+					  "Person to Impersonate Email",
+					  [Person to Impersonate Email]
+					),
+			OR(
+				upper( [employee_people_leader_email_level_1] ) IN
+					SELECTCOLUMNS(
+					FILTER( 'Additional Access', 
+							  'Additional Access'[Requester Email]
+							   = upper( UserName() ) ), 
+					  "Person to Impersonate Email",
+					  [Person to Impersonate Email]
+					),
+			OR(
+				upper( [employee_people_leader_email_level_2] ) IN
+					SELECTCOLUMNS(
+					FILTER( 'Additional Access', 
+							  'Additional Access'[Requester Email]
+							   = upper( UserName() ) ), 
+					  "Person to Impersonate Email",
+					  [Person to Impersonate Email]
+					),
+			OR(
+				upper( [employee_people_leader_email_level_3] ) IN
+					SELECTCOLUMNS(
+					FILTER( 'Additional Access', 
+							  'Additional Access'[Requester Email]
+							   = upper( UserName() ) ), 
+					  "Person to Impersonate Email",
+					  [Person to Impersonate Email]
+					),
+			OR(
+				upper( [employee_people_leader_email_level_4] ) IN
+					SELECTCOLUMNS(
+					FILTER( 'Additional Access', 
+							  'Additional Access'[Requester Email]
+							   = upper( UserName() ) ), 
+					  "Person to Impersonate Email",
+					  [Person to Impersonate Email]
+					),
+			OR(
+				upper( [employee_people_leader_email_level_5] ) IN
+					SELECTCOLUMNS(
+					FILTER( 'Additional Access', 
+							  'Additional Access'[Requester Email]
+							   = upper( UserName() ) ), 
+					  "Person to Impersonate Email",
+					  [Person to Impersonate Email]
+					),
+			OR(
+				upper( [employee_people_leader_email_level_6] ) IN
+					SELECTCOLUMNS(
+					FILTER( 'Additional Access', 
+							  'Additional Access'[Requester Email]
+							   = upper( UserName() ) ), 
+					  "Person to Impersonate Email",
+					  [Person to Impersonate Email]
+					),
+			OR(
+				upper( [employee_people_leader_email_level_7] ) IN
+					SELECTCOLUMNS(
+					FILTER( 'Additional Access', 
+							  'Additional Access'[Requester Email]
+							   = upper( UserName() ) ), 
+					  "Person to Impersonate Email",
+					  [Person to Impersonate Email]
+					),
+				upper( [employee_people_leader_email_level_8] ) IN
+					SELECTCOLUMNS(
+					FILTER( 'Additional Access', 
+							  'Additional Access'[Requester Email]
+							   = upper( UserName() ) ), 
+					  "Person to Impersonate Email",
+					  [Person to Impersonate Email]
+					)
+			
+			)
+			)
+			)
+			)
+			)
+			)
+			)
+			)
+			)
+			```
+
+	annotation PBI_Id = 591f8a8cbc0f41f0ba14a5bb36f03866
+

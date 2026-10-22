@@ -1,0 +1,32 @@
+table 'Age Group Table'
+	lineageTag: 16484ca3-2332-40ae-91e9-4dcd0eefd1b9
+
+	column Age
+		dataType: string
+		lineageTag: 793557f4-864f-4777-b75b-af5302f99dcd
+		summarizeBy: none
+		sourceColumn: Age
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Age Group'
+		dataType: string
+		lineageTag: 82cbe3b4-0b53-4416-a2a3-1df66bf1e8fe
+		summarizeBy: none
+		sourceColumn: Age Group
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Age Group Table-bd5f40c3-673d-4098-a7cb-31cfd3664331' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("eal-sql01.database.windows.net", "Recordbase_EmergeAotearoa_Elite", [Query="#(lf)--drop table #age #(lf)#(lf)#(lf)declare @agestart smallint = -99#(lf)#(lf)declare @ageend smallint = 130#(lf)#(lf)#(lf)create table #age (age smallint)#(lf)#(lf)while @agestart <@ageend#(lf)begin #(lf)insert into #age (age)#(lf)select @agestart#(lf)set @agestart = @agestart+1#(lf)end#(lf)#(tab)#(lf)#(lf)select age,#(lf)case when age < 0 then 'Unknown'#(lf)when age <12 then '0-11'#(lf)when age <18 then '12-17'#(lf)when age <25 then '18-24'#(lf)when age <65 then '25-64'#(lf)when age <110 then '65 and Over'#(lf)when age <=130 then 'Unknown'#(lf)#(lf)else 'Unknown'#(lf)end as age_group#(lf)#(lf)from #age#(lf)#(tab)"]),
+				    #"Renamed Columns" = Table.RenameColumns(Source,{{"age_group", "Age Group"}, {"age", "Age"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+

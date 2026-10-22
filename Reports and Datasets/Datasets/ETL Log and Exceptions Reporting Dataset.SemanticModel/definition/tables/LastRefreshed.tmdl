@@ -1,0 +1,59 @@
+table LastRefreshed
+	lineageTag: 438a61d9-40b5-4d4e-b497-4cdcb3f49b8a
+
+	measure 'Sum of CountValue (Today)' =
+			
+			CALCULATE(
+			    [Sum of CountValue],
+			    dim_date[date_offset] = 0
+			)
+		formatString: 0
+		lineageTag: cfe6e5b4-0c5a-4756-8495-ba9e072564ae
+
+	measure 'Deviation from 28-day Avg' =
+			
+			DIVIDE(
+			    ([Total Duration in Mins (28-day Avg)]-[Total Duration Minutes]),
+			    [Total Duration in Mins (28-day Avg)]
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 6ea0716b-9347-4e73-8b8a-d6f540a4a4a1
+
+	measure 'Distinct Count (Load Status)' =
+			
+			DISTINCTCOUNT(
+			    fact_last_load_status_by_table[table_key]
+			)
+		formatString: 0
+		lineageTag: 79598fe5-6b1b-480d-8b6f-4bfe3d833d79
+
+	measure 'Today (drillthrough dim_date)' =
+			
+			CALCULATE(
+			    MAX(
+			        dim_date_for_drillthrough[calendar_date]),
+			        dim_date_for_drillthrough[date_offset] = 0
+			)
+		formatString: General Date
+		lineageTag: 3a0fe832-43b4-4c45-b180-e013ce96a8e9
+
+	column 'Date Last Refreshed'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 92a4b48d-0669-4900-a7f0-1a6b9927d141
+		summarizeBy: none
+		sourceColumn: Date Last Refreshed
+
+		annotation SummarizationSetBy = Automatic
+
+	partition LastRefreshed = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT DISTINCT#(lf)--GETDATE() AT TIME ZONE 'New Zealand Standard Time' AS [Date Last Refreshed]#(lf)CONVERT(datetime, SWITCHOFFSET(CONVERT(datetimeoffset, GETDATE()), DATEPART(TZOFFSET,GETDATE() AT TIME ZONE 'New Zealand Standard Time'))) AS [Date Last Refreshed]#(lf)--FROM information_schema.columns"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Date Last Refreshed", type datetimezone}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

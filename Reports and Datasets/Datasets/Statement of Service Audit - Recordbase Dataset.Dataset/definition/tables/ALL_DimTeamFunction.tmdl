@@ -1,0 +1,107 @@
+table ALL_DimTeamFunction
+	lineageTag: 7647e952-beea-4905-99c6-bb0f9e663799
+
+	column TeamFunctionID
+		dataType: string
+		lineageTag: 0d1b979a-c617-4e7a-a3b3-8f1557a49941
+		summarizeBy: none
+		sourceColumn: TeamFunctionID
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionCode
+		dataType: string
+		lineageTag: 18d0f308-01d2-4af6-b0a6-ccd73b8577f7
+		summarizeBy: none
+		sourceColumn: TeamFunctionCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionName
+		dataType: string
+		lineageTag: 4b77d8ea-e104-4dfb-82dd-086f907406a4
+		summarizeBy: none
+		sourceColumn: TeamFunctionName
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionNameBucket
+		dataType: string
+		lineageTag: bce9aff0-b929-4715-8f6a-82389c7b1496
+		summarizeBy: none
+		sourceColumn: TeamFunctionNameBucket
+
+		annotation SummarizationSetBy = Automatic
+
+	column CompanyIdentifier
+		dataType: string
+		lineageTag: 12bda5f8-3ddd-469d-8f75-d8dfe44eec99
+		summarizeBy: none
+		sourceColumn: CompanyIdentifier
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamID
+		dataType: string
+		lineageTag: 020d26ac-5d13-4024-8db4-8fbb2e4c3b62
+		summarizeBy: none
+		sourceColumn: TeamID
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamName
+		dataType: string
+		lineageTag: 34264427-921f-4492-8c57-f212a949150c
+		summarizeBy: none
+		sourceColumn: TeamName
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamKeyComposite
+		dataType: string
+		lineageTag: 3a537b73-b7c8-49f6-bd5b-190eab29407b
+		summarizeBy: none
+		sourceColumn: TeamKeyComposite
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'CompanyIdentifier Hierarchy'
+		lineageTag: 96becb3d-63b9-4073-8da4-4c8bc66dac12
+
+		level Company
+			lineageTag: 824fbd8e-44db-46be-8d24-e4e0720e0a2a
+			column: CompanyIdentifier
+
+		level 'Team Function'
+			lineageTag: f5725388-a45b-4132-9790-8c1b4aa75c84
+			column: TeamFunctionName
+
+		level 'Team Name'
+			lineageTag: dd32f0bf-5bd2-4208-a245-70081b6ae63b
+			column: TeamName
+
+	partition ALL_DimTeamFunction-cae64840-a480-470c-88b7-7b2bd388da22 = m
+		mode: import
+		queryGroup: 'All (Unioned Data)'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)'EAL' AS CompanyIdentifier,#(lf)CASE WHEN [TeamFunctionID]IS NOT NULL THEN CONCAT('E',[TeamFunctionID]) ELSE NULL END AS [TeamFunctionID],#(lf)CASE WHEN [TeamConfigurationID]IS NOT NULL THEN CONCAT('E',[TeamConfigurationID]) ELSE NULL END AS [TeamConfigurationID],#(lf)CASE WHEN [DefaultTaskProcessID]IS NOT NULL THEN CONCAT('E',[DefaultTaskProcessID]) ELSE NULL END AS [DefaultTaskProcessID],#(lf)[TeamFunctionCode],#(lf)[TeamFunctionName],#(lf)[TeamFunctionDescription],#(lf)[TeamFunctionAllowConcurrentReferrals],#(lf)[TeamFunctionIsAccomodationBased],#(lf)[TeamFunctionRecentlyDischargedPeriodDays],#(lf)[TeamFunctionAllowExitWithoutDischarge],#(lf)CASE WHEN TeamFunctionName LIKE '%Residential%' THEN 'Residential' WHEN TeamFunctionName LIKE '%Respite%' THEN 'Respite' ELSE TeamFunctionName END AS TeamFunctionNameBucket#(lf)FROM RBEAL.dlDimTeamFunction"]),
+				    #"Appended Query" = Table.Combine({Source, MNB_DimTeamFunction}),
+				    #"Merged Queries" = Table.NestedJoin(#"Appended Query", {"TeamFunctionID"}, ALL_DimTeam, {"TeamFunctionID"}, "ALL_DimTeam", JoinKind.LeftOuter),
+				    #"Expanded ALL_DimTeam" = Table.ExpandTableColumn(#"Merged Queries", "ALL_DimTeam", {"TeamID", "TeamName"}, {"TeamID", "TeamName"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Expanded ALL_DimTeam",{{"TeamID", "Work_TeamID"}, {"TeamName", "Work_TeamName"}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"TeamConfigurationID", "DefaultTaskProcessID", "TeamFunctionAllowConcurrentReferrals", "TeamFunctionIsAccomodationBased", "TeamFunctionRecentlyDischargedPeriodDays", "TeamFunctionAllowExitWithoutDischarge"}),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Removed Columns",{"CompanyIdentifier", "TeamFunctionID", "TeamFunctionCode", "TeamFunctionNameBucket", "TeamFunctionName", "Work_TeamID", "Work_TeamName", "TeamFunctionDescription"}),
+				    #"Removed Columns1" = Table.RemoveColumns(#"Reordered Columns",{"TeamFunctionDescription"}),
+				    #"Inserted Merged Column" = Table.AddColumn(#"Removed Columns1", "Merged", each Text.Combine({[TeamFunctionID], [Work_TeamID]}), type text),
+				    #"Renamed Columns1" = Table.RenameColumns(#"Inserted Merged Column",{{"Merged", "TeamKeyComposite"}, {"Work_TeamID", "TeamID"}, {"Work_TeamName", "TeamName"}}),
+				    #"Filtered Rows" = Table.SelectRows(#"Renamed Columns1", each true)
+				in
+				    #"Filtered Rows"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

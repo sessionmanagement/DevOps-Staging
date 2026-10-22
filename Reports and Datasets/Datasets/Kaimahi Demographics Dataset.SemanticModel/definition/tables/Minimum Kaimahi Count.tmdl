@@ -1,0 +1,31 @@
+table 'Minimum Kaimahi Count'
+	lineageTag: 7bfd6810-f4b4-4852-a2da-7f8e35153e00
+
+	measure 'Minimum Kaimahi Count Value' = SELECTEDVALUE('Minimum Kaimahi Count'[Minimum Kaimahi Count], 6)
+		formatString: 0
+		lineageTag: 85515868-6438-4db4-b90b-62f12f63f93d
+
+	column 'Minimum Kaimahi Count'
+		dataType: int64
+		formatString: 0
+		lineageTag: 7fb0d88f-57bb-4e0b-ae43-e324e62db2ca
+		summarizeBy: none
+		sourceColumn: Minimum Kaimahi Count
+
+		annotation SummarizationSetBy = User
+
+	partition 'Minimum Kaimahi Count' = m
+		mode: import
+		queryGroup: Parameters
+		source =
+				let
+				Source = #table(type table [Minimum Kaimahi Count = Int64.Type], {{MinimumKaimahiCountParameter}})
+				in
+				Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_Id = 66e8cc1ef44d4ebb95c3d22f354ca272
+
+	annotation PBI_NavigationStepName = Navigation
+

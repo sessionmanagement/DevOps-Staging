@@ -1,0 +1,135 @@
+role 'Test Babu'
+	modelPermission: read
+
+	tablePermission RB_UserTeamAccess_Combined = ```
+			OR(
+			    upper( "babu.chatterji@emergeaotearoa.org.nz" )
+			      in
+			    { 
+			      upper( [UserEmailAddress] )
+			     }
+			,
+			
+			    upper( [UserEmailAddress] ) IN
+			        SELECTCOLUMNS(
+			        FILTER( 'Additional Access', 
+			                  'Additional Access'[Requester Email] 
+			                   = upper( "babu.chatterji@emergeaotearoa.org.nz" ) ), 
+			          "Person to Impersonate Email",
+			          [Person to Impersonate Email]
+			        )
+			
+			)
+			```
+
+	tablePermission ODS_RLS = ```
+			OR(
+				upper( "babu.chatterji@emergeaotearoa.org.nz" )
+				  in
+				{ 
+				  upper( [StaffEmail]        ),
+				  upper( [L1SupervisorEmail] ),
+				  upper( [L2SupervisorEmail] ),
+				  upper( [L3SupervisorEmail] ),
+				  upper( [L4SupervisorEmail] ),
+				  upper( [L5SupervisorEmail] ),
+				  upper( [L6SupervisorEmail] ),
+				  upper( [L7SupervisorEmail] ),
+				  upper( [L8SupervisorEmail] )
+				 }
+			,
+			
+			OR(
+				upper( [StaffEmail] ) IN
+					SELECTCOLUMNS(
+					FILTER( 'Additional Access', 
+							  'Additional Access'[Requester Email] 
+							   = upper( "babu.chatterji@emergeaotearoa.org.nz" ) ), 
+					  "ToAccessEmailAddress",
+					  [Person to Impersonate Email]
+					),
+			OR(
+				upper( [L1SupervisorEmail] ) IN
+					SELECTCOLUMNS(
+					FILTER( 'Additional Access', 
+			                  'Additional Access'[Requester Email] 
+							   = upper( "babu.chatterji@emergeaotearoa.org.nz" ) ), 
+					  "ToAccessEmailAddress",
+					  [Person to Impersonate Email]
+					),
+			OR(
+				upper( [L2SupervisorEmail] ) IN
+					SELECTCOLUMNS(
+					FILTER( 'Additional Access', 
+			                  'Additional Access'[Requester Email]
+							   = upper( "babu.chatterji@emergeaotearoa.org.nz" ) ), 
+					  "ToAccessEmailAddress",
+					  [Person to Impersonate Email]
+					),
+			OR(
+				upper( [L3SupervisorEmail] ) IN
+					SELECTCOLUMNS(
+					FILTER( 'Additional Access', 
+			                  'Additional Access'[Requester Email]
+							   = upper( "babu.chatterji@emergeaotearoa.org.nz" ) ), 
+					  "ToAccessEmailAddress",
+					  [Person to Impersonate Email]
+					),
+			OR(
+				upper( [L4SupervisorEmail] ) IN
+					SELECTCOLUMNS(
+					FILTER( 'Additional Access', 
+			                  'Additional Access'[Requester Email] 
+							   = upper( "babu.chatterji@emergeaotearoa.org.nz" ) ), 
+					  "ToAccessEmailAddress",
+					  [Person to Impersonate Email]
+					),
+			OR(
+				upper( [L5SupervisorEmail] ) IN
+					SELECTCOLUMNS(
+					FILTER( 'Additional Access', 
+			                  'Additional Access'[Requester Email] 
+							   = upper( "babu.chatterji@emergeaotearoa.org.nz" ) ), 
+					  "ToAccessEmailAddress",
+					  [Person to Impersonate Email]
+					),
+			OR(
+				upper( [L6SupervisorEmail] ) IN
+					SELECTCOLUMNS(
+					FILTER( 'Additional Access', 
+			                  'Additional Access'[Requester Email]
+							   = upper( "babu.chatterji@emergeaotearoa.org.nz" ) ), 
+					  "ToAccessEmailAddress",
+					  [Person to Impersonate Email]
+					),
+			OR(
+				upper( [L7SupervisorEmail] ) IN
+					SELECTCOLUMNS(
+					FILTER( 'Additional Access', 
+			                  'Additional Access'[Requester Email] 
+							   = upper( "babu.chatterji@emergeaotearoa.org.nz" ) ), 
+					  "ToAccessEmailAddress",
+					  [Person to Impersonate Email]
+					),
+				upper( [L8SupervisorEmail] ) IN
+					SELECTCOLUMNS(
+					FILTER( 'Additional Access', 
+			                  'Additional Access'[Requester Email]
+							   = upper( "babu.chatterji@emergeaotearoa.org.nz" ) ), 
+					  "ToAccessEmailAddress",
+					  [Person to Impersonate Email]
+					)
+			
+			)
+			)
+			)
+			)
+			)
+			)
+			)
+			)
+			)
+			```
+
+	annotation PBI_Id = e6532957818143748f938d3825c2c688
+

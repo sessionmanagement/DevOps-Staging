@@ -1,0 +1,81 @@
+table dim_person
+	lineageTag: be973b0d-7d21-4c2b-82da-09cff7287e45
+
+	column CompanyIdentifier
+		dataType: string
+		lineageTag: cb084338-633c-4afd-861e-f652884cc7a2
+		summarizeBy: none
+		sourceColumn: CompanyIdentifier
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonID
+		dataType: string
+		lineageTag: e42941f7-d7f8-4c71-927f-987a40e96080
+		summarizeBy: none
+		sourceColumn: PersonID
+
+		annotation SummarizationSetBy = Automatic
+
+	column HasSmokingAssessment
+		dataType: string
+		lineageTag: 5f5b2b31-1aee-4c03-a908-ee4074717b08
+		summarizeBy: none
+		sourceColumn: HasSmokingAssessment
+
+		annotation SummarizationSetBy = Automatic
+
+	column EarliestSmokingAssessmentDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: df05edd4-e745-41a3-b9a1-b6f826a3fba6
+		summarizeBy: none
+		sourceColumn: EarliestSmokingAssessmentDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column LatestSmokingAssessmentDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 830c0190-d487-440d-aef7-f939822455db
+		summarizeBy: none
+		sourceColumn: LatestSmokingAssessmentDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column NumberOfSmokingAssessments
+		dataType: int64
+		formatString: 0
+		lineageTag: 57153df1-c05b-43e4-9f2a-49dfb6d7c9fd
+		summarizeBy: sum
+		sourceColumn: NumberOfSmokingAssessments
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderID
+		dataType: string
+		lineageTag: 3fd8079b-fd42-47da-95c1-5d97b825f2fd
+		summarizeBy: none
+		sourceColumn: GenderID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_person-5c2a8edc-dc52-443f-83f6-2a2085def474 = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT#(lf)'EAL' AS CompanyIdentifier,#(lf)CASE WHEN [PersonID]IS NOT NULL THEN CONCAT('E',[PersonID]) ELSE NULL END AS [PersonID],#(lf)CASE WHEN [GenderID]IS NOT NULL THEN CONCAT('E',[GenderID]) ELSE NULL END AS [GenderID]#(lf)FROM [RBEAL].[dlDimPerson]#(lf)UNION#(lf)SELECT#(lf)'MNB' AS CompanyIdentifier,#(lf)CASE WHEN [PersonID]IS NOT NULL THEN CONCAT('M',[PersonID]) ELSE NULL END AS [PersonID],#(lf)CASE WHEN [GenderID]IS NOT NULL THEN CONCAT('M',[GenderID]) ELSE NULL END AS [GenderID]#(lf)FROM [RBMNB].[dlDimPerson]#(lf)"]),
+				    #"Merged Queries" = Table.NestedJoin(Source, {"PersonID"}, work_fact_smoking_assessment_agg, {"PersonID"}, "work_fact_smoking_assessment_agg", JoinKind.LeftOuter),
+				    #"Expanded work_fact_smoking_assessment_agg" = Table.ExpandTableColumn(#"Merged Queries", "work_fact_smoking_assessment_agg", {"Count", "EarliestSmokingAssessmentDate", "LatestSmokingAssessmentDate", "HasSmokingAssessment"}, {"Count", "EarliestSmokingAssessmentDate", "LatestSmokingAssessmentDate", "HasSmokingAssessment"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Expanded work_fact_smoking_assessment_agg",{{"Count", "NumberOfSmokingAssessments"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

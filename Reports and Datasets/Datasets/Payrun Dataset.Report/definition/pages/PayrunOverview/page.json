@@ -1,0 +1,118 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "PayrunOverview",
+  "displayName": "Payrun Overview",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "17d996603d4312466639",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dim_Employee"
+              }
+            },
+            "Property": "employee_work_type"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "d",
+              "Entity": "Dim_Employee",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "Not": {
+                  "Expression": {
+                    "In": {
+                      "Expressions": [
+                        {
+                          "Column": {
+                            "Expression": {
+                              "SourceRef": {
+                                "Source": "d"
+                              }
+                            },
+                            "Property": "employee_work_type"
+                          }
+                        }
+                      ],
+                      "Values": [
+                        [
+                          {
+                            "Literal": {
+                              "Value": "null"
+                            }
+                          }
+                        ]
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User",
+        "objects": {
+          "general": [
+            {
+              "properties": {
+                "isInvertedSelectionMode": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "true"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "visibility": "HiddenInViewMode",
+  "visualInteractions": [
+    {
+      "source": "ov_bar_dept",
+      "target": "ov_donut_wtype",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ov_bar_paycomp",
+      "target": "ov_donut_wtype",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ov_bar_paycomp",
+      "target": "ov_bar_dept",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ov_bar_dept",
+      "target": "ov_bar_paycomp",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ov_donut_wtype",
+      "target": "ov_bar_paycomp",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ov_donut_wtype",
+      "target": "ov_bar_dept",
+      "type": "DataFilter"
+    }
+  ]
+}

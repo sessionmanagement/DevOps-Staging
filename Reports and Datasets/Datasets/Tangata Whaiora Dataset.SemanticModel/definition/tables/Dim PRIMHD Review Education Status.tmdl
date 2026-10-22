@@ -1,0 +1,49 @@
+table 'Dim PRIMHD Review Education Status'
+	lineageTag: 3cebb19d-d653-4a04-a8d6-a25459097388
+
+	column ParentPRIMHDReviewEducationStatusText
+		dataType: string
+		lineageTag: 5ab3a884-4389-4f93-b321-59f5e322b691
+		summarizeBy: none
+		sourceColumn: ParentPRIMHDReviewEducationStatusText
+
+		annotation SummarizationSetBy = Automatic
+
+	column PRIMHDReviewEducationStatusText
+		dataType: string
+		lineageTag: b117d01b-e045-4e6a-897b-1e0a77f31cad
+		summarizeBy: none
+		sourceColumn: PRIMHDReviewEducationStatusText
+
+		annotation SummarizationSetBy = Automatic
+
+	column PRIMHDReviewEducationStatusValue
+		dataType: string
+		lineageTag: cb727faf-0c5e-4d02-9b4c-b11b87cfedf7
+		summarizeBy: none
+		sourceColumn: PRIMHDReviewEducationStatusValue
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim PRIMHD Review Education Status Unique KEY'
+		dataType: string
+		isHidden
+		lineageTag: b042df3d-19fa-49b5-9b20-b8c5e898ccd7
+		summarizeBy: none
+		sourceColumn: Dim PRIMHD Review Education Status Unique KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim PRIMHD Review Education Status' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ods", [Query="SELECT CAST(t1.[PRIMHDReviewEducationStatusID] AS nvarchar(20)) + '-1' AS [Dim PRIMHD Review Education Status Unique KEY] #(lf)      ,t2.[PRIMHDReviewEducationStatusText] AS [ParentPRIMHDReviewEducationStatusText]#(lf)#(tab)  ,t1.[PRIMHDReviewEducationStatusText]#(lf)      ,t1.[PRIMHDReviewEducationStatusValue]#(lf)  FROM#(lf)  [RBMNB].[dlDimPRIMHDReviewEducationStatus] t1#(lf)  LEFT OUTER JOIN #(lf)  [RBEAL].[dlDimPRIMHDReviewEducationStatus] t2 ON t1.PRIMHDReviewEducationStatusParentId = t2.PRIMHDReviewEducationStatusID#(lf)  WHERE t1.[PRIMHDReviewEducationStatusIsActive] = 1#(lf)  #(lf)  UNION ALL#(lf)#(lf)  SELECT CAST(t1.[PRIMHDReviewEducationStatusID] AS nvarchar(20)) + '-5' AS [Dim PRIMHD Review Education Status Unique KEY] #(lf)      ,t2.[PRIMHDReviewEducationStatusText] AS [ParentPRIMHDReviewEducationStatusText]#(lf)#(tab)  ,t1.[PRIMHDReviewEducationStatusText]#(lf)      ,t1.[PRIMHDReviewEducationStatusValue]#(lf)  FROM#(lf)  [RBMNB].[dlDimPRIMHDReviewEducationStatus] t1#(lf)  LEFT OUTER JOIN #(lf)  [RBMNB].[dlDimPRIMHDReviewEducationStatus] t2 ON t1.PRIMHDReviewEducationStatusParentId = t2.PRIMHDReviewEducationStatusID#(lf)  WHERE t1.[PRIMHDReviewEducationStatusIsActive] = 1"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+

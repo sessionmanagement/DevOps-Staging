@@ -1,0 +1,426 @@
+table '_Calculation measures'
+	excludeFromModelRefresh
+	lineageTag: eba018af-685d-4dd1-be0a-ba0e93d2141d
+
+	measure Driver_Percentage =
+			
+			VAR SelectedDrivers =
+			    CALCULATE (
+			        DISTINCTCOUNT ( 'Dim KPI'[Related Outcome] ),
+			        ALLSELECTED ( 'Dim KPI'[Related Outcome] )
+			    )
+			VAR X =
+			    [Number of Achieving Items]
+			VAR Y =
+			    DISTINCTCOUNT('Fact KPI'[Entity KEY])
+			RETURN
+			    IF ( SelectedDrivers = 1, DIVIDE ( X, Y ), "" )
+		formatString: 0%;-0%;0%
+		lineageTag: 00a55ebb-b2dc-4d9b-81f8-c034b3778ff0
+
+	measure 'Number of Review Items' = ```
+			
+			
+			 COALESCE(CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact KPI',
+			                'Fact KPI'[Entity KEY],
+			                'Fact KPI'[KPI Value],
+			                'Fact KPI'[Kpi ID]
+			            )
+			        ),
+			    'Fact KPI'[KPI Status] = "Review"
+			),0)
+			```
+		formatString: 0
+		lineageTag: 884c2f2d-3f2f-47eb-9125-289aca09c3ba
+
+	measure 'Number of Achieving Items' = ```
+			
+			
+			 COALESCE(CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact KPI',
+			                'Fact KPI'[Entity KEY],
+			                'Fact KPI'[KPI Value],
+			                'Fact KPI'[Kpi ID]
+			            )
+			        ),
+			    'Fact KPI'[KPI Status] = "Achieving"
+			),0)
+			```
+		formatString: 0
+		lineageTag: 952da467-2cef-4e1f-8305-2408b0e52ee3
+
+	measure 'Number of Take Action Items' = ```
+			
+			   COALESCE(CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact KPI',
+			                'Fact KPI'[Entity KEY],
+			                'Fact KPI'[KPI Value],
+			                'Fact KPI'[Kpi ID]
+			            )
+			        ),
+			        'Fact KPI'[KPI Status] = "Take Action"
+			    ), 0)
+			// CALCULATE(
+			//     DISTINCTCOUNT('Fact KPI'[Entity KEY]),
+			//   --  ALLSELECTED('Dim Kaimahi'),
+			//   --  ALLSELECTED('Dim KPI'),
+			//     'Fact KPI'[KPI Status] = "Take Action"
+			// )
+			```
+		formatString: 0
+		lineageTag: 82587c4f-30ed-4b9d-b676-5ab65c8a2ebb
+
+	measure 'Percentage Take Action (text)' = ```
+			
+			VAR SelectedKPIs =
+			    CALCULATE (
+			        DISTINCTCOUNT ( 'Dim KPI'[Sim Title] ),
+			        ALLSELECTED ( 'Dim KPI'[Sim Title] )
+			    )
+			VAR X =
+			    CALCULATE(
+			    DISTINCTCOUNT('Fact KPI'[Entity KEY]),
+			    'Fact KPI'[KPI Status] = "Take Action"
+			)
+			VAR Y =
+			    DISTINCTCOUNT('Fact KPI'[Entity KEY])
+			RETURN
+			    IF ( SelectedKPIs = 1, 
+			     ROUND(DIVIDE(X, Y), 2) * 100 & "%" & " Take Action", "" )
+			  
+			```
+		lineageTag: 1a69a5ab-5e96-4a0d-8c03-d6e8f3433911
+
+	measure 'Percentage Achieving' = ```
+			
+			VAR _Green = 
+			 CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact KPI',
+			                'Fact KPI'[Entity KEY],
+			                'Fact KPI'[KPI Value],
+			                'Fact KPI'[Kpi ID]
+			            )
+			        ),
+			        'Fact KPI'[KPI Status] = "Achieving"
+			    )
+			// CALCULATE(
+			//     DISTINCTCOUNT('Fact KPI'[Entity KEY]),
+			//     //ALLSELECTED('Dim Kaimahi'),
+			//     //ALLSELECTED('Dim KPI'),
+			//     'Fact KPI'[KPI Status] = "Achieving"
+			// )
+			VAR _Amber = 
+			 CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact KPI',
+			                'Fact KPI'[Entity KEY],
+			                'Fact KPI'[KPI Value],
+			                'Fact KPI'[Kpi ID]
+			            )
+			        ),
+			        'Fact KPI'[KPI Status] = "Review"
+			    )
+			// CALCULATE(
+			//     DISTINCTCOUNT('Fact KPI'[Entity KEY]),
+			//     //ALLSELECTED('Dim Kaimahi'),
+			//     //ALLSELECTED('Dim KPI'),
+			//     'Fact KPI'[KPI Status] = "Review"
+			// )
+			VAR _Red = 
+			// CALCULATE(
+			//     DISTINCTCOUNT(COUNT('Fact KPI'[Entity KEY]),
+			//     //ALLSELECTED('Dim Kaimahi'),
+			//    // ALLSELECTED('Dim KPI'),
+			//     'Fact KPI'[KPI Status] = "Take Action"
+			// )
+			    CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact KPI',
+			                'Fact KPI'[Entity KEY],
+			                'Fact KPI'[KPI Value],
+			                'Fact KPI'[Kpi ID]
+			            )
+			        ),
+			        'Fact KPI'[KPI Status] = "Take Action"
+			    )
+			RETURN
+			IF(_Green = 0, 0,
+			DIVIDE(_Green,(_Green+_Amber+_Red))
+			)
+			```
+		formatString: 0%;-0%;0%
+		lineageTag: c904303b-f25c-4020-a49c-c86f19a154d1
+
+	measure 'Percentage Take Action %' = ```
+			
+			
+			VAR _Green = 
+			 CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact KPI',
+			                'Fact KPI'[Entity KEY],
+			                'Fact KPI'[KPI Value],
+			                'Fact KPI'[Kpi ID]
+			            )
+			        ),
+			        'Fact KPI'[KPI Status] = "Achieving"
+			    )
+			// CALCULATE(
+			//     DISTINCTCOUNT('Fact KPI'[Entity KEY]),
+			//     //ALLSELECTED('Dim Kaimahi'),
+			//     //ALLSELECTED('Dim KPI'),
+			//     'Fact KPI'[KPI Status] = "Achieving"
+			// )
+			VAR _Amber = 
+			 CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact KPI',
+			                'Fact KPI'[Entity KEY],
+			                'Fact KPI'[KPI Value],
+			                'Fact KPI'[Kpi ID]
+			            )
+			        ),
+			        'Fact KPI'[KPI Status] = "Review"
+			    )
+			// CALCULATE(
+			//     DISTINCTCOUNT('Fact KPI'[Entity KEY]),
+			//     //ALLSELECTED('Dim Kaimahi'),
+			//     //ALLSELECTED('Dim KPI'),
+			//     'Fact KPI'[KPI Status] = "Review"
+			// )
+			VAR _Red = 
+			// CALCULATE(
+			//     DISTINCTCOUNT(COUNT('Fact KPI'[Entity KEY]),
+			//     //ALLSELECTED('Dim Kaimahi'),
+			//    // ALLSELECTED('Dim KPI'),
+			//     'Fact KPI'[KPI Status] = "Take Action"
+			// )
+			    CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact KPI',
+			                'Fact KPI'[Entity KEY],
+			                'Fact KPI'[KPI Value],
+			                'Fact KPI'[Kpi ID]
+			            )
+			        ),
+			        'Fact KPI'[KPI Status] = "Take Action"
+			    )
+			RETURN
+			IF(_Red = 0 && (_Amber <> 0 || _Green <> 0), 0,
+			DIVIDE(_Red,(_Green+_Amber+_Red))
+			)
+			```
+		formatString: 0%;-0%;0%
+		lineageTag: dbd73b83-3738-4648-b283-f4e33ef7f483
+
+	measure 'Fraction Take Action' = ```
+			
+			
+			VAR _Green = 
+			CALCULATE(
+			    DISTINCTCOUNT('Fact KPI'[Entity KEY]),
+			    'Fact KPI'[KPI Status] = "Achieving"
+			)
+			VAR _Amber = 
+			CALCULATE(
+			    DISTINCTCOUNT('Fact KPI'[Entity KEY]),
+			
+			    'Fact KPI'[KPI Status] = "Review"
+			)
+			VAR _Red = 
+			IF( ISBLANK( CALCULATE(
+			    DISTINCTCOUNT('Fact KPI'[Entity KEY]),
+			    'Fact KPI'[KPI Status] = "Take Action"
+			)), 0 ,
+			CALCULATE(
+			    DISTINCTCOUNT('Fact KPI'[Entity KEY]),
+			    'Fact KPI'[KPI Status] = "Take Action"))
+			
+			VAR _Total = _Green+_Amber+_Red
+			
+			RETURN
+			_Red & " out of " & _Total
+			```
+		lineageTag: 4e8ceba8-254a-446f-8793-dba4caaeed47
+
+	measure 'Total Units' = ```
+			CALCULATE(
+			    DISTINCTCOUNT('Fact KPI'[Entity KEY])
+			
+			  
+			)
+			```
+		formatString: 0
+		lineageTag: ced2bd54-bf6a-4355-86d9-b6f5f9da6f79
+
+	measure Priority = ```
+			
+			VAR _Green = 
+			CALCULATE(
+			    DISTINCTCOUNT('Fact KPI'[Entity KEY]),
+			    'Fact KPI'[KPI Status] = "Achieving"
+			)
+			VAR _Amber = 
+			CALCULATE(
+			    DISTINCTCOUNT('Fact KPI'[Entity KEY]),
+			
+			    'Fact KPI'[KPI Status] = "Review"
+			)
+			VAR _Red = 
+			CALCULATE(
+			    DISTINCTCOUNT('Fact KPI'[Entity KEY]),
+			    'Fact KPI'[KPI Status] = "Take Action"
+			)
+			VAR _Total = _Green+_Amber+_Red
+			
+			RETURN
+			_Red*100 + _Amber*10 + _Green 
+			```
+		formatString: 0
+		lineageTag: 0cc0a76b-a243-4a5a-bbcb-14a2c7560331
+
+	measure 'Roll up Review target' =
+			
+			MAX('Dim KPI'[Kpi Ru A Value])*100 & " % of items are in 'Achieving' or 'Review' status"
+		lineageTag: 1091b17a-1775-40ef-a183-c29a459839e5
+
+	measure 'Roll up Achieving target' =
+			
+			MAX('Dim KPI'[Kpi Ru G Value])*100 & " % of items are in 'Achieving' status"
+		lineageTag: b29df58d-5318-478a-84c8-ae75c4e4850f
+
+	measure rank_service = RANKX(ALLSELECTED('RLS with Additional Access'),CALCULATE( MAX('RLS with Additional Access'[Service ID])),,ASC)
+		formatString: 0
+		lineageTag: 8dcf3aa6-d21b-4729-8f4a-55a54d44fe6f
+
+	measure 'Action Plan Link' =
+			
+			IF(HASONEVALUE('Dim Service'[Service Name]), MAX('Dim Service'[Dim Target Definitions.Service Action Plan Link]) , "")
+		lineageTag: 26c634fd-1f7f-433e-b010-c2c5be7fd00d
+
+	measure 'Top Service (Name & Value)' = ```
+			
+			VAR Summary =
+			    ADDCOLUMNS (
+			        SUMMARIZE ( 'Dim Service', 'Dim Service'[Service Name] ),
+			        "__Value", [Number of Take Action Items]
+			    )
+			VAR TopValue = MAXX ( Summary, [__Value] )
+			VAR TopService =
+			    MAXX ( FILTER ( Summary, [__Value] = TopValue ), 'Dim Service'[Service Name] )
+			
+			VAR TotalItems =
+			    CALCULATE(
+			        DISTINCTCOUNT('Fact KPI'[Entity KEY]),
+			        'Dim Service'[Service Name] = TopService
+			    )
+			
+			RETURN
+			TopService & " (" & TopValue & " / " & TotalItems & ")" 
+			
+			```
+		lineageTag: 8090b132-4ee8-4493-aa50-c2d4ba40905a
+
+	measure 'Top Sim Title (Name & Value)' = ```
+			
+			VAR Summary =
+			    ADDCOLUMNS (
+			        SUMMARIZE ( 'Dim KPI', 'Dim KPI'[Sim Title] ),
+			        "__Value", [Number of Take Action Items]
+			    )
+			
+			VAR TopValue =
+			    MAXX ( Summary, [__Value] )
+			
+			VAR TopSimTitle =
+			    MAXX (
+			        FILTER ( Summary, [__Value] = TopValue ),
+			        'Dim KPI'[Sim Title]
+			    )
+			
+			VAR TotalItems =
+			    CALCULATE (
+			        DISTINCTCOUNT ( 'Fact KPI'[Entity KEY] ),
+			        'Dim KPI'[Sim Title] = TopSimTitle
+			    )
+			
+			RETURN
+			TopSimTitle & " (" & TopValue & " / " & TotalItems & ")"
+			
+			```
+		lineageTag: 2e454141-149a-4027-936b-2f9a6c93ad30
+
+	measure 'Fraction Achieving' = ```
+			
+			
+			VAR _Green = 
+			IF( ISBLANK( CALCULATE(
+			    DISTINCTCOUNT('Fact KPI'[Entity KEY]),
+			    'Fact KPI'[KPI Status] = "Achieving"
+			)), 0 ,
+			CALCULATE(
+			    DISTINCTCOUNT('Fact KPI'[Entity KEY]),
+			    'Fact KPI'[KPI Status] = "Achieving"
+			))
+			
+			VAR _Amber = 
+			CALCULATE(
+			    DISTINCTCOUNT('Fact KPI'[Entity KEY]),
+			
+			    'Fact KPI'[KPI Status] = "Review"
+			)
+			VAR _Red = 
+			IF( ISBLANK( CALCULATE(
+			    DISTINCTCOUNT('Fact KPI'[Entity KEY]),
+			    'Fact KPI'[KPI Status] = "Take Action"
+			)), 0 ,
+			CALCULATE(
+			    DISTINCTCOUNT('Fact KPI'[Entity KEY]),
+			    'Fact KPI'[KPI Status] = "Take Action"))
+			
+			VAR _Total = _Green+_Amber+_Red
+			
+			RETURN
+			_Green & " out of " & _Total
+			```
+		lineageTag: 48a9cd8e-62a8-4148-bfdd-f05288565404
+
+	measure 'Tooltip Entity Count' = ```
+			
+			CALCULATE(
+			    COUNT('Fact History'[Entity KEY]),
+			    ALL('Fact History'[KPI Status])
+			)
+			
+			```
+		formatString: 0
+		lineageTag: df78713f-dfb4-4388-980b-c5fb38b3f77d
+
+	partition '_Calculation measures' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

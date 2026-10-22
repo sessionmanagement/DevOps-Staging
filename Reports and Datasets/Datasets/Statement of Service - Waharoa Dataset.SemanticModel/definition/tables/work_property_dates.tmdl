@@ -1,0 +1,144 @@
+table work_property_dates
+	isHidden
+	lineageTag: eaf191b4-b757-4bed-b725-94253e3c739d
+
+	column zav_propertyid
+		dataType: string
+		isHidden
+		lineageTag: bfbff37e-a7f5-48b8-b91a-011f5fe9f04b
+		summarizeBy: none
+		sourceColumn: zav_propertyid
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column statuscode
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b3ee6ee4-6bf9-496b-b492-e700c1c8e9be
+		summarizeBy: sum
+		sourceColumn: statuscode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_acquireddate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 56308011-293c-4bc8-b3f4-544f488700cd
+		summarizeBy: none
+		sourceColumn: zav_acquireddate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column zav_confirmeddisposaldate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 9c674cb6-1963-4924-b757-154228672d0c
+		summarizeBy: none
+		sourceColumn: zav_confirmeddisposaldate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column disposaldateortoday
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 117b3466-5f28-431b-8fd8-ff9ac0f65f5c
+		summarizeBy: none
+		sourceColumn: disposaldateortoday
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column explosion
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: df6262c7-6217-403d-a9b5-8414e78d1a36
+		summarizeBy: none
+		sourceColumn: explosion
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column FinancialYear = RELATED(work_dim_date[financial_year_num])
+		isHidden
+		formatString: 0
+		lineageTag: 0079a1ee-51f1-45dc-9aec-ef8cddc293d8
+		summarizeBy: sum
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column LastDayOfFY =
+			
+			RELATED(work_dim_date[financial_last_day_of_year_date])
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: c2c128a0-8746-4ea0-afee-1e89d899ef5d
+		summarizeBy: none
+
+		changedProperty = DataType
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column zav_disposaldate
+		dataType: dateTime
+		isHidden
+		formatString: General Date
+		lineageTag: 389b36de-f1ca-42ef-969a-cead113c9396
+		summarizeBy: none
+		sourceColumn: zav_disposaldate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition work_property_dates-ae503dc0-d590-4345-b5ee-a694cb3839cf = m
+		mode: import
+		queryGroup: work
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT dp.property_id AS zav_propertyid, CASE dp.property_statuscode WHEN 'Active' THEN 1 WHEN 'Inactive' THEN 2 WHEN 'Disposed' THEN 100000000 END AS statuscode, TRY_CONVERT(int, dp.property_year_built) AS new_yearbuilt, CONVERT(date, dp.property_acquired_date) AS zav_acquireddate, CONVERT(date, dp.property_disposal_date) AS zav_disposaldate, CAST(dp.property_confirmed_disposal_date AT TIME ZONE 'New Zealand Standard Time' AT TIME ZONE 'UTC' AS date) AS zav_confirmeddisposaldate FROM [edw].[dim_property] dp WHERE dp.[DWHIsCurrent] = 1 AND dp.[DWHDMLOperation] <> 'D' AND dp.[property_id] IS NOT NULL"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"zav_confirmeddisposaldate", type date}, {"zav_acquireddate", type date}}),
+				    #"Added Custom" = Table.AddColumn(#"Changed Type", "disposaldateortoday", each if [zav_disposaldate] <> null then [zav_disposaldate] else if [zav_confirmeddisposaldate] <> null then [zav_confirmeddisposaldate] else DateTime.LocalNow()),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Added Custom",{{"disposaldateortoday", type date}}),
+				    #"Changed Type2" = Table.TransformColumnTypes(#"Changed Type1",{{"zav_acquireddate", Int64.Type}, {"disposaldateortoday", Int64.Type}}),
+				    #"Filtered Rows" = Table.SelectRows(#"Changed Type2", each ([zav_acquireddate] <> null)),
+				    #"Added Custom1" = Table.AddColumn(#"Filtered Rows", "explosion", each {[zav_acquireddate]..[disposaldateortoday]}),
+				    #"Expanded explosion" = Table.ExpandListColumn(#"Added Custom1", "explosion"),
+				    #"Changed Type3" = Table.TransformColumnTypes(#"Expanded explosion",{{"explosion", type date}, {"disposaldateortoday", type date}, {"zav_acquireddate", type date}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type3",{"new_yearbuilt"})
+				in
+				    #"Removed Columns"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,487 @@
+table 'Dim Tangata Whaiora Referral'
+	lineageTag: ec647c7e-16c0-4876-a788-c60796979fac
+
+	column 'Tangata Whaiora Referral Type'
+		dataType: string
+		lineageTag: 011440f5-f3ad-41a5-8e03-00d519c73e14
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referrer Name'
+		dataType: string
+		lineageTag: 039de52c-cfc9-4d16-93b2-84be1d4036e4
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referrer Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Discharge Reason'
+		dataType: string
+		lineageTag: 7347e434-c4b1-42d4-8b85-8c4dc7e6aeb8
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Discharge Reason
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Accepted Reason'
+		dataType: string
+		lineageTag: 8d1ae86d-b758-4c08-bb65-905f548492a5
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Accepted Reason
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Waitlist Reason'
+		dataType: string
+		lineageTag: e83ecbb5-85bc-4f76-bcaa-a07e6aba6718
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Waitlist Reason
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Declined Reason'
+		dataType: string
+		lineageTag: 170d5623-c375-4880-bcbb-2c8afb08879b
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Declined Reason
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation __PBI_SemanticLinks = [{"LinkTarget":{"TableName":"Dim Tangata Whaiora Referral","TableItemName":"Tangata Whaiora Referral Declined Reason (groups)","ObjectType":4},"LinkType":"UsedInGroup"}]
+
+	column 'Tangata Whaiora Status Is Active'
+		dataType: string
+		lineageTag: 84c9bc5f-3df1-40fd-a7ea-c21140a30e45
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Status Is Active
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b95b0e94-01e6-49d5-afbe-6ab401a464b6
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 74c49952-43a4-4381-9130-eb4effc77ad9
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: d3bfda39-8aca-46da-9f57-395a2e403c18
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Team ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Source ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: c910d597-e66b-42d5-91e4-9223067b0457
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Source ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 8ff12497-b216-4b7d-a3dc-4b5ea75094bc
+		summarizeBy: none
+		sourceColumn: Company ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Tangata Whaiora Referral KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: ab8669df-05fa-4f74-97db-813ba0823bd1
+		summarizeBy: none
+		sourceColumn: Dim Tangata Whaiora Referral KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Tangata Whaiora Referral Unique KEY'
+		dataType: string
+		isHidden
+		lineageTag: 591438ae-2fd8-4718-a4fd-76d3959375c4
+		summarizeBy: none
+		sourceColumn: Dim Tangata Whaiora Referral Unique KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Declined Reason (groups)' =
+			SWITCH(
+				TRUE,
+				ISBLANK('Dim Tangata Whaiora Referral'[Tangata Whaiora Referral Declined Reason]),
+				"(Blank)",
+				'Dim Tangata Whaiora Referral'[Tangata Whaiora Referral Declined Reason] IN {"Consumer declined service.",
+					"Consumer did not attend following the referral",
+					"Client accepted private rental before service initiation",
+					"Client accepted social housing before service initiation",
+					"Client declined service (give reasons in comments)",
+					"Client does not believe service is necessary",
+					"Client does not want to work with provider",
+					"Client unable to commit to trial duration",
+					"Client would like more time to decide",
+					"Did not engage with the service",
+					"No longer wants any support",
+					"Peer declined service",
+					"Person no longer wants to access the service"},
+				"Client Decision",
+				'Dim Tangata Whaiora Referral'[Tangata Whaiora Referral Declined Reason] IN {"Client did not engage or was uncontactable (record approval from Operations Manager)",
+					"Consumer who has been referred is unable to be contacted and decision is made to decline the referral.",
+					"Gone no address or lost to follow up",
+					"Person did not attend following the referral",
+					"Referral declined due to non-attendance, no contact after initial referral",
+					"Unable to contact client, client did not engage"},
+				"Contact Issues",
+				'Dim Tangata Whaiora Referral'[Tangata Whaiora Referral Declined Reason] IN {"Client did not meet service criteria",
+					"Declined by Motelier (record approval from Operations Manager)",
+					"Not eligible for service",
+					"Tnt not eligible for service (give reasons in comments)"},
+				"Eligibility Issues",
+				'Dim Tangata Whaiora Referral'[Tangata Whaiora Referral Declined Reason] IN {"Client is too unwell to participate in trial",
+					"Deceased - do not use"},
+				"Health Related",
+				'Dim Tangata Whaiora Referral'[Tangata Whaiora Referral Declined Reason] IN {"Inability to provide services requested",
+					"Unable to progress, client ref bk to WINZ",
+					"Unallocated referral (oversubscription)"},
+				"Inability to provide services",
+				'Dim Tangata Whaiora Referral'[Tangata Whaiora Referral Declined Reason] IN {"Internal transfer to Emerge EH ppty",
+					"Transfer to other Emerge TH service"},
+				"Internal Transfer/Service Provision",
+				'Dim Tangata Whaiora Referral'[Tangata Whaiora Referral Declined Reason] IN {"Client accepted HNZ tenancy before service initiation",
+					"Client accessed private rental before service initiation",
+					"Client found Emerg Hous location unsuitable",
+					"Client has moved out of service area",
+					"Client is moving out of social housing"},
+				"Location/Relocation Issues",
+				'Dim Tangata Whaiora Referral'[Tangata Whaiora Referral Declined Reason] IN {"Accommod not suited to needs",
+					"Accommodation not suited to needs (record approval from Operations Manager)",
+					"Client found TH accommodation location unsuitable",
+					"Other services more appropriate",
+					"Referral declined - Inability to provide services requested.",
+					"Referral declined - Other services more appropriate.",
+					"Service not suited to needs",
+					"Transfer to another service within Mind & Body (different DHB)",
+					"Transfer to another service within Mind & Body (same DHB)",
+					"Transferred to other Emerge TH service",
+					"Unable to appropriately place client in service (give reasons in comments & record approval from Operations Manager)"},
+				"Service Suitability",
+				"Other"
+			)
+		lineageTag: 4cceb2ed-6aae-4315-abbe-0a71bc3785a7
+		summarizeBy: none
+
+		extendedProperty GroupingMetadata =
+				{
+				  "version": 0,
+				  "groupedColumns": [
+				    {
+				      "Column": {
+				        "Expression": {
+				          "SourceRef": {
+				            "Entity": "Dim Tangata Whaiora Referral"
+				          }
+				        },
+				        "Property": "Tangata Whaiora Referral Declined Reason"
+				      }
+				    }
+				  ]
+				}
+
+		annotation GroupingDesignState = {"Version":0,"Sources":[{"Name":"d","Entity":"Dim Tangata Whaiora Referral"}],"GroupedColumns":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Tangata Whaiora Referral Declined Reason"}}],"GroupItems":[{"DisplayName":"(Blank)","BlankDefaultPlaceholder":true},{"DisplayName":"Client Decision","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Tangata Whaiora Referral Declined Reason"}}],"Values":[[{"Literal":{"Value":"'Consumer declined service.'"}}],[{"Literal":{"Value":"'Consumer did not attend following the referral'"}}],[{"Literal":{"Value":"'Client accepted private rental before service initiation'"}}],[{"Literal":{"Value":"'Client accepted social housing before service initiation'"}}],[{"Literal":{"Value":"'Client declined service (give reasons in comments)'"}}],[{"Literal":{"Value":"'Client does not believe service is necessary'"}}],[{"Literal":{"Value":"'Client does not want to work with provider'"}}],[{"Literal":{"Value":"'Client unable to commit to trial duration'"}}],[{"Literal":{"Value":"'Client would like more time to decide'"}}],[{"Literal":{"Value":"'Did not engage with the service'"}}],[{"Literal":{"Value":"'No longer wants any support'"}}],[{"Literal":{"Value":"'Peer declined service'"}}],[{"Literal":{"Value":"'Person no longer wants to access the service'"}}]]}}},{"DisplayName":"Contact Issues","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Tangata Whaiora Referral Declined Reason"}}],"Values":[[{"Literal":{"Value":"'Client did not engage or was uncontactable (record approval from Operations Manager)'"}}],[{"Literal":{"Value":"'Consumer who has been referred is unable to be contacted and decision is made to decline the referral.'"}}],[{"Literal":{"Value":"'Gone no address or lost to follow up'"}}],[{"Literal":{"Value":"'Person did not attend following the referral'"}}],[{"Literal":{"Value":"'Referral declined due to non-attendance, no contact after initial referral'"}}],[{"Literal":{"Value":"'Unable to contact client, client did not engage'"}}]]}}},{"DisplayName":"Eligibility Issues","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Tangata Whaiora Referral Declined Reason"}}],"Values":[[{"Literal":{"Value":"'Client did not meet service criteria'"}}],[{"Literal":{"Value":"'Declined by Motelier (record approval from Operations Manager)'"}}],[{"Literal":{"Value":"'Not eligible for service'"}}],[{"Literal":{"Value":"'Tnt not eligible for service (give reasons in comments)'"}}]]}}},{"DisplayName":"Health Related","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Tangata Whaiora Referral Declined Reason"}}],"Values":[[{"Literal":{"Value":"'Client is too unwell to participate in trial'"}}],[{"Literal":{"Value":"'Deceased - do not use'"}}]]}}},{"DisplayName":"Inability to provide services","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Tangata Whaiora Referral Declined Reason"}}],"Values":[[{"Literal":{"Value":"'Inability to provide services requested'"}}],[{"Literal":{"Value":"'Unable to progress, client ref bk to WINZ'"}}],[{"Literal":{"Value":"'Unallocated referral (oversubscription)'"}}]]}}},{"DisplayName":"Internal Transfer/Service Provision","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Tangata Whaiora Referral Declined Reason"}}],"Values":[[{"Literal":{"Value":"'Internal transfer to Emerge EH ppty'"}}],[{"Literal":{"Value":"'Transfer to other Emerge TH service'"}}]]}}},{"DisplayName":"Location/Relocation Issues","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Tangata Whaiora Referral Declined Reason"}}],"Values":[[{"Literal":{"Value":"'Client accepted HNZ tenancy before service initiation'"}}],[{"Literal":{"Value":"'Client accessed private rental before service initiation'"}}],[{"Literal":{"Value":"'Client found Emerg Hous location unsuitable'"}}],[{"Literal":{"Value":"'Client has moved out of service area'"}}],[{"Literal":{"Value":"'Client is moving out of social housing'"}}]]}}},{"DisplayName":"Service Suitability","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"d"}},"Property":"Tangata Whaiora Referral Declined Reason"}}],"Values":[[{"Literal":{"Value":"'Accommod not suited to needs'"}}],[{"Literal":{"Value":"'Accommodation not suited to needs (record approval from Operations Manager)'"}}],[{"Literal":{"Value":"'Client found TH accommodation location unsuitable'"}}],[{"Literal":{"Value":"'Other services more appropriate'"}}],[{"Literal":{"Value":"'Referral declined - Inability to provide services requested.'"}}],[{"Literal":{"Value":"'Referral declined - Other services more appropriate.'"}}],[{"Literal":{"Value":"'Service not suited to needs'"}}],[{"Literal":{"Value":"'Transfer to another service within Mind & Body (different DHB)'"}}],[{"Literal":{"Value":"'Transfer to another service within Mind & Body (same DHB)'"}}],[{"Literal":{"Value":"'Transferred to other Emerge TH service'"}}],[{"Literal":{"Value":"'Unable to appropriately place client in service (give reasons in comments & record approval from Operations Manager)'"}}]]}}},{"DisplayName":"Other"}]}
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Batch ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: c1016aaa-4c0f-4af3-aa13-1e8fed19d1f2
+		summarizeBy: none
+		sourceColumn: DWH Batch ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Modified On'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: f36b73b7-9dbc-494d-911a-d7f01d7e03b3
+		summarizeBy: none
+		sourceColumn: DWH Modified On
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Created At'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 4d9e7028-fe02-4a1a-af0b-5364a02c793a
+		summarizeBy: none
+		sourceColumn: DWH Created At
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Latest Referral'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 981b98c0-076e-48bd-87ad-78bd43614aef
+		summarizeBy: none
+		sourceColumn: Is Latest Referral
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Status'
+		dataType: string
+		lineageTag: 9cf7ed58-e16b-4617-8cb4-b094c3e25f69
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Discharge Reason Code'
+		dataType: string
+		lineageTag: b13e3c19-1747-4ddc-9a60-d2d5fb917f81
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Discharge Reason Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Accepted Reason Code'
+		dataType: string
+		lineageTag: 6d154cc0-81da-4673-883a-f118203e3819
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Accepted Reason Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Waitlist Reason Code'
+		dataType: string
+		lineageTag: fbcc69da-1ac7-4506-8b9a-55ae2fec0a53
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Waitlist Reason Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Declined Reason Code'
+		dataType: string
+		lineageTag: 6bde6677-9366-4d78-85b1-15881885b68e
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Declined Reason Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referrer Code'
+		dataType: string
+		lineageTag: 50c17c9a-851c-4137-9034-3b42920aa419
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referrer Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Declined Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: d74f855e-7244-4521-8c3a-a2c744c8ea0e
+		summarizeBy: none
+		sourceColumn: Declined Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Accepted Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: 33c3d916-2e3e-4314-8a34-8b3bde0c3369
+		summarizeBy: none
+		sourceColumn: Accepted Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Discharged Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: 0fe8bd26-9ec9-4971-9fa7-b4e55d4c55fc
+		summarizeBy: none
+		sourceColumn: Discharged Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Waitlist Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: 0d807c22-42d4-49fb-8c47-bc0453c33076
+		summarizeBy: none
+		sourceColumn: Waitlist Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Pending Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: 1d165200-76a1-482e-a478-e39b0d71d027
+		summarizeBy: none
+		sourceColumn: Pending Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ref Referrer Groupings.referrer_group'
+		dataType: string
+		lineageTag: e02fefa3-2173-471f-896d-571f64bf583f
+		summarizeBy: none
+		sourceColumn: Ref Referrer Groupings.referrer_group
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Pending Reason'
+		dataType: string
+		lineageTag: 5b3ad10e-2301-4661-a0eb-616ca4d59274
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Pending Reason
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Pending Reason Code'
+		dataType: string
+		lineageTag: dd2105af-cee2-4d9d-84c8-328507e446e7
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Pending Reason Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Discharge Comment'
+		dataType: string
+		lineageTag: 0b80a30b-08d1-4e6f-8026-97425553aab1
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Discharge Comment
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Accepted Comment'
+		dataType: string
+		lineageTag: ef86b53f-444b-42e3-a6f2-0ca552bf6cfc
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Accepted Comment
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Waitlist Comment'
+		dataType: string
+		lineageTag: d2cc73a7-dfc0-4efc-87e0-134af77f5150
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Waitlist Comment
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Declined Comment'
+		dataType: string
+		lineageTag: 597be466-853e-4adf-826f-9866be660b4e
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Declined Comment
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Pending Comment'
+		dataType: string
+		lineageTag: e76cf3ac-2e61-4e00-a8cf-6748d1a43b52
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Pending Comment
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Status  Overall'
+		dataType: string
+		lineageTag: 1f1d0809-8770-4b21-8ab0-bec0c99be314
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Status  Overall
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Declined Reason - short'
+		dataType: string
+		lineageTag: 1140d232-55df-4f2e-89a9-b330b9eee35d
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Declined Reason - short
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Tangata Whaiora Referral' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01"),
+				    edw_dim_client_referral = Source{[Schema="edw",Item="vw_dim_client_referral"]}[Data],
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(edw_dim_client_referral, each ApplyNamingConventions(_)),
+				    #"Filtered Rows1" = Table.SelectRows(#"Transformed Column Names", each ([DWH Dml Operation] <> "D")),
+				    #"Removed Columns" = Table.RemoveColumns(#"Filtered Rows1",{"DWH Source System", "DWH Dml Operation"}),
+				    #"Merged Queries" = Table.NestedJoin(#"Removed Columns", {"Dim Tangata Whaiora Referral KEY"}, #"Fact Tangata Whaiora Max Referral KEY", {"Dim Tangata Whaiora Referral KEY"}, "Fact Tangata Whaiora Max Referral KEY", JoinKind.LeftOuter),
+				    #"Expanded Fact Tangata Whaiora Max Referral KEY" = Table.ExpandTableColumn(#"Merged Queries", "Fact Tangata Whaiora Max Referral KEY", {"Is Latest Referral"}, {"Is Latest Referral"}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Expanded Fact Tangata Whaiora Max Referral KEY",null,false,Replacer.ReplaceValue,{"Is Latest Referral"}),
+				    #"Filtered Rows" = Table.SelectRows(#"Replaced Value", each ([Is Latest Referral] = true)),
+				    #"Added Conditional Column" = Table.AddColumn(#"Filtered Rows", "Declined Flag", each if [Tangata Whaiora Referral Status] = "Declined" then 1 else 0),
+				    #"Added Conditional Column1" = Table.AddColumn(#"Added Conditional Column", "Accepted Flag", each if [Tangata Whaiora Referral Status] = "Accepted" then 1 else 0),
+				    #"Added Conditional Column2" = Table.AddColumn(#"Added Conditional Column1", "Discharged Flag", each if [Tangata Whaiora Referral Status] = "Discharged" then 1 else 0),
+				    #"Added Conditional Column3" = Table.AddColumn(#"Added Conditional Column2", "Waitlist Flag", each if [Tangata Whaiora Referral Status] = "Waitlist" then 1 else 0),
+				    #"Added Conditional Column4" = Table.AddColumn(#"Added Conditional Column3", "Pending Flag", each if [Tangata Whaiora Referral Status] = "Pending" then 1 else 0),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Added Conditional Column4",{{"Declined Flag", Int64.Type}, {"Accepted Flag", Int64.Type}, {"Discharged Flag", Int64.Type}, {"Waitlist Flag", Int64.Type}, {"Pending Flag", Int64.Type}}),
+				    #"Merged Queries1" = Table.NestedJoin(#"Changed Type", {"Dim Tangata Whaiora Referral KEY"}, #"Ref Referrer Groupings", {"dim_client_referral_key"}, "Ref Referrer Groupings", JoinKind.LeftOuter),
+				    #"Expanded Ref Referrer Groupings" = Table.ExpandTableColumn(#"Merged Queries1", "Ref Referrer Groupings", {"referrer_group"}, {"Ref Referrer Groupings.referrer_group"}),
+				    #"Duplicated Column" = Table.DuplicateColumn(#"Expanded Ref Referrer Groupings", "Tangata Whaiora Referral Status", "Tangata Whaiora Referral Status - Copy"),
+				    #"Renamed Columns" = Table.RenameColumns(#"Duplicated Column",{{"Tangata Whaiora Referral Status - Copy", "Tangata Whaiora Referral Status  Overall"}}),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Renamed Columns","Discharged","Accepted",Replacer.ReplaceText,{"Tangata Whaiora Referral Status  Overall"}),
+				    #"Duplicated Column1" = Table.DuplicateColumn(#"Replaced Value1", "Tangata Whaiora Referral Declined Reason", "Tangata Whaiora Referral Declined Reason - Copy"),
+				    #"Renamed Columns1" = Table.RenameColumns(#"Duplicated Column1",{{"Tangata Whaiora Referral Declined Reason - Copy", "Tangata Whaiora Referral Declined Reason - short"}}),
+				    #"Replaced Value2" = Table.ReplaceValue(#"Renamed Columns1","Inability to provide services requested","Inability to provide services",Replacer.ReplaceText,{"Tangata Whaiora Referral Declined Reason - short"}),
+				    #"Filtered Rows2" = Table.SelectRows(#"Replaced Value2", each true),
+				    #"Replaced Value3" = Table.ReplaceValue(#"Filtered Rows2",null,"Not Stated",Replacer.ReplaceValue,{"Tangata Whaiora Referral Declined Reason"})
+				in
+				    #"Replaced Value3"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,66 @@
+/// Azure DevOps projects within the organisation. Source: OData Projects entity.
+table Projects
+	lineageTag: 573528ed-ef4f-416b-8910-08cc07b461c6
+
+	/// Surrogate key uniquely identifying this project
+	column ProjectSK
+		dataType: string
+		isHidden
+		lineageTag: 0abf23d6-2115-44b6-ac58-e3690789379c
+		summarizeBy: none
+		sourceColumn: ProjectSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Natural unique identifier (GUID) for the project
+	column ProjectId
+		dataType: string
+		lineageTag: 55dfbc6e-ce3e-4ce5-9260-c4cd3addcb30
+		summarizeBy: none
+		sourceColumn: ProjectId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Name of the Azure DevOps project
+	column ProjectName
+		dataType: string
+		lineageTag: f66a2ccd-1fcd-4927-b242-855ee20a8c9f
+		summarizeBy: none
+		sourceColumn: ProjectName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Timestamp when this record was last updated in the Analytics service
+	column AnalyticsUpdatedDate
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 98203056-1711-4004-be05-40cfad27ed0c
+		summarizeBy: none
+		sourceColumn: AnalyticsUpdatedDate
+
+		variation Variation
+			isDefault
+			relationship: cbbdf157-c0fa-4e5e-8260-7849132ffee0
+			defaultHierarchy: LocalDateTable_ce80a3da-c788-4873-a9f5-63091027b9d0.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Project visibility setting (Private or Public)
+	column ProjectVisibility
+		dataType: string
+		lineageTag: c33141b0-169f-46ec-8978-9ae1babb40e6
+		summarizeBy: none
+		sourceColumn: ProjectVisibility
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Projects = m
+		mode: import
+		queryGroup: 'DevOps Tables'
+		source =
+				let
+				    Source = OData.Feed("https://analytics.dev.azure.com/EmergeAotearoa/Data%20and%20Analytics/_odata/v3.0-preview/", null, [Implementation="2.0",OmitValues = ODataOmitValues.Nulls,ODataVersion = 4, Headers=[Authorization=fnGetToken()]]),
+				    Projects_table = Source{[Name="Projects",Signature="table"]}[Data]
+				in
+				    Projects_table
+

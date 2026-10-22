@@ -1,0 +1,67 @@
+table '_Measures Table'
+	lineageTag: 9bc1be18-3417-42d5-b2de-ea0b3527404a
+
+	measure 'Tangata Whaiora Display Name (Referral) Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME() IN VALUES('Executinve Masking'[User Principal Name]),
+			    "Tangata Whaiora ID: " & FORMAT(SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora ID]), "0"),
+			    SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora Display Name])
+			)
+		displayFolder: Data Masking
+		lineageTag: 624e5720-7f28-4813-bbd0-1a5348d45bd2
+
+	measure 'Tangata Whaiora First Name (Referral) Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME() IN VALUES('Executinve Masking'[User Principal Name]),
+			    "Tangata Whaiora ID: " & FORMAT(SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora ID]), "0"),
+			    SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora First Name])
+			)
+		displayFolder: Data Masking
+		lineageTag: f7489cad-86ed-4fae-93db-b55a0306c5ac
+
+	measure 'Tangata Whaiora Last Name (Referral) Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME() IN VALUES('Executinve Masking'[User Principal Name]),
+			    "Tangata Whaiora ID: " & FORMAT(SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora ID]), "0"),
+			    SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora Last Name])
+			)
+		displayFolder: Data Masking
+		lineageTag: 206da4c3-9565-454c-9f1b-39e1f8386e40
+
+	measure 'Tangata Whaiora Middle Name (Referral) Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME() IN VALUES('Executinve Masking'[User Principal Name]),
+			    "Tangata Whaiora ID: " & FORMAT(SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora ID]), "0"),
+			    SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora Middle Name])
+			)
+		displayFolder: Data Masking
+		lineageTag: f0d5b051-6b40-44a3-857a-e5cb3ea42a56
+
+	measure 'Tangata Whaiora Preferred Name (Referral) Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME() IN VALUES('Executinve Masking'[User Principal Name]),
+			    "Tangata Whaiora ID: " & FORMAT(SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora ID]), "0"),
+			    SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora Preferred Name])
+			)
+		displayFolder: Data Masking
+		lineageTag: 9fd45804-a0bb-4042-ae08-45b50507c241
+
+	partition '_Measures Table' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

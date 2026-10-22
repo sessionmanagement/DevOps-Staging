@@ -1,0 +1,122 @@
+table PayRates
+	lineageTag: 60430d94-ac8d-4dda-b95b-f71ecda9bccc
+
+	column id
+		dataType: string
+		lineageTag: da712744-2f7c-40e9-a37c-c70211caefb9
+		summarizeBy: none
+		sourceColumn: id
+
+		annotation SummarizationSetBy = Automatic
+
+	column type
+		dataType: string
+		lineageTag: 741d4ccc-1c82-4bf8-9643-8c221a8e0065
+		summarizeBy: none
+		sourceColumn: type
+
+		annotation SummarizationSetBy = Automatic
+
+	column company_id
+		dataType: string
+		lineageTag: 44a3c83d-9cea-43d4-9b4b-a50c8de15ff9
+		summarizeBy: none
+		sourceColumn: company_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column code
+		dataType: int64
+		formatString: 0
+		lineageTag: 08b5a8ff-24bf-4b06-8f8d-7d7a1525e4d5
+		summarizeBy: sum
+		sourceColumn: code
+
+		annotation SummarizationSetBy = Automatic
+
+	column display_name
+		dataType: string
+		lineageTag: 295b448e-02b0-4721-b346-90eb2f3395d9
+		summarizeBy: none
+		sourceColumn: display_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column gender
+		dataType: string
+		lineageTag: 183ca617-26c5-4748-a00f-4c79d96b6adc
+		summarizeBy: none
+		sourceColumn: gender
+
+		annotation SummarizationSetBy = Automatic
+
+	column pay_rate_value
+		dataType: double
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: cf6aa46d-3de9-426e-a1c7-2818e8a8d551
+		summarizeBy: sum
+		sourceColumn: pay_rate_value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column standard_hours_per_week_value
+		dataType: double
+		lineageTag: f9ef87ed-9d97-40c2-8798-476bd5b54a41
+		summarizeBy: sum
+		sourceColumn: standard_hours_per_week_value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column standard_days_per_week_value
+		dataType: double
+		lineageTag: df2e91b2-d415-429b-bbab-5c15828866f6
+		summarizeBy: sum
+		sourceColumn: standard_days_per_week_value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ODSIsCurrent
+		dataType: int64
+		formatString: 0
+		lineageTag: af7bacee-258a-4e39-9daf-80f01a408a9d
+		summarizeBy: sum
+		sourceColumn: ODSIsCurrent
+
+		annotation SummarizationSetBy = Automatic
+
+	column HourlyPay
+		dataType: double
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 0b64810d-a472-4d93-acce-4b1a2168e7ef
+		summarizeBy: sum
+		sourceColumn: HourlyPay
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	partition PayRates-acb50edf-e48a-4cd3-9bef-95b497c37fdf = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT [id]#(lf)      ,[type]#(lf)      ,[company_id]#(lf)      ,[code]#(lf)      ,[first_name] + ' ' + [last_name] AS display_name#(lf)      ,[gender]#(lf)      ,[pay_rate_value]#(lf)      ,[standard_hours_per_week_value]#(lf)      ,[standard_days_per_week_value]#(lf)      ,[ODSIsCurrent]#(lf)  FROM [Datapay].[employees]#(lf)  WHERE ODSIsCurrent = 1#(lf)  AND termination_date IS NULL#(lf)  --These are dummy/test people#(lf)  AND code NOT IN ('40000001', '5000001')"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"pay_rate_value", type number}}),
+				    #"Added Custom" = Table.AddColumn(#"Changed Type", "HourlyPay", each if [pay_rate_value] < 500 then [pay_rate_value] else [pay_rate_value] / 2080),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Added Custom",{{"HourlyPay", Currency.Type}}),
+				    #"Replaced Errors" = Table.ReplaceErrorValues(#"Changed Type1", {{"HourlyPay", 0}}),
+				    #"Changed Type2" = Table.TransformColumnTypes(#"Replaced Errors",{{"HourlyPay", type number}}),
+				    #"Rounded Off" = Table.TransformColumns(#"Changed Type2",{{"HourlyPay", each Number.Round(_, 2), type number}})
+				in
+				    #"Rounded Off"
+
+	annotation PBI_ResultType = Table
+

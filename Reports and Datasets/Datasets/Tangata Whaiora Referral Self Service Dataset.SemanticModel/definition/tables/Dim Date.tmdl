@@ -1,0 +1,680 @@
+table 'Dim Date'
+	lineageTag: 2a482973-710f-4441-8451-e9b821e4d38f
+	dataCategory: Time
+
+	measure FinancialMonthDisplay = ```
+			
+			VAR FinMonthNum = calculate(max('Dim Date'[Financial Month Num]))
+			VAR MonthName = FORMAT(DATE(2000, FinMonthNum + 6, 1), "MMM") 
+			RETURN
+			FinMonthNum & " - " & MonthName
+			```
+		displayFolder: Date Measure
+		lineageTag: 3f02634f-1c7a-44f0-a49d-17904342d3cb
+
+		changedProperty = IsHidden
+
+	measure '__Reporting Month' = ```
+			
+			var startingpoint =
+			calculate(max('Dim Date'[Calendar First Day Of Month Date]),'Dim Date'[Current Date Rolling Month Offset] = -1)
+			var textmonth = 
+			CONCATENATE(Format(startingpoint,"MMM")," ")
+			RETURN
+			concatenate(textmonth,year(startingpoint))
+			```
+		formatString: mmmm yyyy
+		displayFolder: Date Measure
+		lineageTag: eac96532-681e-4940-aa1f-9cb0423942e8
+
+		changedProperty = IsHidden
+
+	measure '__Reporting Month LY' = ```
+			
+			var startingpoint =
+			calculate(max('Dim Date'[Calendar First Day Of Month Date]),'Dim Date'[Current Date Rolling Month Offset] = -13)
+			var textmonth = 
+			CONCATENATE(Format(startingpoint,"MMM")," ")
+			RETURN
+			concatenate(textmonth,year(startingpoint))
+			```
+		formatString: mmmm yyyy
+		displayFolder: Date Measure
+		lineageTag: 9aac24b0-f04f-40d6-a277-52038749dadc
+
+		changedProperty = IsHidden
+
+	measure '__Percent Change Label' = "% Change"
+		displayFolder: Date Measure
+		lineageTag: 1992f8e4-6aea-4c6f-a5d3-13e9ac481156
+
+		changedProperty = IsHidden
+
+	measure '__Reporting QTR LY' = calculate(max('Dim Date'[Calendar First Day Of Month Date]),'Dim Date'[Current Financial Year Quarter Offset] = -5)
+		formatString: mmmm yyyy
+		displayFolder: Date Measure
+		lineageTag: c7f42481-fb3c-49a0-9e35-5a3c09f4f8ba
+
+		changedProperty = IsHidden
+
+	measure '__Reporting QTR' = calculate(max('Dim Date'[Calendar First Day Of Month Date]),'Dim Date'[Current Financial Year Quarter Offset] = -1)
+		formatString: mmmm yyyy
+		displayFolder: Date Measure
+		lineageTag: 7574b5b0-999a-4261-abc2-9374eb33e16a
+
+		changedProperty = IsHidden
+
+	measure '__Reporting QTR Prev' = calculate(max('Dim Date'[Calendar First Day Of Month Date]),'Dim Date'[Current Financial Year Quarter Offset] = -2)
+		formatString: mmmm yyyy
+		displayFolder: Date Measure
+		lineageTag: e9311ef0-e220-4b0d-84b9-d2328151c3d4
+
+		changedProperty = IsHidden
+
+	measure '% Change QTR Prev (label)' = "%change from previous"
+		displayFolder: Date Measure
+		lineageTag: 399416c3-bb5a-4333-b1b6-270e5fc0bd72
+
+		changedProperty = IsHidden
+
+	measure '% Change QTR LY (Label)' = "%change from last year"
+		displayFolder: Date Measure
+		lineageTag: b0ae610f-edad-4deb-a3d3-7fc0aa279159
+
+		changedProperty = IsHidden
+
+	measure '__Reporting QTR (Label)' =
+			
+			VAR QTR = calculate(max('Dim Date'[Financial Quarter Full]),'Dim Date'[Current Financial Year Quarter Offset] = -1)
+			Return
+			concatenate("FY: ",QTR)
+		displayFolder: Date Measure
+		lineageTag: c5d7e7b3-e55b-4eea-9e0f-14acfeb52bbf
+
+		changedProperty = IsHidden
+
+	measure '__Reporting QTR Prev (Label)' =
+			
+			VAR QTR = calculate(max('Dim Date'[Financial Quarter Full]),'Dim Date'[Current Financial Year Quarter Offset] = -2)
+			Return
+			CONCATENATE("FY: ",QTR)
+		displayFolder: Date Measure
+		lineageTag: ec47172a-2609-4336-9dd2-0bf1419f4ca4
+
+		changedProperty = IsHidden
+
+	measure '__Reporting QTR PY (Label)' =
+			
+			VAR QTR =calculate(max('Dim Date'[Financial Quarter Full]),'Dim Date'[Current Financial Year Quarter Offset] = -5)
+			Return
+			CONCATENATE("FY: ",QTR)
+		displayFolder: Date Measure
+		lineageTag: 572d63d1-7001-441d-9338-a862d6d707aa
+
+		changedProperty = IsHidden
+
+	column 'Dim Date KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 88346142-c240-410f-958e-b379499d39ed
+		summarizeBy: none
+		sourceColumn: Dim Date KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Date'
+		dataType: dateTime
+		isKey
+		formatString: Short Date
+		lineageTag: 5e45d957-2f03-45cf-b7bf-942f7018d5cd
+		summarizeBy: none
+		sourceColumn: Calendar Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Month Name Short'
+		dataType: string
+		lineageTag: 4aeec038-f57c-4182-91fa-b980d1459c25
+		summarizeBy: none
+		sourceColumn: Calendar Month Name Short
+		sortByColumn: 'Financial Month Num'
+
+		changedProperty = SortByColumn
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Year Month'
+		dataType: string
+		lineageTag: 2f1c3147-a212-49a1-a54e-db1a015fc151
+		summarizeBy: none
+		sourceColumn: Calendar Year Month
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar First Day Of Month Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 263bde12-3195-467f-b302-5a03b314db62
+		summarizeBy: none
+		sourceColumn: Calendar First Day Of Month Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Financial Month Num'
+		dataType: int64
+		formatString: 0
+		lineageTag: 2f851a23-33d1-474a-a73c-3e0e4421d7ae
+		summarizeBy: none
+		sourceColumn: Financial Month Num
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Financial Quarter Full'
+		dataType: string
+		lineageTag: ef357004-906a-4acc-b635-f9279a86bfc0
+		summarizeBy: none
+		sourceColumn: Financial Quarter Full
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Financial Year Desc'
+		dataType: string
+		lineageTag: 689e5366-e551-4295-a770-7c4d99462272
+		summarizeBy: none
+		sourceColumn: Financial Year Desc
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Current Date Rolling Month Offset'
+		dataType: int64
+		formatString: 0
+		lineageTag: b0cf15a9-5b94-46d1-bf10-d8c4a51cfbeb
+		summarizeBy: none
+		sourceColumn: Current Date Rolling Month Offset
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar First Day Of Month Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: 23c278c1-52b4-4fbb-8a5e-ece8503b7203
+		summarizeBy: none
+		sourceColumn: Calendar First Day Of Month Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Last Day Of Month Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: 57534a19-85ca-46a4-bed9-5852f9695e9f
+		summarizeBy: none
+		sourceColumn: Calendar Last Day Of Month Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Current Date Rolling Financial Month Offset'
+		dataType: int64
+		formatString: 0
+		lineageTag: bc3bd310-91d7-46d8-9eb2-8fcdd4ea377f
+		summarizeBy: none
+		sourceColumn: Current Date Rolling Financial Month Offset
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Current Financial Year Quarter Offset'
+		dataType: int64
+		formatString: 0
+		lineageTag: bb220822-696e-4e31-9992-93d879e8a686
+		summarizeBy: none
+		sourceColumn: Current Financial Year Quarter Offset
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Financial Year Num'
+		dataType: string
+		lineageTag: 6e9be4e2-871d-42f2-90ef-66190647b38c
+		summarizeBy: none
+		sourceColumn: Financial Year Num
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Current Financial Year Offset'
+		dataType: int64
+		formatString: 0
+		lineageTag: f1bdb3fb-c6ef-46a8-85d0-43308217f333
+		summarizeBy: none
+		sourceColumn: Current Financial Year Offset
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Day Num'
+		dataType: int64
+		formatString: 0
+		lineageTag: b648bb6a-870b-4142-8f87-22b8e912333e
+		summarizeBy: none
+		sourceColumn: Calendar Day Num
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Day Number In Year'
+		dataType: int64
+		formatString: 0
+		lineageTag: b8a90c43-89e7-4dc9-9977-b28e0fa50a62
+		summarizeBy: none
+		sourceColumn: Calendar Day Number In Year
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar First Day Of Week Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: a1b3e253-67e6-42e4-a418-ed39b52af3ea
+		summarizeBy: none
+		sourceColumn: Calendar First Day Of Week Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Last Day Of Week Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 1f9d069a-41c7-4ba2-8fde-f57a5db1c10b
+		summarizeBy: none
+		sourceColumn: Calendar Last Day Of Week Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Month Num'
+		dataType: int64
+		formatString: 0
+		lineageTag: 5e5c0dec-8d71-468d-98a2-aa966d5f76e5
+		summarizeBy: none
+		sourceColumn: Calendar Month Num
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Last Day Of Month Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: e568618a-88bf-4d1d-b6a8-cf2fd28a410e
+		summarizeBy: none
+		sourceColumn: Calendar Last Day Of Month Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Quarter Num'
+		dataType: string
+		lineageTag: 60dc022b-72fc-41a0-8111-c4c36f5ef008
+		summarizeBy: none
+		sourceColumn: Calendar Quarter Num
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Quarter Full'
+		dataType: string
+		lineageTag: 5af90cd6-9c9d-46cf-ad73-1b8ca89ee5db
+		summarizeBy: none
+		sourceColumn: Calendar Quarter Full
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Year'
+		dataType: int64
+		formatString: 0
+		lineageTag: 400c8321-1645-4ea1-845f-b113dbbd04be
+		summarizeBy: none
+		sourceColumn: Calendar Year
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Financial First Day Of Month Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: ca7a7c75-ba44-4ae1-926a-2164f110aa59
+		summarizeBy: none
+		sourceColumn: Financial First Day Of Month Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Financial Last Day Of Month Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 828ac427-f462-482d-bcf0-49205904440a
+		summarizeBy: none
+		sourceColumn: Financial Last Day Of Month Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Financial Quarter Num'
+		dataType: string
+		lineageTag: 5012b3ff-cabf-447b-b8ff-eff3671d9c17
+		summarizeBy: none
+		sourceColumn: Financial Quarter Num
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Financial First Day Of Quarter Date'
+		dataType: string
+		lineageTag: ae833b2a-894d-4a23-9026-685669b4d7f3
+		summarizeBy: none
+		sourceColumn: Financial First Day Of Quarter Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Financial Last Day Of Quarter Date'
+		dataType: string
+		lineageTag: 31efdcb6-a120-40f9-a489-8a0fa51f0a72
+		summarizeBy: none
+		sourceColumn: Financial Last Day Of Quarter Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Financial Year Month'
+		dataType: string
+		lineageTag: e846b859-b594-40a6-8fb3-5f25c8173523
+		summarizeBy: none
+		sourceColumn: Financial Year Month
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Current Date Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: d4154b16-7c3e-41cc-b64a-b22b9d9fff48
+		summarizeBy: none
+		sourceColumn: Current Date Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Current Month Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: 3333fb64-6847-4947-aa2f-28c4e71683d9
+		summarizeBy: none
+		sourceColumn: Current Month Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Current Calendar Year Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: b2d56583-8e96-4bc8-89d5-a47d2cc6d77a
+		summarizeBy: none
+		sourceColumn: Current Calendar Year Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Current Month To Date Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: 6d300b9f-2a7b-407f-a08b-50644339c3a5
+		summarizeBy: none
+		sourceColumn: Current Month To Date Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Current Calendar Year To Date Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: 86cc700b-fa20-401e-a893-462ced9de68d
+		summarizeBy: none
+		sourceColumn: Current Calendar Year To Date Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Current Financial Year Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: 4d3ba807-bcc8-40d2-b71c-7b01ed951db1
+		summarizeBy: none
+		sourceColumn: Current Financial Year Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Current Financial Year To Date Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: 607a2983-7ca4-4ec4-9805-08e60e0e18c7
+		summarizeBy: none
+		sourceColumn: Current Financial Year To Date Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Previous Year Date Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: 306c1327-4175-4d14-a772-17fc1c94d47f
+		summarizeBy: none
+		sourceColumn: Previous Year Date Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Previous Year Month Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: 0f53fcb6-8bdf-4be7-a4dd-807679f30f7f
+		summarizeBy: none
+		sourceColumn: Previous Year Month Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Previous Calendar Year Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: 0e0a1919-a15a-448f-9fa7-488cd129e916
+		summarizeBy: none
+		sourceColumn: Previous Calendar Year Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Previous Year Month To Date Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: 46fb5585-03bf-4c74-9f8f-f61b2c9e7c1f
+		summarizeBy: none
+		sourceColumn: Previous Year Month To Date Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Previous Calendar Year To Date Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: 3f00896b-53c0-40a3-93fa-cf559803c6e1
+		summarizeBy: none
+		sourceColumn: Previous Calendar Year To Date Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Previous Financial Year Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: 24ab71bf-9fc9-4b5c-a3c3-7c164c8aaf71
+		summarizeBy: none
+		sourceColumn: Previous Financial Year Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Previous Financial Year To Date Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: c0da1a66-6b8b-4447-b50a-bc33d3dd9982
+		summarizeBy: none
+		sourceColumn: Previous Financial Year To Date Flag
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Current Date Rolling Year Offset'
+		dataType: int64
+		formatString: 0
+		lineageTag: ccffdad6-62ac-489b-bc9b-4fee070a6185
+		summarizeBy: none
+		sourceColumn: Current Date Rolling Year Offset
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Current Date Rolling Day Offset'
+		dataType: int64
+		formatString: 0
+		lineageTag: c584e5c9-b230-4462-9b1d-02bb1e80dd06
+		summarizeBy: none
+		sourceColumn: Current Date Rolling Day Offset
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Current Date Rolling Financial Year Offset'
+		dataType: int64
+		formatString: 0
+		lineageTag: 8c0d1249-ea78-4d06-b232-a1076fc37e1a
+		summarizeBy: none
+		sourceColumn: Current Date Rolling Financial Year Offset
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Current Financial Year Quarter Offset Dimdate'
+		dataType: int64
+		formatString: 0
+		lineageTag: d2defdd7-e39f-41dd-ab68-652348f4d17d
+		summarizeBy: none
+		sourceColumn: Current Financial Year Quarter Offset Dimdate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Month Name Long'
+		dataType: string
+		lineageTag: 79e962bd-4daa-4b52-a216-6d8b7431e15a
+		summarizeBy: none
+		sourceColumn: Calendar Month Name Long
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Days In Month Num'
+		dataType: int64
+		formatString: 0
+		lineageTag: 7fcdbe1c-4533-4271-9899-8998f559dd5c
+		summarizeBy: none
+		sourceColumn: Calendar Days In Month Num
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Date' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="select #(lf)dim_date_key,#(lf)calendar_date,#(lf)calendar_day_num,#(lf)--calendar_day_name_full,#(lf)--calendar_day_name_short,#(lf)--calendar_day_name_TeReo,#(lf)calendar_day_number_in_year,#(lf)--calendar_day_in_week_num,#(lf)calendar_days_in_month_num,#(lf)calendar_first_day_of_week_date,#(lf)calendar_last_day_of_week_date,#(lf)--calendar_week_num,#(lf)calendar_month_num,#(lf)calendar_month_name_long,#(lf)calendar_month_name_short,#(lf)--calendar_month_name_TeReo,#(lf)calendar_year_month,#(lf)calendar_first_day_of_month_date,#(lf)calendar_last_day_of_month_date,#(lf)calendar_quarter_num,#(lf)calendar_quarter_full,#(lf)--calendar_first_day_of_quarter_date,#(lf)--calendar_last_day_of_quarter_date,#(lf)calendar_year,#(lf)--calendar_first_day_of_year_date,#(lf)--calendar_last_day_of_year_date,#(lf)--financial_first_day_of_year_date,#(lf)--financial_last_day_of_year_date,#(lf)--financial_week_num,#(lf)--financial_first_day_of_week_date,#(lf)--financial_last_day_of_week_date,#(lf)--financial_day_of_week_num,#(lf)financial_month_num,#(lf)financial_first_Day_of_month_date,#(lf)financial_last_day_of_month_date,#(lf)financial_quarter_num,#(lf)financial_quarter_full,#(lf)financial_first_day_of_quarter_date,#(lf)financial_last_day_of_quarter_date,#(lf)financial_year_num,#(lf)financial_year_desc,#(lf)financial_year_month,#(lf)--national_holiday_description,#(lf)--national_holiday_flag,#(lf)--regional_holiday_description,#(lf)--regional_holiday_flag,#(lf)--is_holiday_flag,#(lf)calendar_first_day_of_month_flag,#(lf)calendar_last_day_of_month_flag,#(lf)--weekend_flag,#(lf)--weekday_flag,#(lf)--calendar_trading_day_flag,#(lf)current_date_flag,#(lf)current_month_flag,#(lf)current_calendar_year_flag,#(lf)current_month_to_date_flag,#(lf)current_calendar_year_to_date_flag,#(lf)current_financial_year_flag,#(lf)current_financial_year_to_date_flag,#(lf)previous_year_date_flag,#(lf)previous_year_month_flag,#(lf)previous_calendar_year_flag,#(lf)previous_year_month_to_date_flag,#(lf)previous_calendar_year_to_date_flag,#(lf)previous_financial_year_flag,#(lf)previous_financial_year_to_date_flag,#(lf)--current_calendar_trading_days_in_month,#(lf)--current_calendar_trading_days_in_month_ytd,#(lf)--current_calendar_trading_days_left_in_month,#(lf)current_date_rolling_year_offset,#(lf)current_date_rolling_month_offset,#(lf)current_date_rolling_day_offset,#(lf)#(lf)current_date_rolling_financial_month_offset,#(lf)current_date_rolling_financial_year_offset,#(lf)current_financial_year_quarter_offset as current_financial_year_quarter_offset_dimdate,#(lf)#(lf)#(lf)#(lf)    CAST(financial_year_num AS int) -#(lf)        (SELECT MAX(CAST(financial_year_num AS int))#(lf)         FROM edw.dim_date#(lf)         WHERE calendar_date >= '2022-07-01'#(lf)           AND calendar_date <= DATEADD(day, +1, GETDATE())#(lf)           AND dwhdmloperation <> 'd') AS current_financial_year_offset,#(lf)              DATEDIFF(#(lf)        QUARTER,#(lf)        (SELECT MIN(calendar_date) FROM [edw].[dim_date] WHERE current_financial_year_flag = 1 AND financial_quarter_num = (SELECT financial_quarter_num FROM [edw].[dim_date] WHERE current_financial_year_flag = 1 AND current_date_flag = 1)),#(lf)        calendar_date#(lf)    ) as current_financial_year_quarter_offset#(lf)#(lf)from edw.dim_date#(lf)where calendar_date between '2022-07-01' and dateadd(day,1,getdate())#(lf)#(lf)#(lf)#(lf)"]),
+				    edw_dim_date = Source,
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            capitaliseWords = Text.Proper(replaceUnderscore),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY")
+				        in
+				            capitaliseKEY,
+				    #"Transformed Column Names" = Table.TransformColumnNames(edw_dim_date, each ApplyNamingConventions(_))
+				in
+				    #"Transformed Column Names"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

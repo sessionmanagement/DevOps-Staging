@@ -1,0 +1,258 @@
+table '_Navigation measures'
+	excludeFromModelRefresh
+	lineageTag: 308f32b0-3d99-4c19-b8e4-fd1ff8855f23
+
+	measure 'Entity SM Navigation' = ```
+			
+			IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Service", "Service Detail - SM",
+			    IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Kaimahi", "Kaimahi Detail - SM",
+			        IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Property", "Property Detail - SM",
+			        IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Tenancy", "Tenancy Detail - SM",
+			            IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Client", "Client Detail - SM",
+			                IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Referral", "Referral Detail - SM",
+			        
+			        "Check"
+			        )
+			    )
+			))))
+			```
+		lineageTag: f83296c3-fe92-484a-bc11-ce98cd517607
+
+	measure PageNavigation =
+			
+			IF(SELECTEDVALUE('Dim KPI'[Kpi ID]) = 129, " Goals after 14 days",
+			    IF(SELECTEDVALUE('Dim KPI'[Kpi ID]) = 132, "Assessment within 4 weeks",
+			        IF(SELECTEDVALUE('Dim KPI'[Kpi ID]) = 134, "Goals after 28 days",
+			        "Check"
+			        )
+			    )
+			)
+		lineageTag: f1952b4b-9591-4abc-9cd5-71271300df8c
+
+	measure PersonaNavigation = ```
+			
+			// var _role= CALCULATE(SELECTEDVALUE('RLS with Additional Access'[Persona])) //,FILTER('RLS with Additional Access','RLS with Additional Access'[User Principal Name]=USERPRINCIPALNAME()))
+			// return 
+			// IF (_role = "Service Leaders", "Driver : UE - SM ", 
+			//     IF (_role = "Manager of Leaders", "Driver : UE - DM ", 
+			//         IF (_role = "Manager of Managers", "Driver : UE - RM ", 
+			//             IF (_role = "Exec & Senior Leaders", "Driver : UE - Exec ", 
+			//             "Driver : UE - Exec "))))
+			
+			
+			VAR _countAreasForUser =
+			    CALCULATE(
+			        DISTINCTCOUNT('DIM_ServiceGrouping'[relevant_bu]),
+			        FILTER(
+			            'RLS with Additional Access',
+			            'RLS with Additional Access'[User Principal Name] = USERPRINCIPALNAME() )
+			        )
+			    
+			
+			
+			
+			
+			// VAR _Areas =          ---- THIS IS FOR NAVIGATION TO SFA PAGES WHEN THEY GO LIVE!! ----
+			//     IF(
+			//         _countAreasForUser > 1,
+			//         "Area Navigation",
+			//         CALCULATE(
+			//             SELECTEDVALUE('RLS with Additional Access'[Persona])
+			           
+			//         )
+			//     )
+			
+			var _role= CALCULATE(SELECTEDVALUE('RLS with Additional Access'[Persona]),FILTER('RLS with Additional Access','RLS with Additional Access'[User Principal Name]=USERPRINCIPALNAME()))
+			
+			var _PersonaNav = IF (_role = "Service Leaders", "Driver : UE - SM ", 
+			    IF (_role = "Manager of Leaders", "Driver : UE - DM ", 
+			        IF (_role = "Manager of Managers", "Driver : UE - RM ", 
+			            IF (_role = "Exec & Senior Leaders", "Driver : UE - Exec ", 
+			            "Driver : UE - Exec "))))
+			
+			
+			RETURN 
+			_PersonaNav
+			
+			// IF(_countAreasForUser > 1,    UNCOMMENT THIS ONCE AREA FILERING IS WORKING!
+			//         "Area Navigation",
+			//         _PersonaNav
+			           
+			//         )
+			    
+			        
+			        //,
+			        // FILTER(
+			        //     'RLS with Additional Access',
+			        //     NOT ISBLANK('RLS with Additional Access'[Area])
+			        // )
+			    //)
+			//  IF(
+			//         _DistinctAreaCount > 1,
+			//         "Area Navigation",
+			//         _PersonaNav
+			//         )
+			```
+		lineageTag: 70d4b74b-78b2-4981-a129-aa7dbee4746f
+
+	measure AreaNavigation = ```
+			
+			// VAR _DistinctAreaCount =
+			//     CALCULATE(
+			//         DISTINCTCOUNT('RLS with Additional Access'[Area]),
+			//         FILTER(
+			//             'RLS with Additional Access',
+			//             NOT ISBLANK('RLS with Additional Access'[Area])
+			//         )
+			//     )
+			
+			// VAR _Areas = 
+			//     IF(
+			//         _DistinctAreaCount > 1,
+			//         "Area Navigation",
+			//         CALCULATE(
+			//             SELECTEDVALUE('RLS with Additional Access'[Persona])//,
+			           
+			//         )
+			//     )
+			
+			var _role= CALCULATE(SELECTEDVALUE('RLS with Additional Access'[Persona])) 
+			
+			var _PersonaNav = IF (_role = "Service Leaders", "Driver : UE - SM ", 
+			    IF (_role = "Manager of Leaders", "Driver : UE - DM ", 
+			        IF (_role = "Manager of Managers", "Driver : UE - RM ", 
+			            IF (_role = "Exec & Senior Leaders", "Driver : UE - Exec ", 
+			            "Driver : UE - Exec "))))
+			
+			
+			
+			RETURN
+			 IF(
+			        HASONEVALUE('DIM_ServiceGrouping'[relevant_bu]),
+			        _PersonaNav,
+			        ""
+			        )
+			    
+			
+			```
+		lineageTag: 11abf4e3-3ca4-4507-a8e5-417edaff9d98
+
+	measure 'Driver SM Navigation' =
+			
+			IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "UNDERSTANDING EXCELLENCE", "Driver : UE - SM ",
+			    IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "OUR KAIMAHI", "Driver : OK - SM ",
+			        IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "OUR PERFORMANCE", "Driver : OP - SM ",
+			            IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "OUR PLANET", "Driver : OW - SM ",
+			                IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "OUR SERVICES", "Driver : OS - SM ",
+			                    IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "OUR RELATIONSHIPS", "Driver : OR - SM ",
+			                        IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "TANGATA TIRITI", "Driver : TT - SM ",
+			        "Check"
+			        )
+			    )
+			)))))
+		lineageTag: 35a2c751-ebbc-43dd-8b4e-c8188667e021
+
+	measure 'Entity DM Navigation' = ```
+			
+			IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Service", "Service Detail - DM",
+			    IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Kaimahi", "Kaimahi Detail - DM",
+			        IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Property", "Property Detail - DM",
+			         IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Tenancy", "Tenancy Detail - DM",
+			            IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Client", "Client Detail - DM",
+			                IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Referral", "Referral Detail - DM",
+			        
+			        "Check"
+			        )
+			    )))))
+			```
+		lineageTag: 7265f9b0-2aa0-41f0-8242-86f5a04da17a
+
+	measure 'Entity RM Navigation' = ```
+			
+			IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Service", "Service Detail - RM",
+			    IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Kaimahi", "Kaimahi Detail - RM",
+			        IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Property", "Property Detail - RM",
+			          IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Tenancy", "Tenancy Detail - RM",
+			            IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Client", "Client Detail - RM",
+			                IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Referral", "Referral Detail - RM",
+			        
+			        "Check"
+			        )
+			    )))))
+			```
+		lineageTag: 5a1019c6-ac0d-45cd-86a3-a5554c47fd57
+
+	measure 'Driver DM Navigation' =
+			
+			IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "UNDERSTANDING EXCELLENCE", "Driver : UE - DM ",
+			    IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "OUR KAIMAHI", "Driver : OK - DM ",
+			        IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "OUR PERFORMANCE", "Driver : OP - DM ",
+			            IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "OUR PLANET", "Driver : OW - DM ",
+			                IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "OUR SERVICES", "Driver : OS - DM ",
+			                    IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "OUR RELATIONSHIPS", "Driver : OR - DM ",
+			                        IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "TANGATA TIRITI", "Driver : TT - DM ",
+			        "Check"
+			        )
+			    )
+			)))))
+		lineageTag: a8fc7b78-c0b2-4d77-92c7-563b44bb9f68
+
+	measure 'Driver RM Navigation' =
+			
+			IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "UNDERSTANDING EXCELLENCE", "Driver : UE - RM ",
+			    IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "OUR KAIMAHI", "Driver : OK - RM ",
+			        IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "OUR PERFORMANCE", "Driver : OP - RM ",
+			            IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "OUR PLANET", "Driver : OW - RM ",
+			                IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "OUR SERVICES", "Driver : OS - RM ",
+			                    IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "OUR RELATIONSHIPS", "Driver : OR - RM ",
+			                        IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "TANGATA TIRITI", "Driver : TT - RM ",
+			        "Check"
+			        )
+			    )
+			)))))
+		lineageTag: 69a4338e-981d-4fac-abfc-67dee701f8dc
+
+	measure 'Entity Exec Navigation' = ```
+			
+			IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Service", "Service Detail - Exec",
+			    IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Kaimahi", "Kaimahi Detail - Exec",
+			        IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Property", "Property Detail - Exec",
+			        IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Tenancy", "Tenancy Detail - Exec",
+			            IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Client", "Client Detail - Exec",
+			                IF(SELECTEDVALUE('Fact KPI'[Entity Type]) = "Referral", "Referral Detail - Exec",
+			        
+			        "Check"
+			        )
+			    )))))
+			```
+		lineageTag: 92bcc833-9e09-4273-9c28-61fe06b5610b
+
+	measure 'Driver Exec Navigation' =
+			
+			IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "UNDERSTANDING EXCELLENCE", "Driver : UE - Exec ",
+			    IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "OUR KAIMAHI", "Driver : OK - Exec ",
+			        IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "OUR PERFORMANCE", "Driver : OP - Exec ",
+			            IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "OUR PLANET", "Driver : OW - Exec ",
+			                IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "OUR SERVICES", "Driver : OS - Exec ",
+			                    IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "OUR RELATIONSHIPS", "Driver : OR - Exec ",
+			                        IF(SELECTEDVALUE('Dim KPI'[Sfa Rollup Areas Lookup Value]) = "TANGATA TIRITI", "Driver : TT - Exec ",
+			        "Check"
+			        )
+			    )
+			)))))
+		lineageTag: 37b83323-6727-4fe1-8a70-360dca83f0d3
+
+	partition '_Navigation measures' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

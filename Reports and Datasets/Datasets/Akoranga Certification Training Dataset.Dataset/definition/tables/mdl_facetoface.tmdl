@@ -1,0 +1,56 @@
+table mdl_facetoface
+	lineageTag: 8a72e0ed-a42c-4edd-967d-3b1c17702124
+
+	column id
+		dataType: int64
+		formatString: 0
+		lineageTag: 2d58bbd8-e225-4119-9b15-780d67d7ff93
+		summarizeBy: none
+		sourceColumn: id
+
+		annotation SummarizationSetBy = Automatic
+
+	column course
+		dataType: int64
+		formatString: 0
+		lineageTag: c5c23b35-8823-44b1-be71-86d8c0519fc5
+		summarizeBy: none
+		sourceColumn: course
+
+		annotation SummarizationSetBy = Automatic
+
+	column name
+		dataType: string
+		lineageTag: e5c65808-edfc-423e-8edb-2cb53a7b1416
+		summarizeBy: none
+		sourceColumn: name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition mdl_facetoface-2d363e98-2d00-4b5b-a687-1790540c32ce = m
+		mode: import
+		queryGroup: Akoranga
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT [id] AS [id]#(lf)      ,[course] AS [course]#(lf)      ,[name] AS [name]#(lf)      ,[intro] AS [intro]#(lf)      ,[intro_format] AS [introformat]#(lf)      ,[third_party] AS [thirdparty]#(lf)      ,[third_party_waitlist] AS [thirdpartywaitlist]#(lf)      ,[display] AS [display]#(lf)      ,[time_created] AS [timecreated]#(lf)      ,[time_modified] AS [timemodified]#(lf)      ,[short_name] AS [shortname]#(lf)      ,[show_on_calendar] AS [showoncalendar]#(lf)      ,[user_cal_entry] AS [usercalentry]#(lf)      ,[multiple_sessions] AS [multiplesessions]#(lf)      ,[completion_status_required] AS [completionstatusrequired]#(lf)      ,[manager_reserve] AS [managerreserve]#(lf)      ,[max_manager_reserves] AS [maxmanagerreserves]#(lf)      ,[reserve_cancel_days] AS [reservecanceldays]#(lf)      ,[reserve_days] AS [reservedays]#(lf)      ,[declare_interest] AS [declareinterest]#(lf)      ,[interest_only_if_full] AS [interestonlyiffull]#(lf)      ,[allow_cancellations_default] AS [allowcancellationsdefault]#(lf)      ,[cancellations_cutoff_default] AS [cancellationscutoffdefault]#(lf)      ,[select_job_assignment_on_signup] AS [selectjobassignmentonsignup]#(lf)      ,[force_select_job_assignment] AS [forceselectjobassignment]#(lf)      ,[approval_type] AS [approvaltype]#(lf)      ,[approval_role] AS [approvalrole]#(lf)      ,[approval_terms] AS [approvalterms]#(lf)      ,[approval_admins] AS [approvaladmins]#(lf)      ,[multi_signup_fully] AS [multisignupfully]#(lf)      ,[multi_signup_partly] AS [multisignuppartly]#(lf)      ,[multi_signup_no_show] AS [multisignupnoshow]#(lf)      ,[multi_signup_unable_to] AS [multisignupunableto]#(lf)      ,[multi_signup_maximum] AS [multisignupmaximum]#(lf)      ,[wait_list_auto_clean] AS [waitlistautoclean]#(lf)      ,[declutter_session_table] AS [decluttersessiontable]#(lf)      ,[session_attendance] AS [sessionattendance]#(lf)      ,[attendance_time] AS [attendancetime]#(lf)      ,[event_grading_manual] AS [eventgradingmanual]#(lf)      ,[event_grading_method] AS [eventgradingmethod]#(lf)      ,[completion_pass] AS [completionpass]#(lf)      ,[completion_delay] AS [completiondelay]#(lf)      ,[legacy_notifications] AS [legacy_notifications]#(lf)      ,[ODSIsCurrent] AS [ODSIsCurrent]#(lf)      ,[ODSEffectiveFrom] AS [ODSEffectiveFrom]#(lf)      ,[ODSEffectiveTo] AS [ODSEffectiveTo]#(lf)      ,[ODSDMLOperation] AS [ODSDMLOperation]#(lf)      ,[ODSBatchId] AS [ODSBatchId]#(lf)      ,[ODSSourceSystem] AS [ODSSourceSystem]#(lf)  FROM [Akoranga].[mdl_facetoface]#(lf)  WHERE [ODSIsCurrent] = 1#(lf)  AND [ODSDMLOperation] <> 'D'#(lf)"]),
+				    // Selecting specific columns
+				    #"Removed Other Columns" = Table.SelectColumns(Source,{"id", "course", "name"}),
+				
+				    // Sorting rows by ID
+				    #"Sorted Rows" = Table.Sort(#"Removed Other Columns",{{"id", Order.Ascending}})
+				in
+				    #"Sorted Rows"
+				
+				/*
+				    Source = PowerBI.Dataflows(null),
+				    #"3c01db72-9e98-4fb4-aa15-55049acf117e" = Source{[workspaceId="3c01db72-9e98-4fb4-aa15-55049acf117e"]}[Data],
+				    #"85c6f243-1766-4790-8734-9df2391a34dd" = #"3c01db72-9e98-4fb4-aa15-55049acf117e"{[dataflowId="85c6f243-1766-4790-8734-9df2391a34dd"]}[Data],
+				    #"totaraem_prod-totara mdl_facetoface1" = #"85c6f243-1766-4790-8734-9df2391a34dd"{[entity="totaraem_prod-totara mdl_facetoface"]}[Data]
+				in
+				    #"totaraem_prod-totara mdl_facetoface1"
+				*/
+
+	annotation PBI_QueryRelationships = {"columnCount":3,"keyColumnNames":[],"queryRelationships":[],"columnIdentities":["Section1/mdl_facetoface/totaraem_prod-totara mdl_facetoface1.{id,0}","Section1/mdl_facetoface/totaraem_prod-totara mdl_facetoface1.{course,1}","Section1/mdl_facetoface/totaraem_prod-totara mdl_facetoface1.{name,2}"],"ColumnCount":3,"KeyColumnNames":[],"ColumnIdentities":["Section1/mdl_facetoface/totaraem_prod-totara mdl_facetoface1.{id,0}","Section1/mdl_facetoface/totaraem_prod-totara mdl_facetoface1.{course,1}","Section1/mdl_facetoface/totaraem_prod-totara mdl_facetoface1.{name,2}"],"RelationshipInfo":[]}
+
+	annotation PBI_ResultType = Table
+

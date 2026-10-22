@@ -1,0 +1,35 @@
+table dim_date_for_drillthrough
+	lineageTag: ff1ae664-7be2-4d28-a414-513fbe586a3d
+
+	column calendar_date
+		formatString: Short Date
+		lineageTag: 149a21f3-bcb7-479b-a9ef-ad5c2122c685
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [calendar_date]
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_offset
+		formatString: 0
+		lineageTag: 503a4284-3563-4063-a3f1-a03c388b37a6
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [date_offset]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_date_for_drillthrough = calculated
+		mode: import
+		source = ```
+				
+				SELECTCOLUMNS(
+				    dim_date, 
+				    "calendar_date", dim_date[calendar_date], 
+				    "date_offset", dim_date[date_offset]
+				)
+				
+				```
+
+	annotation PBI_Id = 06ba6f5b9e534b16ad8b3627b878905e
+

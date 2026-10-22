@@ -1,0 +1,108 @@
+table Contract
+	lineageTag: 2ba01fea-39e7-4ff7-b280-06a02b936e26
+
+	column 'Dim Finance Contract KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 83ea435a-e376-4f77-9ac5-64babb35efcc
+		summarizeBy: none
+		sourceColumn: Dim Finance Contract KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Is Current'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 3dca39a2-13e7-4798-ba19-cb612d609969
+		summarizeBy: none
+		sourceColumn: DWH Is Current
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Contract Dimension Value ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 97a25e68-1e95-479f-ae23-2b24609bf6c8
+		summarizeBy: none
+		sourceColumn: Contract Dimension Value ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Contract Code'
+		dataType: string
+		lineageTag: 12e4d523-97b7-4cc9-a3d7-7d9513e943c2
+		summarizeBy: none
+		sourceColumn: Contract Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Contract Name'
+		dataType: string
+		lineageTag: 37cbf868-a5da-4330-b1c3-90b0f56cfcd6
+		summarizeBy: none
+		sourceColumn: Contract Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Contract Company Name'
+		dataType: string
+		lineageTag: 6c70e186-ce3d-4808-963f-bcb367d7b49f
+		summarizeBy: none
+		sourceColumn: Contract Company Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Contract Last Modified Date Time'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 4c65c08a-2dcb-46c8-880f-7add02479e36
+		summarizeBy: none
+		sourceColumn: Contract Last Modified Date Time
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Contract = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database),
+				    dim_finance_contract = Source{[Schema = "edw", Item = "vw_dim_finance_contract"]}[Data],
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(dim_finance_contract, each ApplyNamingConventions(_)),
+				    #"Removed Columns" = Table.RemoveColumns(#"Transformed Column Names", {"DWH Source System", "DWH Dml Operation"}),
+				    #"Removed Finance Prefix" = Table.TransformColumnNames(#"Removed Columns", each if Text.StartsWith(_, "Finance ") then Text.AfterDelimiter(_, "Finance ") else _),
+				    #"Removed Columns1" = Table.RemoveColumns(#"Removed Finance Prefix",{"DWH Batch ID", "DWH Effective From", "DWH Effective To"})
+				in
+				    #"Removed Columns1"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

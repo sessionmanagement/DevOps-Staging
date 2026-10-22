@@ -1,0 +1,64 @@
+table 'RLS with Additional Access'
+	isHidden
+	lineageTag: de7fb165-863b-465a-b9d2-6d57a087c074
+
+	column 'User Principal Name'
+		dataType: string
+		isHidden
+		lineageTag: 582898da-d40f-4077-8a3e-8479612e1713
+		summarizeBy: none
+		sourceColumn: User Principal Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column mapped_employee_id
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: e46cfbdb-b780-4329-ab9b-ed6a8621c839
+		summarizeBy: none
+		sourceColumn: mapped_employee_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'RLS with Additional Access' = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source =
+				let
+				    // Load both tables: the viewer's own Employee rows and the People Management impersonation grants
+				    RowLevelSecurity = #"RLS-Employee",
+				    // Lowercase and trim the grant emails so the case-sensitive join matches the lowercased RLS emails
+				    AdditionalAccess = Table.TransformColumns(
+				        Table.SelectColumns(#"Additional Access", {"Requester Email", "Person to Impersonate Email"}),
+				        {
+				            {"Requester Email", each if _ = null then null else Text.Lower(Text.Trim(_)), type text},
+				            {"Person to Impersonate Email", each if _ = null then null else Text.Lower(Text.Trim(_)), type text}
+				        }
+				    ),
+				    // Join tables: a requester gets the rows of the person they may impersonate
+				    JoinedTable = Table.Join(
+				        AdditionalAccess, "Person to Impersonate Email", RowLevelSecurity, "User Principal Name", JoinKind.RightOuter
+				    ),
+				    #"Added Conditional Column" = Table.AddColumn(
+				        JoinedTable, "Custom", each if [Requester Email] = null then [User Principal Name] else [Requester Email]
+				    ),
+				    #"Removed Other Columns" = Table.SelectColumns(#"Added Conditional Column", {"Custom", "mapped_employee_id"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Other Columns", {{"Custom", "User Principal Name"}}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns", {{"User Principal Name", type text}}),
+				    // Append the original RLS rows so an impersonated person keeps their own access
+				    #"Appended Query" = Table.Combine({#"Changed Type", RowLevelSecurity}),
+				    #"Removed Duplicates" = Table.Distinct(#"Appended Query")
+				in
+				    #"Removed Duplicates"
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

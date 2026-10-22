@@ -1,0 +1,110 @@
+table MNB_Work_AbsentDaysExplosion
+	isHidden
+	lineageTag: 1a22e025-c2d8-4dba-b3bc-61002bf5b0e7
+
+	column CompanyIdentifier
+		dataType: string
+		isHidden
+		lineageTag: a4d27f78-cdd3-4d94-b299-2efb2dc13c8a
+		summarizeBy: none
+		sourceColumn: CompanyIdentifier
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonID
+		dataType: string
+		isHidden
+		lineageTag: 092d76bd-c619-4497-9b34-d6e071fc6c62
+		summarizeBy: none
+		sourceColumn: PersonID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReferralID
+		dataType: string
+		isHidden
+		lineageTag: 05b494df-dfbe-4a20-93cd-44bac1512f6f
+		summarizeBy: none
+		sourceColumn: ReferralID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionID
+		dataType: string
+		isHidden
+		lineageTag: e4c95d7d-c4d6-4cb0-82c7-eaa3347ce71c
+		summarizeBy: none
+		sourceColumn: TeamFunctionID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamID
+		dataType: string
+		isHidden
+		lineageTag: a71fa704-679e-4401-9c9d-56ed6e1806b8
+		summarizeBy: none
+		sourceColumn: TeamID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonStatusTypeID
+		dataType: string
+		isHidden
+		lineageTag: 250d38b5-f3f6-4dc1-8d1b-65a99fd1a0ce
+		summarizeBy: none
+		sourceColumn: PersonStatusTypeID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonStatusStartDate
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: fed7daa5-e3f3-4599-af30-0cbf33dde12a
+		summarizeBy: sum
+		sourceColumn: PersonStatusStartDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonStatusEndDate
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: e3da9ecc-60e4-4dc3-a3ba-6edf2da93c3d
+		summarizeBy: sum
+		sourceColumn: PersonStatusEndDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition MNB_Work_AbsentDaysExplosion-f20ea649-5a82-4f3c-abbd-78f981d1bda5 = m
+		mode: import
+		queryGroup: MNB
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT DISTINCT#(lf)'MNB' AS CompanyIdentifier,#(lf)CASE WHEN fr.PersonID IS NOT NULL THEN CONCAT('M',fr.PersonID) ELSE NULL END AS PersonID,#(lf)CASE WHEN fr.ID IS NOT NULL THEN CONCAT('M',fr.ID) ELSE NULL END AS ReferralID,#(lf)CASE WHEN dtf.TeamFunctionID IS NOT NULL THEN CONCAT('M',dtf.TeamFunctionID) ELSE NULL END AS TeamFunctionID,#(lf)CASE WHEN dt.TeamID IS NOT NULL THEN CONCAT('M',dt.TeamID) ELSE NULL END AS TeamID,#(lf)CASE WHEN PersonStatusTypeID IS NOT NULL THEN CONCAT('M',PersonStatusTypeID) ELSE NULL END AS PersonStatusTypeID,#(lf)--fr.AcceptedDate,#(lf)--fr.DischargeDate,#(lf)PersonStatusStartDate,#(lf)COALESCE(PersonStatusEndDate,GETDATE()) AS PersonStatusEndDate#(lf)FROM #(lf)RBMNB.[dlFactPersonStatus] fps#(lf)INNER JOIN#(lf)RBMNB.[legacyFactReferral] fr ON fr.PersonID = fps.PersonID AND fps.PersonStatusStartDate BETWEEN fr.AcceptedDate AND COALESCE(fr.DischargeDate,GETDATE())#(lf)INNER JOIN RBMNB.[dlDimTeam] dt ON dt.TeamID = fr.TeamID#(lf)INNER JOIN RBMNB.[dlDimTeamFunction] dtf ON dtf.TeamFunctionID = dt.TeamFunctionID#(lf)WHERE PersonStatusTypeID IN (1,2)#(lf)AND fr.AcceptedDate IS NOT NULL#(lf)AND (dtf.TeamFunctionName LIKE '%Residential%' OR dtf.TeamFunctionName LIKE '%Respite%')"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"PersonStatusStartDate", Int64.Type}, {"PersonStatusEndDate", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Exception
+
+	annotation PBI_NavigationStepName = Navigation
+

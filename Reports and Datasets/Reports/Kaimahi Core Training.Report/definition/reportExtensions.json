@@ -1,0 +1,16 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/reportExtension/1.0.0/schema.json",
+  "name": "extension",
+  "entities": [
+    {
+      "name": "Certifications Expiry Dim Date",
+      "measures": [
+        {
+          "name": "Number of Kaimahi with training",
+          "dataType": "Double",
+          "expression": "\nCALCULATE (\n    COUNTROWS (\n        DISTINCT (\n            UNION (\n                SELECTCOLUMNS('Fact Kaimahi Course Progress', \"KaimahiKey\", 'Fact Kaimahi Course Progress'[Dim Kaimahi KEY]),\n                SELECTCOLUMNS('Fact Kaimahi Certification Progress', \"KaimahiKey\", 'Fact Kaimahi Certification Progress'[Dim Kaimahi KEY])\n            )\n        )\n    )\n)"
+        }
+      ]
+    }
+  ]
+}

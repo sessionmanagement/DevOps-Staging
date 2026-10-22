@@ -1,0 +1,295 @@
+expression merged_dim_program =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="WITH RecentPrograms AS (#(lf)    SELECT#(lf)        dpp.property_program_id AS zav_programid,#(lf)        dpp.property_program_name AS zav_name,#(lf)        COALESCE(dpp.synapse_link_sink_modified_on, dpp.DWHEffectiveFrom) AS SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (#(lf)            PARTITION BY dpp.property_program_id#(lf)            ORDER BY COALESCE(dpp.synapse_link_sink_modified_on, dpp.DWHEffectiveFrom) DESC#(lf)        ) AS rn#(lf)    FROM edw.dim_property_program dpp#(lf)    WHERE dpp.property_program_id IS NOT NULL#(lf)      AND dpp.DWHIsCurrent = 1#(lf)      AND dpp.DWHDMLOperation <> 'D'#(lf))#(lf)SELECT#(lf)    zav_programid,#(lf)    zav_name#(lf)FROM RecentPrograms#(lf)WHERE rn = 1;"])
+		in
+		    Source
+	lineageTag: a2438e0d-2936-4ab2-9c48-1c688bcda74b
+	queryGroup: unloaded
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression merged_household =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="WITH RecentHouseholds AS (#(lf)    SELECT#(lf)        fpt.property_tenant_modified_datetime AS zav_dateofamendment,#(lf)        fpt.property_tenancy_household_identifier AS zav_hhid,#(lf)        fpt.household_status_label AS zav_householdstatusname,#(lf)        fpt.property_tenant_number_of_household_members AS zav_numberofhouseholdmembers,#(lf)        CAST(NULL AS VARCHAR(50)) AS zav_revision,#(lf)        fpt.property_tenancy_id AS zav_tenancy,#(lf)        fpt.household_state_label AS statuscodename,#(lf)        COALESCE(fpt.property_tenant_modified_datetime, fpt.DWHModifiedOn) AS SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (#(lf)            PARTITION BY fpt.property_tenancy_household_identifier#(lf)            ORDER BY COALESCE(fpt.property_tenant_modified_datetime, fpt.DWHModifiedOn) DESC#(lf)        ) AS rn#(lf)    FROM edw.fact_property_tenant fpt#(lf)    WHERE fpt.DWHDMLOperation <> 'D'#(lf)      AND fpt.property_tenancy_household_identifier IS NOT NULL#(lf))#(lf)SELECT#(lf)    rh.statuscodename,#(lf)    rh.zav_dateofamendment,#(lf)    rh.zav_hhid,#(lf)    rh.zav_householdstatusname,#(lf)    rh.zav_numberofhouseholdmembers,#(lf)    rh.zav_revision,#(lf)    rh.zav_tenancy#(lf)FROM RecentHouseholds rh#(lf)WHERE rh.rn = 1;"]),
+		    #"Filtered Rows" = Table.SelectRows(Source, each ([zav_householdstatusname] <> "Draft"))
+		in
+		    #"Filtered Rows"
+	lineageTag: 1eec40e1-45df-4e77-95cb-4af709a80639
+	queryGroup: unloaded
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression pre_work_number_household_members_dates =
+		let
+		    Source = Table.NestedJoin(merged_household, {"zav_tenancy"}, fact_tenancy, {"opportunityid"}, "fact_tenancy", JoinKind.LeftOuter),
+		    #"Expanded fact_tenancy" = Table.ExpandTableColumn(Source, "fact_tenancy", {"zav_tenancystartdate", "zav_vacateddate"}, {"fact_tenancy.zav_tenancystartdate", "fact_tenancy.zav_vacateddate"}),
+		    #"Reordered Columns" = Table.ReorderColumns(#"Expanded fact_tenancy",{"statuscodename", "zav_householdstatusname", "zav_revision", "zav_tenancy", "zav_hhid", "zav_numberofhouseholdmembers", "fact_tenancy.zav_tenancystartdate", "zav_dateofamendment", "fact_tenancy.zav_vacateddate"}),
+		    #"Added Custom" = Table.AddColumn(#"Reordered Columns", "rowexpirydate", each if [zav_dateofamendment] <> null then ([zav_dateofamendment]) else if [fact_tenancy.zav_vacateddate] <> null then ([fact_tenancy.zav_vacateddate]) else (DateTime.LocalNow())),
+		    #"Added Custom1" = Table.AddColumn(#"Added Custom", "hhid_revision_concat", each [zav_hhid] & "-" & Text.From([zav_revision]))
+		in
+		    #"Added Custom1"
+	lineageTag: 30bdf960-6782-41ce-8036-7d6651f8b494
+	queryGroup: unloaded
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Exception
+
+expression pre_work_number_household_members_dates_for_prev_revision =
+		let
+		    Source = Table.NestedJoin(merged_household, {"zav_tenancy"}, fact_tenancy, {"opportunityid"}, "fact_tenancy", JoinKind.LeftOuter),
+		    #"Expanded fact_tenancy" = Table.ExpandTableColumn(Source, "fact_tenancy", {"zav_tenancystartdate", "zav_vacateddate"}, {"fact_tenancy.zav_tenancystartdate", "fact_tenancy.zav_vacateddate"}),
+		    #"Reordered Columns" = Table.ReorderColumns(#"Expanded fact_tenancy",{"statuscodename", "zav_householdstatusname", "zav_revision", "zav_tenancy", "zav_hhid", "zav_numberofhouseholdmembers", "fact_tenancy.zav_tenancystartdate", "zav_dateofamendment", "fact_tenancy.zav_vacateddate"}),
+		    #"Added Custom" = Table.AddColumn(#"Reordered Columns", "rowexpirydate", each if [zav_dateofamendment] <> null then ([zav_dateofamendment]) else if [fact_tenancy.zav_vacateddate] <> null then ([fact_tenancy.zav_vacateddate]) else (DateTime.LocalNow())),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Added Custom",{{"rowexpirydate", Int64.Type}, {"fact_tenancy.zav_tenancystartdate", Int64.Type}}),
+		    #"Reordered Columns1" = Table.ReorderColumns(#"Changed Type",{"statuscodename", "zav_householdstatusname", "zav_tenancy", "zav_hhid", "zav_numberofhouseholdmembers", "fact_tenancy.zav_tenancystartdate", "zav_dateofamendment", "fact_tenancy.zav_vacateddate", "rowexpirydate", "zav_revision"}),
+		    #"Added Custom1" = Table.AddColumn(#"Reordered Columns1", "composite_hh_revision_minus_one", each [zav_hhid] & "-" & Text.From([zav_revision]-1))
+		in
+		    #"Added Custom1"
+	lineageTag: 28ac549c-3b32-48bb-8436-d5fcaaf788ed
+	queryGroup: unloaded
+
+	annotation PBI_ResultType = Exception
+
+expression work_first_tenancy_by_property =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="WITH RecentOpportunity AS (#(lf)    SELECT#(lf)        dpt.property_tenancy_id AS opportunityid,#(lf)        dpt.property_id AS zav_property,#(lf)        dp.property_sub_program AS zav_subprogram,#(lf)        dpt.property_tenancy_tenancy_start_date AS zav_tenancystartdate,#(lf)        dpt.property_tenancy_vacated_date AS zav_vacateddate,#(lf)        COALESCE(dpt.property_tenancy_property_name, dp.property_name) AS zav_propertyname,#(lf)        COALESCE(#(lf)            dpt.property_tenancy_modified_datetime,#(lf)            CAST(dpt.property_tenancy_created_datetime AS DATETIME2(7)),#(lf)            dpt.DWHEffectiveFrom#(lf)        ) AS SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (#(lf)            PARTITION BY dpt.property_tenancy_id#(lf)            ORDER BY COALESCE(#(lf)                dpt.property_tenancy_modified_datetime,#(lf)                CAST(dpt.property_tenancy_created_datetime AS DATETIME2(7)),#(lf)                dpt.DWHEffectiveFrom#(lf)            ) DESC#(lf)        ) AS rn#(lf)    FROM edw.dim_property_tenancy dpt#(lf)    LEFT JOIN edw.dim_property dp#(lf)        ON dp.property_id = dpt.property_id#(lf)       AND dp.DWHIsCurrent = 1#(lf)       AND dp.DWHDMLOperation <> 'D'#(lf)    WHERE dpt.property_tenancy_id IS NOT NULL#(lf)      AND dpt.DWHIsCurrent = 1#(lf)      AND dpt.DWHDMLOperation <> 'D'#(lf))#(lf)SELECT#(lf)    ro.opportunityid,#(lf)    ro.zav_property,#(lf)    ro.zav_subprogram,#(lf)    ro.zav_tenancystartdate,#(lf)    ro.zav_vacateddate,#(lf)    ro.zav_propertyname#(lf)FROM RecentOpportunity ro#(lf)WHERE ro.rn = 1;"]),
+		    #"Changed Type" = Table.TransformColumnTypes(Source,{{"zav_tenancystartdate", type date}, {"zav_vacateddate", type date}}),
+		    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"zav_propertyname", "opportunityid", "zav_vacateddate"}),
+		    #"Sorted Rows" = Table.Sort(#"Removed Columns",{{"zav_tenancystartdate", Order.Ascending}}),
+		    #"Removed Duplicates" = Table.Distinct(#"Sorted Rows", {"zav_property"}),
+		    #"Filtered Rows" = Table.SelectRows(#"Removed Duplicates", each ([zav_property] <> null)),
+		    #"Added Custom" = Table.AddColumn(#"Filtered Rows", "HasBeenTenanted", each 1),
+		    #"Changed Type1" = Table.TransformColumnTypes(#"Added Custom",{{"HasBeenTenanted", Int64.Type}}),
+		    #"Merged Queries" = Table.NestedJoin(#"Changed Type1", {"zav_subprogram"}, dim_subprogram, {"zav_subprogramid"}, "dim_subprogram", JoinKind.LeftOuter),
+		    #"Expanded dim_subprogram" = Table.ExpandTableColumn(#"Merged Queries", "dim_subprogram", {"commercial_yn"}, {"commercial_yn"}),
+		    #"Added Conditional Column" = Table.AddColumn(#"Expanded dim_subprogram", "include_in_reporting", each if [commercial_yn] = 1 then 1 else if [HasBeenTenanted] = 1 then 1 else 0),
+		    #"Changed Type2" = Table.TransformColumnTypes(#"Added Conditional Column",{{"include_in_reporting", Int64.Type}})
+		in
+		    #"Changed Type2"
+	lineageTag: 5d12d793-e03c-4c45-93fd-6d84cca5e626
+	queryGroup: unloaded
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression merged_earliest_lease_from_date =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="WITH RecentLeaseDetails AS (#(lf)    SELECT#(lf)        dpl.property_lease_status AS statuscodename,#(lf)        dpl.property_lease_details_from_date AS zav_fromdate,#(lf)        dpl.property_id AS zav_property,#(lf)        ROW_NUMBER() OVER (#(lf)            PARTITION BY dpl.property_id#(lf)            ORDER BY COALESCE(dpl.synapse_link_sink_modified_on, dpl.DWHEffectiveFrom) DESC#(lf)        ) AS rn#(lf)    FROM edw.dim_property_lease dpl#(lf)    WHERE dpl.property_id IS NOT NULL#(lf)      AND dpl.DWHIsCurrent = 1#(lf)      AND dpl.DWHDMLOperation <> 'D'#(lf))#(lf)SELECT#(lf)    rld.statuscodename,#(lf)    rld.zav_fromdate,#(lf)    rld.zav_property#(lf)FROM RecentLeaseDetails rld#(lf)WHERE rld.rn = 1;"]),
+		    #"Filtered Rows" = Table.SelectRows(Source, each ([statuscodename] = "Current" or [statuscodename] = "Superseded")),
+		    #"Removed Columns" = Table.RemoveColumns(#"Filtered Rows",{"statuscodename"}),
+		    #"Reordered Columns" = Table.ReorderColumns(#"Removed Columns",{"zav_property", "zav_fromdate"}),
+		    #"Sorted Rows" = Table.Sort(#"Reordered Columns",{{"zav_fromdate", Order.Ascending}}),
+		    #"Removed Duplicates" = Table.Distinct(#"Sorted Rows", {"zav_property"}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Removed Duplicates",{{"zav_fromdate", type date}})
+		in
+		    #"Changed Type"
+	lineageTag: 535da7de-3f24-49d6-8487-b976ee1dd1a5
+	queryGroup: unloaded
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression merged_latest_lease_to_date =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="WITH RecentLeaseDetails AS (#(lf)    SELECT#(lf)        dpl.property_id AS zav_property,#(lf)        dpl.property_lease_details_to_date AS zav_todate,#(lf)        ROW_NUMBER() OVER (#(lf)            PARTITION BY dpl.property_id#(lf)            ORDER BY COALESCE(dpl.synapse_link_sink_modified_on, dpl.DWHEffectiveFrom) DESC#(lf)        ) AS rn#(lf)    FROM edw.dim_property_lease dpl#(lf)    WHERE dpl.property_id IS NOT NULL#(lf)      AND dpl.DWHIsCurrent = 1#(lf)      AND dpl.DWHDMLOperation <> 'D'#(lf))#(lf)SELECT#(lf)    rld.zav_property,#(lf)    rld.zav_todate#(lf)FROM RecentLeaseDetails rld#(lf)WHERE rld.rn = 1;"]),
+		    #"Changed Type" = Table.TransformColumnTypes(Source,{{"zav_todate", type date}}),
+		    #"Filtered Rows" = Table.SelectRows(#"Changed Type", each ([zav_todate] <> null)),
+		    #"Sorted Rows" = Table.Sort(#"Filtered Rows",{{"zav_todate", Order.Descending}}),
+		    #"Removed Duplicates" = Table.Distinct(#"Sorted Rows", {"zav_property"})
+		in
+		    #"Removed Duplicates"
+	lineageTag: 195caba7-12b2-4698-8c8c-bf914d7d408f
+	queryGroup: unloaded
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression merged_first_last_tenancy_by_property =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="WITH RecentOpportunity AS (#(lf)    SELECT#(lf)        dpt.property_tenancy_id AS opportunityid,#(lf)        dpt.property_id AS zav_property,#(lf)        dpt.property_tenancy_tenancy_start_date AS zav_tenancystartdate,#(lf)        dpt.property_tenancy_vacated_date AS zav_vacateddate,#(lf)        COALESCE(dpt.property_tenancy_property_name, dp.property_name) AS zav_propertyname,#(lf)        ROW_NUMBER() OVER (#(lf)            PARTITION BY dpt.property_tenancy_id#(lf)            ORDER BY COALESCE(#(lf)                dpt.property_tenancy_modified_datetime,#(lf)                CAST(dpt.property_tenancy_created_datetime AS DATETIME2(7)),#(lf)                dpt.DWHEffectiveFrom#(lf)            ) DESC#(lf)        ) AS rn#(lf)    FROM edw.dim_property_tenancy dpt#(lf)    LEFT JOIN edw.dim_property dp#(lf)        ON dp.property_id = dpt.property_id#(lf)       AND dp.DWHIsCurrent = 1#(lf)       AND dp.DWHDMLOperation <> 'D'#(lf)    WHERE dpt.property_tenancy_id IS NOT NULL#(lf)      AND dpt.DWHIsCurrent = 1#(lf)      AND dpt.DWHDMLOperation <> 'D'#(lf))#(lf)SELECT#(lf)    ro.opportunityid,#(lf)    ro.zav_property,#(lf)    ro.zav_tenancystartdate,#(lf)    ro.zav_vacateddate,#(lf)    ro.zav_propertyname#(lf)FROM RecentOpportunity ro#(lf)WHERE ro.rn = 1;"]),
+		    #"Changed Type" = Table.TransformColumnTypes(Source,{{"zav_tenancystartdate", type date}, {"zav_vacateddate", type date}}),
+		    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"zav_propertyname", "opportunityid"}),
+		    #"Filtered Rows" = Table.SelectRows(#"Removed Columns", each [zav_tenancystartdate] <> null and [zav_tenancystartdate] <> ""),
+		    #"Added Custom" = Table.AddColumn(#"Filtered Rows", "tenancy_end_date_or_today", each if [zav_vacateddate] <> null then ([zav_vacateddate]) else (DateTime.LocalNow())),
+		    #"Changed Type1" = Table.TransformColumnTypes(#"Added Custom",{{"tenancy_end_date_or_today", type date}}),
+		    #"Grouped Rows" = Table.Group(#"Changed Type1", {"zav_property"}, {{"earliest_tenancy_start_date", each List.Min([zav_tenancystartdate]), type nullable date}, {"latest_tenancy_end_date_or_today", each List.Max([tenancy_end_date_or_today]), type nullable date}})
+		in
+		    #"Grouped Rows"
+	lineageTag: 51196114-6ac5-4faf-bd1a-302a27a6adea
+	queryGroup: unloaded
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression merged_primary_contact =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="WITH RecentContact AS (#(lf)    SELECT#(lf)        dpt.property_tenancy_primary_tenant_recordbaseid AS contactid,#(lf)        COALESCE(fpt_best.property_tenant_full_name, dpt.property_tenancy_customer_name) AS fullname,#(lf)        CASE#(lf)            WHEN fpt_best.property_tenancy_tenant_date_of_birth IS NULL THEN NULL#(lf)            ELSE DATEDIFF(YEAR, fpt_best.property_tenancy_tenant_date_of_birth, CAST(GETDATE() AS DATE))#(lf)                 - CASE#(lf)                       WHEN DATEADD(#(lf)                                YEAR,#(lf)                                DATEDIFF(YEAR, fpt_best.property_tenancy_tenant_date_of_birth, CAST(GETDATE() AS DATE)),#(lf)                                fpt_best.property_tenancy_tenant_date_of_birth#(lf)                            ) > CAST(GETDATE() AS DATE)#(lf)                       THEN 1 ELSE 0#(lf)                   END#(lf)        END AS zav_age,#(lf)        fpt_best.property_tenant_head_of_household_flag AS zav_primarytenant,#(lf)        fpt_best.property_tenant_ethnicity_name AS zav_ethnicityname,#(lf)        fpt_best.occupant_gender_label AS zav_gendername,#(lf)        COALESCE(#(lf)            fpt_best.property_tenant_modified_datetime,#(lf)            fpt_best.DWHModifiedOn,#(lf)            dpt.property_tenancy_modified_datetime,#(lf)            dpt.DWHEffectiveFrom#(lf)        ) AS SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (#(lf)            PARTITION BY dpt.property_tenancy_primary_tenant_recordbaseid#(lf)            ORDER BY COALESCE(#(lf)                fpt_best.property_tenant_modified_datetime,#(lf)                fpt_best.DWHModifiedOn,#(lf)                dpt.property_tenancy_modified_datetime,#(lf)                dpt.DWHEffectiveFrom#(lf)            ) DESC#(lf)        ) AS rn#(lf)    FROM edw.dim_property_tenancy dpt#(lf)    OUTER APPLY (#(lf)        SELECT TOP 1#(lf)            fpt.property_tenant_full_name,#(lf)            fpt.property_tenancy_tenant_date_of_birth,#(lf)            fpt.property_tenant_head_of_household_flag,#(lf)            fpt.property_tenant_ethnicity_name,#(lf)            fpt.occupant_gender_label,#(lf)            fpt.property_tenant_modified_datetime,#(lf)            fpt.DWHModifiedOn#(lf)        FROM edw.fact_property_tenant fpt#(lf)        WHERE fpt.property_tenancy_id = dpt.property_tenancy_id#(lf)          AND fpt.DWHDMLOperation <> 'D'#(lf)        ORDER BY#(lf)            CASE WHEN fpt.property_tenant_id = dpt.property_tenancy_primary_tenant_recordbaseid THEN 0 ELSE 1 END,#(lf)            CASE WHEN NULLIF(fpt.property_tenant_ethnicity_name, '') IS NOT NULL THEN 0 ELSE 1 END,#(lf)            CASE WHEN NULLIF(fpt.occupant_gender_label, '') IS NOT NULL THEN 0 ELSE 1 END,#(lf)            CASE WHEN fpt.property_tenancy_tenant_date_of_birth IS NOT NULL THEN 0 ELSE 1 END,#(lf)            CASE WHEN fpt.property_tenant_head_of_household_flag IS NOT NULL THEN 0 ELSE 1 END,#(lf)            COALESCE(fpt.property_tenant_modified_datetime, fpt.DWHModifiedOn) DESC#(lf)    ) fpt_best#(lf)    WHERE dpt.DWHDMLOperation <> 'D'#(lf)      AND dpt.property_tenancy_primary_tenant_recordbaseid IS NOT NULL#(lf))#(lf)SELECT#(lf)    rc.contactid,#(lf)    rc.fullname,#(lf)    rc.zav_age,#(lf)    rc.zav_primarytenant,#(lf)    rc.zav_ethnicityname,#(lf)    rc.zav_gendername#(lf)FROM RecentContact rc#(lf)WHERE rc.rn = 1;"]),
+		    #"Changed Type" = Table.TransformColumnTypes(Source,{{"contactid", type text}})
+		in
+		    #"Changed Type"
+	lineageTag: ff5ff5d0-64a2-4ea3-943f-125a73d6e205
+	queryGroup: unloaded
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression merged_dim_property_type =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="WITH RecentPropertyType AS (#(lf)    SELECT#(lf)        dp.property_property_type AS zav_propertytypeid,#(lf)        dp.property_status AS statuscodename,#(lf)        dp.property_name AS zav_name,#(lf)        dp.property_sub_property_type AS zav_tenantabledwelling,#(lf)        COALESCE(dp.synapse_link_sink_modified_on, dp.DWHEffectiveFrom) AS SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (#(lf)            PARTITION BY dp.property_property_type#(lf)            ORDER BY COALESCE(dp.synapse_link_sink_modified_on, dp.DWHEffectiveFrom) DESC#(lf)        ) AS rn#(lf)    FROM edw.dim_property dp#(lf)    WHERE dp.property_property_type IS NOT NULL#(lf)      AND dp.DWHDMLOperation <> 'D'#(lf))#(lf)SELECT DISTINCT#(lf)    rpt.zav_propertytypeid,#(lf)    rpt.statuscodename,#(lf)    rpt.zav_name,#(lf)    rpt.zav_tenantabledwelling,#(lf)    CASE#(lf)        WHEN rpt.zav_tenantabledwelling = 'True' THEN 'Yes'#(lf)        ELSE 'No'#(lf)    END AS zav_tenantabledwellingname#(lf)FROM RecentPropertyType rpt#(lf)WHERE rpt.rn = 1;"])
+		in
+		    Source
+	lineageTag: bbc4a412-692d-46f0-b482-b9c1fb06f66d
+	queryGroup: unloaded
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression work_open_tenancybreach =
+		let
+		    Source = fact_tenancybreach,
+		    #"Filtered Rows" = Table.SelectRows(Source, each ([breach_closed] = "No")),
+		    #"Removed Other Columns" = Table.SelectColumns(#"Filtered Rows",{"breach_closed", "zav_tenancy"}),
+		    #"Reordered Columns" = Table.ReorderColumns(#"Removed Other Columns",{"zav_tenancy", "breach_closed"}),
+		    #"Removed Duplicates" = Table.Distinct(#"Reordered Columns", {"zav_tenancy"}),
+		    #"Renamed Columns" = Table.RenameColumns(#"Removed Duplicates",{{"breach_closed", "tenancy_has_unresolved_breach"}}),
+		    #"Replaced Value" = Table.ReplaceValue(#"Renamed Columns","No","Yes",Replacer.ReplaceText,{"tenancy_has_unresolved_breach"})
+		in
+		    #"Replaced Value"
+	lineageTag: c17baf71-51a2-4ffb-993d-b0db0ff303cb
+	queryGroup: work
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression work_open_tenancytribunal =
+		let
+		    Source = fact_tenancybreach,
+		    #"Filtered Rows" = Table.SelectRows(Source, each ([breach_closed] = "No") and ([breach_went_to_tenancy_tribunal] = "Yes")),
+		    #"Removed Other Columns" = Table.SelectColumns(#"Filtered Rows",{"breach_went_to_tenancy_tribunal", "zav_tenancy"}),
+		    #"Reordered Columns" = Table.ReorderColumns(#"Removed Other Columns",{"zav_tenancy", "breach_went_to_tenancy_tribunal"}),
+		    #"Renamed Columns" = Table.RenameColumns(#"Reordered Columns",{{"breach_went_to_tenancy_tribunal", "tenancy_has_open_tenancytribunal_dispute"}}),
+		    #"Removed Duplicates" = Table.Distinct(#"Renamed Columns", {"zav_tenancy"})
+		in
+		    #"Removed Duplicates"
+	lineageTag: 9c6cc6ba-ba1a-409d-b694-38c11b10dd99
+	queryGroup: work
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression fact_maintenancetask =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="WITH RecentMaintenanceTask AS (#(lf)    SELECT#(lf)        f.property_maintenance_task_id AS zav_maintenancetaskid,#(lf)        f.property_maintenance_task_work_task_name AS zav_name,#(lf)#(lf)        -- Not explicitly modeled in current EDW maintenance task model#(lf)        CAST(NULL AS DATE) AS new_actualstartdate,#(lf)        CAST(NULL AS DATE) AS new_invoiceduedate,#(lf)        CAST(NULL AS DATE) AS new_postinspectioncompleteddate,#(lf)        CAST(NULL AS DATE) AS new_reporteddate,#(lf)        CAST(NULL AS DATE) AS new_scheduledcompletiondate,#(lf)        CAST(NULL AS DATE) AS new_scheduledstartdate,#(lf)        CAST(NULL AS DATE) AS new_tenantconsentdate,#(lf)#(lf)        dd_ack.calendar_date AS zav_acknowledgmentdateandtime,#(lf)        dd_ack_end.calendar_date AS zav_acknowledgmentenddateandtime,#(lf)        dd_actual.calendar_date AS zav_actualcompletiondate,#(lf)        COALESCE(dpm.property_maintenance_contractor_status_datetime, dd_contractor_status.calendar_date) AS zav_contractorstatusdateandtime,#(lf)        dd_contractor_work.calendar_date AS zav_contractorworkcompletiondate,#(lf)        dd_expected_completion.calendar_date AS zav_expectedcompletiondate,#(lf)        dd_expected_onsite.calendar_date AS zav_expectedonsitedate,#(lf)#(lf)        CAST(NULL AS DATE) AS zav_invoicepaiddate,#(lf)#(lf)        dpm.property_maintenance_task_status AS zav_taskstatusname,#(lf)#(lf)        CAST(NULL AS DATE) AS zav_tenantsconfirmationdate,#(lf)#(lf)        dpm.property_maintenance_task_urgency AS zav_urgentname,#(lf)        dd_total_capped.calendar_date AS zav_totalcappedamount_date,#(lf)        dd_web_expenses.calendar_date AS zav_webexpensesamount_date,#(lf)#(lf)        COALESCE(#(lf)            f.property_maintenance_task_modified_datetime,#(lf)            CAST(f.property_maintenance_task_created_datetime AS DATETIME2(7)),#(lf)            dpm.property_maintenance_modified_datetime,#(lf)            CAST(dpm.property_maintenance_created_datetime AS DATETIME2(7)),#(lf)            f.DWHModifiedOn#(lf)        ) AS SinkModifiedOn,#(lf)#(lf)        ROW_NUMBER() OVER (#(lf)            PARTITION BY f.property_maintenance_task_id#(lf)            ORDER BY COALESCE(#(lf)                f.property_maintenance_task_modified_datetime,#(lf)                CAST(f.property_maintenance_task_created_datetime AS DATETIME2(7)),#(lf)                dpm.property_maintenance_modified_datetime,#(lf)                CAST(dpm.property_maintenance_created_datetime AS DATETIME2(7)),#(lf)                f.DWHModifiedOn#(lf)            ) DESC#(lf)        ) AS rn#(lf)    FROM edw.fact_property_maintenance_task f#(lf)    LEFT JOIN edw.dim_property_maintenance dpm#(lf)        ON dpm.property_maintenance_id = f.property_maintenance_id#(lf)       AND dpm.DWHIsCurrent = 1#(lf)       AND dpm.DWHDMLOperation <> 'D'#(lf)    LEFT JOIN edw.dim_date dd_ack#(lf)        ON dd_ack.dim_date_key = f.property_maintenance_task_acknowledgment_date_key#(lf)    LEFT JOIN edw.dim_date dd_ack_end#(lf)        ON dd_ack_end.dim_date_key = f.property_maintenance_task_acknowledgment_end_date_key#(lf)    LEFT JOIN edw.dim_date dd_actual#(lf)        ON dd_actual.dim_date_key = f.property_maintenance_task_actual_completion_date_key#(lf)    LEFT JOIN edw.dim_date dd_contractor_work#(lf)        ON dd_contractor_work.dim_date_key = f.property_maintenance_task_contractor_work_completion_date_key#(lf)    LEFT JOIN edw.dim_date dd_expected_completion#(lf)        ON dd_expected_completion.dim_date_key = f.property_maintenance_task_expected_completion_date_key#(lf)    LEFT JOIN edw.dim_date dd_expected_onsite#(lf)        ON dd_expected_onsite.dim_date_key = f.property_maintenance_task_expected_onsite_date_key#(lf)    LEFT JOIN edw.dim_date dd_total_capped#(lf)        ON dd_total_capped.dim_date_key = f.property_maintenance_task_total_capped_amount_date_key#(lf)    LEFT JOIN edw.dim_date dd_web_expenses#(lf)        ON dd_web_expenses.dim_date_key = f.property_maintenance_task_web_expenses_amount_date_key#(lf)    LEFT JOIN edw.dim_date dd_contractor_status#(lf)        ON dd_contractor_status.dim_date_key = f.property_maintenance_task_contractor_status_date_key#(lf)    WHERE f.property_maintenance_task_id IS NOT NULL#(lf)      AND f.DWHDMLOperation <> 'D'#(lf))#(lf)SELECT#(lf)    rmt.zav_maintenancetaskid,#(lf)    rmt.zav_name,#(lf)    rmt.new_actualstartdate,#(lf)    rmt.new_invoiceduedate,#(lf)    rmt.new_postinspectioncompleteddate,#(lf)    rmt.new_reporteddate,#(lf)    rmt.new_scheduledcompletiondate,#(lf)    rmt.new_scheduledstartdate,#(lf)    rmt.new_tenantconsentdate,#(lf)    rmt.zav_acknowledgmentdateandtime,#(lf)    rmt.zav_acknowledgmentenddateandtime,#(lf)    rmt.zav_actualcompletiondate,#(lf)    rmt.zav_contractorstatusdateandtime,#(lf)    rmt.zav_contractorworkcompletiondate,#(lf)    rmt.zav_expectedcompletiondate,#(lf)    rmt.zav_expectedonsitedate,#(lf)    rmt.zav_invoicepaiddate,#(lf)    rmt.zav_taskstatusname,#(lf)    rmt.zav_tenantsconfirmationdate,#(lf)    rmt.zav_urgentname,#(lf)    rmt.zav_totalcappedamount_date,#(lf)    rmt.zav_webexpensesamount_date#(lf)FROM RecentMaintenanceTask rmt#(lf)WHERE rmt.rn = 1;"])
+		in
+		    Source
+	lineageTag: f6d2f721-120c-4aa6-beed-9ecf023f9b00
+	queryGroup: unloaded
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression work_number_household_members_fy =
+		let
+		    Source = Table.NestedJoin(pre_work_number_household_members_dates_for_prev_revision, {"composite_hh_revision_minus_one"}, pre_work_number_household_members_dates, {"hhid_revision_concat"}, "work_number_household_members_dates", JoinKind.LeftOuter),
+		    #"Expanded work_number_household_members_dates" = Table.ExpandTableColumn(Source, "work_number_household_members_dates", {"zav_dateofamendment"}, {"work_number_household_members_dates.zav_dateofamendment"}),
+		    #"Renamed Columns" = Table.RenameColumns(#"Expanded work_number_household_members_dates",{{"work_number_household_members_dates.zav_dateofamendment", "work_rowdateeffective"}}),
+		    #"Added Conditional Column" = Table.AddColumn(#"Renamed Columns", "rowdateeffective", each if [work_rowdateeffective] = null then [fact_tenancy.zav_tenancystartdate] else [work_rowdateeffective]),
+		    #"Filtered Rows" = Table.SelectRows(#"Added Conditional Column", each [rowdateeffective] <> null and [rowdateeffective] <> ""),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Filtered Rows",{{"rowdateeffective", Int64.Type}}),
+		    #"Reordered Columns" = Table.ReorderColumns(#"Changed Type",{"statuscodename", "zav_householdstatusname", "zav_tenancy", "zav_hhid", "zav_numberofhouseholdmembers", "fact_tenancy.zav_tenancystartdate", "zav_dateofamendment", "fact_tenancy.zav_vacateddate", "zav_revision", "composite_hh_revision_minus_one", "work_rowdateeffective", "rowdateeffective", "rowexpirydate"}),
+		    #"Added Custom" = Table.AddColumn(#"Reordered Columns", "explosion", each {[rowdateeffective]..[rowexpirydate]}),
+		    #"Expanded explosion" = Table.ExpandListColumn(#"Added Custom", "explosion"),
+		    #"Changed Type1" = Table.TransformColumnTypes(#"Expanded explosion",{{"rowdateeffective", type date}, {"rowexpirydate", type date}, {"explosion", type date}, {"fact_tenancy.zav_tenancystartdate", type date}}),
+		    #"Removed Columns" = Table.RemoveColumns(#"Changed Type1",{"statuscodename", "zav_householdstatusname", "composite_hh_revision_minus_one", "work_rowdateeffective"}),
+		    #"Merged Queries" = Table.NestedJoin(#"Removed Columns", {"zav_tenancy"}, fact_tenancy, {"opportunityid"}, "fact_tenancy", JoinKind.LeftOuter),
+		    #"Expanded fact_tenancy" = Table.ExpandTableColumn(#"Merged Queries", "fact_tenancy", {"zav_property"}, {"zav_property"})
+		in
+		    #"Expanded fact_tenancy"
+	lineageTag: 7bb1cb02-e276-4ce2-b066-3cd3ed54c54d
+	queryGroup: work
+
+	annotation PBI_ResultType = Exception
+
+expression work_inspection_avg_score =
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="WITH RecentInspectionDetails AS (#(lf)    SELECT#(lf)        zav_inspectionid,#(lf)        zav_assetcondition,#(lf)        SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (PARTITION BY zav_inspectionid ORDER BY SinkModifiedOn DESC) AS rn#(lf)    FROM#(lf)        [Zavanti].[vw_zav_inspectiondetail]#(lf)#(tab)WHERE statuscode = 1#(lf)#(tab)#(tab)AND zav_assetcondition <> 100000000#(lf)#(tab)#(tab)AND zav_assetcondition IS NOT NULL#(lf)#(tab)#(tab)#(lf))#(lf)SELECT#(lf)    zav_inspectionid,#(lf)    zav_assetcondition#(lf)FROM#(lf)    RecentInspectionDetails#(lf)WHERE#(lf)    rn = 1"]),
+		    #"Grouped Rows" = Table.Group(Source, {"zav_inspectionid"}, {{"average_score", each List.Average([zav_assetcondition]), type nullable number}})
+		in
+		    #"Grouped Rows"
+	lineageTag: 2c3b8480-ae3d-4aef-a62a-12bce04650d3
+	queryGroup: work
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Exception
+
+expression work_opportunity =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="WITH RecentOpportunity AS (#(lf)    SELECT#(lf)        dpt.property_tenancy_id AS opportunityid,#(lf)        dpt.property_id AS zav_property,#(lf)        dpt.property_tenancy_manager_email AS zav_tenancymanagerid,#(lf)        ROW_NUMBER() OVER (#(lf)            PARTITION BY dpt.property_tenancy_id#(lf)            ORDER BY COALESCE(#(lf)                dpt.property_tenancy_modified_datetime,#(lf)                CAST(dpt.property_tenancy_created_datetime AS DATETIME2(7)),#(lf)                dpt.DWHEffectiveFrom#(lf)            ) DESC#(lf)        ) AS rn#(lf)    FROM edw.dim_property_tenancy dpt#(lf)    WHERE dpt.property_tenancy_id IS NOT NULL#(lf)      AND dpt.DWHIsCurrent = 1#(lf)      AND dpt.DWHDMLOperation <> 'D'#(lf))#(lf)SELECT DISTINCT#(lf)    ro.opportunityid,#(lf)    ro.zav_property,#(lf)    ro.zav_tenancymanagerid#(lf)FROM RecentOpportunity ro#(lf)WHERE ro.rn = 1;"])
+		in
+		    Source
+	lineageTag: 14e50696-12f5-4628-bc53-29e69bf5f594
+	queryGroup: unloaded
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'Errors in dim_property' =
+		let
+		Source = dim_property,
+		  #"Detected Type Mismatches" = let
+		    tableWithOnlyPrimitiveTypes = Table.SelectColumns(Source, Table.ColumnsOfType(Source, {type nullable number, type nullable text, type nullable logical, type nullable date, type nullable datetime, type nullable datetimezone, type nullable time, type nullable duration})),
+		    recordTypeFields = Type.RecordFields(Type.TableRow(Value.Type(tableWithOnlyPrimitiveTypes))),
+		    fieldNames = Record.FieldNames(recordTypeFields),
+		    fieldTypes = List.Transform(Record.ToList(recordTypeFields), each [Type]),
+		    pairs = List.Transform(List.Positions(fieldNames), (i) => {fieldNames{i}, (v) => if v = null or Value.Is(v, fieldTypes{i}) then v else error [Message = "The type of the value does not match the type of the column.", Detail = v], fieldTypes{i}})
+		in
+		    Table.TransformColumns(Source, pairs),
+		  #"Added Index" = Table.AddIndexColumn(#"Detected Type Mismatches", "Row Number" ,1),
+		  #"Kept Errors" = Table.SelectRowsWithErrors(#"Added Index", {"zav_propertyid", "statuscode", "zav_name", "new_propertystatusname", "new_yearbuilt", "zav_propertyownership", "zav_propertytypeid", "zav_subprogram", "zav_fulladdress", "new_postalregionname", "zav_legalowneridname", "zav_suburb", "zav_confirmeddisposaldate", "zav_giftedname", "property_is_parent", "property_type", "tenantable_dwelling", "include_in_reporting", "commercial_yn", "acquired_from_oct22", "tenantable_dwelling_int", "include_in_reporting_final", "zav_acquireddate", "zav_earliest_lease_fromdate", "zav_lastest_lease_todate", "earliest_tenancy_start_date", "latest_tenancy_end_date_or_today"}),
+		  #"Reordered Columns" = Table.ReorderColumns(#"Kept Errors", {"Row Number", "zav_propertyid", "statuscode", "zav_name", "new_propertystatusname", "new_yearbuilt", "zav_propertyownership", "zav_propertytypeid", "zav_subprogram", "zav_fulladdress", "new_postalregionname", "zav_legalowneridname", "zav_suburb", "zav_confirmeddisposaldate", "zav_giftedname", "property_is_parent", "property_type", "tenantable_dwelling", "include_in_reporting", "commercial_yn", "acquired_from_oct22", "tenantable_dwelling_int", "include_in_reporting_final", "zav_acquireddate", "zav_earliest_lease_fromdate", "zav_lastest_lease_todate", "earliest_tenancy_start_date", "latest_tenancy_end_date_or_today"})
+		in
+		  #"Reordered Columns"
+	lineageTag: 86f5473a-bcc8-4605-9277-20ed699eea5b
+	queryGroup: 'Query Errors - 15/12/2023 8:12:08 am'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'Errors in dim_subprogram' =
+		let
+		Source = dim_subprogram,
+		  #"Detected Type Mismatches" = let
+		    tableWithOnlyPrimitiveTypes = Table.SelectColumns(Source, Table.ColumnsOfType(Source, {type nullable number, type nullable text, type nullable logical, type nullable date, type nullable datetime, type nullable datetimezone, type nullable time, type nullable duration})),
+		    recordTypeFields = Type.RecordFields(Type.TableRow(Value.Type(tableWithOnlyPrimitiveTypes))),
+		    fieldNames = Record.FieldNames(recordTypeFields),
+		    fieldTypes = List.Transform(Record.ToList(recordTypeFields), each [Type]),
+		    pairs = List.Transform(List.Positions(fieldNames), (i) => {fieldNames{i}, (v) => if v = null or Value.Is(v, fieldTypes{i}) then v else error [Message = "The type of the value does not match the type of the column.", Detail = v], fieldTypes{i}})
+		in
+		    Table.TransformColumns(Source, pairs),
+		  #"Added Index" = Table.AddIndexColumn(#"Detected Type Mismatches", "Row Number" ,1),
+		  #"Kept Errors" = Table.SelectRowsWithErrors(#"Added Index", {"program_name", "subprogram_name", "zav_subprogramid", "commercial_yn"}),
+		  #"Reordered Columns" = Table.ReorderColumns(#"Kept Errors", {"Row Number", "program_name", "subprogram_name", "zav_subprogramid", "commercial_yn"})
+		in
+		  #"Reordered Columns"
+	lineageTag: 25abb9c0-a78b-4b26-ac69-18744a6f7c7e
+	queryGroup: 'Query Errors - 15/12/2023 8:12:08 am'
+
+	annotation PBI_ResultType = Table
+

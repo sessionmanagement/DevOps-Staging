@@ -1,0 +1,226 @@
+table FactReferralActiveDaysByFY
+	lineageTag: 4645ddbe-36c0-4ddc-8dc3-957f7a0fb0ba
+
+	column AcceptedDate
+		formatString: Short Date
+		lineageTag: c44ba336-76b7-4949-8b2f-2eae8251fd08
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_ReferralDaysExplosion[AcceptedDate]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column DischargeDate
+		formatString: Short Date
+		lineageTag: 0c1d775c-99a6-408c-a527-9cb4221ffb6b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_ReferralDaysExplosion[DischargeDate]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column PersonID
+		lineageTag: 9e109f55-dd78-4a05-8eea-42006f262c7e
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_ReferralDaysExplosion[PersonID]
+
+		annotation SummarizationSetBy = Automatic
+
+	column FinancialYear
+		lineageTag: f6a9a1f9-315c-498e-9f4a-2ee83f8070af
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_ReferralDaysExplosion[FinancialYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column FYEnd
+		formatString: Short Date
+		lineageTag: 89ed631d-b4e0-4f22-a673-253ccaf0e4be
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_ReferralDaysExplosion[FYEnd]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column ReferralBeginDateForFY
+		formatString: Short Date
+		lineageTag: 850466f2-7d87-4bcf-b3f2-86360020aed2
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [ReferralBeginDateForFY]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column ReferralDaysInFY =
+			
+			IF(
+			    FactReferralActiveDaysByFY[DischargeDate] > FactReferralActiveDaysByFY[FYEnd],
+			        DATEDIFF(FactReferralActiveDaysByFY[ReferralBeginDateForFY],FactReferralActiveDaysByFY[FYEnd],DAY),
+			        DATEDIFF(FactReferralActiveDaysByFY[ReferralBeginDateForFY],FactReferralActiveDaysByFY[DischargeDate],DAY)
+			)+1
+		formatString: 0
+		lineageTag: a490ce8b-138b-4f5b-b74e-0994dc6e1b91
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionID
+		lineageTag: f6c26bbf-8461-4a67-b736-9327bb49378e
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_ReferralDaysExplosion[TeamFunctionID]
+
+		annotation SummarizationSetBy = Automatic
+
+	column ID
+		lineageTag: 0819c5a3-4766-4f62-804f-b43c2612d822
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_ReferralDaysExplosion[ID]
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsFirstYearForClient
+		formatString: 0
+		lineageTag: bf6710a1-c0c3-4a3e-8ffd-78e79ecd5bd4
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [IsFirstYearForClient]
+
+		annotation SummarizationSetBy = Automatic
+
+	column CompanyIdentifier
+		lineageTag: 3ab932b1-04b8-4d28-b300-d4dcda690c11
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_ReferralDaysExplosion[CompanyIdentifier]
+
+		annotation SummarizationSetBy = Automatic
+
+	column DischargedBeforeFYEnd =
+			
+			IF(
+			    ISBLANK(FactReferralActiveDaysByFY[DischargeDateTrue]),0,
+			    IF(
+			        FactReferralActiveDaysByFY[DischargeDate] < FactReferralActiveDaysByFY[FYEnd],
+			        1,
+			        0
+			))
+		formatString: 0
+		lineageTag: 39813cf0-e0e2-4563-a0c9-d03c30c316be
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column DischargeDateTrue
+		formatString: Short Date
+		lineageTag: 9e2aac5b-b611-4f4f-9f4c-830196539241
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_ReferralDaysExplosion[DischargeDateTrue]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column TeamID
+		lineageTag: cc009d01-3505-4a96-9b57-7232ac72ef6a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_ReferralDaysExplosion[TeamID]
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamKeyComposite
+		lineageTag: b8431756-293c-4580-98b7-70a7b3ca9a36
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_ReferralDaysExplosion[TeamKeyComposite]
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReferralEndDateInFY =
+			
+			IF(
+			    FactReferralActiveDaysByFY[DischargeDate] > FactReferralActiveDaysByFY[FYEnd],
+			    FactReferralActiveDaysByFY[FYEnd],
+			    FactReferralActiveDaysByFY[DischargeDate]
+			)
+		formatString: Short Date
+		lineageTag: d709afae-ccbb-4f59-8d28-bb7b9adfa511
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column BedNightsIfRelevant =
+			
+			// Subtracts one from ReferralDaysInFY to get bed nights as the start and end date shouldn't both be counted as actual nights.
+			FactReferralActiveDaysByFY[ReferralDaysInFY]-1
+		formatString: 0
+		lineageTag: bc5c1b32-cea2-4e16-b148-e4bc293f9ca8
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReferralDaysFromAcceptedDateToFYEndOrDischargeDate =
+			
+			IF(
+			    FactReferralActiveDaysByFY[DischargeDate] > FactReferralActiveDaysByFY[FYEnd],
+			        DATEDIFF(FactReferralActiveDaysByFY[AcceptedDate],FactReferralActiveDaysByFY[FYEnd],DAY),
+			        DATEDIFF(FactReferralActiveDaysByFY[AcceptedDate],FactReferralActiveDaysByFY[DischargeDate],DAY)
+			)+1
+		formatString: 0
+		lineageTag: 9b87b769-5866-4fe1-aa11-8e3b26d3e5e0
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FactReferralActiveDaysByFY-83a2e9a8-e14d-4ff2-b075-a2bbc1cf9064 = calculated
+		mode: import
+		source =
+				
+				// This table splits each referral into the FYs over which it spans. It then calculates the number of days the referral was open in that FY. Each SourceReferralID will have as many rows as financial years that it spans.
+				// You can generally disregard AcceptedDate and DischargeDate - they are better used as a reference for understanding how the table works.
+				ADDCOLUMNS(
+				    SUMMARIZECOLUMNS(
+				        ALL_Work_ReferralDaysExplosion[CompanyIdentifier],
+				        ALL_Work_ReferralDaysExplosion[ID],
+				        ALL_Work_ReferralDaysExplosion[TeamID],
+				        ALL_Work_ReferralDaysExplosion[TeamFunctionID],
+				        ALL_Work_ReferralDaysExplosion[TeamKeyComposite],
+				        ALL_Work_ReferralDaysExplosion[PersonID],
+				        ALL_Work_ReferralDaysExplosion[AcceptedDate],
+				        ALL_Work_ReferralDaysExplosion[DischargeDate],
+				        ALL_Work_ReferralDaysExplosion[DischargeDateTrue],
+				        ALL_Work_ReferralDaysExplosion[FinancialYear],
+				        ALL_Work_ReferralDaysExplosion[FYEnd],
+				        "ReferralBeginDateForFY", MIN(ALL_Work_ReferralDaysExplosion[Explosion])
+				    ),
+				    "IsFirstYearForClient",
+				    IF (
+				        CALCULATE (
+				            MIN ( ALL_Work_ReferralDaysExplosion[FinancialYear] ),
+				            FILTER (
+				                ALL_Work_ReferralDaysExplosion,
+				                ALL_Work_ReferralDaysExplosion[PersonID] = EARLIER ( ALL_Work_ReferralDaysExplosion[PersonID] )
+				            )
+				        ) = ALL_Work_ReferralDaysExplosion[FinancialYear],
+				        1,
+				        0
+				    )
+				)
+
+	annotation PBI_Id = d541b90901e345b8ac12810c913974ac
+

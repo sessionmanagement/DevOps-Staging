@@ -1,0 +1,1110 @@
+expression Server = "sql-prod-aus-svc-datawarehouse-01.database.windows.net" meta [IsParameterQuery=true, List={"sql-dev-aue-svc-datawarehouse-01.database.windows.net", "sql-prod-aus-svc-datawarehouse-01.database.windows.net"}, DefaultValue="sql-prod-aus-svc-datawarehouse-01.database.windows.net", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 8fe0de6f-142c-45c6-b294-93187d23f156
+	queryGroup: Parameters
+
+	annotation PBI_ResultType = Text
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression Database = "sqldb-prod-datawarehouse-01" meta [IsParameterQuery=true, List={"sqldb-dev-datawarehouse-01", "sqldb-prod-datawarehouse-01"}, DefaultValue="sqldb-prod-datawarehouse-01", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 781dcb70-1d62-430f-a77b-f4f386734101
+	queryGroup: Parameters
+
+	annotation PBI_ResultType = Text
+
+expression 'Top N Rows' = "All" meta [IsParameterQuery=true, List={"10000", "All"}, DefaultValue="10000", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 61830a9c-1ddc-422e-9675-b580cd5830e2
+	queryGroup: Parameters
+
+	annotation PBI_ResultType = Text
+
+expression 'Latest Company entryNo' =
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="select distinct [Company_Name], max([entryNo]) as [entryNo_MAX] from [BusinessCentral].[glEntries] where [ODSIsCurrent] = 1 group by [Company_Name] order by 1"]),
+		    BufferedTable = Table.Buffer(Source)
+		in
+		    BufferedTable
+	lineageTag: 49140860-e322-4b43-a9b7-bdf409d4fd2f
+	queryGroup: 'Near Real Time\Refresh Parameters'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression Emerge_Aotearoa_Housing_Trust_EntryNo =
+		let
+		    Source = #"Latest Company entryNo",
+		    Emerge_Aotearoa_Housing_Trust_EntryNo = Source{[Company_Name="Emerge_Aotearoa_Housing_Trust"]}[entryNo_MAX]
+		in
+		    Emerge_Aotearoa_Housing_Trust_EntryNo
+	lineageTag: dd54f1bd-a61f-473e-8507-64996d5fff80
+	queryGroup: 'Near Real Time\Refresh Parameters'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Number
+
+expression Emerge_Aotearoa_Limited_EntryNo =
+		let
+		    Source = #"Latest Company entryNo",
+		    Emerge_Aotearoa_Limited_EntryNo = Source{[Company_Name="Emerge_Aotearoa_Limited"]}[entryNo_MAX]
+		in
+		    Emerge_Aotearoa_Limited_EntryNo
+	lineageTag: 4b7198c8-ac7a-4f54-bd4f-9ffaef7c7802
+	queryGroup: 'Near Real Time\Refresh Parameters'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Number
+
+expression Emerge_Aotearoa_Trust_EntryNo =
+		let
+		    Source = #"Latest Company entryNo",
+		    Emerge_Aotearoa_Trust_EntryNo = Source{[Company_Name="Emerge_Aotearoa_Trust"]}[entryNo_MAX]
+		in
+		    Emerge_Aotearoa_Trust_EntryNo
+	lineageTag: 7587e647-af73-4186-8d06-2077201faffe
+	queryGroup: 'Near Real Time\Refresh Parameters'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Number
+
+expression Ignite_Aotearoa_Limited_EntryNo =
+		let
+		    Source = #"Latest Company entryNo",
+		    Ignite_Aotearoa_Limited_EntryNo = Source{[Company_Name="Ignite_Aotearoa_Limited"]}[entryNo_MAX]
+		in
+		    Ignite_Aotearoa_Limited_EntryNo
+	lineageTag: 0593b207-f522-43c7-a8c3-90e18b358495
+	queryGroup: 'Near Real Time\Refresh Parameters'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Number
+
+expression Mind_and_Body_Consultants_Ltd_EntryNo =
+		let
+		    Source = #"Latest Company entryNo",
+		    Mind_and_Body_Consultants_Ltd_EntryNo = Source{[Company_Name="Mind_and_Body_Consultants_Ltd"]}[entryNo_MAX]
+		in
+		    Mind_and_Body_Consultants_Ltd_EntryNo
+	lineageTag: bc3814bc-0bdb-47e3-957d-7f1b05c4c5ea
+	queryGroup: 'Near Real Time\Refresh Parameters'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Number
+
+expression 'glEntries (EAL)' =
+		let
+		    MaxEntryNo = Emerge_Aotearoa_Limited_EntryNo,
+		    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(
+		        "Production", "Emerge Aotearoa Limited", "theta/emergeAPI/v1.0", [UseReadOnlyReplica = true]
+		    ),
+		    Navigation = Source{[Name = "glEntries", Signature = "table"]}[Data],
+		    #"Added custom" = Table.AddColumn(Navigation, "PartitionKey", each "Emerge_Aotearoa_Limited"),
+		    #"Transform columns" = Table.TransformColumnTypes(#"Added custom", {{"PartitionKey", type text}}),
+		    #"Remove columns" = Table.RemoveColumns(
+		        #"Transform columns",
+		        Table.ColumnsOfType(
+		            #"Transform columns",
+		            {type table, type record, type list, type nullable binary, type binary, type function}
+		        )
+		    ),
+		    #"Filtered rows" = Table.SelectRows(#"Remove columns", each [entryNo] > MaxEntryNo)
+		in
+		    #"Filtered rows"
+	lineageTag: a3924332-f61e-4beb-b2ba-62c3f24bba15
+	queryGroup: 'Near Real Time\Theta API'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'glEntries (EAT)' =
+		let
+		    MaxEntryNo = Emerge_Aotearoa_Trust_EntryNo,
+		    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(
+		        "Production", "Emerge Aotearoa Trust", "theta/emergeAPI/v1.0", [UseReadOnlyReplica = true]
+		    ),
+		    Navigation = Source{[Name = "glEntries", Signature = "table"]}[Data],
+		    #"Added custom" = Table.AddColumn(Navigation, "PartitionKey", each "Emerge_Aotearoa_Trust"),
+		    #"Transform columns" = Table.TransformColumnTypes(#"Added custom", {{"PartitionKey", type text}}),
+		    #"Remove columns" = Table.RemoveColumns(
+		        #"Transform columns",
+		        Table.ColumnsOfType(
+		            #"Transform columns",
+		            {type table, type record, type list, type nullable binary, type binary, type function}
+		        )
+		    ),
+		    #"Filtered rows" = Table.SelectRows(#"Remove columns", each [entryNo] > MaxEntryNo)
+		in
+		    #"Filtered rows"
+	lineageTag: 7b5b57e2-f04b-44b8-bdc0-2c4c415f0ac3
+	queryGroup: 'Near Real Time\Theta API'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'glEntries (IAL)' =
+		let
+		    MaxEntryNo = Ignite_Aotearoa_Limited_EntryNo,
+		    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(
+		        "Production", "Ignite Aotearoa Limited", "theta/emergeAPI/v1.0", [UseReadOnlyReplica = true]
+		    ),
+		    Navigation = Source{[Name = "glEntries", Signature = "table"]}[Data],
+		    #"Added custom" = Table.AddColumn(Navigation, "PartitionKey", each "Ignite_Aotearoa_Limited"),
+		    #"Transform columns" = Table.TransformColumnTypes(#"Added custom", {{"PartitionKey", type text}}),
+		    #"Remove columns" = Table.RemoveColumns(
+		        #"Transform columns",
+		        Table.ColumnsOfType(
+		            #"Transform columns",
+		            {type table, type record, type list, type nullable binary, type binary, type function}
+		        )
+		    ),
+		    #"Filtered rows" = Table.SelectRows(#"Remove columns", each [entryNo] > MaxEntryNo)
+		in
+		    #"Filtered rows"
+	lineageTag: 6496b5a1-35b1-467b-bac4-2bde879b3288
+	queryGroup: 'Near Real Time\Theta API'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'glEntries (EAHT)' =
+		let
+		    MaxEntryNo = Emerge_Aotearoa_Housing_Trust_EntryNo,
+		    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(
+		        "Production", "Emerge Aotearoa Housing Trust", "theta/emergeAPI/v1.0", [UseReadOnlyReplica = true]
+		    ),
+		    Navigation = Source{[Name = "glEntries", Signature = "table"]}[Data],
+		    #"Added custom" = Table.AddColumn(Navigation, "PartitionKey", each "Emerge_Aotearoa_Housing_Trust"),
+		    #"Transform columns" = Table.TransformColumnTypes(#"Added custom", {{"PartitionKey", type text}}),
+		    #"Remove columns" = Table.RemoveColumns(
+		        #"Transform columns",
+		        Table.ColumnsOfType(
+		            #"Transform columns",
+		            {type table, type record, type list, type nullable binary, type binary, type function}
+		        )
+		    ),
+		    #"Filtered rows" = Table.SelectRows(#"Remove columns", each [entryNo] > MaxEntryNo)
+		in
+		    #"Filtered rows"
+	lineageTag: 2b53d162-c83a-4814-a514-8aa64167c6c5
+	queryGroup: 'Near Real Time\Theta API'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'glEntries (MABC)' =
+		let
+		    MaxEntryNo = Mind_and_Body_Consultants_Ltd_EntryNo,
+		    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(
+		        "Production", "Mind and Body Consultants Ltd", "theta/emergeAPI/v1.0", [UseReadOnlyReplica = true]
+		    ),
+		    Navigation = Source{[Name = "glEntries", Signature = "table"]}[Data],
+		    #"Added custom" = Table.AddColumn(Navigation, "PartitionKey", each "Mind_and_Body_Consultants_Ltd"),
+		    #"Transform columns" = Table.TransformColumnTypes(#"Added custom", {{"PartitionKey", type text}}),
+		    #"Remove columns" = Table.RemoveColumns(
+		        #"Transform columns",
+		        Table.ColumnsOfType(
+		            #"Transform columns",
+		            {type table, type record, type list, type nullable binary, type binary, type function}
+		        )
+		    ),
+		    #"Filtered rows" = Table.SelectRows(#"Remove columns", each [entryNo] > MaxEntryNo),
+		    #"Filtered Rows" = Table.SelectRows(#"Filtered rows", each ([description] <> "MBC FINAL JNLS"))
+		in
+		    #"Filtered Rows"
+	lineageTag: a64fd087-ae22-4f82-be25-69e065db7d47
+	queryGroup: 'Near Real Time\Theta API'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'API glEntries (All Companies)' =
+		let
+		  Source = Table.Combine({#"glEntries (MABC)", #"glEntries (EAL)", #"glEntries (EAT)", #"glEntries (IAL)", #"glEntries (EAHT)"}),
+		  #"Transform columns" = Table.TransformColumnTypes(Source, {{"balAccountType", type text}, {"documentType", type text}, {"genPostingType", type text}, {"sourceType", type text}}),
+		  #"Replace errors" = Table.ReplaceErrorValues(#"Transform columns", {{"balAccountType", null}, {"documentType", null}, {"genPostingType", null}, {"sourceType", null}}),
+		    #"Removed Columns" = Table.RemoveColumns(#"Replace errors",{"ETag"}),
+		    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns",{{"PartitionKey", "Company_Name"}}),
+		    BufferedTable = Table.Buffer(#"Renamed Columns")
+		in
+		    BufferedTable
+	lineageTag: cadb7f73-2425-445f-b9ad-706119097db0
+	queryGroup: 'Near Real Time\Theta API'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'BusinessCentral All Dimensions' =
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="WITH cte_dimension_values#(lf)AS (#(lf)#(tab)SELECT MAX(dimensionValueID) AS dimensionValueID,#(lf)#(tab)#(tab)Company_Name,#(lf)#(tab)#(tab)[name] AS DimensionValueName,#(lf)#(tab)#(tab)dimensionCode#(lf)#(tab)FROM [BusinessCentral].[dimensionValues]#(lf)#(tab)WHERE ODSIsCurrent = 1#(lf)#(tab)#(tab)AND blocked = 0#(lf)#(tab)GROUP BY Company_Name,#(lf)#(tab)#(tab)[name],#(lf)#(tab)#(tab)dimensionCode#(lf)#(tab)),#(lf)cte_all_dimensions#(lf)AS (#(lf)#(tab)SELECT dse.dimensionSetID,#(lf)#(tab)#(tab)dse.Company_Name,#(lf)#(tab)#(tab)dse.dimensionCode,#(lf)#(tab)#(tab)dse.dimensionValueName,#(lf)#(tab)#(tab)dv.dimensionValueID#(lf)#(tab)FROM BusinessCentral.dimensionSetEntries dse#(lf)#(tab)LEFT JOIN cte_dimension_values dv ON dse.Company_Name = dv.Company_Name#(lf)#(tab)#(tab)AND dse.dimensionCode = dv.dimensionCode#(lf)#(tab)#(tab)AND dse.dimensionValueName = dv.DimensionValueName#(lf)#(tab)WHERE dse.ODSIsCurrent = 1#(lf)#(tab)#(tab)AND dse.dimensionCode IN (#(lf)#(tab)#(tab)#(tab)'BUDGET HOLDER',#(lf)#(tab)#(tab)#(tab)'CUSTOMER',#(lf)#(tab)#(tab)#(tab)'CONTRACT',#(lf)#(tab)#(tab)#(tab)'DEPARTMENT',#(lf)#(tab)#(tab)#(tab)'DISTRICT',#(lf)#(tab)#(tab)#(tab)'FUNDER',#(lf)#(tab)#(tab)#(tab)'FUNDING AGENCY',#(lf)#(tab)#(tab)#(tab)'LOCATE',#(lf)#(tab)#(tab)#(tab)'REGION',#(lf)#(tab)#(tab)#(tab)'SERVICE NAME',#(lf)#(tab)#(tab)#(tab)'SERVICE TYPE',#(lf)#(tab)#(tab)#(tab)'VENDOR'#(lf)#(tab)#(tab)#(tab))#(lf)#(tab))#(lf)SELECT dimensionSetID,#(lf)#(tab)Company_Name,#(lf)#(tab)dimensionCode,#(lf)#(tab)dimensionValueName,#(lf)#(tab)dimensionValueID#(lf)FROM cte_all_dimensions;"]),
+		    BufferedTable = Table.Buffer(Source)
+		in
+		    BufferedTable
+	lineageTag: 9d4b9580-9d29-41f8-8237-39cf621b940c
+	queryGroup: 'Near Real Time\Dimension Values'
+
+	annotation PBI_ResultType = Table
+
+expression API_ETL_fact_finance_general_ledger = ```
+		let
+		    // Original Source table for GL Entries
+		    Source = #"API glEntries (All Companies)",
+		    // Buffer the Source table
+		    BufferedSource = Table.Buffer(Source),
+		
+		    // Original All Dimensions table
+		    AllDimensions = #"BusinessCentral All Dimensions",
+		    // Buffer the All Dimensions table
+		    BufferedAllDimensions = Table.Buffer(AllDimensions),
+		
+		    // Join GL Entries with All Dimensions using the buffered tables
+		    JoinedTable = Table.NestedJoin(
+		        BufferedSource,
+		        {"dimensionSetID", "Company_Name"},
+		        BufferedAllDimensions,
+		        {"dimensionSetID", "Company_Name"},
+		        "Dimensions",
+		        JoinKind.LeftOuter
+		    ),
+		    // Expand the joined Dimensions table
+		    ExpandedDimensions = Table.ExpandTableColumn(
+		        JoinedTable,
+		        "Dimensions",
+		        {"dimensionCode", "dimensionValueID"},
+		        {"Dimension.dimensionCode", "Dimension.dimensionValueID"}
+		    ),
+		    // Replace null values in dimensionCode with a placeholder
+		    ReplacedNulls = Table.ReplaceValue(
+		        ExpandedDimensions, 
+		        null, 
+		        "Unknown", 
+		        Replacer.ReplaceValue, 
+		        {"Dimension.dimensionCode"}
+		    ),
+		    // Pivot the dimensions
+		    PivotedDimensions = Table.Pivot(
+		        ReplacedNulls,
+		        List.Distinct(ReplacedNulls[Dimension.dimensionCode]),
+		        "Dimension.dimensionCode",
+		        "Dimension.dimensionValueID",
+		        List.Max
+		    ),
+		    // Rename columns to match SQL output and adjust case
+		    RenamedColumns = Table.RenameColumns(
+		        PivotedDimensions,
+		        {
+		            {"Company_Name", "PartitionKey"},
+		            {"entryNo", "RowKey"},
+		            {"userID", "User_ID"},
+		            {"transactionNo", "Transaction_No_"},
+		            {"documentNo", "Document_No_"},
+		            {"gLAccountNo", "G_L_Account_No_"},
+		            {"sourceNo", "Source_No_"},
+		            {"noSeries", "No__Series"},
+		            {"sourceCode", "Source_Code"},
+		            {"sourceType", "Source_Type"},
+		            {"documentType", "Document_Type"},
+		            {"genPostingType", "Gen__Posting_Type"},
+		            {"gLAccountName", "G_L_Account_Name"},
+		            {"genBusPostingGroup", "Gen__Bus__Posting_Group"},
+		            {"genProdPostingGroup", "Gen__Prod__Posting_Group"},
+		            {"globalDimension1Code", "Global_Dimension_1_Code"},
+		            {"postingDate", "Posting_Date"},
+		            {"documentDate", "Document_Date"},
+		            {"lastModifiedDateTime", "Last_Modified_DateTime"},
+		            {"creditAmount", "Credit_Amount"},
+		            {"debitAmount", "Debit_Amount"},
+		            {"description", "Description"},
+		            {"amount", "Amount"}
+		        }
+		    ),
+		    // Add calculated columns
+		    AddedColumns = Table.AddColumn(
+		        RenamedColumns,
+		        "System_Created_Entry",
+		        each if [systemCreatedEntry] = null then null else Number.From([systemCreatedEntry])
+		    ),
+		    AddedCompanyName = Table.AddColumn(
+		        AddedColumns,
+		        "__CompanyName",
+		        each Text.Replace([PartitionKey], "_", " ")
+		    ),
+		    // Add ODS columns
+		    AddedODSColumns1 = Table.AddColumn(
+		        AddedCompanyName, 
+		        "ODSIsCurrent", 
+		        each 1, 
+		        type number
+		    ),
+		    AddedODSColumns2 = Table.AddColumn(
+		        AddedODSColumns1, 
+		        "ODSEffectiveFrom", 
+		        each DateTime.LocalNow(), 
+		        type datetime
+		    ),
+		    AddedODSColumns3 = Table.AddColumn(
+		        AddedODSColumns2, 
+		        "ODSEffectiveTo", 
+		        each DateTime.LocalNow(), 
+		        type datetime
+		    ),
+		    AddedODSColumns4 = Table.AddColumn(
+		        AddedODSColumns3, 
+		        "ODSDMLOperation", 
+		        each "I", 
+		        type text
+		    ),
+		    // Reorder columns to match SQL script
+		    ReorderedColumns = Table.SelectColumns(
+		        AddedODSColumns4,
+		        {
+		            "PartitionKey",
+		            "RowKey",
+		            "BUDGET HOLDER",
+		            "CUSTOMER",
+		            "CONTRACT",
+		            "DEPARTMENT",
+		            "DISTRICT",
+		            "FUNDER",
+		            "FUNDING AGENCY",
+		            "LOCATE",
+		            "REGION",
+		            "SERVICE NAME",
+		            "SERVICE TYPE",
+		            "VENDOR",
+		            "User_ID",
+		            "Transaction_No_",
+		            "Description",
+		            "Document_No_",
+		            "G_L_Account_No_",
+		            "Source_No_",
+		            "No__Series",
+		            "Source_Code",
+		            "Source_Type",
+		            "Document_Type",
+		            "Gen__Posting_Type",
+		            "G_L_Account_Name",
+		            "Gen__Bus__Posting_Group",
+		            "Gen__Prod__Posting_Group",
+		            "Global_Dimension_1_Code",
+		            "System_Created_Entry",
+		            "__CompanyName",
+		            "Posting_Date",
+		            "Document_Date",
+		            "Last_Modified_DateTime",
+		            "Amount",
+		            "Credit_Amount",
+		            "Debit_Amount",
+		            "ODSIsCurrent",
+		            "ODSEffectiveFrom",
+		            "ODSEffectiveTo",
+		            "ODSDMLOperation"
+		        },
+		        MissingField.UseNull
+		    ),
+		    // Change column types where needed
+		    #"Changed Type" = Table.TransformColumnTypes(
+		        ReorderedColumns,
+		        {
+		            {"BUDGET HOLDER", Int64.Type}, 
+		            {"CUSTOMER", Int64.Type}, 
+		            {"CONTRACT", Int64.Type}, 
+		            {"DEPARTMENT", Int64.Type}, 
+		            {"DISTRICT", Int64.Type}, 
+		            {"FUNDER", Int64.Type}, 
+		            {"FUNDING AGENCY", Int64.Type}, 
+		            {"LOCATE", Int64.Type}, 
+		            {"REGION", Int64.Type}, 
+		            {"SERVICE NAME", Int64.Type}, 
+		            {"SERVICE TYPE", Int64.Type}, 
+		            {"VENDOR", Int64.Type}, 
+		            {"Posting_Date", type datetime}, 
+		            {"Document_Date", type datetime}, 
+		            {"__CompanyName", type text}
+		        }
+		    )
+		in
+		    #"Changed Type"
+		```
+	lineageTag: a9695ab1-1c6d-4d45-830c-4c4bbd14c7b1
+	queryGroup: 'Near Real Time\Transformations'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression API_EDW_vw_fact_finance_general_ledger =
+		let
+		    // 1) Main Source
+		    Source = API_ETL_fact_finance_general_ledger,
+		    // Buffer Main Source
+		    BufferedSource = Table.Buffer(Source),
+		
+		    // 2) Dimension Queries
+		    //    Make sure each dimension query is itself defined in your PBIX or dataflow, e.g. "edw dim_company"
+		    DimCompany = #"edw dim_company",
+		    BufferedDimCompany = Table.Buffer(DimCompany),
+		
+		    DimService = #"edw dim_service",
+		    BufferedDimService = Table.Buffer(DimService),
+		
+		    DimRegion = #"edw dim_region",
+		    BufferedDimRegion = Table.Buffer(DimRegion),
+		
+		    DimLocation = #"edw dim_location",
+		    BufferedDimLocation = Table.Buffer(DimLocation),
+		
+		    DimDistrict = #"edw dim_district",
+		    BufferedDimDistrict = Table.Buffer(DimDistrict),
+		
+		    DimDepartment = #"edw dim_department",
+		    BufferedDimDepartment = Table.Buffer(DimDepartment),
+		
+		    DimFinanceVendor = #"edw dim_finance_vendor",
+		    BufferedDimFinanceVendor = Table.Buffer(DimFinanceVendor),
+		
+		    DimFinanceGLAccount = #"edw dim_finance_general_ledger_account",
+		    BufferedDimFinanceGLAccount = Table.Buffer(DimFinanceGLAccount),
+		
+		    DimFinanceFundingAgency = #"edw dim_finance_funding_agency",
+		    BufferedDimFinanceFundingAgency = Table.Buffer(DimFinanceFundingAgency),
+		
+		    DimFinanceFunder = #"edw dim_finance_funder",
+		    BufferedDimFinanceFunder = Table.Buffer(DimFinanceFunder),
+		
+		    DimFinanceCustomer = #"edw dim_finance_customer",
+		    BufferedDimFinanceCustomer = Table.Buffer(DimFinanceCustomer),
+		
+		    DimFinanceContract = #"edw dim_finance_contract",
+		    BufferedDimFinanceContract = Table.Buffer(DimFinanceContract),
+		
+		    DimFinanceBudgetHolder = #"edw dim_finance_budget_holder",
+		    BufferedDimFinanceBudgetHolder = Table.Buffer(DimFinanceBudgetHolder),
+		
+		    // 3) Perform Joins Using the Buffered Tables
+		    //    (Use the buffered versions in Table.NestedJoin)
+		
+		    // Merge with Company
+		    #"Merged queries" = Table.NestedJoin(
+		        BufferedSource,
+		        {"__CompanyName"},
+		        BufferedDimCompany,
+		        {"company_name"},
+		        "edw dim_company",
+		        JoinKind.LeftOuter
+		    ),
+		    #"Expanded edw dim_company" = Table.ExpandTableColumn(
+		        #"Merged queries",
+		        "edw dim_company",
+		        {"dim_company_key"},
+		        {"dim_company_key"}
+		    ),
+		
+		    // Merge with Service
+		    #"Merged queries 1" = Table.NestedJoin(
+		        #"Expanded edw dim_company",
+		        {"__CompanyName", "SERVICE NAME"},
+		        BufferedDimService,
+		        {"company_name", "service_id"},
+		        "edw dim_service",
+		        JoinKind.LeftOuter
+		    ),
+		    #"Expanded edw dim_service" = Table.ExpandTableColumn(
+		        #"Merged queries 1",
+		        "edw dim_service",
+		        {"dim_service_key"},
+		        {"dim_service_key"}
+		    ),
+		
+		    // Merge with Region
+		    #"Merged queries 2" = Table.NestedJoin(
+		        #"Expanded edw dim_service",
+		        {"__CompanyName", "REGION"},
+		        BufferedDimRegion,
+		        {"region_company_name", "region_dimension_value_id"},
+		        "edw dim_region",
+		        JoinKind.LeftOuter
+		    ),
+		    #"Expanded edw dim_region" = Table.ExpandTableColumn(
+		        #"Merged queries 2",
+		        "edw dim_region",
+		        {"dim_region_key"},
+		        {"dim_region_key"}
+		    ),
+		
+		    // Merge with Location
+		    #"Merged queries 3" = Table.NestedJoin(
+		        #"Expanded edw dim_region",
+		        {"__CompanyName", "LOCATE"},
+		        BufferedDimLocation,
+		        {"location_company_name", "location_dimension_value_id"},
+		        "edw dim_location",
+		        JoinKind.LeftOuter
+		    ),
+		    #"Expanded edw dim_location" = Table.ExpandTableColumn(
+		        #"Merged queries 3",
+		        "edw dim_location",
+		        {"dim_location_key"},
+		        {"dim_location_key"}
+		    ),
+		
+		    // Merge with District
+		    #"Merged queries 4" = Table.NestedJoin(
+		        #"Expanded edw dim_location",
+		        {"__CompanyName", "DISTRICT"},
+		        BufferedDimDistrict,
+		        {"district_company_name", "district_dimension_value_id"},
+		        "edw dim_district",
+		        JoinKind.LeftOuter
+		    ),
+		    #"Expanded edw dim_district" = Table.ExpandTableColumn(
+		        #"Merged queries 4",
+		        "edw dim_district",
+		        {"dim_district_key"},
+		        {"dim_district_key"}
+		    ),
+		
+		    // Merge with Department
+		    #"Merged queries 5" = Table.NestedJoin(
+		        #"Expanded edw dim_district",
+		        {"__CompanyName", "DEPARTMENT"},
+		        BufferedDimDepartment,
+		        {"department_company_name", "department_dimension_value_id"},
+		        "edw dim_department",
+		        JoinKind.LeftOuter
+		    ),
+		    #"Expanded edw dim_department" = Table.ExpandTableColumn(
+		        #"Merged queries 5",
+		        "edw dim_department",
+		        {"dim_department_key"},
+		        {"dim_department_key"}
+		    ),
+		
+		    // Merge with Finance Vendor
+		    #"Merged queries 6" = Table.NestedJoin(
+		        #"Expanded edw dim_department",
+		        {"__CompanyName", "VENDOR"},
+		        BufferedDimFinanceVendor,
+		        {"finance_vendor_company_name", "finance_vendor_dimension_value_id"},
+		        "edw dim_finance_vendor",
+		        JoinKind.LeftOuter
+		    ),
+		    #"Expanded edw dim_finance_vendor" = Table.ExpandTableColumn(
+		        #"Merged queries 6",
+		        "edw dim_finance_vendor",
+		        {"dim_finance_vendor_key"},
+		        {"dim_finance_vendor_key"}
+		    ),
+		
+		    // Merge with Finance GL Account
+		    #"Merged queries 7" = Table.NestedJoin(
+		        #"Expanded edw dim_finance_vendor",
+		        {"__CompanyName", "G_L_Account_No_"},
+		        BufferedDimFinanceGLAccount,
+		        {"finance_general_ledger_account_company_name", "finance_general_ledger_account_code"},
+		        "edw dim_finance_general_ledger_account",
+		        JoinKind.LeftOuter
+		    ),
+		    #"Expanded edw dim_finance_general_ledger_account" = Table.ExpandTableColumn(
+		        #"Merged queries 7",
+		        "edw dim_finance_general_ledger_account",
+		        {"dim_finance_general_ledger_account_key"},
+		        {"dim_finance_general_ledger_account_key"}
+		    ),
+		
+		    // Merge with Finance Funding Agency
+		    #"Merged queries 8" = Table.NestedJoin(
+		        #"Expanded edw dim_finance_general_ledger_account",
+		        {"__CompanyName", "FUNDING AGENCY"},
+		        BufferedDimFinanceFundingAgency,
+		        {"finance_funding_agency_company_name", "finance_funding_agency_dimension_value_id"},
+		        "edw dim_finance_funding_agency",
+		        JoinKind.LeftOuter
+		    ),
+		    #"Expanded edw dim_finance_funding_agency" = Table.ExpandTableColumn(
+		        #"Merged queries 8",
+		        "edw dim_finance_funding_agency",
+		        {"dim_finance_funding_agency_key"},
+		        {"dim_finance_funding_agency_key"}
+		    ),
+		
+		    // Merge with Finance Funder
+		    #"Merged queries 9" = Table.NestedJoin(
+		        #"Expanded edw dim_finance_funding_agency",
+		        {"__CompanyName", "FUNDER"},
+		        BufferedDimFinanceFunder,
+		        {"finance_funder_company_name", "finance_funder_dimension_value_id"},
+		        "edw dim_finance_funder",
+		        JoinKind.LeftOuter
+		    ),
+		    #"Expanded edw dim_finance_funder" = Table.ExpandTableColumn(
+		        #"Merged queries 9",
+		        "edw dim_finance_funder",
+		        {"dim_finance_funder_key"},
+		        {"dim_finance_funder_key"}
+		    ),
+		
+		    // Merge with Finance Customer
+		    #"Merged queries 10" = Table.NestedJoin(
+		        #"Expanded edw dim_finance_funder",
+		        {"__CompanyName", "CUSTOMER"},
+		        BufferedDimFinanceCustomer,
+		        {"finance_customer_company_name", "finance_customer_dimension_value_id"},
+		        "edw dim_finance_customer",
+		        JoinKind.LeftOuter
+		    ),
+		    #"Expanded edw dim_finance_customer" = Table.ExpandTableColumn(
+		        #"Merged queries 10",
+		        "edw dim_finance_customer",
+		        {"dim_finance_customer_key"},
+		        {"dim_finance_customer_key"}
+		    ),
+		
+		    // Merge with Finance Contract
+		    #"Merged queries 11" = Table.NestedJoin(
+		        #"Expanded edw dim_finance_customer",
+		        {"__CompanyName", "CONTRACT"},
+		        BufferedDimFinanceContract,
+		        {"finance_contract_company_name", "finance_contract_dimension_value_id"},
+		        "edw dim_finance_contract",
+		        JoinKind.LeftOuter
+		    ),
+		    #"Expanded edw dim_finance_contract" = Table.ExpandTableColumn(
+		        #"Merged queries 11",
+		        "edw dim_finance_contract",
+		        {"dim_finance_contract_key"},
+		        {"dim_finance_contract_key"}
+		    ),
+		
+		    // Merge with Finance Budget Holder
+		    #"Merged Queries" = Table.NestedJoin(
+		        #"Expanded edw dim_finance_contract",
+		        {"__CompanyName", "BUDGET HOLDER"},
+		        BufferedDimFinanceBudgetHolder,
+		        {"finance_budget_holder_company_name", "finance_budget_holder_dimension_value_id"},
+		        "edw dim_finance_budget_holder",
+		        JoinKind.LeftOuter
+		    ),
+		    #"Expanded edw dim_finance_budget_holder" = Table.ExpandTableColumn(
+		        #"Merged Queries",
+		        "edw dim_finance_budget_holder",
+		        {"dim_finance_budget_holder_key"},
+		        {"dim_finance_budget_holder_key"}
+		    ),
+		
+		    // 4) Replace Values (Null -> -1 in dimension key columns)
+		    #"Replaced Value" = Table.ReplaceValue(
+		        #"Expanded edw dim_finance_budget_holder",
+		        null,
+		        -1,
+		        Replacer.ReplaceValue,
+		        {
+		            "dim_company_key",
+		            "dim_service_key",
+		            "dim_region_key",
+		            "dim_location_key",
+		            "dim_district_key",
+		            "dim_department_key",
+		            "dim_finance_vendor_key",
+		            "dim_finance_general_ledger_account_key",
+		            "dim_finance_funding_agency_key",
+		            "dim_finance_funder_key",
+		            "dim_finance_customer_key",
+		            "dim_finance_contract_key",
+		            "dim_finance_budget_holder_key"
+		        }
+		    ),
+		
+		    // 5) Add/transform columns
+		    #"Added custom" = Table.AddColumn(#"Replaced Value", "DWHSourceSystem", each "API"),
+		    #"Added custom1" = Table.AddColumn(#"Added custom", "DWHBatchId", each null),
+		    #"Added custom2" = Table.AddColumn(
+		        #"Added custom1",
+		        "DWHDMLOperation",
+		        each if [ODSDMLOperation] = "U" then "I" else [ODSDMLOperation]
+		    ),
+		    #"Added custom3" = Table.AddColumn(#"Added custom2", "DWHCreatedAt", each DateTime.LocalNow()),
+		    #"Added custom4" = Table.AddColumn(#"Added custom3", "DWHModifiedOn", each DateTime.LocalNow()),
+		    #"Added custom5" = Table.AddColumn(#"Added custom4", "fact_finance_general_ledger_key", each null),
+		    #"Added custom6" = Table.AddColumn(
+		        #"Added custom5",
+		        "fact_finance_general_ledger_partition_key",
+		        each [PartitionKey]
+		    ),
+		    #"Added custom7" = Table.AddColumn(
+		        #"Added custom6",
+		        "fact_finance_general_ledger_row_key",
+		        each [RowKey]
+		    ),
+		    #"Added custom8" = Table.AddColumn(
+		        #"Added custom7",
+		        "finance_posting_date_key",
+		        each DateTime.ToText([Posting_Date], "yyyyMMdd")
+		    ),
+		    #"Added custom9" = Table.AddColumn(
+		        #"Added custom8",
+		        "finance_document_date_key",
+		        each DateTime.ToText([Document_Date], "yyyyMMdd")
+		    ),
+		
+		    // 6) Rename columns
+		    #"Renamed Columns" = Table.RenameColumns(
+		        #"Added custom9",
+		        {
+		            {"BUDGET HOLDER", "finance_budget_holder_id"},
+		            {"CONTRACT", "finance_contract_id"},
+		            {"CUSTOMER", "finance_customer_id"},
+		            {"DEPARTMENT", "department_id"},
+		            {"DISTRICT", "district_id"},
+		            {"FUNDER", "finance_funder_id"},
+		            {"FUNDING AGENCY", "finance_funding_agency_id"},
+		            {"LOCATE", "location_id"},
+		            {"REGION", "region_id"},
+		            {"SERVICE NAME", "service_id"},
+		            {"VENDOR", "finance_vendor_id"},
+		            {"User_ID", "user_id"},
+		            {"Transaction_No_", "finance_general_ledger_transaction_no"},
+		            {"Description", "finance_general_ledger_description"},
+		            {"Document_No_", "finance_general_ledger_document_no"},
+		            {"G_L_Account_No_", "finance_general_ledger_account_no"},
+		            {"Source_No_", "finance_general_ledger_source_no"},
+		            {"No__Series", "finance_general_ledger_no_series"},
+		            {"Source_Code", "finance_general_ledger_source_code"},
+		            {"Source_Type", "finance_general_ledger_source_type"},
+		            {"Document_Type", "finance_general_ledger_document_type"},
+		            {"Gen__Posting_Type", "finance_general_ledger_gen_posting_type"},
+		            {"G_L_Account_Name", "finance_general_ledger_account_name"},
+		            {"Gen__Bus__Posting_Group", "finance_general_ledger_gen_bus_posting_group"},
+		            {"Gen__Prod__Posting_Group", "finance_general_ledger_gen_prod_posting_group"},
+		            {"Global_Dimension_1_Code", "finance_general_ledger_global_dimension_1_code"},
+		            {"System_Created_Entry", "finance_general_ledger_system_created_entry"},
+		            {"__CompanyName", "finance_general_ledger_company_name"},
+		            {"Last_Modified_DateTime", "finance_general_ledger_last_modified_date_time"},
+		            {"Amount", "finance_general_ledger_amount"},
+		            {"Credit_Amount", "finance_general_ledger_credit_amount"},
+		            {"Debit_Amount", "finance_general_ledger_debit_amount"}
+		        }
+		    ),
+		
+		    // 7) Change column types where needed
+		    #"Changed Type" = Table.TransformColumnTypes(
+		        #"Renamed Columns",
+		        {
+		            {"finance_posting_date_key", Int64.Type},
+		            {"finance_document_date_key", Int64.Type}
+		        }
+		    ),
+		
+		    // 8) Reorder columns
+		    #"Reordered Columns" = Table.ReorderColumns(
+		        #"Changed Type",
+		        {
+		            "fact_finance_general_ledger_key",
+		            "dim_finance_general_ledger_account_key",
+		            "dim_finance_budget_holder_key",
+		            "dim_finance_contract_key",
+		            "dim_finance_customer_key",
+		            "dim_department_key",
+		            "dim_district_key",
+		            "dim_finance_funder_key",
+		            "dim_finance_funding_agency_key",
+		            "dim_location_key",
+		            "dim_region_key",
+		            "dim_service_key",
+		            "dim_finance_vendor_key",
+		            "dim_company_key",
+		            "fact_finance_general_ledger_partition_key",
+		            "fact_finance_general_ledger_row_key",
+		            "finance_budget_holder_id",
+		            "finance_contract_id",
+		            "finance_customer_id",
+		            "department_id",
+		            "district_id",
+		            "finance_funder_id",
+		            "finance_funding_agency_id",
+		            "location_id",
+		            "region_id",
+		            "service_id",
+		            "finance_vendor_id",
+		            "user_id",
+		            "finance_general_ledger_transaction_no",
+		            "finance_general_ledger_description",
+		            "finance_general_ledger_document_no",
+		            "finance_general_ledger_account_no",
+		            "finance_general_ledger_source_no",
+		            "finance_general_ledger_no_series",
+		            "finance_general_ledger_source_code",
+		            "finance_general_ledger_source_type",
+		            "finance_general_ledger_document_type",
+		            "finance_general_ledger_gen_posting_type",
+		            "finance_general_ledger_account_name",
+		            "finance_general_ledger_gen_bus_posting_group",
+		            "finance_general_ledger_gen_prod_posting_group",
+		            "finance_general_ledger_global_dimension_1_code",
+		            "finance_general_ledger_system_created_entry",
+		            "finance_general_ledger_company_name",
+		            "finance_posting_date_key",
+		            "finance_document_date_key",
+		            "finance_general_ledger_last_modified_date_time",
+		            "finance_general_ledger_amount",
+		            "finance_general_ledger_credit_amount",
+		            "finance_general_ledger_debit_amount",
+		            "DWHSourceSystem",
+		            "DWHBatchId",
+		            "DWHDMLOperation",
+		            "DWHCreatedAt",
+		            "DWHModifiedOn"
+		        }
+		    ),
+		
+		    // 9) Final transform columns step for text fields
+		    #"Transform columns" = Table.TransformColumnTypes(
+		        #"Reordered Columns",
+		        {
+		            {"fact_finance_general_ledger_key", type text},
+		            {"fact_finance_general_ledger_partition_key", type text},
+		            {"fact_finance_general_ledger_row_key", type text},
+		            {"DWHSourceSystem", type text},
+		            {"DWHBatchId", type text},
+		            {"DWHDMLOperation", type text},
+		            {"DWHCreatedAt", type text},
+		            {"DWHModifiedOn", type text}
+		        }
+		    )
+		in
+		    #"Transform columns"
+	lineageTag: 9ad28103-5626-4e9b-8629-71c160e063ba
+	queryGroup: 'Near Real Time\Transformations'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'edw dim_finance_budget_holder' =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT #(lf)    [dim_finance_budget_holder_key],#(lf)    [finance_budget_holder_dimension_value_id],#(lf)    [finance_budget_holder_company_name]#(lf)FROM [edw].[dim_finance_budget_holder]#(lf)WHERE dwhiscurrent = 1"])
+		in
+		    Source
+	lineageTag: 2fbcbf4a-eb1a-4349-b90e-4b5062fe5540
+	queryGroup: 'Near Real Time\EDW Dim Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'edw dim_finance_contract' =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT #(lf)    [dim_finance_contract_key],#(lf)    [finance_contract_dimension_value_id],#(lf)    [finance_contract_company_name]#(lf)FROM [edw].[dim_finance_contract]#(lf)WHERE dwhiscurrent = 1"])
+		in
+		    Source
+	lineageTag: fe80f899-1dd1-48a7-8b42-be8df4f0fe76
+	queryGroup: 'Near Real Time\EDW Dim Tables'
+
+	annotation PBI_ResultType = Table
+
+expression 'edw dim_finance_customer' =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT #(lf)    [dim_finance_customer_key],#(lf)    [finance_customer_dimension_value_id],#(lf)    [finance_customer_company_name]#(lf)FROM [edw].[dim_finance_customer]#(lf)WHERE dwhiscurrent = 1"])
+		in
+		    Source
+	lineageTag: 450dafa9-c30e-475e-8c78-cf66f679f7b0
+	queryGroup: 'Near Real Time\EDW Dim Tables'
+
+	annotation PBI_ResultType = Table
+
+expression 'edw dim_finance_funder' =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT #(lf)    [dim_finance_funder_key],#(lf)    [finance_funder_dimension_value_id],#(lf)    [finance_funder_company_name]#(lf)FROM [edw].[dim_finance_funder]#(lf)WHERE dwhiscurrent = 1"])
+		in
+		    Source
+	lineageTag: 862f3f31-6b50-454b-afe7-bc124a060381
+	queryGroup: 'Near Real Time\EDW Dim Tables'
+
+	annotation PBI_ResultType = Table
+
+expression 'edw dim_finance_funding_agency' =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT #(lf)    [dim_finance_funding_agency_key],#(lf)    [finance_funding_agency_dimension_value_id],#(lf)    [finance_funding_agency_company_name]#(lf)FROM [edw].[dim_finance_funding_agency]#(lf)WHERE dwhiscurrent = 1"])
+		in
+		    Source
+	lineageTag: 879464b5-42cc-440c-97d4-e14976f69c71
+	queryGroup: 'Near Real Time\EDW Dim Tables'
+
+	annotation PBI_ResultType = Table
+
+expression 'edw dim_finance_general_ledger_account' =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT #(lf)    [dim_finance_general_ledger_account_key],#(lf)    [finance_general_ledger_account_code],#(lf)    [finance_general_ledger_account_company_name]#(lf)FROM [edw].[dim_finance_general_ledger_account]#(lf)WHERE dwhiscurrent = 1"])
+		in
+		    Source
+	lineageTag: 0b15d38c-c874-48f3-9898-8819e0b971b7
+	queryGroup: 'Near Real Time\EDW Dim Tables'
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression 'edw dim_finance_vendor' =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT #(lf)    [dim_finance_vendor_key],#(lf)    [finance_vendor_dimension_value_id],#(lf)    [finance_vendor_company_name]#(lf)FROM [edw].[dim_finance_vendor]#(lf)WHERE dwhiscurrent = 1"])
+		in
+		    Source
+	lineageTag: 57057499-8672-4f19-920f-f73d75065ae2
+	queryGroup: 'Near Real Time\EDW Dim Tables'
+
+	annotation PBI_ResultType = Table
+
+expression 'edw dim_department' =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT #(lf)    [dim_department_key],#(lf)    [department_dimension_value_id],#(lf)    [department_company_name]#(lf)FROM [edw].[dim_department]#(lf)WHERE dwhiscurrent = 1"])
+		in
+		    Source
+	lineageTag: 0ebb4d9c-074b-4a10-bf7e-9ee5dc11651e
+	queryGroup: 'Near Real Time\EDW Dim Tables'
+
+	annotation PBI_ResultType = Table
+
+expression 'edw dim_district' =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT #(lf)    [dim_district_key],#(lf)    [district_dimension_value_id],#(lf)    [district_company_name]#(lf)FROM [edw].[dim_district]#(lf)WHERE dwhiscurrent = 1"])
+		in
+		    Source
+	lineageTag: 27b0fd92-1450-45b2-b9a2-3cb7de437593
+	queryGroup: 'Near Real Time\EDW Dim Tables'
+
+	annotation PBI_ResultType = Table
+
+expression 'edw dim_location' =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT #(lf)    [dim_location_key],#(lf)    [location_dimension_value_id],#(lf)    [location_company_name]#(lf)FROM [edw].[dim_location]#(lf)WHERE dwhiscurrent = 1"])
+		in
+		    Source
+	lineageTag: 45709b3e-8395-4cbf-b458-b3d3a4838341
+	queryGroup: 'Near Real Time\EDW Dim Tables'
+
+	annotation PBI_ResultType = Table
+
+expression 'edw dim_region' =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT #(lf)    [dim_region_key],#(lf)    [region_dimension_value_id],#(lf)    [region_company_name]#(lf)FROM [edw].[dim_region]#(lf)WHERE dwhiscurrent = 1"])
+		in
+		    Source
+	lineageTag: 534f80f2-5e82-42c0-a5a9-c67c7a51a205
+	queryGroup: 'Near Real Time\EDW Dim Tables'
+
+	annotation PBI_ResultType = Table
+
+expression 'edw dim_service' =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT #(lf)    [dim_service_key],#(lf)    [service_id],#(lf)    [company_name]#(lf)FROM [edw].[dim_service]#(lf)WHERE dwhiscurrent = 1"])
+		in
+		    Source
+	lineageTag: f7b13def-c957-44d5-aed0-454c3387597f
+	queryGroup: 'Near Real Time\EDW Dim Tables'
+
+	annotation PBI_ResultType = Table
+
+expression 'edw dim_company' =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT #(lf)    [dim_company_key],#(lf)    [company_name]#(lf)FROM [edw].[dim_company]#(lf)WHERE [DWHIsCurrent] = 1"])
+		in
+		    Source
+	lineageTag: cc12cd2a-bf2b-4469-b406-272db2cdda30
+	queryGroup: 'Near Real Time\EDW Dim Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'Real Time Reporting Month History' = 36 meta [IsParameterQuery = true, IsParameterQueryRequired = true, Type = "Number"]
+	lineageTag: 66be4fa6-73b0-4d36-b60b-85c8cdf8aedb
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Number
+
+expression 'Parameter Months Ago' =
+		let
+		    // Access the parameter
+		    MonthsToSubtract = #"Real Time Reporting Month History",
+		
+		    // Get the current date and time
+		    CurrentDateTime = DateTime.LocalNow(),
+		
+		    // Subtract the number of months from the current date and get the first day of that month
+		    SubtractedDate = Date.AddMonths(CurrentDateTime, -MonthsToSubtract),
+		    FirstOfMonth = #date(Date.Year(SubtractedDate), Date.Month(SubtractedDate), 1),
+		
+		    // Convert the date to yyyymmdd integer format
+		    Year = Date.Year(FirstOfMonth),
+		    Month = Date.Month(FirstOfMonth),
+		    Day = Date.Day(FirstOfMonth),
+		    DateAsInt = Year * 10000 + Month * 100 + Day
+		in
+		    DateAsInt
+	lineageTag: f1f7d745-bf61-4271-973e-261cf5fcd856
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Number
+
+/// Date table for the Fact Budget Date
+expression 'Budget Date' =
+		let
+		    // Reference to the DimDate table
+		    Source = #"Date Table",
+		
+		    // Function to prepend "Budget " to each column name
+		    AddBudgetPrefix = (columnName as text) as text =>
+		        "Budget " & columnName,
+		
+		    // Transforming column names of the source table
+		    #"Transformed Column Names" = Table.TransformColumnNames(Source, each AddBudgetPrefix(_)),
+		
+		    // Final step to output the transformed table
+		    FinalTable = #"Transformed Column Names"
+		in
+		    FinalTable
+	lineageTag: dc7b9058-1da4-46a5-adbb-27f4fded46ca
+	queryGroup: 'Role Playing Date Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Exception
+
+/// Date table for the Fact Budget Date
+expression 'Posting Date' =
+		let
+		    // Reference to the DimDate table
+		    Source = #"Date Table",
+		
+		    // Function to prepend "Budget " to each column name
+		    AddBudgetPrefix = (columnName as text) as text =>
+		        "Posting " & columnName,
+		
+		    // Transforming column names of the source table
+		    #"Transformed Column Names" = Table.TransformColumnNames(Source, each AddBudgetPrefix(_)),
+		
+		    // Final step to output the transformed table
+		    FinalTable = #"Transformed Column Names"
+		in
+		    FinalTable
+	lineageTag: 31e5ac28-8e40-449e-a176-affd135b0aa8
+	queryGroup: 'Role Playing Date Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

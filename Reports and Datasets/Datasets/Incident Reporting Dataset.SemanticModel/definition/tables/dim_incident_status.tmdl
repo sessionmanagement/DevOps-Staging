@@ -1,0 +1,66 @@
+table dim_incident_status
+	lineageTag: d5fb5c32-e573-4186-a6fd-206a79f96421
+
+	column IncidentStatusTypeText
+		dataType: string
+		lineageTag: bded77ed-7b27-4a45-b6f7-09ae96e6d322
+		summarizeBy: none
+		sourceColumn: IncidentStatusTypeText
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentStatusTypeKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 5b06458f-ed82-49e7-ad93-e03b5df54e4a
+		summarizeBy: none
+		sourceColumn: IncidentStatusTypeKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentStatusTypeID
+		dataType: int64
+		formatString: 0
+		lineageTag: e85ae3f9-bc4c-43d9-943c-d3baddb7cf46
+		summarizeBy: none
+		sourceColumn: IncidentStatusTypeID
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentStatusTypeCode
+		dataType: string
+		lineageTag: 7c8da6dd-02cc-48c8-8b18-f875bebe9953
+		summarizeBy: none
+		sourceColumn: IncidentStatusTypeCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentStatusTypeDescription
+		dataType: string
+		lineageTag: b82d4842-ad31-42f2-86eb-b025bd5bca32
+		summarizeBy: none
+		sourceColumn: IncidentStatusTypeDescription
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentStatusTypeGroup
+		dataType: string
+		lineageTag: 4930d769-9186-499b-a6a6-a7d156108c91
+		summarizeBy: none
+		sourceColumn: IncidentStatusTypeGroup
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_incident_status-678a12dd-b202-4f08-9510-8902c5f8b79c = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="Select#(tab)#(tab)dcist.dim_client_incident_company_key_status_type_id_key As IncidentStatusTypeKey,#(lf)#(tab)#(tab)#(tab)dcist.incident_status_type_id As IncidentStatusTypeID,#(lf)#(tab)#(tab)#(tab)dcist.incident_status_type_code As IncidentStatusTypeCode,#(lf)#(tab)#(tab)#(tab)dcist.incident_status_type_text As IncidentStatusTypeText,#(lf)#(tab)#(tab)#(tab)dcist.incident_status_type_description As IncidentStatusTypeDescription,#(lf)#(tab)#(tab)#(tab)dcist.incident_status_type_group As IncidentStatusTypeGroup#(lf)From#(tab)#(tab)edw.vw_dim_client_incident_status_type dcist#(lf)#(lf)"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

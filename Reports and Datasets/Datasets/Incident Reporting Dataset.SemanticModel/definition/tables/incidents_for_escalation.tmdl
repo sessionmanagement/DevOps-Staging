@@ -1,0 +1,147 @@
+table incidents_for_escalation
+	isHidden
+	lineageTag: f0835757-f9a6-4b15-b133-73dd2867923f
+
+	column company
+		isHidden
+		lineageTag: f5a8de90-2cc9-4d89-bfeb-8f829a6185be
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Company]
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_severity
+		isHidden
+		lineageTag: a44cb96d-0815-41b1-8466-e527eeb3a011
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [incident_severity]
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_area_parent_name
+		isHidden
+		lineageTag: 5fbd22a3-46bc-4e76-9df4-6645d38f8f1c
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [incident_area_parent_name]
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_team_name
+		isHidden
+		lineageTag: 1ee7f121-49c9-43b8-9ea1-e3e6beef3337
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [incident_team_name]
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_investigator_name
+		isHidden
+		lineageTag: 5b50c9e9-c3b0-44b1-bc96-5e3891181da6
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [incident_investigator_name]
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_reporter_name
+		isHidden
+		lineageTag: a91fb077-c49d-4ab4-80ed-2de4867cb657
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [incident_reporter_name]
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_owner_name
+		isHidden
+		lineageTag: ef5d9a81-a602-4550-bd8f-1231886826bd
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [incident_owner_name]
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_status
+		isHidden
+		lineageTag: 54a880ca-afce-4a04-bfe0-09b6ae80747f
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [incident_status]
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_category
+		isHidden
+		lineageTag: b27bb191-ae0b-46a7-8153-2614cb96ea25
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [incident_category]
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentID
+		isHidden
+		formatString: 0
+		lineageTag: 701e0472-df62-47a4-9c5a-14d85acb6343
+		summarizeBy: count
+		isNameInferred
+		sourceColumn: fact_incident[IncidentID]
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_date
+		isHidden
+		formatString: General Date
+		lineageTag: e9476e92-0e70-4120-9f0f-2cf95278073d
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: dim_date[calendar_date]
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_url
+		isHidden
+		lineageTag: a7258d94-aa1e-4711-b4b2-68dc00e2346a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [incident_url]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition incidents_for_escalation = calculated
+		mode: import
+		source =
+				
+				CALCULATETABLE(
+				    SUMMARIZE(
+				        fact_incident,
+				        fact_incident[IncidentID],
+				        dim_date[calendar_date],
+				        "company", LASTNONBLANK(dim_team_area[Company], 1),
+				        "incident_area_parent_name", LASTNONBLANK(dim_team_area[AreaParentName], 1),
+				        "incident_team_name", LASTNONBLANK(dim_team_area[TeamName], 1),
+				        "incident_investigator_name", LASTNONBLANK(dim_user_investigator[PersonFullName], 1),
+				        "incident_reporter_name", LASTNONBLANK(dim_user_reporter[PersonFullName], 1),
+				        "incident_owner_name", LASTNONBLANK(dim_user_owner[PersonFullName], 1),
+				        "incident_status", LASTNONBLANK(dim_incident_status[IncidentStatusTypeText], 1),
+				        "incident_category", LASTNONBLANK(dim_incident_category[IncidentCategory], 1),
+				        "incident_severity", LASTNONBLANK(dim_severity[IncidentSeverityText], 1),
+				        "incident_url", LASTNONBLANK(dim_incident[IncidentURL], 1)
+				    ),
+				    FILTER(
+				        ALL(dim_date),
+				        dim_date[calendar_date] = TODAY() - 1
+				    ),
+				    FILTER(
+				        ALL(fact_incident),
+				        LASTNONBLANK(dim_incident_category[IncidentCategory], 1) IN {"Death", "Death/Suicide", "Restraint"} ||
+				        RELATED(dim_severity[IncidentSeverityText]) IN {"Major", "Severe"}
+				    )
+				)
+
+	annotation PBI_Id = a279c35cdbd0493c8e7bb1ee36c9cbd8
+

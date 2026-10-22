@@ -1,0 +1,51 @@
+table 'Dim PRIMHD Review Wellness Plan Status'
+	lineageTag: c46b553c-c1fa-4a26-b09f-32a6203d9471
+
+	column ParentPRIMHDReviewWellnessPlanStatusText
+		dataType: string
+		lineageTag: 52a2716e-c7b1-4e9f-9213-15e49c4bd2c9
+		summarizeBy: none
+		sourceColumn: ParentPRIMHDReviewWellnessPlanStatusText
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PRIMHDReviewWellnessPlanStatusText
+		dataType: string
+		lineageTag: b23c2be7-e388-4cd4-b31e-8abae6a8ed0b
+		summarizeBy: none
+		sourceColumn: PRIMHDReviewWellnessPlanStatusText
+
+		annotation SummarizationSetBy = Automatic
+
+	column PRIMHDReviewWellnessPlanStatusValue
+		dataType: string
+		lineageTag: c2640d9c-8e75-46c2-9dd9-d6dcf44373a5
+		summarizeBy: none
+		sourceColumn: PRIMHDReviewWellnessPlanStatusValue
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim PRIMHD Review WellnessPlan Status Unique KEY'
+		dataType: string
+		isHidden
+		lineageTag: 925d5e33-3dcc-431c-bfff-e51feec102e0
+		summarizeBy: none
+		sourceColumn: Dim PRIMHD Review WellnessPlan Status Unique KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim PRIMHD Review Wellness Plan Status' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ods", [Query="SELECT CAST(t1.[PRIMHDReviewWellnessPlanStatusID] AS nvarchar(20)) + '-1' AS [Dim PRIMHD Review WellnessPlan Status Unique KEY] #(lf)      ,t2.[PRIMHDReviewWellnessPlanStatusText] AS [ParentPRIMHDReviewWellnessPlanStatusText]#(lf)#(tab)  ,t1.[PRIMHDReviewWellnessPlanStatusText]#(lf)      ,t1.[PRIMHDReviewWellnessPlanStatusValue]#(lf)  FROM#(lf)  [RBMNB].[dlDimPRIMHDReviewWellnessPlanStatus] t1#(lf)  LEFT OUTER JOIN #(lf)  [RBEAL].[dlDimPRIMHDReviewWellnessPlanStatus] t2 ON t1.PRIMHDReviewWellnessPlanStatusParentId = t2.PRIMHDReviewWellnessPlanStatusID#(lf)  WHERE t1.[PRIMHDReviewWellnessPlanStatusIsActive] = 1#(lf)  #(lf)  UNION ALL#(lf)#(lf)  SELECT CAST(t1.[PRIMHDReviewWellnessPlanStatusID] AS nvarchar(20)) + '-5' AS [Dim PRIMHD Review WellnessPlan Status Unique KEY] #(lf)      ,t2.[PRIMHDReviewWellnessPlanStatusText] AS [ParentPRIMHDReviewWellnessPlanStatusText]#(lf)#(tab)  ,t1.[PRIMHDReviewWellnessPlanStatusText]#(lf)      ,t1.[PRIMHDReviewWellnessPlanStatusValue]#(lf)  FROM#(lf)  [RBMNB].[dlDimPRIMHDReviewWellnessPlanStatus] t1#(lf)  LEFT OUTER JOIN #(lf)  [RBMNB].[dlDimPRIMHDReviewWellnessPlanStatus] t2 ON t1.PRIMHDReviewWellnessPlanStatusParentId = t2.PRIMHDReviewWellnessPlanStatusID#(lf)  WHERE t1.[PRIMHDReviewWellnessPlanStatusIsActive] = 1"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,205 @@
+table dim_people
+	lineageTag: 81f883f4-70b9-4de6-a08f-3a694b2b43c3
+
+	column id
+		dataType: string
+		lineageTag: 584d369c-cb0f-4385-a4dc-4de4210686ad
+		summarizeBy: none
+		sourceColumn: id
+
+		annotation SummarizationSetBy = Automatic
+
+	column company_id
+		dataType: string
+		lineageTag: 0b448ded-30db-48d8-b2b5-c74b31c8c3ad
+		summarizeBy: none
+		sourceColumn: company_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column EmpID
+		dataType: int64
+		formatString: 0
+		lineageTag: b91f000c-7d73-46c4-8347-9ab84f101e88
+		summarizeBy: none
+		sourceColumn: EmpID
+
+		annotation SummarizationSetBy = Automatic
+
+	column people_id
+		dataType: string
+		lineageTag: 4de7ef54-3703-4e38-9a2e-bf607fd6c442
+		summarizeBy: none
+		sourceColumn: people_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column Kaimahi
+		dataType: string
+		lineageTag: ee51de69-7e39-4914-b1dd-5e3b4cb98c10
+		summarizeBy: none
+		sourceColumn: Kaimahi
+
+		annotation SummarizationSetBy = Automatic
+
+	column dateOfBirth
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: e11fa578-9579-4527-983f-a3faa56a454b
+		summarizeBy: none
+		sourceColumn: dateOfBirth
+
+		annotation SummarizationSetBy = Automatic
+
+	column gender
+		dataType: string
+		lineageTag: efc68ac8-9a22-4b9b-b6f2-ec5913c7dd4d
+		summarizeBy: none
+		sourceColumn: gender
+
+		annotation SummarizationSetBy = Automatic
+
+	column primaryEmailAddress_email
+		dataType: string
+		lineageTag: 8a998367-c0cf-4eed-8ab8-16fc8b5e3edb
+		summarizeBy: none
+		sourceColumn: primaryEmailAddress_email
+
+		annotation SummarizationSetBy = Automatic
+
+	column employmentStatus
+		dataType: string
+		lineageTag: b7639ae6-7e56-4db6-b398-768a4d37d756
+		summarizeBy: none
+		sourceColumn: employmentStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column jobs_id
+		dataType: string
+		lineageTag: a55aa820-fb62-45ba-bfd3-9ccadf72113f
+		summarizeBy: none
+		sourceColumn: jobs_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column businessUnit_id
+		dataType: string
+		lineageTag: b88f9921-6963-41ef-8ab8-125888933e00
+		summarizeBy: none
+		sourceColumn: businessUnit_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column Supervisor
+		dataType: string
+		lineageTag: 2ba4c67b-eff1-47a0-a28e-a30d4f12441f
+		summarizeBy: none
+		sourceColumn: Supervisor
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Work Type'
+		dataType: string
+		lineageTag: 21084ed4-1d7c-4c3f-b520-64f9514c5198
+		summarizeBy: none
+		sourceColumn: Work Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Work Class'
+		dataType: string
+		lineageTag: 88247256-73f8-48bb-86ce-7167281dc344
+		summarizeBy: none
+		sourceColumn: Work Class
+
+		annotation SummarizationSetBy = Automatic
+
+	column isPrimaryJob
+		dataType: string
+		lineageTag: da2c4819-76af-4608-900f-beb541f95b99
+		summarizeBy: none
+		sourceColumn: isPrimaryJob
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Job Status'
+		dataType: string
+		lineageTag: d5f5509a-5887-4346-91c8-31be72aa6b5d
+		summarizeBy: none
+		sourceColumn: Job Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Job Title'
+		dataType: string
+		lineageTag: c4019ac2-0b31-4c4a-900c-95808ad7f59f
+		summarizeBy: none
+		sourceColumn: Job Title
+
+		annotation SummarizationSetBy = Automatic
+
+	column fte
+		dataType: double
+		lineageTag: 028dfc98-bf95-4fe8-90e9-6c30dfc9d425
+		summarizeBy: none
+		sourceColumn: fte
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column companyStartDate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 9470b6e7-1637-4771-8200-55bab1ea8788
+		summarizeBy: none
+		sourceColumn: companyStartDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column companyEndDate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 9efa9f80-77bb-428a-9e5f-9fa192b2962e
+		summarizeBy: none
+		sourceColumn: companyEndDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column EmpLive_EmpID
+		dataType: string
+		lineageTag: a5c6d0f9-8b35-437f-8307-c04c31a593ab
+		summarizeBy: none
+		sourceColumn: EmpLive_EmpID
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_active
+		dataType: string
+		lineageTag: 299c855d-6172-4713-9778-fa52f12e7081
+		summarizeBy: none
+		sourceColumn: is_active
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_people = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT #(lf)#(tab)CONVERT(VARBINARY(16), HASHBYTES('MD5', CONCAT(DE.[company_id], IJ.[jobs_id], EE.[reference_number]))) AS UniqueKey,#(lf)#(tab)DE.[id]#(lf)   ,DE.[company_id]#(lf)   ,DE.[code] AS EmpID#(lf)   ,IP.[people_id]#(lf)   ,IP.[displayName] as Kaimahi#(lf)   ,IP.[dateOfBirth]#(lf)   ,IP.[gender]#(lf)   ,IP.[primaryEmailAddress_email]#(lf)   ,IP.[employmentStatus]#(lf)   ,IJ.jobs_id#(lf)   ,IJ.businessUnit_id#(lf)   ,IJ.supervisorPerson_displayName AS Supervisor#(lf)   ,IJ.workType AS 'Work Type'#(lf)   ,IJ.workClass AS 'Work Class'#(lf)   ,IJ.isPrimaryJob#(lf)   ,IJ.jobStatus AS 'Job Status'#(lf)   ,IJ.name AS 'Job Title'#(lf)   ,IJ.fte#(lf)   ,IJ.companyStartDate#(lf)   ,IJ.companyEndDate#(lf)   ,EE.id AS EmpLive_EmpID#(lf)   ,EE.is_active#(lf)#(lf)  FROM [Datapay].[employees] DE#(lf)  LEFT JOIN EmpLive.employees EE on CAST(DE.code AS NVARCHAR(20))  = EE.reference_number#(lf)#(tab)#(tab)LEFT JOIN IntelliHR.people IP ON  CAST(DE.code AS NVARCHAR(20))  = IP.employeeNumber#(lf)#(tab)#(tab)LEFT JOIN [IntelliHR].[jobs] IJ ON CAST(DE.code AS NVARCHAR(20))  = IJ.person_employeeNumber#(lf) WHERE #(lf) --EE.id <> null AND EE.id <>''AND#(lf) DE.ODSIsCurrent = 1 AND#(lf) EE.ODSIsCurrent = 1 AND#(lf) IP.ODSIsCurrent = 1 AND#(lf) IJ.ODSIsCurrent = 1"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"UniqueKey", type text}}),
+				    #"Removed Duplicates" = Table.Distinct(#"Changed Type", {"EmpID"}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Removed Duplicates",{"UniqueKey"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

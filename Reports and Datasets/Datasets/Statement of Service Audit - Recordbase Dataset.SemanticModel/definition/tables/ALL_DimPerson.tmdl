@@ -1,0 +1,109 @@
+table ALL_DimPerson
+	lineageTag: 4f0d4917-ae52-49c2-85fc-c0865826cfb3
+
+	column PersonID
+		dataType: string
+		lineageTag: 5eada8bf-c890-4d0b-a639-061d2e5a0e22
+		summarizeBy: none
+		sourceColumn: PersonID
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonDateOfBirth
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 2e650e1d-6308-467e-8bb6-f4e780a569e4
+		summarizeBy: none
+		sourceColumn: PersonDateOfBirth
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column GenderID
+		dataType: string
+		lineageTag: 3ccdc7d3-7828-429b-a6cd-478e337954d5
+		summarizeBy: none
+		sourceColumn: GenderID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ethnicity1ID
+		dataType: string
+		lineageTag: 601c1c00-67d9-40ea-8ce0-c179df33b4d5
+		summarizeBy: none
+		sourceColumn: Ethnicity1ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ethnicity2ID
+		dataType: string
+		lineageTag: 405f2c09-41c3-49a2-85b8-c657af3ae290
+		summarizeBy: none
+		sourceColumn: Ethnicity2ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ethnicity3ID
+		dataType: string
+		lineageTag: 8df62b03-5354-45fe-b5b3-a1eae4b16e38
+		summarizeBy: none
+		sourceColumn: Ethnicity3ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ethnicity4ID
+		dataType: string
+		lineageTag: f0b53e51-37d3-4de8-a2ef-ba65eb911b9b
+		summarizeBy: none
+		sourceColumn: Ethnicity4ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ethnicity5ID
+		dataType: string
+		lineageTag: 3e1c93f0-149d-4304-a15c-27ba117c4a67
+		summarizeBy: none
+		sourceColumn: Ethnicity5ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderIdentityId
+		dataType: string
+		lineageTag: 7bef3f27-c86b-4934-a1e4-ef4fe33e8bc2
+		summarizeBy: none
+		sourceColumn: GenderIdentityId
+
+		annotation SummarizationSetBy = Automatic
+
+	column CompanyIdentifier
+		dataType: string
+		lineageTag: 123d6990-e662-49a6-8781-2ca71f33a78c
+		summarizeBy: none
+		sourceColumn: CompanyIdentifier
+
+		annotation SummarizationSetBy = Automatic
+
+	column FirstNonBlankEthnicityID
+		dataType: string
+		lineageTag: 36a84479-750d-4d65-8c88-083174bbd335
+		summarizeBy: none
+		sourceColumn: FirstNonBlankEthnicityID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ALL_DimPerson-f1bf63f3-c7c9-4f43-bd5b-0915f7cd07ec = m
+		mode: import
+		queryGroup: 'All (Unioned Data)'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)#(lf)'EAL' AS CompanyIdentifier,#(lf)CASE WHEN [PersonID]IS NOT NULL THEN CONCAT('E',[PersonID]) ELSE NULL END AS [PersonID],#(lf)CASE WHEN [GenderID]IS NOT NULL THEN CONCAT('E',[GenderID]) ELSE NULL END AS [GenderID],#(lf)#(lf)CASE WHEN [Ethnicity1ID]IS NOT NULL THEN CONCAT('E',[Ethnicity1ID]) ELSE NULL END AS [Ethnicity1ID],#(lf)CASE WHEN [Ethnicity2ID]IS NOT NULL THEN CONCAT('E',[Ethnicity2ID]) ELSE NULL END AS [Ethnicity2ID],#(lf)CASE WHEN [Ethnicity3ID]IS NOT NULL THEN CONCAT('E',[Ethnicity3ID]) ELSE NULL END AS [Ethnicity3ID],#(lf)CASE WHEN [Ethnicity4ID]IS NOT NULL THEN CONCAT('E',[Ethnicity4ID]) ELSE NULL END AS [Ethnicity4ID],#(lf)CASE WHEN [Ethnicity5ID]IS NOT NULL THEN CONCAT('E',[Ethnicity5ID]) ELSE NULL END AS [Ethnicity5ID],#(lf)COALESCE(#(lf)CASE WHEN [Ethnicity1ID]IS NOT NULL THEN CONCAT('E',[Ethnicity1ID]) ELSE NULL END,#(lf)CASE WHEN [Ethnicity2ID]IS NOT NULL THEN CONCAT('E',[Ethnicity2ID]) ELSE NULL END,#(lf)CASE WHEN [Ethnicity3ID]IS NOT NULL THEN CONCAT('E',[Ethnicity3ID]) ELSE NULL END,#(lf)CASE WHEN [Ethnicity4ID]IS NOT NULL THEN CONCAT('E',[Ethnicity4ID]) ELSE NULL END,#(lf)CASE WHEN [Ethnicity5ID]IS NOT NULL THEN CONCAT('E',[Ethnicity5ID]) ELSE NULL END#(lf)) AS FirstNonBlankEthnicityID,#(lf)CASE WHEN [GenderIdentityId]IS NOT NULL THEN CONCAT('E',[GenderIdentityId]) ELSE NULL END AS [GenderIdentityId],#(lf)[PersonDateOfBirth]#(lf)#(lf)FROM RBEAL.dlDimPerson#(lf)"]),
+				    #"Appended Query" = Table.Combine({Source, MNB_DimPerson}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Appended Query",{{"PersonDateOfBirth", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

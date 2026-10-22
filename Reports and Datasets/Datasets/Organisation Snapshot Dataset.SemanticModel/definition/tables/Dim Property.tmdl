@@ -1,0 +1,109 @@
+table 'Dim Property'
+	lineageTag: 59c3e287-0d6a-41af-9607-2e09f51e580b
+
+	column 'Dim Property KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 34f1bf03-5da0-4fbb-9077-15d6c3bc7eb4
+		summarizeBy: sum
+		sourceColumn: Dim Property KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property ID'
+		dataType: string
+		lineageTag: 8f4af771-5b4a-41d1-9f75-31be88c33243
+		summarizeBy: none
+		sourceColumn: Property ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Acquired Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: bf930488-a347-4edf-a46e-c4398023d6b1
+		summarizeBy: none
+		sourceColumn: Property Acquired Date
+
+		variation Variation
+			isDefault
+			relationship: f8a9c5b5-449b-492f-9ada-1b27b514ee12
+			defaultHierarchy: LocalDateTable_359a5169-e43a-42dd-96ed-2d7bfb9900b8.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Property Confirmed Disposal Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 623b7a6c-81cd-4849-9c33-24df00c6df7e
+		summarizeBy: none
+		sourceColumn: Property Confirmed Disposal Date
+
+		variation Variation
+			isDefault
+			relationship: 98dc6755-4ed7-48fd-aadf-608435606426
+			defaultHierarchy: LocalDateTable_c7126efe-b094-4257-acef-8897eecfb0bf.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Property Program'
+		dataType: string
+		lineageTag: 5f47166d-7253-43e9-a0ca-8949f183f723
+		summarizeBy: none
+		sourceColumn: Property Program
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Sub Program'
+		dataType: string
+		lineageTag: b00bc5d9-c27f-4e4a-8e5f-ea92924b4169
+		summarizeBy: none
+		sourceColumn: Property Sub Program
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Full Address'
+		dataType: string
+		lineageTag: b0093e68-a3db-45b1-b475-c6a40e325298
+		summarizeBy: none
+		sourceColumn: Property Full Address
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Property' = m
+		mode: import
+		queryGroup: Dims
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT [dim_property_key]#(lf)      ,[property_id]#(lf)      ,[property_full_address]#(lf)      ,[property_acquired_date]#(lf)      ,[property_confirmed_disposal_date]#(lf)      ,[property_program]#(lf)      ,[property_sub_program]#(lf)  FROM [edw].[vw_dim_property]#(lf)  WHERE DWHIsCurrent = 1#(lf)  AND DWHDMLOperation <> 'D'#(lf)  AND property_program IN ('Affordable Rental', 'IRRS')#(lf)  AND property_sub_program IN (#(lf)      'Affordable Rental',#(lf)      'CPP (Spot)',#(lf)      'Housing First (SPOT)',#(lf)      'Social Housing (Capacity)',#(lf)      'Social Housing (SPOT)',#(lf)      'Social Housing TM'#(lf)  )"]),
+				  ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(#"Source", each ApplyNamingConventions(_)),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Transformed Column Names",{{"Property Acquired Date", type date}, {"Property Confirmed Disposal Date", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

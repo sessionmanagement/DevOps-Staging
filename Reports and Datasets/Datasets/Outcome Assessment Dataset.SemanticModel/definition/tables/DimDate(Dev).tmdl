@@ -1,0 +1,279 @@
+table DimDate(Dev)
+	lineageTag: fd428da4-b4a5-4f65-9951-d5838188cc14
+	dataCategory: Time
+
+	measure ReportingBDStart = dateadd('DimDate(Dev)'[reportingyearstart],-1,MONTH)
+		formatString: General Date
+		lineageTag: c56e53a5-fbea-45b4-a34b-7233f3e5b572
+
+	column calendar_date
+		dataType: dateTime
+		isKey
+		formatString: Short Date
+		lineageTag: 04d7a796-aca3-4535-a127-9343b0c69601
+		summarizeBy: none
+		sourceColumn: calendar_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column calendar_month_num
+		dataType: int64
+		formatString: 0
+		lineageTag: a7025251-91be-4364-9eb4-e0fd9cc64020
+		summarizeBy: sum
+		sourceColumn: calendar_month_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_month_name_short
+		dataType: string
+		lineageTag: fd5b4a43-f79d-4f57-941b-b671d4ddbbbf
+		summarizeBy: none
+		sourceColumn: calendar_month_name_short
+		sortByColumn: calendar_month_num
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_first_day_of_month_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 569a38ea-c28f-417c-8111-d9953110d218
+		summarizeBy: none
+		sourceColumn: calendar_first_day_of_month_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column calendar_last_day_of_month_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: f2dca3f8-2980-47ca-8d0a-44684e0b818c
+		summarizeBy: none
+		sourceColumn: calendar_last_day_of_month_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column calendar_year
+		dataType: int64
+		formatString: 0
+		lineageTag: a0024288-1548-4607-b2b3-4aea227a6208
+		summarizeBy: sum
+		sourceColumn: calendar_year
+
+		annotation SummarizationSetBy = Automatic
+
+	column year_offset =
+			
+			VAR _currentYear = YEAR(TODAY())
+			VAR _selectedYear = 'DimDate(Dev)'[calendar_year]
+			RETURN
+			(_currentYear - _selectedYear)*-1
+		formatString: 0
+		lineageTag: 292ec6cf-71f7-43df-a13b-1f3fc2a73c8c
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_date_key
+		dataType: string
+		lineageTag: 3e3378d5-8327-4487-9787-aa8518542d61
+		summarizeBy: none
+		sourceColumn: calendar_date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_month_indicator
+		dataType: int64
+		formatString: 0
+		lineageTag: 17311c2a-db6d-47ed-864b-fda1504aeef0
+		summarizeBy: sum
+		sourceColumn: current_month_indicator
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_year_indicator
+		dataType: int64
+		formatString: 0
+		lineageTag: a77c30b6-9603-4648-a722-6513df58a471
+		summarizeBy: sum
+		sourceColumn: current_year_indicator
+
+		annotation SummarizationSetBy = Automatic
+
+	column current_3_year_indicator
+		dataType: int64
+		formatString: 0
+		lineageTag: 15ff6e28-3e69-442a-a117-d909339751b1
+		summarizeBy: sum
+		sourceColumn: current_3_year_indicator
+
+		annotation SummarizationSetBy = Automatic
+
+	column reporting_indicator_all
+		dataType: int64
+		formatString: 0
+		lineageTag: 1432838a-1c89-43d1-b825-8ca3137c13f5
+		summarizeBy: sum
+		sourceColumn: reporting_indicator_all
+
+		annotation SummarizationSetBy = Automatic
+
+	column currentreportingmonthstart
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: f5b49dbc-934a-4ae8-bc96-829fb3b70c85
+		summarizeBy: none
+		sourceColumn: currentreportingmonthstart
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column currentreportingmonthend
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 7ff4febe-0067-4b1b-8a3a-96422539d538
+		summarizeBy: none
+		sourceColumn: currentreportingmonthend
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column reportingyearstart
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: cb906f3b-e151-49a6-a40d-2becddc68ea9
+		summarizeBy: none
+		sourceColumn: reportingyearstart
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column reporting3yearstart
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: f77d49cc-e7f2-4160-8494-db3236db4d96
+		summarizeBy: none
+		sourceColumn: reporting3yearstart
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Calendar Month'
+		dataType: string
+		lineageTag: 270d82df-be95-47ca-b21b-47b7460b273c
+		summarizeBy: none
+		sourceColumn: Calendar Month
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_first_day_of_month_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: cd05e267-6143-4914-b015-cae37b99350b
+		summarizeBy: sum
+		sourceColumn: calendar_first_day_of_month_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_last_day_of_month_flag
+		dataType: int64
+		formatString: 0
+		lineageTag: d868ada2-b6e2-4056-9c2d-b379dd483e0d
+		summarizeBy: sum
+		sourceColumn: calendar_last_day_of_month_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column board_reporting
+		dataType: int64
+		formatString: 0
+		lineageTag: ab3245bd-7d18-41fa-819a-517357b9dce6
+		summarizeBy: sum
+		sourceColumn: board_reporting
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Reporting Month'
+		dataType: string
+		lineageTag: 985a450d-562a-490e-85f1-77c484fd36ce
+		summarizeBy: none
+		sourceColumn: Reporting Month
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'calendar_year Hierarchy'
+		lineageTag: 592f81d0-0145-4322-bb1d-abb34c2c1a52
+
+		level calendar_year
+			lineageTag: 0ee6e5ec-5175-4097-af0b-eb1a4bbe172a
+			column: calendar_year
+
+		level calendar_month_name_short
+			lineageTag: 88d6fffb-6577-434b-8944-ddfb78f13ca4
+			column: calendar_month_name_short
+
+	partition DimDate(Dev)-73f81c8a-4024-48c5-89b4-585530d031e1 = m
+		mode: import
+		source = ```
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="/****** Script for SelectTopNRows command from SSMS  ******/#(lf)declare @currentmonthend date = eomonth(getdate())#(lf)declare @reportingmonthend date = eomonth(dateadd(month,-1,@currentmonthend))#(lf)declare @reportingmonthstart date =dateadd(day,+1, EOMONTH(DATEADD(month, -1, @reportingmonthend)))#(lf)#(lf)declare @reportingyearstart date = dateadd(month,+1,dateadd(year,-1,@reportingmonthstart))#(lf)declare @reporting3yearstart date = dateadd(month,+1,dateadd(year,-3,@reportingmonthstart))#(lf)#(lf)declare @reportingbd date = eomonth(dateadd(month,-2,@currentmonthend))#(lf)#(lf)#(lf)#(lf)SELECT #(lf)cast(calendar_year as nvarchar)+' '+cast(calendar_month_num as nvarchar) as calendar_date_key,#(lf)#(tab)calendar_date,#(lf)#(tab)calendar_first_day_of_month_date,#(lf)#(tab)calendar_first_day_of_month_flag,#(lf)#(tab)calendar_last_day_of_month_date,#(lf)#(tab)calendar_last_day_of_month_flag,#(lf)#(tab)calendar_month_num,#(lf)#(tab)calendar_year,#(lf)#(tab)calendar_month_name_short,#(lf)#(tab)case when calendar_date between @reportingmonthstart and @reportingmonthend then 1#(lf)#(tab)else 0#(lf)#(tab)end as current_month_indicator,#(lf)#(tab)case when calendar_date >= @reportingyearstart and calendar_date <=@reportingmonthend#(lf)#(tab)then 1#(lf)#(tab)else 0#(lf)#(tab)end as current_year_indicator,#(lf)#(tab)case when calendar_date >= @reporting3yearstart and calendar_date <=@reportingmonthend#(lf)#(tab)then 1#(lf)#(tab)else 0#(lf)#(tab)end as current_3_year_indicator,#(lf)#(tab)case when calendar_date <= @reportingmonthend then 1#(lf)#(tab)else 0#(lf)#(tab)end as reporting_indicator_all,#(lf)#(tab)@reportingmonthstart as currentreportingmonthstart,#(lf)#(tab)@reportingmonthend as currentreportingmonthend, #(lf)#(tab)@reportingyearstart as reportingyearstart,#(lf)#(tab)@reporting3yearstart as reporting3yearstart,#(lf)#(tab)case when calendar_date <= @reportingbd then 1 else 0 end as board_reporting#(lf)#(tab)#(tab)#(lf)  FROM [edw].[vw_dim_date]#(lf)  where calendar_date >= '1990-01-01' #(lf)  and calendar_date <=  @reportingmonthend#(lf)"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"calendar_date", type date}, {"calendar_first_day_of_month_date", type date}, {"calendar_last_day_of_month_date", type date}, {"currentreportingmonthstart", type date}, {"currentreportingmonthend", type date}, {"reportingyearstart", type date}, {"reporting3yearstart", type date}}),
+				    #"Duplicated Column" = Table.DuplicateColumn(#"Changed Type", "calendar_month_num", "calendar_month_num - Copy"),
+				    #"Duplicated Column1" = Table.DuplicateColumn(#"Duplicated Column", "calendar_month_name_short", "calendar_month_name_short - Copy"),
+				    #"Merged Columns" = Table.CombineColumns(Table.TransformColumnTypes(#"Duplicated Column1", {{"calendar_month_num - Copy", type text}}, "en-NZ"),{"calendar_month_num - Copy", "calendar_month_name_short - Copy"},Combiner.CombineTextByDelimiter(" ", QuoteStyle.None),"Merged"),
+				    #"Renamed Columns" = Table.RenameColumns(#"Merged Columns",{{"Merged", "Calendar Month"}}),
+				
+				    // Reference the parameter "Reporting Months Ago"
+				    ReportingPeriod = #"Reporting Months Ago",
+				
+				    // Get the current date and time, and then extract just the date
+				    // DateTime.LocalNow() returns the current date and time, DateTime.Date() extracts just the date part
+				    Today = DateTime.LocalNow(),
+				    TodayDate = DateTime.Date(Today),
+				    
+				    // Calculate the target month and year based on the current date and the ReportingPeriod parameter
+				    TargetDate = Date.AddMonths(TodayDate, -ReportingPeriod),
+				    
+				    // Create a list of 12 months starting from TargetDate and going 11 months back
+				    // List.Transform() applies a function to each item in the original list ({0..11} in this case)
+				    TwelveMonthsList = List.Transform({0..11}, each Date.ToText(Date.AddMonths(TargetDate, -_), "yyyy-MM")),
+				    
+				    // Add a new dynamic calculated column for Reporting Month
+				    // This column will label each month relative to the Reporting Month
+				    #"Added Reporting Month" = Table.AddColumn(#"Renamed Columns", "Reporting Month", each 
+				        let
+				            // Extract the calendar_date from the current row
+				            CurrentDate = [calendar_date],
+				            
+				            // Convert the calendar_date to a string in "yyyy-MM" format for easier comparison
+				            CurrentDateStr = Date.ToText(CurrentDate, "yyyy-MM"),
+				            
+				            // Find the position of the current month in the TwelveMonthsList
+				            // If the month is not found, List.PositionOf() returns -1
+				            MonthOffset = List.PositionOf(TwelveMonthsList, CurrentDateStr)
+				        in
+				            // Label the month based on its position in the TwelveMonthsList
+				            if MonthOffset = 0 then "Reporting Month"
+				            else if MonthOffset = 1 then "1 Month Prior to Reporting Month"
+				            else if MonthOffset > 1 then Text.From(MonthOffset) & " Months Prior to Reporting Month"
+				            else ""
+				    )
+				in
+				    #"Added Reporting Month"
+				```
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

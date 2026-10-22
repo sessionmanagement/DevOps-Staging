@@ -1,0 +1,360 @@
+table '_History Measures'
+	excludeFromModelRefresh
+	lineageTag: 209d7e86-114d-40d4-943f-b71fa975e4c9
+
+	measure 'Hist_Percentage Take Action %' = ```
+			
+			VAR _Green = 
+			 CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact History',
+			                'Fact History'[Entity KEY],
+			                'Fact History'[KPI Value],
+			                'Fact History'[Kpi ID]
+			            )
+			        ),
+			        'Fact History'[KPI Status] = "Achieving"
+			    )
+			
+			VAR _Amber = 
+			 CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact History',
+			                'Fact History'[Entity KEY],
+			                'Fact History'[KPI Value],
+			                'Fact History'[Kpi ID]
+			            )
+			        ),
+			        'Fact History'[KPI Status] = "Review"
+			    )
+			
+			VAR _Red = 
+			
+			    CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact History',
+			                'Fact History'[Entity KEY],
+			                'Fact History'[KPI Value],
+			                'Fact History'[Kpi ID]
+			            )
+			        ),
+			        'Fact History'[KPI Status] = "Take Action"
+			    )
+			
+			
+			RETURN
+			DIVIDE(_Red,(_Green+_Amber+_Red))
+			```
+		formatString: 0%;-0%;0%
+		lineageTag: a5cd18aa-e7e7-4aa7-910e-3bb3e2bf3b81
+
+	measure 'Take Action % Diff (Latest vs Prev)' =
+			
+			VAR _LatestSnap =
+			    CALCULATE (
+			        MAX ( 'Fact History'[Snapshot Date] ),
+			        ALLSELECTED ( 'Fact History'[Snapshot Date] )
+			    )
+			VAR _PrevSnap =
+			    CALCULATE (
+			        MAX ( 'Fact History'[Snapshot Date] ),
+			        FILTER (
+			            ALLSELECTED ( 'Fact History'[Snapshot Date] ),
+			            'Fact History'[Snapshot Date] < _LatestSnap
+			        )
+			    )
+			VAR _LatestPct =
+			    CALCULATE (
+			        [Hist_Percentage Take Action %],
+			        'Fact History'[Snapshot Date] = _LatestSnap
+			    )
+			VAR _PrevPct =
+			    CALCULATE (
+			        [Hist_Percentage Take Action %],
+			        'Fact History'[Snapshot Date] = _PrevSnap
+			    )
+			RETURN
+			    IF (
+			        ISBLANK ( _PrevSnap ),
+			        BLANK (),
+			        _LatestPct - _PrevPct
+			    )
+		formatString: 0%;-0%;0%
+		lineageTag: 7597b6b0-3385-4650-a808-649e444df27c
+
+	measure 'Top Take Action diff (Measure)' =
+			
+			VAR Summary =
+			    ADDCOLUMNS (
+			        SUMMARIZE ( 'Dim KPI', 'Dim KPI'[Sim Title] ),
+			        "__Value", [Take Action % Diff (Latest vs Prev)]
+			    )
+			
+			VAR TopValue =
+			    MAXX ( Summary, [__Value] )
+			
+			VAR TopSimTitle =
+			    MAXX (
+			        FILTER ( Summary, [__Value] = TopValue ),
+			        'Dim KPI'[Sim Title]
+			    )
+			
+			
+			
+			RETURN
+			TopSimTitle & "   (" & FORMAT(TopValue, "+0%;-0%;0%" ) & ")"
+		lineageTag: b56a94a0-8d10-4146-9d12-496409fc0745
+
+	measure 'Top Take action diff (Region) VAR Summary' = ```
+			
+			
+			VAR Summary =
+			    // ADDCOLUMNS (
+			    //     SUMMARIZE ( 'Dim Service', 'Dim Service'[Region Name] ),
+			    //     "__Value", [Take Action % Diff (Latest vs Prev)]
+			    // )
+			      ADDCOLUMNS (
+			    FILTER (
+			        SUMMARIZE ( 
+			            'Dim Service', 
+			            'Dim Service'[Region Name] 
+			        ),
+			        NOT (
+			            ISBLANK ( 'Dim Service'[Region Name] ) ||
+			            'Dim Service'[Region Name] = "N/A" ||
+			            'Dim Service'[Region Name] = "Unknown"
+			        )
+			    ),
+			    "__Value", [Take Action % Diff (Latest vs Prev)]
+			)
+			
+			VAR TopValue =
+			    MAXX ( Summary, [__Value] )
+			
+			VAR TopRegion =
+			    MAXX (
+			        FILTER ( Summary, [__Value] = TopValue ),
+			        'Dim Service'[Region Name]
+			    )
+			
+			
+			
+			RETURN
+			TopRegion & "   (" & FORMAT(TopValue, "+0%;-0%;0%" ) & ")"
+			
+			```
+		lineageTag: 487d8252-a13e-4a72-898b-430f7277b9c4
+
+	measure 'Hist_Percentage Achieving %' = ```
+			
+			VAR _Green = 
+			 CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact History',
+			                'Fact History'[Entity KEY],
+			                'Fact History'[KPI Value],
+			                'Fact History'[Kpi ID]
+			            )
+			        ),
+			        'Fact History'[KPI Status] = "Achieving"
+			    )
+			
+			VAR _Amber = 
+			 CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact History',
+			                'Fact History'[Entity KEY],
+			                'Fact History'[KPI Value],
+			                'Fact History'[Kpi ID]
+			            )
+			        ),
+			        'Fact History'[KPI Status] = "Review"
+			    )
+			
+			VAR _Red = 
+			
+			    CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact History',
+			                'Fact History'[Entity KEY],
+			                'Fact History'[KPI Value],
+			                'Fact History'[Kpi ID]
+			            )
+			        ),
+			        'Fact History'[KPI Status] = "Take Action"
+			    )
+			
+			
+			RETURN
+			DIVIDE(_Green,(_Green+_Amber+_Red))
+			```
+		lineageTag: 7bbcc447-ec7f-4a93-bcdd-e93cbd777bba
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Top Achieving diff (Measure)' =
+			
+			VAR Summary =
+			    ADDCOLUMNS (
+			        SUMMARIZE ( 'Dim KPI', 'Dim KPI'[Sim Title] ),
+			        "__Value", [Achieving % Diff (Latest vs Prev)]
+			    )
+			
+			VAR TopValue =
+			    MAXX ( Summary, [__Value] )
+			
+			VAR TopSimTitle =
+			    MAXX (
+			        FILTER ( Summary, [__Value] = TopValue ),
+			        'Dim KPI'[Sim Title]
+			    )
+			
+			
+			
+			RETURN
+			TopSimTitle & "   (" & FORMAT(TopValue, "+0%;-0%;0%" ) & ")"
+		lineageTag: def5f51e-18bd-4806-9a3d-ee1774325d4a
+
+	measure 'Achieving % Diff (Latest vs Prev)' =
+			
+			VAR _LatestSnap =
+			    CALCULATE (
+			        MAX ( 'Fact History'[Snapshot Date] ),
+			        ALLSELECTED ( 'Fact History'[Snapshot Date] )
+			    )
+			VAR _PrevSnap =
+			    CALCULATE (
+			        MAX ( 'Fact History'[Snapshot Date] ),
+			        FILTER (
+			            ALLSELECTED ( 'Fact History'[Snapshot Date] ),
+			            'Fact History'[Snapshot Date] < _LatestSnap
+			        )
+			    )
+			VAR _LatestPct =
+			    CALCULATE (
+			        [Hist_Percentage Achieving %],
+			        'Fact History'[Snapshot Date] = _LatestSnap
+			    )
+			VAR _PrevPct =
+			    CALCULATE (
+			        [Hist_Percentage Achieving %],
+			        'Fact History'[Snapshot Date] = _PrevSnap
+			    )
+			RETURN
+			    IF (
+			        ISBLANK ( _PrevSnap ),
+			        BLANK (),
+			        _LatestPct - _PrevPct
+			    )
+		lineageTag: 333e7eba-205c-4bf3-b3fa-5d4aec8ec38a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Top Achieving diff (Region)' = ```
+			
+			VAR Summary =
+			    // ADDCOLUMNS (
+			    //     SUMMARIZE ( 'Dim Service', 'Dim Service'[Region Name] ),
+			    //     "__Value", [Achieving % Diff (Latest vs Prev)]
+			    // )
+			
+			    ADDCOLUMNS (
+			    FILTER (
+			        SUMMARIZE ( 
+			            'Dim Service', 
+			            'Dim Service'[Region Name] 
+			        ),
+			        NOT (
+			            ISBLANK ( 'Dim Service'[Region Name] ) ||
+			            'Dim Service'[Region Name] = "N/A" ||
+			            'Dim Service'[Region Name] = "Unknown"
+			        )
+			    ),
+			    "__Value", [Achieving % Diff (Latest vs Prev)]
+			)
+			
+			
+			VAR TopValue =
+			    MAXX ( Summary, [__Value] )
+			
+			VAR TopRegion =
+			    MAXX (
+			        FILTER ( Summary, [__Value] = TopValue ),
+			        'Dim Service'[Region Name]
+			    )
+			
+			
+			
+			RETURN
+			TopRegion & "   (" & FORMAT(TopValue, "+0%;-0%;0%" ) & ")"
+			```
+		lineageTag: eacbee6c-08c3-4b13-84ba-85b6fe4d9d09
+
+	measure 'Hist_Percentage Review %' = ```
+			
+			 VAR _Green =   COALESCE(CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact History',
+			                'Fact History'[Entity KEY],
+			                'Fact History'[KPI Value],
+			                'Fact History'[Kpi ID]
+			            )
+			        ),
+			        'Fact History'[KPI Status] = "Achieving"
+			    ), 0)
+			
+			
+			VAR _Amber = 
+			 COALESCE(CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact History',
+			                'Fact History'[Entity KEY],
+			                'Fact History'[KPI Value],
+			                'Fact History'[Kpi ID]
+			            )
+			        ),
+			        'Fact History'[KPI Status] = "Review"
+			    ), 0)
+			
+			VAR _Red = 
+			COALESCE(CALCULATE (
+			        COUNTROWS (
+			            SUMMARIZE (
+			                'Fact History',
+			                'Fact History'[Entity KEY],
+			                'Fact History'[KPI Value],
+			                'Fact History'[Kpi ID]
+			            )
+			        ),
+			        'Fact History'[KPI Status] = "Take Action"
+			    ), 0)
+			RETURN
+			IF(_Amber = 0, 0,
+			DIVIDE(_Amber,(_Green+_Amber+_Red))
+			)
+			```
+		formatString: 0%;-0%;0%
+		lineageTag: d54b7f8e-4efd-4db6-8800-aa0deac772a4
+
+	partition '_History Measures' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

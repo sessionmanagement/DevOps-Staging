@@ -1,0 +1,32 @@
+table fy_display_for_history
+	lineageTag: 05d804dd-27a3-4205-a60e-ec8d6888f915
+
+	column financial_year_num
+		formatString: 0
+		lineageTag: 96b49771-ba48-4f47-b905-8d3478d6d123
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [financial_year_num]
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_date
+		formatString: Short Date
+		lineageTag: d9e8e000-4cef-4002-bd23-895909ef025c
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [calendar_date]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition fy_display_for_history = calculated
+		mode: import
+		source = ```
+				DISTINCT(SELECTCOLUMNS('dim_date', "calendar_date", dim_date[calendar_date], "financial_year_num", 'dim_date'[financial_year_num]))
+				
+				```
+
+	annotation PBI_Id = 37bded2ac8f948bb865187fcd39b1256
+

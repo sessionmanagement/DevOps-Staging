@@ -1,0 +1,168 @@
+table work_tenancy_dates
+	isHidden
+	lineageTag: bf389a75-80e6-4f94-af2d-64aac83f571f
+
+	column opportunityid
+		dataType: string
+		isHidden
+		lineageTag: 9c9ce5e1-5cd8-4af7-b431-ba7cd1f3cb4e
+		summarizeBy: none
+		sourceColumn: opportunityid
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_property
+		dataType: string
+		isHidden
+		lineageTag: d7e994a9-053d-43c9-8d3d-ed8268081ce4
+		summarizeBy: none
+		sourceColumn: zav_property
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_tenancystartdate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: c249849f-6022-49c1-9163-3a5f16d86ad3
+		summarizeBy: none
+		sourceColumn: zav_tenancystartdate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column zav_vacateddate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 7d7d072c-37ef-418e-a805-58c6b713cdb2
+		summarizeBy: none
+		sourceColumn: zav_vacateddate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column tenancy_end_date_or_today
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 9cd3f57f-de7b-497b-98d0-0ba12cc9eb2f
+		summarizeBy: none
+		sourceColumn: tenancy_end_date_or_today
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column date_explosion
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 7696323f-0763-4a46-bc32-6def105dc6d2
+		summarizeBy: none
+		sourceColumn: date_explosion
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column FinancialYear = RELATED(work_dim_date[financial_year_num])
+		isHidden
+		formatString: 0
+		lineageTag: ca06b1ee-0b46-4ffa-b02d-2264bcc3c3e0
+		summarizeBy: sum
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column parentcontactid
+		dataType: string
+		isHidden
+		lineageTag: 0e90e1e6-fbb7-4b14-ba7b-3af32ded4fa3
+		summarizeBy: none
+		sourceColumn: parentcontactid
+
+		annotation SummarizationSetBy = Automatic
+
+	column new_dateofbirth
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 172023de-1784-4f26-9b9c-83261d8842e7
+		summarizeBy: none
+		sourceColumn: new_dateofbirth
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column zav_ethnicity
+		dataType: string
+		isHidden
+		lineageTag: 486bb7f2-4993-4b54-b28a-f2ba47239dfc
+		summarizeBy: none
+		sourceColumn: zav_ethnicity
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_gender
+		dataType: double
+		isHidden
+		lineageTag: c6ac8b3c-0fde-4cad-8ec6-6611c6ff8c07
+		summarizeBy: sum
+		sourceColumn: zav_gender
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition work_tenancy_dates-a895aa24-1503-4295-b7fb-41243209478f = m
+		mode: import
+		queryGroup: work
+		source =
+				let
+				    NormGuid = (g) => if g = null then null else Text.Upper(Text.Replace(Text.Replace(Text.From(g), "{", ""), "}", "")),
+				    EDWSource = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT pt.property_tenancy_id AS opportunityid, pt.property_id AS zav_property, pt.property_tenancy_tenancy_start_date AS zav_tenancystartdate, pt.property_tenancy_vacated_date AS zav_vacateddate, pt.property_tenancy_property_name AS zav_propertyname FROM [edw].[dim_property_tenancy] pt WHERE pt.[DWHIsCurrent] = 1 AND pt.[DWHDMLOperation] <> 'D' AND pt.[property_tenant_opportunity_status] <> 'Cancelled' AND pt.[property_tenancy_id] IS NOT NULL"]),
+				    ODSContact = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="WITH RecentOpportunities AS ( SELECT opportunityid, parentcontactid, ROW_NUMBER() OVER (PARTITION BY opportunityid ORDER BY SinkModifiedOn DESC) AS rn FROM [Zavanti].[vw_opportunity] WHERE statuscode <> 4 ) SELECT opportunityid AS ods_opportunityid, parentcontactid FROM RecentOpportunities WHERE rn = 1"]),
+				    EDWKeyed = Table.AddColumn(EDWSource, "join_key", each NormGuid([opportunityid]), type text),
+				    ODSKeyed = Table.AddColumn(ODSContact, "join_key", each NormGuid([ods_opportunityid]), type text),
+				    MergedContact = Table.NestedJoin(EDWKeyed, {"join_key"}, ODSKeyed, {"join_key"}, "ods_contact", JoinKind.LeftOuter),
+				    ExpandedContact = Table.ExpandTableColumn(MergedContact, "ods_contact", {"parentcontactid"}, {"parentcontactid"}),
+				    Source = Table.RemoveColumns(ExpandedContact, {"join_key"}),
+				    #"Merged Queries" = Table.NestedJoin(Source, {"parentcontactid"}, merged_primary_contact, {"contactid"}, "merged_primary_contact", JoinKind.LeftOuter),
+				    #"Expanded merged_primary_contact" = Table.ExpandTableColumn(#"Merged Queries", "merged_primary_contact", {"new_dateofbirth", "zav_ethnicity", "zav_gender"}, {"new_dateofbirth", "zav_ethnicity", "zav_gender"}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Expanded merged_primary_contact",null,"0",Replacer.ReplaceValue,{"zav_ethnicity"}),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value",null,100000001,Replacer.ReplaceValue,{"zav_gender"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Replaced Value1",{{"zav_tenancystartdate", type date}, {"zav_vacateddate", type date}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"zav_propertyname"}),
+				    #"Filtered Rows" = Table.SelectRows(#"Removed Columns", each [zav_tenancystartdate] <> null and [zav_tenancystartdate] <> ""),
+				    #"Added Custom" = Table.AddColumn(#"Filtered Rows", "tenancy_end_date_or_today", each if [zav_vacateddate] <> null then ([zav_vacateddate]) else (DateTime.LocalNow())),
+				    #"Changed Type2" = Table.TransformColumnTypes(#"Added Custom",{{"tenancy_end_date_or_today", type date}}),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Changed Type2",{{"tenancy_end_date_or_today", type number}, {"zav_tenancystartdate", Int64.Type}}),
+				    #"Added Custom1" = Table.AddColumn(#"Changed Type1", "date_explosion", each {[zav_tenancystartdate]..List.Max({[zav_tenancystartdate], [tenancy_end_date_or_today]})}),
+				    #"Expanded date_explosion" = Table.ExpandListColumn(#"Added Custom1", "date_explosion"),
+				    #"Changed Type3" = Table.TransformColumnTypes(#"Expanded date_explosion",{{"zav_tenancystartdate", type date}, {"tenancy_end_date_or_today", type date}, {"date_explosion", type date}})
+				in
+				    #"Changed Type3"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

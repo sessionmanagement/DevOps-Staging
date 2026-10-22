@@ -1,0 +1,35 @@
+table UniquePropertyVoidDates
+	isHidden
+	lineageTag: 87e53257-8d93-4a7c-b107-4165e1350d0b
+
+	column zav_property
+		isHidden
+		lineageTag: bd15f9af-810f-4b5c-9400-16ec2854b251
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: work_voids_dates[zav_property]
+
+		annotation SummarizationSetBy = Automatic
+
+	column explosion
+		isHidden
+		formatString: General Date
+		lineageTag: 1c9586dc-4dfb-4c24-93eb-eec534b586d1
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: work_voids_dates[explosion]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition UniquePropertyVoidDates = calculated
+		mode: import
+		source =
+				
+				SUMMARIZE(
+				    work_voids_dates,
+				    work_voids_dates[zav_property],
+				    work_voids_dates[explosion]
+				)
+
+	annotation PBI_Id = 997f7356525d4f4692ba6a69d20b25da
+

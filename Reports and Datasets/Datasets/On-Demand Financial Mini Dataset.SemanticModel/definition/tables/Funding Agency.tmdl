@@ -1,0 +1,108 @@
+table 'Funding Agency'
+	lineageTag: 7c28c5b9-ee48-4873-8ac6-895c3f9de25d
+
+	column 'Dim Finance Funding Agency KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 1890ed5c-35c3-474b-af30-12416a8047fc
+		summarizeBy: none
+		sourceColumn: Dim Finance Funding Agency KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Is Current'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: a6419997-e871-4c1f-9e99-c3144830df64
+		summarizeBy: none
+		sourceColumn: DWH Is Current
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Funding Agency Dimension Value ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 3bf2bf0a-646e-495d-9935-0d2f33fc3d38
+		summarizeBy: none
+		sourceColumn: Funding Agency Dimension Value ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Funding Agency Code'
+		dataType: string
+		lineageTag: dca0998b-6270-4f0a-8fcd-f9d42bddd60b
+		summarizeBy: none
+		sourceColumn: Funding Agency Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Funding Agency Name'
+		dataType: string
+		lineageTag: 0d9a5767-1c40-4224-8e2b-a4234f539c52
+		summarizeBy: none
+		sourceColumn: Funding Agency Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Funding Agency Company Name'
+		dataType: string
+		lineageTag: aebf63d0-9816-4b2c-95bc-4a4436bd7362
+		summarizeBy: none
+		sourceColumn: Funding Agency Company Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Funding Agency Last Modified Date Time'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 528cc6b2-5111-4de3-a0f8-f7d502e84f18
+		summarizeBy: none
+		sourceColumn: Funding Agency Last Modified Date Time
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Funding Agency' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database),
+				    dim_finance_funding_agency = Source{[Schema = "edw", Item = "vw_dim_finance_funding_agency"]}[Data],
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(dim_finance_funding_agency, each ApplyNamingConventions(_)),
+				    #"Removed Columns" = Table.RemoveColumns(#"Transformed Column Names", {"DWH Source System", "DWH Dml Operation"}),
+				    #"Removed Finance Prefix" = Table.TransformColumnNames(#"Removed Columns", each if Text.StartsWith(_, "Finance ") then Text.AfterDelimiter(_, "Finance ") else _),
+				    #"Removed Columns1" = Table.RemoveColumns(#"Removed Finance Prefix",{"DWH Batch ID", "DWH Effective From", "DWH Effective To"})
+				in
+				    #"Removed Columns1"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

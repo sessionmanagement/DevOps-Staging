@@ -1,0 +1,92 @@
+/// Company dimension containing organizational entities. Filtered to current records only (SCD Type 2). Use this table to slice and filter data by company, business unit, or organizational hierarchy.
+table Company
+	lineageTag: 83cdfd11-6cda-4616-9e82-ee77f828a9ce
+
+	column 'Dim Company KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: bd3c6ea6-4cc7-4189-8824-f3594df2787c
+		summarizeBy: none
+		sourceColumn: Dim Company KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: f4bf6ac4-ff5b-4205-8a55-9769d852d8e8
+		summarizeBy: none
+		sourceColumn: Company ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company Name'
+		dataType: string
+		lineageTag: 9687aa5c-5550-4559-9e3d-1c46577b33c0
+		summarizeBy: none
+		sourceColumn: Company Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company Short Code'
+		dataType: string
+		lineageTag: 50204913-0ab6-45f9-88a3-1ffcc2db6649
+		summarizeBy: none
+		sourceColumn: Company Short Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Company Intellihr KEY'
+		dataType: string
+		isHidden
+		lineageTag: 780ebe83-e4be-4ad9-a5f3-75501bb9974d
+		summarizeBy: none
+		sourceColumn: Dim Company Intellihr KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Company Datapay KEY'
+		dataType: string
+		isHidden
+		lineageTag: 09afeb3b-7cb4-4b07-b056-3601e0da07ea
+		summarizeBy: none
+		sourceColumn: Dim Company Datapay KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company Datapay Code'
+		dataType: int64
+		formatString: 0
+		lineageTag: a113b59c-59a0-4d5f-87d9-d8ff7ddcb87a
+		summarizeBy: none
+		sourceColumn: Company Datapay Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company Recordbase ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 57db6e5d-5319-44af-a3ef-e8cd6d17b719
+		summarizeBy: none
+		sourceColumn: Company Recordbase ID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Company = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database),
+				    edw_view = Source{[Schema="edw",Item="vw_dim_company"]}[Data],
+				    #"Transformed Column Names" = Table.TransformColumnNames(edw_view, fnApplyNamingConventions),
+				    #"Filtered Rows" = Table.SelectRows(#"Transformed Column Names", each ([DWHdmloperation] <> "D") and ([DWHiscurrent] = 1)),
+				    #"Removed Columns" = Table.RemoveColumns(#"Filtered Rows",{"DWHsourcesystem", "DWHbatchid", "DWHdmloperation", "DWHeffectivefrom", "DWHeffectiveto", "DWHiscurrent"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

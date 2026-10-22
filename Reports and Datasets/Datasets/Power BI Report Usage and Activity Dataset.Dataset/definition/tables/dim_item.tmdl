@@ -1,0 +1,80 @@
+table dim_item
+	lineageTag: 4134ee71-3119-457e-ad1c-db1a7eb4a510
+
+	column item_name
+		dataType: string
+		isHidden
+		lineageTag: 1f548df9-beb5-4d5a-b37f-25ef59fb1696
+		summarizeBy: none
+		sourceColumn: item_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column item_type
+		dataType: string
+		lineageTag: 0ed3bc51-cb7d-43a6-98f0-ec7d958af471
+		summarizeBy: none
+		sourceColumn: item_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column ItemNameLong
+		dataType: string
+		isHidden
+		lineageTag: 006126cb-6e3f-4726-9f38-1da218508495
+		summarizeBy: none
+		sourceColumn: ItemNameLong
+
+		annotation SummarizationSetBy = Automatic
+
+	column workspace_name
+		dataType: string
+		lineageTag: 91d4bf75-9bd9-4a06-be4c-98f9f6dda01e
+		summarizeBy: none
+		sourceColumn: workspace_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column workspace_type
+		dataType: string
+		isHidden
+		lineageTag: 585a8b79-749e-42df-8439-a53e7158f5e5
+		summarizeBy: none
+		sourceColumn: workspace_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column full_item_hash_key
+		dataType: string
+		isHidden
+		lineageTag: d7c08fe5-2f65-4f78-ba94-70fb0ffa15a8
+		summarizeBy: none
+		sourceColumn: full_item_hash_key
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'workspace_name Hierarchy'
+		lineageTag: 6b2cae6a-43c7-4204-a776-eb042be23541
+
+		level 'Workspace Name'
+			lineageTag: c68cf74b-2baa-4369-b364-69c3b48d45b4
+			column: workspace_name
+
+		level 'Object Name'
+			lineageTag: c0784f17-8e43-4f3c-9706-2267abf23d6f
+			column: item_name
+
+	partition dim_item = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT DISTINCT#(lf)CASE WHEN al.workspace_name IS NULL THEN 'N/A' ELSE al.workspace_name END AS workspace_name#(lf),CASE#(lf)WHEN workspace_name LIKE 'PersonalWorkspace%' THEN 'Personal'#(lf)WHEN workspace_name LIKE 'PowerBIAdminGroupDisplayName' THEN 'Admin'#(lf)WHEN workspace_name <> '' THEN 'Workspace'#(lf)ELSE 'N/A'#(lf)END AS workspace_type,#(lf)COALESCE(al.item_name,'Unknown') AS item_name#(lf),CASE WHEN al.item_type IS NULL THEN NULL ELSE UPPER(SUBSTRING(al.item_type, 1, 1)) + LOWER(SUBSTRING(al.item_type, 2, LEN(al.item_type) - 1)) END AS item_type#(lf),COALESCE(al.item_name,'Unknown') + ' (' + al.item_type + ')' AS ItemNameLong#(lf),HASHBYTES('MD5',COALESCE(al.item_name,'Unknown') + ' (' + COALESCE(al.item_type,'') + ')' + COALESCE(al.bk_workspace_id,'Unknown') + ' (' + COALESCE(al.workspace_name,'N/A') + ')') AS full_item_hash_key#(lf)FROM [edw].[fact_powerbi_activity_log] al"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"full_item_hash_key", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

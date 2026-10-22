@@ -1,0 +1,59 @@
+/// Board column progression periods per Epic, derived from BoardColumnChangeHistory. Each row represents a contiguous period in a given board column, with start date and duration for Gantt visualization.
+table BoardColumnTimeline
+	lineageTag: 4ed6625b-9845-4661-afb7-ad7b4b564c2e
+
+	column WorkItemId
+		lineageTag: 339db1ca-7132-401f-953d-394780913220
+		isNameInferred
+		sourceColumn: [WorkItemId]
+
+	column Title
+		lineageTag: 960d6b27-6502-453f-8b09-d6e00355947f
+		isNameInferred
+		sourceColumn: [Title]
+
+	column ColumnLabel
+		lineageTag: fadeb72b-78a0-4a8f-b9cf-8a6006313653
+		isNameInferred
+		sourceColumn: [ColumnLabel]
+
+	column PeriodStart
+		lineageTag: 5cddfaf5-23ff-462b-9376-77f8996f9765
+		isNameInferred
+		sourceColumn: [PeriodStart]
+
+	column PeriodEnd
+		lineageTag: dc076ba8-8a21-4661-a0c8-6a4c5ad54118
+		isNameInferred
+		sourceColumn: [PeriodEnd]
+
+	column DurationDays
+		lineageTag: c0bc1680-8bba-4ccd-b52b-1ebb9c9cb50d
+		isNameInferred
+		sourceColumn: [DurationDays]
+
+	partition BoardColumnTimeline = calculated
+		mode: import
+		source =
+				SELECTCOLUMNS(
+				    ADDCOLUMNS(
+				        BoardColumnChangeHistory,
+				        "NextDate",
+				            VAR _wid = [WorkItemId]
+				            VAR _cd = [ChangeDate]
+				            RETURN MINX(
+				                FILTER(BoardColumnChangeHistory, [WorkItemId] = _wid && [ChangeDate] > _cd),
+				                [ChangeDate]
+				            ),
+				        "ClosedDate",
+				            VAR _wid = [WorkItemId]
+				            RETURN LOOKUPVALUE(WorkItems[ClosedDate], WorkItems[WorkItemId], _wid)
+				    ),
+				    "WorkItemId", [WorkItemId],
+				    "Title", [Title],
+				    "ColumnLabel", [BoardColumn],
+				    "PeriodStart", [ChangeDate],
+				    "PeriodEnd", COALESCE([NextDate], [ClosedDate], TODAY()),
+				    "DurationDays", MAX(1, INT(COALESCE([NextDate], [ClosedDate], TODAY()) - [ChangeDate]))
+				)
+

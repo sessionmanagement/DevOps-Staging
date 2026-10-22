@@ -1,0 +1,82 @@
+table 'Data & Measure Definition Catalogue'
+	lineageTag: c08e48bf-d1ec-4066-89ca-37a9055e9111
+
+	column 'Field name'
+		dataType: string
+		lineageTag: 2f9d0059-fb5e-4358-8c95-1a23a2a38c22
+		summarizeBy: none
+		sourceColumn: Field name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: f13a169b-f3a7-4b76-9e8b-1fc27c9a3135
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Business Approver'
+		dataType: string
+		lineageTag: 01a00131-2998-4c9e-94d3-56c01ddc3124
+		summarizeBy: none
+		sourceColumn: Business Approver
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Business Approval'
+		dataType: string
+		lineageTag: f7bf8384-0d09-4ce0-8d95-94452ee73351
+		summarizeBy: none
+		sourceColumn: Business Approval
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Approved Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 8954b9b6-54b5-45b9-84b7-de4ff1671e68
+		summarizeBy: none
+		sourceColumn: Approved Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Comments
+		dataType: string
+		lineageTag: 58413367-d040-4b8b-a814-3555fe3e81e2
+		summarizeBy: none
+		sourceColumn: Comments
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sensitivity Rating'
+		dataType: string
+		lineageTag: d5a42007-aacc-4a06-91ec-bd6467827ad0
+		summarizeBy: none
+		sourceColumn: Sensitivity Rating
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Data & Measure Definition Catalogue' = m
+		mode: import
+		source =
+				let
+				    Source = SharePoint.Tables("https://emergeaotearoaltd.sharepoint.com/sites/ITS2/", [Implementation="2.0", ViewMode="All"]),
+				    #"4c7bcf33-881e-47e1-ac62-ad0c8cdf2806" = Source{[Id="4c7bcf33-881e-47e1-ac62-ad0c8cdf2806"]}[Items],
+				    #"Expanded Report" = Table.ExpandListColumn(#"4c7bcf33-881e-47e1-ac62-ad0c8cdf2806", "Report"),
+				    #"Filtered Rows" = Table.SelectRows(#"Expanded Report", each [Report] = "Outcome Assessment Report"),
+				    #"Removed Other Columns" = Table.SelectColumns(#"Filtered Rows",{"Field name", "Description", "Business Approver", "Business Approval", "Approved Date", "Comments", "Sensitivity Rating"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Removed Other Columns",{{"Approved Date", type date}}),
+				    #"Expanded Business Approver" = Table.ExpandListColumn(#"Changed Type", "Business Approver"),
+				    #"Expanded Business Approver1" = Table.ExpandRecordColumn(#"Expanded Business Approver", "Business Approver", {"title"}, {"Business Approver.title"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Expanded Business Approver1",{{"Business Approver.title", "Business Approver"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

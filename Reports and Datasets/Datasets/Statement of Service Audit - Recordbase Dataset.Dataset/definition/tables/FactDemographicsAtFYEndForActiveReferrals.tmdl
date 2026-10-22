@@ -1,0 +1,165 @@
+table FactDemographicsAtFYEndForActiveReferrals
+	lineageTag: 93704ee8-14e1-43a6-bb57-37bb3ead3a4b
+
+	column PersonID
+		lineageTag: 909961ca-51bd-48e7-8e46-2a910c24bce1
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_ReferralDaysExplosion[PersonID]
+
+		annotation SummarizationSetBy = Automatic
+
+	column FinancialYear
+		lineageTag: 869331f8-c472-421d-a063-3a9aea04fb54
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_ReferralDaysExplosion[FinancialYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column FYEnd
+		formatString: Short Date
+		lineageTag: 7ca068d9-c0c3-4533-aefe-16dbb7e99f5a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_ReferralDaysExplosion[FYEnd]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column AgeAtFYEnd
+		formatString: 0
+		lineageTag: 75ff1ce5-bc5e-4f02-a47a-73b675433762
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_ReferralDaysExplosion[AgeAtFYEnd]
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReferralBeginDateForFY
+		formatString: Short Date
+		lineageTag: bf82830d-ebe1-492f-86d5-b1c8f5885df1
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [ReferralBeginDateForFY]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column PersonDOB
+		formatString: Short Date
+		lineageTag: 4e576499-19b2-43b7-a63e-841ba8c52bb0
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_ReferralDaysExplosion[PersonDOB]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column IsFirstYearForClient
+		formatString: 0
+		lineageTag: a89b5175-59ca-4ec6-912e-3da891899a8c
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [IsFirstYearForClient]
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderID
+		lineageTag: ef75a95c-3053-4bff-b406-5b2e4101aa48
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_ReferralDaysExplosion[GenderID]
+
+		annotation SummarizationSetBy = Automatic
+
+	column EthnicityID
+		lineageTag: bc94b356-15ff-49d0-acbb-4477f312d998
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [EthnicityID]
+
+		annotation SummarizationSetBy = Automatic
+
+	column CompanyIdentifier
+		lineageTag: 38264b86-72a4-4a1e-a43e-60862f41308c
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_ReferralDaysExplosion[CompanyIdentifier]
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionID
+		lineageTag: df8e7774-1777-4407-a311-3622f3252695
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_ReferralDaysExplosion[TeamFunctionID]
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamID
+		lineageTag: ad022783-3096-46c5-a101-40bb336f2dd6
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_ReferralDaysExplosion[TeamID]
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamKeyComposite
+		lineageTag: b319262d-7801-4922-98d4-2288dba5b322
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: ALL_Work_ReferralDaysExplosion[TeamKeyComposite]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FactDemographicsAtFYEndForActiveReferrals-32d5cd6c-b065-40a2-b6ca-c0e8b3359f4e = calculated
+		mode: import
+		source =
+				
+				ADDCOLUMNS (
+				    SUMMARIZECOLUMNS (
+				        //ALL_Work_ReferralDaysExplosion[ID],
+				        ALL_Work_ReferralDaysExplosion[CompanyIdentifier],
+				        ALL_Work_ReferralDaysExplosion[PersonID],
+				        ALL_Work_ReferralDaysExplosion[FinancialYear],
+				        ALL_Work_ReferralDaysExplosion[FYEnd],
+				        ALL_Work_ReferralDaysExplosion[PersonDOB],
+				        ALL_Work_ReferralDaysExplosion[AgeAtFYEnd],
+				        //ALL_Work_ReferralDaysExplosion[AgeAtFYEndBucket],
+				        //ALL_Work_ReferralDaysExplosion[Gender],
+				        ALL_Work_ReferralDaysExplosion[GenderID],
+				        //ALL_Work_ReferralDaysExplosion[Ethnicity],
+				        //ALL_Work_ReferralDaysExplosion[EthnicityID],
+				        ALL_Work_ReferralDaysExplosion[TeamFunctionID],
+				        ALL_Work_ReferralDaysExplosion[TeamID],
+				        ALL_Work_ReferralDaysExplosion[TeamKeyComposite],
+				
+				            "EthnicityID",
+				    IF(
+				        ISBLANK(MAXX(ALL_Work_ReferralDaysExplosion, ALL_Work_ReferralDaysExplosion[EthnicityID])),
+				        "E11787",
+				        MAXX(ALL_Work_ReferralDaysExplosion, ALL_Work_ReferralDaysExplosion[EthnicityID])
+				    ),
+				
+				        "ReferralBeginDateForFY", MIN(ALL_Work_ReferralDaysExplosion[Explosion])
+				    ),
+				    "IsFirstYearForClient",
+				    IF (
+				        CALCULATE (
+				            MIN ( ALL_Work_ReferralDaysExplosion[FinancialYear] ),
+				            FILTER (
+				                ALL_Work_ReferralDaysExplosion,
+				                ALL_Work_ReferralDaysExplosion[PersonID] = EARLIER ( ALL_Work_ReferralDaysExplosion[PersonID] )
+				            )
+				        ) = ALL_Work_ReferralDaysExplosion[FinancialYear],
+				        1,
+				        0
+				    )
+				)
+
+	annotation PBI_Id = 1d690ba0420d4e159e04b727c089e4ef
+

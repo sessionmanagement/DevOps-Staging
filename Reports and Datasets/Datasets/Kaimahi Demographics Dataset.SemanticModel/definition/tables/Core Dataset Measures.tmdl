@@ -1,0 +1,419 @@
+table 'Core Dataset Measures'
+	lineageTag: 90eae8c9-0ea2-4b3a-ae8e-24b08f9f6b2f
+
+	measure _TotalStaff =
+			
+			CALCULATE (
+			    COUNTROWS ( 'intellihr jobs' )
+			    ,'intellihr jobs'[companyStartDate] < TODAY ()
+			    ,ALLCROSSFILTERED(Dates)
+			)
+		formatString: #,0
+		lineageTag: dd7312e0-68c8-4f4a-b4c6-c6b374da3c07
+
+		changedProperty = FormatString
+
+	measure _CurrentStaff = ```
+			
+			VAR Currentdate =
+			    MAX( Dates[Date] )
+			VAR MinDate =
+			    MIN( Dates[Date] )
+			RETURN
+			    CALCULATE(
+			        SUMX(
+			            'intellihr jobs',
+			            IF(
+			                'intellihr jobs'[companyStartDate] <= Currentdate
+			                    && OR(
+			                        'intellihr jobs'[companyEndDate] >= MinDate,
+			                        ISBLANK( 'intellihr jobs'[companyEndDate] )
+			                    ),
+			                1,
+			                BLANK()
+			            )
+			        ),
+			        ALLCROSSFILTERED( Dates )
+			    )
+			
+			```
+		formatString: #,0
+		lineageTag: 3e9fc369-e1af-41c3-a9c2-09074bebbf5a
+
+	measure SelectedDate = FORMAT(FIRSTDATE('Dates'[Date]), "dd/MM/YYYY") & " - " & FORMAT(LASTDATE('Dates'[Date]), "dd/MM/YYYY")
+		displayFolder: Filter Notes
+		lineageTag: 639e4d16-b46c-45cd-b86c-fba8e3645bb3
+
+	measure PreviousYearStaff = CALCULATE([_CurrentStaff], SAMEPERIODLASTYEAR(Dates[Date]))
+		formatString: #,0
+		lineageTag: e9022133-b0d1-4cb6-906b-575809dd5895
+
+	measure _ActiveStaffEOM = ```
+			
+			VAR Currentdate =
+			    MAX( Dates[Date] )
+			RETURN
+			    CALCULATE(
+			        SUMX(
+			            'intellihr jobs',
+			            IF(
+			                'intellihr jobs'[companyStartDate] <= Currentdate
+			                    && OR(
+			                        'intellihr jobs'[companyEndDate] >= Currentdate,
+			                        ISBLANK( 'intellihr jobs'[companyEndDate] )
+			                    ),
+			                1,
+			                BLANK()
+			            )
+			        ),
+			        ALLCROSSFILTERED( Dates )
+			    )
+			
+			```
+		formatString: #,0
+		lineageTag: 1bf7045d-01fe-42df-9b90-bb382739cfd5
+
+	measure _ActiveStaffSOM = ```
+			
+			VAR Currentdate =
+			    MIN( Dates[Date] )
+			RETURN
+			    CALCULATE(
+			        SUMX(
+			            'intellihr jobs',
+			            IF(
+			                'intellihr jobs'[companyStartDate] <= Currentdate
+			                    && OR(
+			                        'intellihr jobs'[companyEndDate] >= Currentdate,
+			                        ISBLANK( 'intellihr jobs'[companyEndDate] )
+			                    ),
+			                1,
+			                BLANK()
+			            )
+			        ),
+			        ALLCROSSFILTERED( Dates )
+			    )
+			
+			```
+		formatString: #,0
+		lineageTag: c2d6e32d-4d33-4e7f-bb4b-028a436e3568
+
+	measure 'Attrition Rate' = DIVIDE([_ActiveStaffSOM]+[_ActiveStaffEOM],2,0)
+		lineageTag: 8f6acf50-53be-4659-849a-e2f60e884cd2
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure EndedDuringMonth = [StaffEntering] - [StaffLeaving]
+		formatString: 0
+		lineageTag: 7228939f-3baa-4a33-83bc-bcec1979f6d0
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure _MonthlyAttritionPercentage =
+			
+			DIVIDE(
+			    CALCULATE(
+			        [StaffLeaving]
+			    ),
+			    [Attrition Rate],
+			    0
+			)
+		lineageTag: cae4fa9d-44bd-4268-802e-05b471f465a0
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure TotalJobTitle =
+			
+			CALCULATE(
+			    COUNT( 'intellihr jobs'[name] ),
+			    ALLCROSSFILTERED( Dates )
+			)
+		formatString: #,0
+		lineageTag: 0c3548b8-5289-463e-937e-5b40df0f7bda
+
+	measure StaffLeaving = ```
+			
+			CALCULATE (
+			    DISTINCTCOUNT('intellihr jobs'[person_id]),
+			    USERELATIONSHIP ( Dates[Date], 'intellihr jobs'[companyEndDate])
+			   ,FILTER('intellihr jobs', 
+			        'intellihr jobs'[LatestJobRank] = 1
+			        )
+			)
+			```
+		formatString: 0
+		lineageTag: 2f55e095-6c20-4999-9817-f71a289f7799
+
+	measure StaffEntering =
+			
+			CALCULATE (
+			    COUNTA('intellihr jobs'[person_displayName]),
+			    USERELATIONSHIP ( Dates[Date], 'intellihr jobs'[companyStartDate] )
+			)
+		formatString: 0
+		lineageTag: da20af3d-0688-4cda-885f-a1f8a31d878c
+
+	measure StaffLeavingNegative =
+			
+			CALCULATE (
+			   [_TotalStaff],
+			    USERELATIONSHIP ( Dates[Date], 'intellihr jobs'[companyEndDate] ),
+			    FILTER ( 'intellihr jobs', 'intellihr jobs'[companyEndDate] >= MIN ( Dates[Date] ) )
+			) * -1
+		formatString: #,0
+		lineageTag: 5e65f2de-7a2e-4b9f-b417-3e7f46f46244
+
+	measure 'Moving 12 month sum' = CALCULATE(sum('intellihr people'[people_id]),DATESINPERIOD(Dates[Date],MAX(Dates[Date]),-12,MONTH))
+		formatString: 0
+		lineageTag: bfd4ec92-81f5-4bcd-a3e5-ea27a09e979f
+
+		changedProperty = FormatString
+
+	measure 'Annual Turnover Rate' =
+			
+			VAR sd =
+			    LASTDATE(
+			        DATEADD(
+			            Dates[Date],
+			            -1,
+			            YEAR
+			        )
+			    )
+			RETURN
+			    CALCULATE(
+			        SUMX(
+			            SUMMARIZE(
+			                'intellihr jobs',
+			                "AnnualAttrition", [_MonthlyAttritionPercentage]
+			            ),
+			            [_MonthlyAttritionPercentage]
+			        ),
+			        FILTER(
+			            ALL( Dates ),
+			            Dates[Date] > sd
+			                && Dates[Date]
+			                    <= MAX( Dates[Date] )
+			        )
+			        --,CROSSFILTER(Dates[Date],'intellihr jobs'[companyStartDate],None),CROSSFILTER(Dates[Date],'intellihr jobs'[companyEndDate],None)
+			    )
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 23d52c19-99eb-4dfd-9e23-df3e3e1b29fe
+
+		changedProperty = FormatString
+
+	measure RefreshedAt_forDisplay = "Date Last Refreshed: " & FORMAT( LASTDATE( 'Last Refreshed Date'[Date Last Refreshed] ), "dd/MM/YYYY" )
+		lineageTag: 04891d79-1145-4e52-a3a3-d8b03ffc2dec
+
+	measure _HeadCount = ```
+			
+			CALCULATE (
+			    COUNTROWS ( 'intellihr jobs' ),
+			    FILTER (
+			        'intellihr jobs',
+			        'intellihr jobs'[companyStartDate] < TODAY ()
+			            --&& 'intellihr jobs'[jobStatus] = "Current Job"
+			            --|| 'intellihr jobs'[jobStatus] = "Ending Job"
+			    ),ALLCROSSFILTERED(Dates)
+			)
+			
+			```
+		formatString: #,0
+		lineageTag: ce31a72a-e4f6-45f5-9049-45b9f0ef535b
+
+	measure 'Turnover Weighted Average' = [_TotalStaff] * [_MonthlyAttritionPercentage]/100
+		formatString: 0%;-0%;0%
+		lineageTag: 6f686abc-82bb-45f4-aebb-f357397814b3
+
+		changedProperty = FormatString
+
+	measure AverageTenureYears = ```
+			
+			 CALCULATE(
+			    //Calculate the average age of a Kaimahi
+			    AVERAGE('intellihr jobs'[TenureYears])
+			)
+			```
+		formatString: 0.00
+		lineageTag: 56687a02-2fff-4c86-924d-de374eaa7815
+
+		changedProperty = FormatString
+
+	measure TotalFTE =
+			
+			CALCULATE(
+			    SUM( 'intellihr jobs'[fte] ),
+			    /*'intellihr jobs'[companyStartDate] < TODAY ()
+			         && 'intellihr jobs'[jobStatus] = "Current Job"
+			         || 'intellihr jobs'[jobStatus] = "Ending Job",*/
+			    ALLCROSSFILTERED( Dates )
+			)
+		formatString: #,0.00
+		lineageTag: 0b18b520-2c0b-4f07-8a85-8cdecbcc4e2f
+
+	measure AverageAge =
+			
+			VAR SelectedKaimahiCount = DISTINCTCOUNT('intellihr jobs'[person_id])
+			VAR MinimumKaimahiCount = [Minimum Kaimahi Count Value]
+			RETURN
+			IF(
+			    SelectedKaimahiCount >= MinimumKaimahiCount,
+			    CALCULATE(
+			        //Calculate the average age of a Kaimahi brought in from the People Fact Table
+			        AVERAGE('intellihr jobs'[AgeTotalYears])
+			    ),
+			    BLANK()
+			)
+		lineageTag: 5e6684b0-a2a8-4e7b-b12e-3ec69be8057e
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Another' = ```
+			
+			    CALCULATE(
+			        DISTINCTCOUNT( 'intellihr jobs'[person_id] ),
+			        'intellihr people'[gender] = "Other"
+			            || 'intellihr people'[gender] = "Non-binary",
+			        ALLCROSSFILTERED(Dates)
+			    )
+			        / CALCULATE(
+			            DISTINCTCOUNT( 'intellihr jobs'[person_id] ),
+			            ALLCROSSFILTERED(Dates)
+			        ) + 0
+			
+			```
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Gender Ratios
+		lineageTag: 913bd868-cfce-4a10-a840-2fbc3f007395
+
+		changedProperty = FormatString
+
+	measure '% Female' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT( 'intellihr jobs'[person_id] ),
+			    'intellihr people'[gender] = "Female",
+			    ALLCROSSFILTERED(Dates)
+			)
+			    / CALCULATE(
+			        DISTINCTCOUNT( 'intellihr jobs'[person_id] ),
+			        ALLCROSSFILTERED(Dates)
+			    ) + 0
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Gender Ratios
+		lineageTag: b822d984-e0ca-49e6-ba16-3cee42e65021
+
+		changedProperty = FormatString
+
+	measure '% Male' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT( 'intellihr jobs'[person_id] ),
+			    'intellihr people'[gender] = "Male",
+			    ALLCROSSFILTERED(Dates)
+			)
+			    / CALCULATE(
+			        DISTINCTCOUNT( 'intellihr jobs'[person_id] ),
+			        ALLCROSSFILTERED(Dates)
+			    ) + 0
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Gender Ratios
+		lineageTag: f9374485-e961-4d40-948a-9a63cce74c76
+
+		changedProperty = FormatString
+
+	measure '% Undisclosed' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT( 'intellihr jobs'[person_id] ),
+			    'intellihr people'[gender] = "Undisclosed"
+			    ,ALLCROSSFILTERED(Dates)
+			)
+			    / CALCULATE(
+			        DISTINCTCOUNT( 'intellihr jobs'[person_id] )
+			        ,ALLCROSSFILTERED(Dates)
+			    ) + 0
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Gender Ratios
+		lineageTag: 4ca31684-8c26-4083-8dd8-8eeb9de69f8f
+
+		changedProperty = FormatString
+
+	measure TurnoverNote = "All numbers exclude Involuntary, Unpaid/Student and Casual Separations by default and are based around the timeframe set for Company Start Dates and End Dates on the front page ( " & [SelectedDate] & ")"
+		displayFolder: Filter Notes
+		lineageTag: 40a6542c-c12f-4e12-b2aa-123848790cdc
+
+	measure DemographicsNote = "All demographics numbers are based on current kaimahi only and are not affected by the date range ( " & [SelectedDate] & " )"
+		displayFolder: Filter Notes
+		lineageTag: f5119ba2-c420-4c2d-bdf4-3d0cb20ee181
+
+	measure TotalStaffDemographics =
+			
+			CALCULATE (
+			    COUNTROWS ( 'intellihr jobs' )
+			    ,'intellihr jobs'[companyStartDate] < TODAY ()
+			         && 'intellihr jobs'[jobStatus] = "Current Job"
+			         || 'intellihr jobs'[jobStatus] = "Ending Job"
+			    ,ALLCROSSFILTERED(Dates)
+			)
+		formatString: #,0
+		lineageTag: 57756a8a-b33e-433d-8c2b-e4f9eec78b85
+
+	measure dummyStaffLeaving =
+			
+			VAR AllStaff = [_TotalStaff]
+			RETURN
+			    AllStaff
+		formatString: 0
+		lineageTag: a147baab-76ed-48b3-86a3-8e1b06a7ff42
+
+	measure StaffLeaving2 = ```
+			
+			CALCULATE (
+			    DISTINCTCOUNT('intellihr jobs'[person_id]),
+			    USERELATIONSHIP ( Dates[Date], 'intellihr jobs'[companyEndDate]),
+			    FILTER('intellihr jobs',
+			    'intellihr jobs'[NewRank] = 1
+			       -- && RELATED('intellihr people'[employmentStatus]) <> "Current Staff"  
+			       -- && 'intellihr jobs'[positionStartDate] > TODAY()
+			    )
+			    
+			)
+			```
+		formatString: 0
+		lineageTag: 8a99f86d-fdd2-4e31-95d0-c95bb4e88848
+
+	measure Location = CALCULATE(FILTER('intellihr jobs', 'intellihr jobs'[location_name]))
+		lineageTag: a73d23c3-78ec-4ec5-a851-992bb77a8efc
+
+	measure AverageAgeDisplay =
+			
+			VAR SelectedKaimahiCount = DISTINCTCOUNT('intellihr jobs'[person_id])
+			VAR MinimumKaimahiCount = [Minimum Kaimahi Count Value]
+			RETURN
+			IF(
+			    SelectedKaimahiCount >= MinimumKaimahiCount,
+			    FORMAT([AverageAge], "0.0"),
+			    "n<" & FORMAT(MinimumKaimahiCount, "0")
+			)
+		lineageTag: 1d9bda56-c949-45a3-b4e2-546f8ca01d88
+
+	partition 'Core Dataset Measures-8bd62485-053c-4c32-ab40-82e03b126e9f' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [_TotalStaff = _t, asdf = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"_TotalStaff", type text}, {"asdf", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"asdf", "_TotalStaff"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

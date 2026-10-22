@@ -1,0 +1,149 @@
+table TenancyDaysByFY
+	lineageTag: a0f72c8d-f452-4fd9-850a-8a49f5203d5d
+
+	column zav_property
+		isHidden
+		lineageTag: 18debb44-6236-46da-ac43-ba03b483f449
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: work_tenancy_dates[zav_property]
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_tenancystartdate
+		isHidden
+		formatString: Short Date
+		lineageTag: 283ff612-65a2-4d69-a275-578e3e1b4d14
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: work_tenancy_dates[zav_tenancystartdate]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column zav_vacateddate
+		isHidden
+		formatString: Short Date
+		lineageTag: c1920ba2-a349-467f-982c-c2de012c62db
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: work_tenancy_dates[zav_vacateddate]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column tenancy_end_date_or_today
+		isHidden
+		formatString: Short Date
+		lineageTag: a376075b-5a16-4cea-85bf-21b9074b24ae
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: work_tenancy_dates[tenancy_end_date_or_today]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column FinancialYear
+		isHidden
+		formatString: 0
+		lineageTag: 293ff282-2e81-47c2-903e-da1a375a6d90
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: work_tenancy_dates[FinancialYear]
+
+		annotation SummarizationSetBy = Automatic
+
+	column TenancyBeginDateForFY
+		isHidden
+		formatString: Short Date
+		lineageTag: 30336f91-de01-41fa-a982-40f99d86ab86
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [TenancyBeginDateForFY]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column last_day_of_fy =
+			
+			RELATED(dim_date[financial_last_day_of_year_date])
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: 7f43c95e-2632-4e84-8d59-3d5dc2374916
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column TenancyActiveDaysInFY =
+			
+			IF(
+			    TenancyDaysByFY[tenancy_end_date_or_today] < TenancyDaysByFY[last_day_of_fy],
+			    DATEDIFF(TenancyDaysByFY[TenancyBeginDateForFY], TenancyDaysByFY[tenancy_end_date_or_today], DAY)+1,
+			    DATEDIFF(TenancyDaysByFY[TenancyBeginDateForFY], TenancyDaysByFY[last_day_of_fy], DAY)+1
+			)
+		isHidden
+		formatString: #,0
+		lineageTag: 5e77e83b-1988-44c6-849d-2d00dce85830
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column tenancy_end_date_for_fy =
+			
+			IF(
+			    TenancyDaysByFY[tenancy_end_date_or_today] > TenancyDaysByFY[last_day_of_fy],
+			    TenancyDaysByFY[last_day_of_fy], TenancyDaysByFY[tenancy_end_date_or_today]
+			)
+		isHidden
+		formatString: Short Date
+		lineageTag: fe910103-ff7c-49c4-83c0-120095ed1e6a
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column tenancy_active_days_from_actual_start_to_end_in_fy =
+			
+			DATEDIFF(TenancyDaysByFY[zav_tenancystartdate],TenancyDaysByFY[tenancy_end_date_for_fy],DAY)+1
+		isHidden
+		formatString: 0
+		lineageTag: 9733ad4a-27d1-4378-913c-7d2cd8146640
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column required_numer_of_inspections_for_fy =
+			
+			FLOOR(
+			    TenancyDaysByFY[TenancyActiveDaysInFY] / 91,1)
+		isHidden
+		formatString: 0
+		lineageTag: 600534a7-5064-404d-afb6-99667aa5bf2c
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	partition TenancyDaysByFY-2afc06b5-29e9-4fbc-a56b-9deecccdf0d3 = calculated
+		mode: import
+		source =
+				
+				SUMMARIZECOLUMNS(
+				    //work_tenancy_dates[opportunityid],
+				    work_tenancy_dates[zav_property],
+				    work_tenancy_dates[zav_tenancystartdate],
+				    work_tenancy_dates[zav_vacateddate],
+				    work_tenancy_dates[tenancy_end_date_or_today],
+				    work_tenancy_dates[FinancialYear],
+				    "TenancyBeginDateForFY", MIN(work_tenancy_dates[date_explosion])
+				)
+
+	annotation PBI_Id = c53472ae85e94864923224a754cd7039
+

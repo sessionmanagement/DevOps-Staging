@@ -1,0 +1,155 @@
+/// Azure SQL Server
+expression Server = "sql-prod-aus-svc-datawarehouse-01.database.windows.net" meta [IsParameterQuery=true, List={"sql-dev-aue-svc-datawarehouse-01.database.windows.net", "sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sql-test-aus-svc-datawarehouse-01.database.windows.net"}, DefaultValue="sql-dev-aue-svc-datawarehouse-01.database.windows.net", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 68778342-3094-46e6-8d46-a9e57ad1bfdf
+	queryGroup: Parameters
+
+	annotation PBI_ResultType = Text
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression Database = "sqldb-prod-datawarehouse-01" meta [IsParameterQuery=true, List={"sqldb-dev-datawarehouse-01", "sqldb-prod-datawarehouse-01", "sqldb-test-datawarehouse-01"}, DefaultValue="sqldb-prod-datawarehouse-01", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 72ef18ca-5914-42d4-9272-e40e183a651a
+	queryGroup: Parameters
+
+	annotation PBI_ResultType = Text
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression 'Additional Access' =
+		let
+		    // Load data from SharePoint
+		    Source = SharePoint.Tables(
+		        "https://emergeaotearoaltd.sharepoint.com/sites/OPS_ITServices/", [Implementation = "2.0", ViewMode = "All"]
+		    ),
+		    // Access specific table by ID
+		    SelectedTable = Source{[Id = "27e19ae7-4448-4dfe-b172-3ee660e6e1df"]}[Items],
+		    // Expand "Requester" List Column
+		    ExpandedRequesterList = Table.ExpandListColumn(SelectedTable, "Requester"),
+		    // Expand "Requester" Record Column to "email"
+		    ExpandedRequesterEmail = Table.ExpandRecordColumn(
+		        ExpandedRequesterList, "Requester", {"email"}, {"Requester Email"}
+		    ),
+		    // Expand "Person to Impersonate" List Column
+		    ExpandedImpersonateList = Table.ExpandListColumn(ExpandedRequesterEmail, "Person to Impersonate"),
+		    // Expand "Person to Impersonate" Record Column to "email"
+		    ExpandedImpersonateEmail = Table.ExpandRecordColumn(
+		        ExpandedImpersonateList, "Person to Impersonate", {"email"}, {"Person to Impersonate Email"}
+		    ),
+		    // Expand "Approved By" List Column
+		    ExpandedApprovedList = Table.ExpandListColumn(ExpandedImpersonateEmail, "Approved By"),
+		    // Expand "Approved By" Record Column to "email"
+		    ExpandedApprovedEmail = Table.ExpandRecordColumn(
+		        ExpandedApprovedList, "Approved By", {"email"}, {"Approved By Email"}
+		    ),
+		    // Remove unnecessary columns
+		    RemovedUnnecessaryColumns = Table.RemoveColumns(
+		        ExpandedApprovedEmail,
+		        {
+		            "Color Tag",
+		            "Compliance Asset Id",
+		            "ID",
+		            "Content Type",
+		            "Attachments",
+		            "Edit",
+		            "Type",
+		            "Item Child Count",
+		            "Folder Child Count",
+		            "Label setting",
+		            "Retention label",
+		            "Retention label Applied",
+		            "Label applied by",
+		            "Item is a Record",
+		            "App Created By",
+		            "App Modified By"
+		        }
+		    ),
+		    // Expand "Created By" List Column
+		    ExpandedCreatedByList = Table.ExpandListColumn(RemovedUnnecessaryColumns, "Created By"),
+		    // Expand "Created By" Record Column to "email"
+		    ExpandedCreatedByEmail = Table.ExpandRecordColumn(
+		        ExpandedCreatedByList, "Created By", {"email"}, {"Created By Email"}
+		    ),
+		    // Expand "Modified By" List Column
+		    ExpandedModifiedByList = Table.ExpandListColumn(ExpandedCreatedByEmail, "Modified By"),
+		    // Expand "Modified By" Record Column to "email"
+		    ExpandedModifiedByEmail = Table.ExpandRecordColumn(
+		        ExpandedModifiedByList, "Modified By", {"email"}, {"Modified By Email"}
+		    ),
+		    // Change data types of specified columns
+		    ChangedColumnTypes = Table.TransformColumnTypes(
+		        ExpandedModifiedByEmail,
+		        {
+		            {"Person to Impersonate Email", type text},
+		            {"Requester Email", type text},
+		            {"Expiry Date", type date},
+		            {"Access Reason", type text},
+		            {"Approved By Email", type text},
+		            {"Approved Date", type date},
+		            {"Modified", type date},
+		            {"Created", type date},
+		            {"Created By Email", type text},
+		            {"Modified By Email", type text}
+		        }
+		    ),
+		    // Filtering rows where "Expiry Date" is greater than or equal to today
+		    ExpiryDateFilter = Table.SelectRows(ChangedColumnTypes, each [Expiry Date] >= Date.From(DateTime.LocalNow())),
+		    #"Lowercased Text" = Table.TransformColumns(ExpiryDateFilter,{{"Requester Email", Text.Lower, type text}, {"Person to Impersonate Email", Text.Lower, type text}}),
+		    // Filter rows where "Report" is the current report
+		    ReportFilter = Table.SelectRows(#"Lowercased Text", each ([Report] = "Kaimahi Dataset"))
+		in
+		    ReportFilter
+	lineageTag: ff07bd30-cf79-4866-a98d-20bd04e59a9e
+	queryGroup: 'Row Level Security'
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression 'PBI Service RLS Impersonation' = "BLANK" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: e42fb048-7691-4b7e-8bb7-0f83845abbe9
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+expression 'Role Playing Template Dim Date' =
+		let
+		    Source = #"Dim Date",
+		    AddPrefixToColumns = (columnName as text) as text =>
+		        let
+		            prefixedColumn = "Role Playing " & columnName
+		        in
+		            prefixedColumn,
+		    #"Prefixed Column Names" = Table.TransformColumnNames(Source, each AddPrefixToColumns(_))
+		in
+		    #"Prefixed Column Names"
+	lineageTag: 6a8dc7fd-1ea8-4273-acb2-b146241ba9b7
+	queryGroup: Dates
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'RLS - New Intelli Structure' =
+		let
+		    Source = Sql.Database(Server, Database, [Query="SELECT DISTINCT#(lf)    [mapped_employee_id] AS [Employee ID],#(lf)    [email] AS [User Principal Name],#(lf)    [employee_id] AS [Manager ID]#(lf)FROM [edw].[row_level_security_general]#(lf)WHERE [RLS_type] = 'Employee'#(lf)    AND [email] IS NOT NULL#(lf)    AND [mapped_employee_id] IS NOT NULL"]),
+		    #"Lowercased Text" = Table.TransformColumns(Source, {{"User Principal Name", each Text.Trim(Text.Lower(_)), type text}}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Lowercased Text", {{"Employee ID", Int64.Type}, {"Manager ID", Int64.Type}}),
+		    #"Removed Duplicates" = Table.Distinct(#"Changed Type")
+		in
+		    #"Removed Duplicates"
+	lineageTag: 98fa3334-5e91-4940-a2b1-59cdeb5b5266
+	queryGroup: 'Row Level Security'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression MinimumKaimahiCountParameter = 3 meta [IsParameterQuery=true, Type="Number", IsParameterQueryRequired=true]
+	lineageTag: 28ff2957-c16c-479d-bb48-bb4e572bd2c5
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Exception
+

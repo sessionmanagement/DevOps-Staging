@@ -1,0 +1,929 @@
+/// Tenancy agreements (leases) linking properties to tenants; grain is one row per tenancy (18,002 rows, one per Property Tenancy ID). Holds each tenancy's lifecycle dates, bond, rent and compliance details. Contains the current warehouse SCD version only (DWH Is Current = 1) and EXCLUDES Cancelled tenancies (partition filter); it RETAINS historical/closed tenancies (Vacated, Vacated Closed Account, etc.) — 'current' means the latest DWH version, not only active tenancies. A property can have multiple tenancies over time. Adds SQL-derived stay-chain columns (Prev Vacate Date, Gap Days, Is New Chain, Chain ID, Chain Start Date) and referral-match calculated columns.
+table Tenancy
+	lineageTag: aaefd1b0-ea46-4868-9fb3-2469da5637cd
+
+	column 'Dim Property Tenancy KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 1bbb6f7a-5639-44b3-bc67-01efb7e49a2a
+		summarizeBy: none
+		sourceColumn: Dim Property Tenancy KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 43ddb7b3-a367-409d-81e7-a55abd5930dc
+		summarizeBy: none
+		sourceColumn: Dim Property KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenancy ID'
+		dataType: string
+		isHidden
+		lineageTag: bcf26db7-7b2d-4e43-a02e-865da7bb7c00
+		summarizeBy: none
+		sourceColumn: Property Tenancy ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property ID'
+		dataType: string
+		isHidden
+		lineageTag: 3a679271-5fa5-4888-bb82-1f86c00eef02
+		summarizeBy: none
+		sourceColumn: Property ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Classification of the tenancy arrangement (e.g., Fixed Term, Periodic, Short Term, Transitional).
+	column 'Tenancy Type'
+		dataType: string
+		lineageTag: 19e2c204-157a-4f76-ae2d-7e539fde3381
+		summarizeBy: none
+		sourceColumn: Tenancy Type
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The Dynamics 365 owning business unit for the tenancy record. Currently a single organisation-level value ('Emerge Aotearoa') across all populated rows (a small number are blank); it does not presently distinguish regions or teams.
+	column 'Owning Business Unit'
+		dataType: string
+		lineageTag: 687cacaa-11d6-4f28-83bb-797cef301ba1
+		summarizeBy: none
+		sourceColumn: Owning Business Unit
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Reference number for Building Operational Support (BOS) or Housing Urban Development (HUD) contracts. Used for government-funded transitional housing agreements with MSD/Kāinga Ora.
+	column 'BOS/HUD Ref.'
+		dataType: string
+		lineageTag: 11ea94fb-8fc7-42ae-802c-72324cdf0a84
+		summarizeBy: none
+		sourceColumn: BOS/HUD Ref.
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Display name of the tenancy record (Dynamics 365 opportunity name). Free-text label, not a unique key.
+	column 'Tenancy Name'
+		dataType: string
+		lineageTag: f37c888b-dd68-40db-8678-6b3b034ffa27
+		summarizeBy: none
+		sourceColumn: Tenancy Name
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Name of the household associated with the tenancy; descriptive label for the tenant group. Note: may contain personal information (household/family name).
+	column 'Household Name'
+		dataType: string
+		lineageTag: 316e94e1-491d-4216-9faf-e3055493038a
+		summarizeBy: none
+		sourceColumn: Household Name
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Full name of the primary tenant (customer) on the tenancy, sourced from Dynamics 365. A free-text label rather than a unique key: the same person recurs across separate tenancies so distinct names number fewer than rows, and this field is also the partition key used to derive the stay-chain columns (Prev Vacate Date, Gap Days, Chain ID). Populated on almost all rows, with a small number blank. Note: contains personal information (name).
+	column 'Tenant Name'
+		dataType: string
+		lineageTag: 809c951f-4e3e-4e94-b648-46cc0ff3fd00
+		summarizeBy: none
+		sourceColumn: Tenant Name
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the tenancy agreement/lease was signed by all parties.
+	column 'Lease Agreement Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 0984165a-028b-4db3-b5a0-701023d60490
+		summarizeBy: none
+		sourceColumn: Lease Agreement Date
+
+		variation Variation
+			isDefault
+			relationship: 42b81f0a-d40a-4d64-9cbf-34b2d6c0ad91
+			defaultHierarchy: LocalDateTable_b4bde4ed-e761-44a9-81f1-f22fab38c184.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Official start date of the tenancy as per the lease agreement.
+	column 'Tenancy Start Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: d89b9341-bc8d-4b95-bd97-6dd5d5c5a69a
+		summarizeBy: none
+		sourceColumn: Tenancy Start Date
+
+		variation Variation
+			isDefault
+			relationship: 9e8d9271-9fce-45c7-9849-5da837b2e5b2
+			defaultHierarchy: LocalDateTable_d9d2bcd9-00b9-4a93-8612-7b8bf85464d0.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the tenancy was activated in the system, which may differ from the contractual start date.
+	column 'Activate Tenancy Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 9aeaaaf0-ebe1-4253-acc4-b91ba93aac02
+		summarizeBy: none
+		sourceColumn: Activate Tenancy Date
+
+		variation Variation
+			isDefault
+			relationship: 47c1287a-ef45-42cc-b408-3c9f3340c5ba
+			defaultHierarchy: LocalDateTable_0b4c93a8-743f-4cc0-9cb8-0a1236c8a138.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Actual date the tenant moved in and took possession of the property.
+	column 'Actual Start Date'
+		dataType: dateTime
+		isHidden
+		formatString: d/mm/yyyy
+		lineageTag: 17a2b442-06ef-4e37-8d8e-0b88e8796161
+		summarizeBy: none
+		sourceColumn: Actual Start Date
+
+		variation Variation
+			isDefault
+			relationship: f49df509-6b25-4f4a-b84d-29843cd7cce6
+			defaultHierarchy: LocalDateTable_5552fd32-58ff-4f58-9210-5bb09257212e.'Date Hierarchy'
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// End date for fixed-term tenancies. After this date, tenancy may convert to periodic or be renewed.
+	column 'Fixed Term Tenancy End Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 0c809b44-8f71-4ada-acad-c65597dd93c3
+		summarizeBy: none
+		sourceColumn: Fixed Term Tenancy End Date
+
+		variation Variation
+			isDefault
+			relationship: 33a47165-8d01-4668-9e50-b8bcf9637529
+			defaultHierarchy: LocalDateTable_1017b37f-81f4-4f87-8b05-6fe6c81f4579.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// End date for short-term/transitional tenancies, typically 12 weeks for transitional housing.
+	column 'Short Term Tenancy End Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: cdac2953-46dc-4180-aca9-2c50c6181738
+		summarizeBy: none
+		sourceColumn: Short Term Tenancy End Date
+
+		variation Variation
+			isDefault
+			relationship: 74d7747e-cf8f-429b-ac45-c291626d8be9
+			defaultHierarchy: LocalDateTable_1e634e82-856c-4fcd-aff1-a827dcddfbe5.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Anticipated date the tenant will vacate the property, based on notice given or tenancy end date.
+	column 'Expected Vacated Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 4381598f-d878-4112-805f-cc0da1575a32
+		summarizeBy: none
+		sourceColumn: Expected Vacated Date
+
+		variation Variation
+			isDefault
+			relationship: 5a3187a5-302c-4346-945e-6ef55d5cd6b2
+			defaultHierarchy: LocalDateTable_f1b488e4-ef82-404d-9272-12766055756e.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the tenancy was officially closed in the system after the tenant vacated.
+	column 'Actual Close Date'
+		dataType: dateTime
+		isHidden
+		formatString: d/mm/yyyy
+		lineageTag: e7b80de6-3210-41e3-9085-313d08521126
+		summarizeBy: none
+		sourceColumn: Actual Close Date
+
+		variation Variation
+			isDefault
+			relationship: 5ef83c2c-3db3-477f-ab07-0d0dadd99e16
+			defaultHierarchy: LocalDateTable_cb75b6eb-085d-488c-8f25-e62cf4ab2301.'Date Hierarchy'
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the bond was lodged with Tenancy Services.
+	column 'Bond Lodged Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: ed89a693-1d01-4b91-b0be-c128c553fa05
+		summarizeBy: none
+		sourceColumn: Bond Lodged Date
+
+		variation Variation
+			isDefault
+			relationship: 098fccb9-043d-4176-bdfa-5e934fb6b3b6
+			defaultHierarchy: LocalDateTable_f1bbd716-4905-4b69-9daa-59706134f4cd.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the bond refund application was submitted to Tenancy Services.
+	column 'Bond Refund Lodged Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 25b062ef-a1c1-435d-9535-a1b69d262112
+		summarizeBy: none
+		sourceColumn: Bond Refund Lodged Date
+
+		variation Variation
+			isDefault
+			relationship: 998d6d7b-fa56-4cb1-9c8c-4c51d42f51b7
+			defaultHierarchy: LocalDateTable_9aa39f87-dfdc-414d-98f2-db978631cdc9.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the body-corporate or residents' association check was completed for the property/tenancy.
+	column 'Check Body Corp Or Residents Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: ba51fd52-1c2e-4284-9064-9a8caf0bad59
+		summarizeBy: none
+		sourceColumn: Check Body Corp Or Residents Date
+
+		variation Variation
+			isDefault
+			relationship: 271c3e06-2206-44f1-9db9-c3bd1ea31e28
+			defaultHierarchy: LocalDateTable_6713fcea-9b90-489d-a1ca-ce23d72680da.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date formal notice to vacate was issued (either by tenant or landlord).
+	column 'Notice To Vacate Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 1597c5da-4f73-467f-a4c5-0d38be9edb32
+		summarizeBy: none
+		sourceColumn: Notice To Vacate Date
+
+		variation Variation
+			isDefault
+			relationship: 74af09aa-cf1b-47ae-977b-d95e6c944be4
+			defaultHierarchy: LocalDateTable_16fa74be-7249-4ddd-b846-51e9162766fb.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the tenant's health/disability information was recorded. Note: relates to sensitive health information; column is hidden.
+	column 'Health Disability Information Date'
+		dataType: dateTime
+		isHidden
+		formatString: d/mm/yyyy
+		lineageTag: 43c62082-6c9b-44f6-a81a-ca874966e4a5
+		summarizeBy: none
+		sourceColumn: Health Disability Information Date
+
+		variation Variation
+			isDefault
+			relationship: 0529c5a8-2d27-4c2f-87e6-d0a0482324af
+			defaultHierarchy: LocalDateTable_5e3d1202-356f-4446-bce1-3f632fe5c371.'Date Hierarchy'
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the tenancy information pack was prepared/issued to the tenant.
+	column 'Tenancy Pack Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 112963a5-139c-4380-b23f-a617cd74c230
+		summarizeBy: none
+		sourceColumn: Tenancy Pack Date
+
+		variation Variation
+			isDefault
+			relationship: 80cbc8c1-2991-4b38-b727-3b4f41546e34
+			defaultHierarchy: LocalDateTable_ae136e23-9ec1-402a-8eb1-2ef9fffb59a3.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date a refund was lodged for this tenancy (distinct from Bond Refund Lodged Date, which specifically covers the bond).
+	column 'Refund Lodged Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 23e8afda-ddcf-4999-8ad9-c50853b57a9c
+		summarizeBy: none
+		sourceColumn: Refund Lodged Date
+
+		variation Variation
+			isDefault
+			relationship: 6ca334e4-6001-48f8-adc4-1d291fd1cc62
+			defaultHierarchy: LocalDateTable_a7235a37-42d9-45bc-9459-b919525887ef.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Due date by which payment must be made to Tenancy Services (e.g., bond lodgement deadline).
+	column 'Pay Tenancy Services By Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: c6388e5e-a0d2-4aaf-8e8a-96e1ecf5f2b3
+		summarizeBy: none
+		sourceColumn: Pay Tenancy Services By Date
+
+		variation Variation
+			isDefault
+			relationship: 17c82059-2dda-43f0-8c4b-388fb3abfc41
+			defaultHierarchy: LocalDateTable_0fa9bd6d-9e3f-4d40-9f19-e8e2454eafc0.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Duration of short-term tenancy in days (typically 84 days/12 weeks for transitional housing).
+	column 'Short Term (In Days)'
+		dataType: int64
+		formatString: 0
+		lineageTag: fb9d4060-452d-43aa-b38a-faaab499973b
+		summarizeBy: sum
+		sourceColumn: Short Term (In Days)
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Tenancy Services bond reference number for the lodged bond.
+	column 'Bond Reference'
+		dataType: string
+		lineageTag: ed29dbed-bf8c-443f-a5e4-8002f350bc10
+		summarizeBy: none
+		sourceColumn: Bond Reference
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Official bond number assigned by Tenancy Services upon lodgement.
+	column 'Tenancy Service Bond Number'
+		dataType: string
+		lineageTag: 5807a98e-f8ba-4f46-aee6-c52d3276fc5e
+		summarizeBy: none
+		sourceColumn: Tenancy Service Bond Number
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates if an arrears repayment arrangement has been activated for this tenancy.
+	column 'Arrears Arrangement Activated'
+		dataType: string
+		lineageTag: c7c24e71-dfb0-4618-a6bc-10f3e2a6cdd3
+		summarizeBy: none
+		sourceColumn: Arrears Arrangement Activated
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates if the tenant has signed an arrears repayment arrangement agreement.
+	column 'Arrears Arrangement Signed'
+		dataType: string
+		lineageTag: d6fcaede-0c7e-4703-9cec-5f683d7422fd
+		summarizeBy: none
+		sourceColumn: Arrears Arrangement Signed
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Where the tenant exited to upon leaving (e.g., Private Rental, Social Housing, Family).
+	column 'Exit Point'
+		dataType: string
+		lineageTag: d84914d4-5c32-4c42-85e6-2c50ed42ea83
+		summarizeBy: none
+		sourceColumn: Exit Point
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Expected day (of week/month) on which the tenant's rent payment is due.
+	column 'Expected Payment Day'
+		dataType: string
+		lineageTag: 6062136d-55f2-4e6b-97cc-b0eb3d317f6e
+		summarizeBy: none
+		sourceColumn: Expected Payment Day
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Expected frequency of the tenant's rent payments (e.g., Weekly, Fortnightly, Monthly).
+	column 'Expected Payment Frequency'
+		dataType: string
+		lineageTag: 71133db9-ab10-495f-af39-86e4eb265f29
+		summarizeBy: none
+		sourceColumn: Expected Payment Frequency
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Primary reason for tenancy ending (e.g., End of Fixed Term, Notice Given, Abandonment).
+	column 'Leaving Reason'
+		dataType: string
+		lineageTag: 115fb6bd-f026-4713-be4d-58a46abc19de
+		summarizeBy: none
+		sourceColumn: Leaving Reason
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Day on which rent is charged to the tenant ledger.
+	column 'Rent Charged Day'
+		dataType: string
+		lineageTag: d218c7e7-bd76-45f4-8cff-a5de6db7f440
+		summarizeBy: none
+		sourceColumn: Rent Charged Day
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Weeks of rent held in advance for the tenancy, stored as descriptive text such as '1 week', '2 week' or '4 week' rather than a Yes/No flag. Almost all tenancies carry '1 week', with only a handful at '2 week' or '4 week' and a few rows left blank. One value per tenancy (Property Tenancy ID).
+	column 'Rent Paid In Advance'
+		dataType: string
+		lineageTag: 8309e527-c41d-4c7e-aafd-ebd397ee864d
+		summarizeBy: none
+		sourceColumn: Rent Paid In Advance
+
+		annotation SummarizationSetBy = Automatic
+
+	/// How often routine property inspections are scheduled (e.g., 3 Monthly, 6 Monthly).
+	column 'Inspection Frequency'
+		dataType: string
+		lineageTag: c1800d5c-5e03-4ae7-ae86-9ba6296124cc
+		summarizeBy: none
+		sourceColumn: Inspection Frequency
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Number of weeks rent requested as bond (typically 1-4 weeks in NZ).
+	column 'Weeks Bond Requested'
+		dataType: string
+		lineageTag: 22ee116e-a982-45fb-84ec-98fd4df7b908
+		summarizeBy: none
+		sourceColumn: Weeks Bond Requested
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Current weekly rent amount for this tenancy.
+	column Rent
+		dataType: double
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		lineageTag: a8814627-2e8b-4e58-9b01-f00958978187
+		summarizeBy: sum
+		sourceColumn: Rent
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Base currency amount for rent before any adjustments.
+	column 'Rent (Base)'
+		dataType: double
+		isHidden
+		lineageTag: 79161f11-5334-4cc8-9b19-dcc2d1b13c96
+		summarizeBy: sum
+		sourceColumn: Rent (Base)
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// System identifier linking to the primary tenant's record in the source system.
+	column 'Primary Tenant Record Base ID'
+		dataType: string
+		lineageTag: f763b76c-d409-494b-bda3-3bb001bdb6b5
+		summarizeBy: none
+		sourceColumn: Primary Tenant Record Base ID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Count of people who signed the tenancy agreement as tenants.
+	column 'Number Of Tenancy Signatories'
+		dataType: int64
+		formatString: 0
+		lineageTag: 9f678d7f-8f83-43b1-a566-1c14099e0852
+		summarizeBy: sum
+		sourceColumn: Number Of Tenancy Signatories
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Full name of the second tenant/client on the tenancy, where applicable. Note: contains personal information (name).
+	column 'Tenant 2'
+		dataType: string
+		lineageTag: e55452d0-6d91-4ca4-9abb-31408a97b700
+		summarizeBy: none
+		sourceColumn: Tenant 2
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the current rent amount became effective.
+	column 'Rent Amount Start Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 976509f6-45f3-4897-8e68-14f0ca86c7ee
+		summarizeBy: none
+		sourceColumn: Rent Amount Start Date
+
+		variation Variation
+			isDefault
+			relationship: 55856504-da87-4397-896c-19e074515e7f
+			defaultHierarchy: LocalDateTable_274d9cdd-41c6-46ec-a4a0-cca0444e87c5.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Actual date the tenant physically vacated and returned keys.
+	column 'Vacated Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 0080c8dd-13b5-4ce7-8720-164b8c9519a6
+		summarizeBy: none
+		sourceColumn: Vacated Date
+
+		variation Variation
+			isDefault
+			relationship: 672e1d52-15ea-4fd1-b22b-d59aac98bd12
+			defaultHierarchy: LocalDateTable_2cb52d47-a890-4f68-9bf5-739de2e0106c.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date tenant signed the Ministry of Social Development (MSD) responsibilities and conditions document for transitional housing.
+	column 'Signed MSD Responsibilities Conditions Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 8bfae2a8-7310-413b-8e2d-52cdb7ef1015
+		summarizeBy: none
+		sourceColumn: Signed MSD Responsibilities Conditions Date
+
+		variation Variation
+			isDefault
+			relationship: 833819a6-4ea0-4c39-ab72-758bf3bcee74
+			defaultHierarchy: LocalDateTable_109c99f2-72bf-43ce-a9cb-337fbe9cd365.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date tenant signed the Sustaining Tenancies (SNG) program forms.
+	column 'Signed SNG Forms Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 4de4296a-56e5-44d9-b7f0-fb09f463a4e9
+		summarizeBy: none
+		sourceColumn: Signed SNG Forms Date
+
+		variation Variation
+			isDefault
+			relationship: a64c9f63-8771-410b-8066-cb2755792413
+			defaultHierarchy: LocalDateTable_ecd049eb-4141-4bd7-b678-11b6c9900adc.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates if the Sustaining Tenancies bond refund claim process has been completed.
+	column 'Bond Refund SNG Claim Completed'
+		dataType: string
+		lineageTag: e6a9645c-203c-4988-978a-7a890988e624
+		summarizeBy: none
+		sourceColumn: Bond Refund SNG Claim Completed
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates if a Sustaining Tenancies bond refund claim has been lodged.
+	column 'Bond Refund SNG Claim Lodged'
+		dataType: string
+		lineageTag: d188aed6-e531-473e-a0e4-e2217a80253e
+		summarizeBy: none
+		sourceColumn: Bond Refund SNG Claim Lodged
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH DML Operation'
+		dataType: string
+		isHidden
+		lineageTag: 5cacd2a5-ffdd-45d6-b76c-0a3012fa67fb
+		summarizeBy: none
+		sourceColumn: DWH DML Operation
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Is Current'
+		dataType: boolean
+		isHidden
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 44ad8ee3-c241-4f2f-b6de-1314d587d191
+		summarizeBy: none
+		sourceColumn: DWH Is Current
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unique business identifier for the tenancy record, used for external reference and reporting.
+	column 'Tenancy ID'
+		dataType: string
+		lineageTag: 3cd6057e-2153-4a9c-82f8-781f4e36476b
+		summarizeBy: none
+		sourceColumn: Tenancy ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Property identifier registered with Tenancy Services (government agency). Used for bond lodgement and compliance.
+	column 'Tenancy Services Property Identifier'
+		dataType: string
+		isHidden
+		lineageTag: 3678e84e-edd0-441b-a93c-6c2838dcae35
+		summarizeBy: none
+		sourceColumn: Tenancy Services Property Identifier
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Current status of the tenancy (e.g., Active, Closed, Pending, Notice Given).
+	column 'Tenancy Status'
+		dataType: string
+		lineageTag: 1ce7b26b-7e9b-44c2-9a75-6907414dabd5
+		summarizeBy: none
+		sourceColumn: Tenancy Status
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The vacated date from the previous tenancy for the same tenant, ordered by tenancy start date. Used to calculate gaps between consecutive tenancies.
+	column 'Prev Vacate Date'
+		dataType: dateTime
+		isHidden
+		formatString: d/mm/yyyy
+		lineageTag: 94dfbfac-83b1-4dc7-ad6c-db27b6db8f9d
+		summarizeBy: none
+		sourceColumn: Prev Vacate Date
+
+		variation Variation
+			isDefault
+			relationship: fd22ceb0-8c70-4b72-9d7a-db507644f590
+			defaultHierarchy: LocalDateTable_81327f51-78a6-4677-a7ce-a50aa6dccc18.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Number of days between the previous tenancy vacate date and this tenancy start date. NULL if this is the tenant's first tenancy.
+	column 'Gap Days'
+		dataType: int64
+		isHidden
+		lineageTag: e0beac64-9428-4a13-93d3-08f2bf9fcc56
+		summarizeBy: sum
+		sourceColumn: Gap Days
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Flag (1/0) indicating if this tenancy starts a new continuous stay chain. A new chain starts when: (1) it's the tenant's first tenancy, or (2) the gap from previous vacate is more than 3 days.
+	column 'Is New Chain'
+		dataType: int64
+		isHidden
+		lineageTag: 7dc7f907-efcc-4b33-9379-85d91fcd0374
+		summarizeBy: sum
+		sourceColumn: Is New Chain
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unique identifier for each continuous stay chain within a tenant's history. Increments each time a new chain starts. Used to group related tenancies for length of stay calculations.
+	column 'Chain ID'
+		dataType: int64
+		isHidden
+		lineageTag: daed9cf7-a092-4eb7-8bae-579ceff16ed9
+		summarizeBy: none
+		sourceColumn: Chain ID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The start date of the current continuous stay chain. This is the earliest tenancy start date within the chain, representing when the tenant's uninterrupted stay began.
+	column 'Chain Start Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 9b2aca29-e5a5-42fc-bc88-9e5a63781ab3
+		summarizeBy: none
+		sourceColumn: Chain Start Date
+
+		variation Variation
+			isDefault
+			relationship: 18624fa6-8556-490f-b912-c2be09597893
+			defaultHierarchy: LocalDateTable_974dd827-e75f-4d89-bb93-8c9a975a19dc.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Extracted numeric client identifier from Primary Tenant Record Base ID. Used to join to the Client dimension table.
+	column 'Tangata Whaiora ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 5c6d7e8f-9a0b-1c2d-3e4f-5a6b7c8d9e0f
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Number of referrals that fall within this tenancy period (accepted date >= tenancy start, discharge date <= vacated date)
+	column 'Referral Count' =
+			CALCULATE(
+			    COUNTROWS('Tenancy Referral Bridge'),
+			    TREATAS({[Property Tenancy ID]}, 'Tenancy Referral Bridge'[Property Tenancy ID])
+			)
+		dataType: int64
+		formatString: 0
+		lineageTag: da366f5b-c342-4a73-a842-9c6077e75267
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Earliest referral accepted date for referrals matching this tenancy
+	column 'First Referral Accepted Date' =
+			CALCULATE(
+			    MIN('Tenancy Referral Bridge'[Referral Accepted Date]),
+			    TREATAS({[Property Tenancy ID]}, 'Tenancy Referral Bridge'[Property Tenancy ID])
+			)
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: eb311121-d142-4474-bde8-c9c4cd8866da
+		summarizeBy: none
+
+		variation Variation
+			isDefault
+			relationship: 775d3b88-2905-4346-b688-ac4410d0c76d
+			defaultHierarchy: LocalDateTable_a8116a63-b774-4207-b9da-d7863c145e51.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Latest referral discharge date for referrals matching this tenancy
+	column 'Last Referral Discharge Date' =
+			CALCULATE(
+			    MAX('Tenancy Referral Bridge'[Referral Discharge Date]),
+			    TREATAS({[Property Tenancy ID]}, 'Tenancy Referral Bridge'[Property Tenancy ID])
+			)
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 94579449-e5f0-450a-9f15-df9ca941d6c3
+		summarizeBy: none
+
+		variation Variation
+			isDefault
+			relationship: 300ee815-672d-4604-bbd6-562a70162580
+			defaultHierarchy: LocalDateTable_8c3b8033-de49-41d5-a917-ffda9d009746.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// TRUE if this tenancy has at least one matching referral based on date overlap
+	column 'Has Matching Referrals' = [Referral Count] > 0
+		dataType: boolean
+		lineageTag: a7b6f16a-e472-4712-8ea9-e4d8e01dae01
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The full weekly rent amount payable for this tenancy. This represents the total rent due before any Income Related Rent Subsidy (IRRS) is applied. Summarization is disabled because summing weekly rent across multiple tenancies would not produce a meaningful value.
+	column 'Rent Payable Weekly'
+		dataType: double
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		lineageTag: 58168ca2-40ed-4e5d-93cc-795de45b4031
+		summarizeBy: none
+		sourceColumn: Rent Payable Weekly
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Referrer name from the most recent matching referral. Shows the source that referred the household to transitional housing.
+	column 'Most Recent Referrer' =
+			VAR CurrentTenancyID = 'Tenancy'[Property Tenancy ID]
+			VAR MatchingReferrals =
+			    FILTER(
+			        'Tenancy Referral Bridge',
+			        'Tenancy Referral Bridge'[Property Tenancy ID] = CurrentTenancyID
+			    )
+			VAR MostRecentDate = MAXX(MatchingReferrals, 'Tenancy Referral Bridge'[Referral Accepted Date])
+			VAR MostRecentReferral =
+			    FILTER(
+			        MatchingReferrals,
+			        'Tenancy Referral Bridge'[Referral Accepted Date] = MostRecentDate
+			    )
+			RETURN
+			    MAXX(MostRecentReferral, 'Tenancy Referral Bridge'[Referrer Name])
+		dataType: string
+		lineageTag: 699d5811-8199-497d-9fc4-4d69413a07d3
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Name of the staff member assigned as the tenancy manager. Note: contains personal information (name).
+	column 'Tenancy Manager'
+		dataType: string
+		lineageTag: 05171abd-b900-495f-b99d-07d27fe27078
+		summarizeBy: none
+		sourceColumn: Tenancy Manager
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Email address of the assigned tenancy manager. Note: contains personal information (email).
+	column 'Tenancy Manager Email'
+		dataType: string
+		lineageTag: 0fc5b152-dab9-46dd-b9e4-17b186e4d159
+		summarizeBy: none
+		sourceColumn: Tenancy Manager Email
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Link to open the tenancy opportunity record in Dynamics 365.
+	column 'Dynamics 365 Link'
+		dataType: string
+		lineageTag: 40a32287-2ae6-40da-96f2-050a36abbacc
+		dataCategory: WebUrl
+		summarizeBy: none
+		sourceColumn: Dynamics 365 Link
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates whether this tenancy places a household in the property and therefore occupies a contracted place. 1 = occupying: the tenancy has been activated, or it is recorded as Active, Active Arrears, Vacated, Vacated Arrears or Vacated Closed Account. 0 = not occupying: the agreement has been created but not yet activated (status New), the status has not been resolved, or the agreement was cancelled. Used by the occupancy, vacancy and bed-night measures so that a place is only counted as occupied once the household has taken it up.
+	column 'Is Occupying Tenancy' =
+			VAR _Status = 'Tenancy'[Tenancy Status]
+			RETURN
+			IF (
+			    _Status = "Cancelled",
+			    0,
+			    IF (
+			        NOT ISBLANK ( 'Tenancy'[Activate Tenancy Date] )
+			            || _Status IN { "Active", "Active Arrears", "Vacated", "Vacated Arrears", "Vacated Closed Account" },
+			        1,
+			        0
+			    )
+			)
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: f1000000-0000-4f10-b100-000000000001
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	/// How each tenancy ended, classified once so that every exit measure uses the same rule. The recorded leaving reason is looked up in the Exit Categories table, which gives each Waharoa reason a positive, negative or neutral exit category. Moves between Emerge services, including a move within Transitional Housing, are Internal Transfer: not an exit from the service, even though the exit categories list shows them as neutral. Only when no leaving reason was recorded is the outcome taken from where the household went: Positive for a destination of private rental, a community housing provider or Kāinga Ora; Negative for an unknown destination; Neutral for a destination such as a family or whānau home, another transitional housing place, a hospital, a boarding house, aged care, emergency accommodation, a correctional facility, overseas or other; Internal Transfer for a destination recorded as an internal transfer. Unclassified: a leaving reason that is not in the Exit Categories table yet, or is listed there with two different categories; it is kept visible so that a newly added Waharoa reason can be spotted, and it is not counted as a positive, negative or neutral exit until it is added. Blank: no leaving reason and no recognised destination. The outcome is set whatever the tenancy status or programme, so each exit measure still applies its own ended-tenancy, period and programme rules.
+	column 'Exit Outcome' =
+			VAR _Reason = 'Tenancy'[Leaving Reason]
+			VAR _ExitPoint = 'Tenancy'[Exit Point]
+			VAR _Categories =
+			    DISTINCT (
+			        SELECTCOLUMNS (
+			            FILTER ( 'Exit Categories', LEFT ( 'Exit Categories'[Waharoa Exit Reason], 50 ) = LEFT ( _Reason, 50 ) ),
+			            "@Category", 'Exit Categories'[Exit Category]
+			        )
+			    )
+			VAR _Category = IF ( COUNTROWS ( _Categories ) = 1, MAXX ( _Categories, [@Category] ) )
+			RETURN
+			SWITCH (
+			    TRUE (),
+			    _Reason IN { "Internal transfer between Emerge services", "Transitional Housing Internal Transfer - Emerge" }, "Internal Transfer",
+			    ISBLANK ( _Reason ) && _ExitPoint = "Internal Transfer", "Internal Transfer",
+			    _Category = "Positive Exit", "Positive",
+			    _Category = "Negative Exit", "Negative",
+			    _Category = "Neutral Exit", "Neutral",
+			    NOT ISBLANK ( _Reason ), "Unclassified",
+			    _ExitPoint IN { "Private Market Rental", "Community Housing Provider", "Kainga Ora" }, "Positive",
+			    _ExitPoint IN { "Unknown" }, "Negative",
+			    _ExitPoint IN { "Family/Whanau Home", "Transitional Housing", "Other", "Mental Health Inpatient (Hospital)", "Boarding House", "Overseas", "Aged Care", "Emergency Accomodation (MSD)", "Correctional Facility" }, "Neutral",
+			    BLANK ()
+			)
+		dataType: string
+		lineageTag: 19a37ef7-7ed2-490b-922f-f6866043e6c1
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Tenancy = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="#(lf)WITH TenancyBase AS (#(lf)    SELECT #(lf)        [dim_property_tenancy_key],#(lf)        [dim_property_key],#(lf)        [property_tenancy_id],#(lf)        [property_id],#(lf)        [property_tenancy_manager_name] as [Tenancy Manager],#(lf)        [property_tenancy_manager_email] as [Tenancy Manager Email],#(lf)        [property_tenancy_tenancy_type] AS [Tenancy Type],#(lf)        [property_tenancy_owning_business_unit_name] AS [Owning Business Unit],#(lf)        [property_tenancy_tenancy_identifier] AS [Tenancy Identifier],#(lf)        [property_tenancy_tenancy_reference] AS [Tenancy Reference],#(lf)        [property_tenancy_tenancy_name] AS [Tenancy Name],#(lf)        [property_tenancy_household_name] AS [Household Name],#(lf)        [property_tenancy_customer_name] AS [Tenant Name],#(lf)        CAST([property_tenancy_lease_agreement_datetime] AS DATE) AS [Lease Agreement Date],#(lf)        CAST([property_tenancy_tenancy_start_date] AS DATE) AS [Tenancy Start Date],#(lf)        CAST([property_tenancy_activate_tenancy_datetime] AS DATE) AS [Activate Tenancy Date],#(lf)        CAST([property_tenancy_actual_start_date] AS DATE) AS [Actual Start Date],#(lf)        CAST([property_tenancy_fixed_term_tenancy_end_date] AS DATE) AS [Fixed Term Tenancy End Date],#(lf)        CAST([property_tenancy_short_term_tenancy_end_date] AS DATE) AS [Short Term Tenancy End Date],#(lf)        CAST([property_tenancy_expected_vacated_date] AS DATE) AS [Expected Vacated Date],#(lf)        CAST([property_tenancy_signed_msd_responsibilities_conditions_datetime] AS DATE) AS [Signed MSD Responsibilities Conditions Date],#(lf)        CAST([property_tenancy_signed_sng_forms_datetime] AS DATE) AS [Signed SNG Forms Date],#(lf)        CAST([property_tenancy_actual_close_date] AS DATE) AS [Actual Close Date],#(lf)        CAST([property_tenancy_bond_lodged_date] AS DATE) AS [Bond Lodged Date],#(lf)        CAST([property_tenancy_bond_refund_lodged_date] AS DATE) AS [Bond Refund Lodged Date],#(lf)        CAST([property_tenancy_check_bodycorp_or_residents_datetime] AS DATE) AS [Check Body Corp or Residents Date],#(lf)        CAST([property_tenancy_notice_to_vacate_date] AS DATE) AS [Notice to Vacate Date],#(lf)        CAST([property_tenancy_health_disability_information_datetime] AS DATE) AS [Health Disability Information Date],#(lf)        CAST([property_tenancy_tenancy_pack_datetime] AS DATE) AS [Tenancy Pack Date],#(lf)        CAST([property_tenancy_refund_lodged_date] AS DATE) AS [Refund Lodged Date],#(lf)        CAST([property_tenancy_pay_tenancy_services_by_date] AS DATE) AS [Pay Tenancy Services by Date],#(lf)        [property_tenancy_short_term_in_days] AS [Short Term (in Days)],#(lf)        [property_tenancy_bond_reference] AS [Bond Reference],#(lf)        [property_tenancy_tenancy_service_bond_number] AS [Tenancy Service Bond Number],#(lf)        [property_tenancy_tenancy_services_property_identifier] AS [Tenancy Services Property Identifier],#(lf)        [property_tenancy_arrears_arrangement_activated] AS [Arrears Arrangement Activated],#(lf)        [property_tenancy_arrears_arrangement_signed] AS [Arrears Arrangement Signed],#(lf)        [property_tenancy_bond_refund_sng_claim_completed] AS [Bond Refund SNG Claim Completed],#(lf)        [property_tenancy_bond_refund_sng_claim_lodged] AS [Bond Refund SNG Claim Lodged],#(lf)        [property_tenancy_exit_point] AS [Exit Point],#(lf)        [property_tenancy_expected_payment_day] AS [Expected Payment Day],#(lf)        [property_tenancy_expected_payment_frequency] AS [Expected Payment Frequency],#(lf)        [property_tenancy_leaving_reason] AS [Leaving Reason],#(lf)        [property_tenancy_rent_charged_day] AS [Rent Charged Day],#(lf)        [property_tenancy_rent_paid_in_advance] AS [Rent Paid in Advance],#(lf)        [property_tenancy_inspection_frequency] AS [Inspection Frequency],#(lf)        [property_tenancy_weeks_bond_requested] AS [Weeks Bond Requested],#(lf)        [property_tenancy_weekly_rent_payable] AS [Rent Payable Weekly],#(lf)        [property_tenancy_rent] AS [Rent],#(lf)        [property_tenancy_rent_base] AS [Rent (Base)],#(lf)        [property_tenancy_primary_tenant_recordbaseid] AS [Primary Tenant Record Base ID],#(lf)        [property_tenancy_number_signatories] AS [Number of Tenancy Signatories],#(lf)        [property_tenancy_second_client_name] AS [Tenant 2],#(lf)        CAST([property_tenancy_rent_amount_start_date] AS DATE) AS [Rent Amount Start Date],#(lf)        CAST([property_tenancy_vacated_date] AS DATE) AS [Vacated Date],#(lf)        [property_tenant_opportunity_status] AS [Tenancy Status],#(lf)        [DWHDMLOperation] AS [DWH DML Operation],#(lf)        [DWHIsCurrent] AS [DWH Is Current]#(lf)    FROM [edw].[dim_property_tenancy]#(lf)    WHERE [DWHIsCurrent] = 1 #(lf)      AND [DWHDMLOperation] <> 'D' #(lf)      AND [property_tenancy_id] IS NOT NULL#(lf)),#(lf)-- Step 1: Calculate Previous Vacate Date using LAG window function#(lf)TenancyWithPrev AS (#(lf)    SELECT *,#(lf)        LAG(CAST([Vacated Date] AS DATE)) OVER (#(lf)            PARTITION BY [Tenant Name] #(lf)            ORDER BY [Tenancy Start Date]#(lf)        ) AS [Prev Vacate Date]#(lf)    FROM TenancyBase#(lf)),#(lf)-- Step 2: Calculate Gap Days and determine if this starts a new chain#(lf)TenancyWithGap AS (#(lf)    SELECT *,#(lf)        DATEDIFF(DAY, [Prev Vacate Date], [Tenancy Start Date]) AS [Gap Days],#(lf)        CASE #(lf)            WHEN [Prev Vacate Date] IS NULL #(lf)              OR DATEDIFF(DAY, [Prev Vacate Date], [Tenancy Start Date]) > 3 #(lf)            THEN 1 #(lf)            ELSE 0 #(lf)        END AS [Is New Chain]#(lf)    FROM TenancyWithPrev#(lf)),#(lf)-- Step 3: Calculate Chain ID as running sum of Is New Chain#(lf)TenancyWithChainID AS (#(lf)    SELECT *,#(lf)        SUM([Is New Chain]) OVER (#(lf)            PARTITION BY [Tenant Name] #(lf)            ORDER BY [Tenancy Start Date] #(lf)            ROWS UNBOUNDED PRECEDING#(lf)        ) AS [Chain ID]#(lf)    FROM TenancyWithGap#(lf)),#(lf)-- Step 4: Calculate Chain Start Date as MIN start date within each chain#(lf)TenancyFinal AS (#(lf)    SELECT *,#(lf)        MIN([Tenancy Start Date]) OVER (#(lf)            PARTITION BY [Tenant Name], [Chain ID]#(lf)        ) AS [Chain Start Date]#(lf)    FROM TenancyWithChainID#(lf))#(lf)SELECT * FROM TenancyFinal#(lf)"]),
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, fnApplyNamingConventions),
+				    #"Renamed Columns" = Table.RenameColumns(#"Transformed Column Names",{{"Tenancy Reference", "BOS/HUD Ref."}, {"Tenancy Identifier", "Tenancy ID"}}),
+				    // Extract numeric Client ID from Primary Tenant Record Base ID for joining to Client dimension
+				    #"Added Client ID" = Table.AddColumn(#"Renamed Columns", "Tangata Whaiora ID", each
+				        let
+				            sourceValue = [Primary Tenant Record Base ID],
+				            numericOnly = Text.Select(sourceValue, {"0".."9"}),
+				            clientId = try Int64.From(numericOnly) otherwise null
+				        in
+				            clientId, Int64.Type),
+				    #"Added Dynamics 365 Link" = Table.AddColumn(
+				        #"Added Client ID",
+				        "Dynamics 365 Link",
+				        each "https://emergeaotearoa.crm6.dynamics.com/main.aspx?appid=cf3d4408-7345-453c-8775-1e5538c40ddf"
+				            & "&forceUCI=1&pagetype=entityrecord&etn=opportunity&id="
+				            & Text.From([Property Tenancy ID]),
+				        type text
+				    ),
+				    #"Filtered Rows" = Table.SelectRows(#"Added Dynamics 365 Link", each ([Tenancy Status] <> "Cancelled"))
+				in
+				    #"Filtered Rows"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

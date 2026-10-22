@@ -1,0 +1,414 @@
+table _Measures
+	lineageTag: d7709112-34a3-4bae-9afb-03c288aa6289
+
+	measure 'Accepted referrals in year' =
+			
+			CALCULATE(DISTINCTCOUNT('ALL_FactReferral'[ID]),USERELATIONSHIP(DimDate[calendar_date],'ALL_FactReferral'[AcceptedDate]))
+		formatString: 0
+		lineageTag: 9029820a-c42d-45d0-93d2-1b63c55aacbe
+
+	measure 'Discharged referrals in year' =
+			
+			CALCULATE(COUNTROWS('ALL_FactReferral'),USERELATIONSHIP(DimDate[calendar_date],'ALL_FactReferral'[DischargeDate]))
+		formatString: 0
+		lineageTag: 3242fce4-0d19-4b8c-9ff8-a4ec5a3232f2
+
+	measure 'Average length of engagement (all time)' = ```
+			
+			VAR SelectedFY = SELECTEDVALUE(DimDate[financial_year_num]) 
+			    -- Single selection on both pages using an EQUAL TO slicer
+			VAR _FYEnd =
+			    CALCULATE(
+			        MAX(DimDate[calendar_date]),
+			        ALL(DimDate),
+			        DimDate[financial_year_num] = SelectedFY
+			    )
+			    -- Gets the end date of the Selected FY
+			RETURN
+			
+			AVERAGEX(
+			    CALCULATETABLE(
+			        ALL_FactReferral,
+			        REMOVEFILTERS(DimDate),
+			        -- Removes filters from DimDate to include all historical data
+			        ALL_FactReferral[AcceptedDate] <= _FYEnd
+			        -- Filters referrals accepted up to the end of the Selected FY
+			    ),
+			    VAR _AcceptedDate = ALL_FactReferral[AcceptedDate]
+			    VAR _DischargeDate = ALL_FactReferral[DischargeDate]
+			    VAR _EndDate =
+			        IF(
+			            ISBLANK(_DischargeDate),
+			            _FYEnd,
+			            MIN(_FYEnd, _DischargeDate)
+			        )
+			        -- If DischargeDate is blank, use _FYEnd; otherwise, use the earlier of _FYEnd and DischargeDate
+			    RETURN
+			        IF(
+			            NOT(ISBLANK(_AcceptedDate)),
+			            DATEDIFF(_AcceptedDate, _EndDate, DAY),
+			            BLANK()
+			        )
+			        -- Calculates the number of days from AcceptedDate to _EndDate
+			)
+			
+			```
+		lineageTag: fe557399-f464-4808-8923-32faf0689462
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Days referral active in FY' =
+			
+			CALCULATE(
+			    SUM(
+			        FactReferralActiveDaysByFY[ReferralDaysInFY])//,OR('DimTeamFunction'[TeamFunctionNameBucket] = "Residential",DimTeamFunction[TeamFunctionNameBucket] = "Respite")
+			        )
+		formatString: 0
+		lineageTag: 1edefe10-8bd4-471a-88d7-57918c8734a7
+
+	measure 'Number of absent nights (hospitalisation - residential and respite only)' =
+			
+			// The work table that the underlying DAX table relies upon filters for TeamFunctionName like Residential or Respite.
+			CALCULATE(
+			        SUM(
+			            FactAbsentDaysByFY[AbsenceNightsInFY]
+			        ),FactAbsentDaysByFY[PersonStatusTypeID] = "E1"
+			)
+		formatString: 0
+		lineageTag: c2dde87c-3bc0-4e48-9ed2-623b7dc51751
+
+	measure 'Number of absent nights (other - residential and respite only)' =
+			
+			// The work table that the underlying DAX table relies upon filters for TeamFunctionName like Residential or Respite.
+			CALCULATE(
+			        SUM(
+			            FactAbsentDaysByFY[AbsenceNightsInFY]
+			        ),FactAbsentDaysByFY[PersonStatusTypeID] = "E2"
+			)
+		formatString: 0
+		lineageTag: e944e6ae-164a-427e-b8a2-e422e3456422
+
+	measure 'Total nights absent' =
+			
+			SUM(
+			    FactAbsentDaysByFY[AbsenceNightsInFY]
+			)
+		formatString: 0
+		lineageTag: a824cdf3-a2fb-4d08-986d-7f0f28006ea7
+
+	measure 'Actual number of accommodation nights provided' =
+			
+			[Bed Nights Provided] - [Total nights absent]
+		formatString: 0
+		lineageTag: 9ac57212-ae73-4e2e-9506-2902e358dc30
+
+	measure 'Percentage non-absent (residential/respite only)' =
+			
+			[Actual number of accommodation nights provided] / [Days referral active in FY]
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: ae17e3d4-bc6c-47d0-8b6f-b91e38b47e66
+
+	measure 'Percentage absent (residential/respite only)' =
+			
+			([Number of absent nights (hospitalisation - residential and respite only)] + [Number of absent nights (other - residential and respite only)]) / [Days referral active in FY]
+		lineageTag: 6340aeaf-8dde-473a-bf93-bc54aaaa688c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Number of unique people with referrals in period' =
+			
+			DISTINCTCOUNT(FactReferralActiveDaysByFY[PersonID])
+		formatString: 0
+		lineageTag: f7cee55d-c1a5-4169-9297-021c6f857513
+
+	measure 'Number of unique referrals active period' =
+			
+			DISTINCTCOUNT(FactReferralActiveDaysByFY[ID])
+		formatString: 0
+		lineageTag: 6c297a53-7346-4af5-a3e9-b3674cfebdcf
+
+	measure 'Average number of contracted bed nights per person in FY' =
+			
+			[Days referral active in FY] / [Number of unique people with referrals in period]
+			//[Days referral active in FY] / [Number of unique referrals active period] // Gives same value as average length of engagement - due to a person potentially having more than one referral
+		lineageTag: 2af76a9c-9f72-4dd9-87db-26ef2951ac88
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Average length of engagement for FY' =
+			
+			AVERAGE(FactReferralActiveDaysByFY[ReferralDaysFromAcceptedDateToFYEndOrDischargeDate])
+			// changed 20250128 after discussion with Nathan - it should consider the overall referral accepted date as the starting point rather than the start date of the referral within the FY.
+			//AVERAGE(FactReferralActiveDaysByFY[ReferralDaysInFY])
+		lineageTag: 1412756d-1b65-4bc3-97aa-e6a01a72960a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Template 1 Difference %' =
+			
+			IFERROR(
+			([DV - Prev Year] - template_1[DV - Template1]) / template_1[DV - Prev Year]*-1,
+			0)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: b1939c9b-63e4-4b4b-ac2e-288ab710ac68
+
+		changedProperty = FormatString
+
+	measure 'DV - Template 2' = ```
+			
+			    SWITCH(
+			        SELECTEDVALUE(Template_2[ID]),
+			        1,[Number of unique people with referrals in period],
+			        2,[Number of active clients at FY end (or today for current FY)],
+			        3,[Unique discharged clients in year],
+			        4,FORMAT([Average length of engagement for FY],"0.00"),
+			        5,[Number of unique NEW clients in FY (first year they have had a referral)],
+			        6,[Accepted referrals in year],
+			        7,[Prev existing clients with new referral in FY],
+			        8,[Discharged referrals in year]
+			    )
+			```
+		formatString: #,0
+		lineageTag: d7b27749-e0d1-4c71-91bc-6ac9db54fa00
+
+	measure 'Number of unique NEW clients in FY (first year they have had a referral)' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT(FactReferralActiveDaysByFY[PersonID]),
+			    FactReferralActiveDaysByFY[IsFirstYearForClient] = 1
+			)
+		formatString: 0
+		lineageTag: 9767e3d6-7977-4bf4-9c08-6614b4c28f48
+
+	measure 'Prev existing clients with new referral in FY' =
+			
+			VAR _SelectedFYEnd = SELECTEDVALUE(DimDate[financial_last_day_of_year_date])
+			VAR _SelectedFYStart = SELECTEDVALUE(DimDate[financial_first_day_of_year_date])
+			RETURN
+			CALCULATE(
+			    DISTINCTCOUNT(FactReferralActiveDaysByFY[PersonID]),
+			    FactReferralActiveDaysByFY[IsFirstYearForClient] = 0,
+			    FactReferralActiveDaysByFY[AcceptedDate] >= _SelectedFYStart,
+			    FactReferralActiveDaysByFY[AcceptedDate] <= _SelectedFYEnd
+			)
+		formatString: 0
+		lineageTag: e4ea6f33-c946-4c15-b56c-ab902e7a0b82
+
+	measure 'Number of active clients at FY end (or today for current FY)' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT(FactReferralActiveDaysByFY[PersonID]),
+			    FactReferralActiveDaysByFY[DischargedBeforeFYEnd] = 0
+			)
+			--OLD MEASURE:
+			--VAR _SelectedFY = SELECTEDVALUE(dimdate[financial_year_num])
+			--VAR _SelectedFYStart = SELECTEDVALUE(dimdate[financial_first_day_of_year_date])
+			--VAR _SelectedFYEnd = SELECTEDVALUE(dimdate[financial_last_day_of_year_date])
+			--RETURN
+			    --CALCULATE(
+			        --DISTINCTCOUNT(ALL_FactReferral[PersonID]),
+			        --ALL(dimdate),
+			        --ALL_FactReferral[AcceptedDate] <= _SelectedFYEnd,
+			        --OR(
+			            --ALL_FactReferral[DischargeDate] >= _SelectedFYEnd, ISBLANK(ALL_FactReferral[DischargeDate])
+			    --))
+		formatString: 0
+		lineageTag: 7b408b5e-026a-4b76-94f1-97118c93768f
+
+	measure 'DV - Template 2 (Prev FY)' =
+			
+			VAR _year = SELECTEDVALUE(DimDate[financial_year_num])-1
+			RETURN
+			CALCULATE(
+			    [DV - Template 2],
+			    DimDate[financial_year_num] = _year
+			)
+		formatString: #,0
+		lineageTag: de6c70f0-61b0-4a0f-b56d-70f0fc84c116
+
+	measure 'Template 2 Change %' =
+			
+			IFERROR(
+			([DV - Template 2 (Prev FY)] - [DV - Template 2]) / [DV - Template 2 (Prev FY)]*-1,
+			0)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 2fb1b69c-8408-43ed-801d-0d6dc24c9c03
+
+	measure 'Count People (FactDemogByFY)' =
+			
+			DISTINCTCOUNT(FactDemographicsAtFYEndForActiveReferrals[PersonID])
+		formatString: 0
+		lineageTag: 046df498-1e15-46b4-b9a4-d79c39079df3
+
+	measure 'Title: Client Summary Page' =
+			
+			IF(
+			    HASONEVALUE(DimDate[financial_year_num]),
+			        CONCATENATE("Client Summary | FY ",SELECTEDVALUE(DimDate[financial_year_num])),
+			        "Client Summary | Multiple FYs"
+			)
+		lineageTag: 82206805-4108-4621-a874-bd237a1326a8
+
+	measure 'Filters applied' =
+			
+			VAR __1FinYear = IF(ISFILTERED(DimDate[financial_year_num]), CONCATENATEX(FILTERS(DimDate[financial_year_num]), DimDate[financial_year_num], ", "), BLANK())
+			VAR __2Ethnicity = IF(ISFILTERED(ALL_DimEthnicity[EthnicityBucket]), CONCATENATEX(FILTERS(ALL_DimEthnicity[EthnicityBucket]), ALL_DimEthnicity[EthnicityBucket], ", "), BLANK())
+			VAR __3Gender = IF(ISFILTERED(ALL_DimGender[GenderText]), CONCATENATEX(FILTERS(ALL_DimGender[GenderText]), ALL_DimGender[GenderText], ", "), BLANK())
+			VAR __4CompanyIdentifier = IF(ISFILTERED(ALL_DimTeamFunction[CompanyIdentifier]), CONCATENATEX(FILTERS(ALL_DimTeamFunction[CompanyIdentifier]), ALL_DimTeamFunction[CompanyIdentifier], ", "), BLANK())
+			VAR __5TeamFunctionNames = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(ALL_DimTeamFunction[TeamFunctionName]), NOT(ISBLANK(ALL_DimTeamFunction[TeamFunctionName]))), ALL_DimTeamFunction[TeamFunctionName], ASC),
+			    "TeamFunctionName_display", ALL_DimTeamFunction[TeamFunctionName]
+			)
+			VAR __6TeamFunctionNamesCount = IF(ISFILTERED(ALL_DimTeamFunction[TeamFunctionName]), COUNTROWS(VALUES(ALL_DimTeamFunction[TeamFunctionName])), 0)
+			VAR __7MoreTeamFunctionNames = IF(__6TeamFunctionNamesCount > 10, " and " & (__6TeamFunctionNamesCount - 10) & " more", "")
+			
+			VAR __8TeamNames = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(ALL_DimTeamFunction[TeamName]), NOT(ISBLANK(ALL_DimTeamFunction[TeamName]))), ALL_DimTeamFunction[TeamName], ASC),
+			    "TeamName_display", ALL_DimTeamFunction[TeamName]
+			)
+			VAR __9TeamNamesCount = IF(ISFILTERED(ALL_DimTeamFunction[TeamName]), COUNTROWS(VALUES(ALL_DimTeamFunction[TeamName])), 0)
+			VAR __10MoreTeamNames = IF(__9TeamNamesCount > 10, " and " & (__9TeamNamesCount - 10) & " more", "")
+			
+			VAR _FC_1FinYear = IF(ISBLANK(__1FinYear), BLANK(), "FINANCIAL YEAR CHOSEN: " & __1FinYear)
+			VAR _FC_2Ethnicity = IF(ISBLANK(__2Ethnicity), BLANK(), "-- ETHNICITIES CHOSEN: " & __2Ethnicity)
+			VAR _FC_3Gender = IF(ISBLANK(__3Gender), BLANK(), "-- GENDERS CHOSEN: " & __3Gender)
+			VAR _FC_4CompanyIdentifier = IF(ISBLANK(__4CompanyIdentifier), BLANK(), "-- COMPANIES CHOSEN: " & __4CompanyIdentifier)
+			VAR _FC_5TeamFunctionNames = IF(__6TeamFunctionNamesCount > 0, "-- TEAM FUNCTIONS CHOSEN: " & CONCATENATEX(__5TeamFunctionNames, [TeamFunctionName_display], ", "), BLANK())
+			VAR _FC_6MoreTeamFunctionNames = IF(__6TeamFunctionNamesCount > 10, " and " & (__6TeamFunctionNamesCount - 10) & " more", "")
+			
+			VAR _FC_7TeamNames = IF(__9TeamNamesCount > 0, "-- TEAMS/SERVICES CHOSEN: " & CONCATENATEX(__8TeamNames, [TeamName_display], ", "), BLANK())
+			VAR _FC_8MoreTeamNames = IF(__9TeamNamesCount > 10, " and " & (__9TeamNamesCount - 10) & " more", "")
+			
+			VAR _FirstDate = MIN(DimDate[calendar_date])
+			VAR _LastDate = MAX(DimDate[calendar_date])
+			RETURN
+			"(" & FORMAT(_FirstDate, "dd/MM/YYYY") & " - " & FORMAT(_LastDate, "dd/MM/YYYY") & ") " &
+			IF(
+			    ISBLANK(_FC_2Ethnicity) && ISBLANK(_FC_3Gender) && ISBLANK(_FC_4CompanyIdentifier) && ISBLANK(_FC_5TeamFunctionNames) && ISBLANK(_FC_7TeamNames),
+			    "",
+			    "and other selected fields: " & " " & _FC_2Ethnicity & " " & _FC_3Gender & " " & _FC_4CompanyIdentifier & " " & _FC_5TeamFunctionNames & _FC_6MoreTeamFunctionNames & " " & _FC_7TeamNames & _FC_8MoreTeamNames
+			)
+		lineageTag: 26ea9136-985d-42e1-8714-22d7077fcfe0
+
+	measure 'Filters Applied (Has Selected FY)' = "Please be aware all numbers are based on the currently selected financial year " & [Filters applied]
+		lineageTag: e67f1ff2-0717-484f-9618-32483d67c589
+
+	measure 'Title: Residential/Respite Care Page' =
+			
+			IF(
+			    HASONEVALUE(DimDate[financial_year_num]),
+			        CONCATENATE("Residential/Respite Care Summary | FY ",SELECTEDVALUE(DimDate[financial_year_num])),
+			        "Residential/Respite Care Summary | Multiple FYs"
+			)
+		lineageTag: cd6e49c3-d1d7-4024-b8d8-6b168bdf08d0
+
+	measure 'Title: All Teams Page' =
+			
+			IF(
+			    HASONEVALUE(DimDate[financial_year_num]),
+			        CONCATENATE("Referral Summary | FY ",SELECTEDVALUE(DimDate[financial_year_num])),
+			        "Referral Summary | Multiple FYs"
+			)
+		lineageTag: 601a6639-d4a7-4118-afdc-7145e19fa737
+
+	measure 'Filters Applied (Has No Selected FY)' = "Please be aware that data is displayed for the previous 7 financial years " & [Filters applied]
+		lineageTag: 00ffc610-0fda-4866-9970-34aed9dfe8a2
+
+	measure 'Title: Growth/Decline Summary' =
+			
+			CONCATENATE("Growth/Decline Summary | FY " & MIN(DimDate[financial_year_num]) & " - ", MAX(DimDate[financial_year_num]))
+		lineageTag: 23ebae11-3508-4ef2-a15e-d43a583d7306
+
+	measure 'Unique discharged clients in year' =
+			
+			CALCULATE(DISTINCTCOUNT('ALL_FactReferral'[PersonID]),USERELATIONSHIP(DimDate[calendar_date],'ALL_FactReferral'[DischargeDate]))
+		formatString: 0
+		lineageTag: 7b60389e-f8e5-4488-a2c0-f2fb20eb3a40
+
+	measure 'Bed Nights Provided' =
+			
+			SUM(
+			    FactReferralActiveDaysByFY[BedNightsIfRelevant]
+			)
+		formatString: 0
+		lineageTag: ee80b89a-7c25-4eab-a8be-808c62637cdf
+
+	measure RefreshedAt_forDisplay = "Data Last Refreshed: " & FORMAT(LASTDATE(LastRefreshed[Date Last Refreshed]), "dd/MM/YYYY - hh:mm AM/PM")
+		lineageTag: bb544476-1431-488c-b79a-4e6b35a8d730
+
+	measure 'Days From Accepted Date to FY End or Discharge Date' = ```
+			
+			VAR _FYEnd = MAX(DimDate_AcceptedDate[calendar_date])
+			VAR _AcceptedDate = SELECTEDVALUE(ALL_FactReferral[AcceptedDate])
+			VAR _DischargeDate = SELECTEDVALUE(ALL_FactReferral[DischargeDate])
+			VAR _EndDate = 
+			    IF(
+			        ISBLANK(_DischargeDate),
+			        _FYEnd,
+			        MIN(_FYEnd, _DischargeDate)
+			    )
+			RETURN
+			DATEDIFF(_AcceptedDate, _EndDate, DAY)
+			```
+		formatString: 0
+		lineageTag: 6f56efe3-0518-4ff6-af0e-1b3eca19201c
+
+	measure 'Filters applied (For all time page(s))' =
+			
+			
+			-- used on underlying data page for all time average length of engagement
+			
+			VAR __1FinYear = IF(ISFILTERED(DimDate[financial_year_num]), CONCATENATEX(FILTERS(DimDate[financial_year_num]), DimDate[financial_year_num], ", "), BLANK())
+			VAR __2Ethnicity = IF(ISFILTERED(ALL_DimEthnicity[EthnicityBucket]), CONCATENATEX(FILTERS(ALL_DimEthnicity[EthnicityBucket]), ALL_DimEthnicity[EthnicityBucket], ", "), BLANK())
+			VAR __3Gender = IF(ISFILTERED(ALL_DimGender[GenderText]), CONCATENATEX(FILTERS(ALL_DimGender[GenderText]), ALL_DimGender[GenderText], ", "), BLANK())
+			VAR __4CompanyIdentifier = IF(ISFILTERED(ALL_DimTeamFunction[CompanyIdentifier]), CONCATENATEX(FILTERS(ALL_DimTeamFunction[CompanyIdentifier]), ALL_DimTeamFunction[CompanyIdentifier], ", "), BLANK())
+			VAR __5TeamFunctionNames = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(ALL_DimTeamFunction[TeamFunctionName]), NOT(ISBLANK(ALL_DimTeamFunction[TeamFunctionName]))), ALL_DimTeamFunction[TeamFunctionName], ASC),
+			    "TeamFunctionName_display", ALL_DimTeamFunction[TeamFunctionName]
+			)
+			VAR __6TeamFunctionNamesCount = IF(ISFILTERED(ALL_DimTeamFunction[TeamFunctionName]), COUNTROWS(VALUES(ALL_DimTeamFunction[TeamFunctionName])), 0)
+			VAR __7MoreTeamFunctionNames = IF(__6TeamFunctionNamesCount > 10, " and " & (__6TeamFunctionNamesCount - 10) & " more", "")
+			
+			VAR __8TeamNames = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(ALL_DimTeamFunction[TeamName]), NOT(ISBLANK(ALL_DimTeamFunction[TeamName]))), ALL_DimTeamFunction[TeamName], ASC),
+			    "TeamName_display", ALL_DimTeamFunction[TeamName]
+			)
+			VAR __9TeamNamesCount = IF(ISFILTERED(ALL_DimTeamFunction[TeamName]), COUNTROWS(VALUES(ALL_DimTeamFunction[TeamName])), 0)
+			VAR __10MoreTeamNames = IF(__9TeamNamesCount > 10, " and " & (__9TeamNamesCount - 10) & " more", "")
+			
+			VAR _FC_1FinYear = IF(ISBLANK(__1FinYear), BLANK(), "FINANCIAL YEAR CHOSEN: " & __1FinYear)
+			VAR _FC_2Ethnicity = IF(ISBLANK(__2Ethnicity), BLANK(), "-- ETHNICITIES CHOSEN: " & __2Ethnicity)
+			VAR _FC_3Gender = IF(ISBLANK(__3Gender), BLANK(), "-- GENDERS CHOSEN: " & __3Gender)
+			VAR _FC_4CompanyIdentifier = IF(ISBLANK(__4CompanyIdentifier), BLANK(), "-- COMPANIES CHOSEN: " & __4CompanyIdentifier)
+			VAR _FC_5TeamFunctionNames = IF(__6TeamFunctionNamesCount > 0, "-- TEAM FUNCTIONS CHOSEN: " & CONCATENATEX(__5TeamFunctionNames, [TeamFunctionName_display], ", "), BLANK())
+			VAR _FC_6MoreTeamFunctionNames = IF(__6TeamFunctionNamesCount > 10, " and " & (__6TeamFunctionNamesCount - 10) & " more", "")
+			
+			VAR _FC_7TeamNames = IF(__9TeamNamesCount > 0, "-- TEAMS/SERVICES CHOSEN: " & CONCATENATEX(__8TeamNames, [TeamName_display], ", "), BLANK())
+			VAR _FC_8MoreTeamNames = IF(__9TeamNamesCount > 10, " and " & (__9TeamNamesCount - 10) & " more", "")
+			
+			VAR _FirstDate = CALCULATE(MIN(DimDate[calendar_date]), ALL(DimDate))
+			VAR _LastDate = MAX(DimDate[calendar_date])
+			RETURN
+			"(" & FORMAT(_FirstDate, "dd/MM/YYYY") & " - " & FORMAT(_LastDate, "dd/MM/YYYY") & ") " &
+			IF(
+			    ISBLANK(_FC_2Ethnicity) && ISBLANK(_FC_3Gender) && ISBLANK(_FC_4CompanyIdentifier) && ISBLANK(_FC_5TeamFunctionNames) && ISBLANK(_FC_7TeamNames),
+			    "",
+			    "and other selected fields: " & " " & _FC_2Ethnicity & " " & _FC_3Gender & " " & _FC_4CompanyIdentifier & " " & _FC_5TeamFunctionNames & _FC_6MoreTeamFunctionNames & " " & _FC_7TeamNames & _FC_8MoreTeamNames
+			)
+		lineageTag: c5c8da41-1f75-4958-8ad6-68fb7895ea9c
+
+	partition _Measures-349fffc3-8312-4569-9898-4ac05039bc17 = m
+		mode: import
+		queryGroup: Shared
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [_Measures = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"_Measures", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"_Measures"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

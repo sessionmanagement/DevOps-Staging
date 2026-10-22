@@ -1,0 +1,65 @@
+expression 'Waharoa Data' =
+		let
+		    Source = Sql.Database(Server, Database, [Query="Select#(tab)#(tab)'Waharoa' As incident_source,#(lf)#(tab)#(tab)#(tab)IsNull(fph.hazard_date_identified_id, 19000101) As incident_date_key,#(lf)#(tab)#(tab)#(tab)IsNull(fph.hazard_date_identified, '1900-01-01') As incident_datetime,#(lf)#(tab)#(tab)#(tab)fph.property_hazard_id As incident_id,#(lf)#(tab)#(tab)#(tab)fph.hazard_comments As incident_details,#(lf)#(tab)#(tab)#(tab)fph.hazard_location_label As incident_location,#(lf)#(tab)#(tab)#(tab)Null As incident_in_recordbase,#(lf)#(tab)#(tab)#(tab)Null As incident_recordbase_reference,#(lf)#(tab)#(tab)#(tab)fph.hazard_name As incident_type_classification,#(lf)#(tab)#(tab)#(tab)fph.hazard_risklevel_label As incident_fire_risk_classification,#(lf)#(tab)#(tab)#(tab)fph.hazard_status_label As incident_status,#(lf)#(tab)#(tab)#(tab)dp.property_full_address As full_address,#(lf)#(tab)#(tab)#(tab)ds.service_code,#(lf)#(tab)#(tab)#(tab)ds.district_name,#(lf)#(tab)#(tab)#(tab)ds.region_name#(lf)From#(tab)#(tab)edw.fact_property_hazard fph#(lf)#(tab)Inner Join#(tab)edw.dim_property dp#(lf)#(tab)#(tab)On#(tab)#(tab)fph.dim_property_key = dp.dim_property_key#(lf)#(tab)Inner Join#(tab)edw.dim_service ds#(lf)#(tab)#(tab)On#(tab)#(tab)dp.property_bc_service_code = ds.service_code#(lf)#(tab)#(tab)And#(tab)#(tab)ds.DWHIsCurrent = 1#(lf)Where#(tab)#(tab)fph.DWHIsCurrent = 1#(lf)#(tab)And#(tab)#(tab)fph.hazard_name Like '%fire%'#(lf)"])
+		in
+		    Source
+	lineageTag: 55e28761-fb85-40ac-af67-cd484ea984fb
+	queryGroup: 'Individual Sources'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'RecordBase Data' =
+		let
+		    Source = Sql.Database(Server, Database, [Query="Select#(tab)#(tab)'RecordBase' As incident_source,#(lf)#(tab)#(tab)#(tab)fci.dim_incident_date_key As incident_date_key,#(lf)#(tab)#(tab)#(tab)fci.incident_date As incident_datetime,#(lf)#(tab)#(tab)#(tab)fci.incident_id,#(lf)#(tab)#(tab)#(tab)dci.incident_title As incident_details,#(lf)#(tab)#(tab)#(tab)dci.incident_location,#(lf)#(tab)#(tab)#(tab)Null As incident_in_recordbase,#(lf)#(tab)#(tab)#(tab)Null As incident_recordbase_reference,#(lf)#(tab)#(tab)#(tab)dcict.incident_category_type_parent_text As incident_type_classification,#(lf)#(tab)#(tab)#(tab)dcict.incident_category_type_text As incident_fire_risk_classification,#(lf)#(tab)#(tab)#(tab)dcist.incident_status_type_text As incident_status,#(lf)#(tab)#(tab)#(tab)ds.location_name As full_address,#(lf)#(tab)#(tab)#(tab)ds.service_code,#(lf)#(tab)#(tab)#(tab)ds.district_name,#(lf)#(tab)#(tab)#(tab)ds.region_name#(lf)From#(tab)#(tab)edw.vw_fact_client_incident fci#(lf)#(tab)Inner Join#(tab)edw.vw_dim_client_incident dci#(lf)#(tab)#(tab)On#(tab)#(tab)fci.dim_client_incident_key = dci.dim_client_incident_key#(lf)#(tab)Inner Join#(tab)edw.vw_fact_client_incident_category fcic#(lf)#(tab)#(tab)On#(tab)#(tab)dci.dim_client_incident_company_key_incident_id_key = fcic.dim_client_incident_company_key_incident_id_key#(lf)#(tab)#(tab)And#(tab)#(tab)fcic.DWHIsCurrent = 1#(lf)#(tab)#(tab)And#(tab)#(tab)fcic.DWHDMLOperation <> 'D'#(lf)#(tab)Inner Join#(tab)edw.vw_dim_client_incident_category_type dcict#(lf)#(tab)#(tab)On#(tab)#(tab)fcic.dim_client_incident_category_type_key = dcict.dim_client_incident_category_type_key#(lf)#(tab)#(tab)And#(tab)#(tab)dcict.DWHIsCurrent = 1#(lf)#(tab)#(tab)And#(tab)#(tab)dcict.DWHDMLOperation <> 'D'#(lf)#(tab)Inner Join#(tab)edw.vw_dim_client_incident_status_type dcist#(lf)#(tab)#(tab)On#(tab)#(tab)fci.dim_client_incident_company_key_status_type_id_key = dcist.dim_client_incident_company_key_status_type_id_key#(lf)#(tab)#(tab)And#(tab)#(tab)dcist.DWHIsCurrent = 1#(lf)#(tab)#(tab)And#(tab)#(tab)dcist.DWHDMLOperation <> 'D'#(lf)#(tab)Inner Join#(tab)edw.vw_dim_client_team dct#(lf)#(tab)#(tab)On#(tab)#(tab)fci.dim_client_team_key = dct.dim_client_team_key#(lf)#(tab)Inner Join#(tab)edw.vw_dim_service ds#(lf)#(tab)#(tab)On#(tab)#(tab)dct.dim_service_Key = ds.dim_service_key#(lf)Where#(tab)#(tab)dcict.incident_category_type_parent_text = 'fire'#(lf)#(tab)And#(tab)#(tab)fci.DWHIsCurrent = 1#(lf)#(tab)And#(tab)#(tab)fci.DWHDMLOperation <> 'D'#(lf)#(lf)"])
+		in
+		    Source
+	lineageTag: c7e9f003-3caa-4d60-94a2-f8a9fe48b29c
+	queryGroup: 'Individual Sources'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'EcoPortal Data' =
+		let
+		    Source = Sql.Database(Server, Database, [Query="Select#(tab)#(tab)'EcoPortal' As incident_source,#(lf)#(tab)#(tab)#(tab)fei.dim_incident_date_key As incident_date_key,#(lf)#(tab)#(tab)#(tab)fei.incident_date As incident_datetime,#(lf)#(tab)#(tab)#(tab)fei.incident_id,#(lf)#(tab)#(tab)#(tab)dei.incident_details,#(lf)#(tab)#(tab)#(tab)dei.incident_specific_location As incident_location,#(lf)#(tab)#(tab)#(tab)dei.is_incident_in_recordbase As incident_in_recordbase,#(lf)#(tab)#(tab)#(tab)dei.incident_recordbase_detail As incident_recordbase_reference,#(lf)#(tab)#(tab)#(tab)deic.incident_classification_level1_name As incident_type_classification,#(lf)#(tab)#(tab)#(tab)deic.incident_classification_level2_name As incident_fire_risk_classification,#(lf)#(tab)#(tab)#(tab)dei.current_stage + ' - ' + dei.active_stage_status As incident_status,#(lf)#(tab)#(tab)#(tab)dei.incident_site_address As full_address,#(lf)#(tab)#(tab)#(tab)-1 As service_code,#(lf)#(tab)#(tab)#(tab)'Unknown' As district_name,#(lf)#(tab)#(tab)#(tab)'Unknown' As region_name#(lf)From#(tab)#(tab)edw.vw_fact_employee_incident fei#(lf)#(tab)Inner Join#(tab)edw.vw_dim_employee_incident dei#(lf)#(tab)#(tab)On#(tab)#(tab)fei.dim_employee_incident_key = dei.dim_employee_incident_key#(lf)#(tab)Inner Join#(tab)edw.vw_dim_employee_incident_classification deic#(lf)#(tab)#(tab)On#(tab)#(tab)fei.dim_employee_incident_id_key = deic.dim_employee_incident_id_key#(lf)Where#(tab)#(tab)deic.incident_classification_level1_code = 'fire'#(lf)#(lf)"])
+		in
+		    Source
+	lineageTag: 8d252200-03fa-4b60-a6d9-e14bed1dd3c2
+	queryGroup: 'Individual Sources'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression Server = "sql-prod-aus-svc-datawarehouse-01.database.windows.net" meta [IsParameterQuery=true, List={"sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sql-test-aus-svc-datawarehouse-01.database.windows.net"}, DefaultValue="sql-prod-aus-svc-datawarehouse-01.database.windows.net", Type="Any", IsParameterQueryRequired=true]
+	lineageTag: 8212f8bb-1667-42a6-bdf5-2ed95a11faf2
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+expression Database = "sqldb-prod-datawarehouse-01" meta [IsParameterQuery=true, List={"sqldb-prod-datawarehouse-01", "sqldb-test-datawarehouse-01"}, DefaultValue="sqldb-prod-datawarehouse-01", Type="Any", IsParameterQueryRequired=true]
+	lineageTag: a4dad4da-915a-430b-b9b7-d694b7349bc4
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+expression 'RecordBase All Incident IDs' =
+		let
+		    Source = Sql.Database(Server, Database, [Query="Select#(tab)#(tab)Distinct#(lf)#(tab)#(tab)#(tab)fci.incident_id#(lf)From#(tab)#(tab)edw.vw_fact_client_incident fci#(lf)Where#(tab)#(tab)fci.DWHIsCurrent = 1#(lf)#(tab)And#(tab)#(tab)fci.DWHDMLOperation <> 'D'#(lf)"]),
+		    #"Changed Type" = Table.TransformColumnTypes(Source,{{"incident_id", type text}})
+		in
+		    #"Changed Type"
+	lineageTag: 8224df85-95f5-474e-9a45-21b79ebaf428
+	queryGroup: 'Individual Sources'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

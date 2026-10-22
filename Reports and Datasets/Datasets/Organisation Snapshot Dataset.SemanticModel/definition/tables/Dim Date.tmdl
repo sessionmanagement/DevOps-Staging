@@ -1,0 +1,200 @@
+table 'Dim Date'
+	lineageTag: 009ddf78-1d3c-4760-8783-df5730d499b8
+
+	column 'Dim Date KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 2880698a-e1ff-4bf0-bc45-39cb26b5555b
+		summarizeBy: sum
+		sourceColumn: Dim Date KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: e030410d-9389-43f8-90a9-6ac37fc7fcdb
+		summarizeBy: none
+		sourceColumn: Calendar Date
+
+		variation Variation
+			isDefault
+			relationship: 1f148651-a7f7-4a55-9235-aee0f7c3c0ba
+			defaultHierarchy: LocalDateTable_d7960bb9-7a06-4133-8b23-6ee453096e86.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Calendar Year'
+		dataType: int64
+		formatString: 0
+		lineageTag: 7a051edc-3703-4696-a19f-45c39af9c088
+		summarizeBy: sum
+		sourceColumn: Calendar Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Month Num'
+		dataType: int64
+		formatString: 0
+		lineageTag: 11eb0541-5209-4bd4-a3e7-a2cf3252dbcc
+		summarizeBy: sum
+		sourceColumn: Calendar Month Num
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Calendar Month Name Long'
+		dataType: string
+		lineageTag: 67759bb5-5454-4946-a5f1-8df0972f0124
+		summarizeBy: none
+		sourceColumn: Calendar Month Name Long
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Financial Year Num'
+		dataType: int64
+		formatString: 0
+		lineageTag: e7c01c39-b12e-4903-98f9-71d5d02d5b92
+		summarizeBy: sum
+		sourceColumn: Financial Year Num
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Financial Year Desc'
+		dataType: string
+		lineageTag: a9a49841-241a-4b60-a5fd-f52a1eeb95cf
+		summarizeBy: none
+		sourceColumn: Financial Year Desc
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Financial Quarter Num'
+		dataType: int64
+		formatString: 0
+		lineageTag: bc149227-e788-4205-86bb-3538464fcb8c
+		summarizeBy: sum
+		sourceColumn: Financial Quarter Num
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Financial Month Num'
+		dataType: int64
+		formatString: 0
+		lineageTag: aa409095-107b-46be-9cb4-ccd35079991d
+		summarizeBy: sum
+		sourceColumn: Financial Month Num
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Current Financial Year Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: 0facb7ce-7646-48d5-9e8f-a1d2b116fceb
+		summarizeBy: sum
+		sourceColumn: Current Financial Year Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Previous Financial Year Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: 73752d6e-9a58-4767-be5e-5ece1b934936
+		summarizeBy: sum
+		sourceColumn: Previous Financial Year Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Current Date Rolling Financial Year Offset'
+		dataType: int64
+		formatString: 0
+		lineageTag: 21f0204e-8ee9-4745-b899-d95b2b16851d
+		summarizeBy: sum
+		sourceColumn: Current Date Rolling Financial Year Offset
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Financial Last Day Of Year Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: eaad261a-589c-49c1-be2b-b1285d304af1
+		summarizeBy: none
+		sourceColumn: Financial Last Day Of Year Date
+
+		variation Variation
+			isDefault
+			relationship: 6a9fd04b-7f84-49d0-8a15-468d7a2241d5
+			defaultHierarchy: LocalDateTable_395aeb2f-7819-4768-89c5-211367c7ebfc.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Financial Year Month'
+		dataType: string
+		lineageTag: 81d954d8-6384-4cbe-9158-629c69f78b83
+		summarizeBy: none
+		sourceColumn: Financial Year Month
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FY Label'
+		dataType: string
+		lineageTag: b2909292-bb96-4cb4-8b22-0a15624f8c4f
+		summarizeBy: none
+		sourceColumn: FY Label
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Date' = m
+		mode: import
+		queryGroup: Dims
+		source = ```
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT #(lf)    dim_date_key,#(lf)    calendar_date,#(lf)    calendar_year,#(lf)    calendar_month_num,#(lf)    calendar_month_name_long,#(lf)    financial_year_num,#(lf)    financial_year_month,#(lf)    financial_year_desc,#(lf)    financial_quarter_num,#(lf)    financial_month_num,#(lf)    current_financial_year_flag,#(lf)    previous_financial_year_flag,#(lf)    current_date_rolling_financial_year_offset,#(lf)    financial_last_day_of_year_date#(lf)FROM [edw].[vw_dim_date]#(lf)WHERE financial_year_num >= YEAR(DATEADD(YEAR, -2, GETDATE())) - 1#(lf)  AND current_date_rolling_financial_year_offset <= 0"]),
+				    
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				    
+				    #"Changed Type" = Table.TransformColumnTypes(#"Transformed Column Names", {
+				        {"Dim Date KEY", Int64.Type},
+				        {"Calendar Date", type date},
+				        {"Calendar Year", Int64.Type},
+				        {"Calendar Month Num", Int64.Type},
+				        {"Calendar Month Name Long", type text},
+				        {"Financial Year Num", Int64.Type},
+				        {"Financial Year Desc", type text},
+				        {"Financial Quarter Num", Int64.Type},
+				        {"Financial Month Num", Int64.Type},
+				        {"Current Financial Year Flag", Int64.Type},
+				        {"Previous Financial Year Flag", Int64.Type},
+				        {"Current Date Rolling Financial Year Offset", Int64.Type},
+				        {"Financial Last Day Of Year Date", type date}
+				    }),
+				    #"Added Custom" = Table.AddColumn(#"Changed Type", "FY Label", each "FY" & Text.End([Financial Year Desc], 2))
+				in
+				    #"Added Custom"
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

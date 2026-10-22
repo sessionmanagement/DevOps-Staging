@@ -1,0 +1,135 @@
+role Public
+	modelPermission: read
+
+	tablePermission ODS_RLS = ```
+			OR(
+			    upper( UserName() )
+			      in
+			    { 
+			      upper( [StaffEmail]        ),
+			      upper( [L1SupervisorEmail] ),
+			      upper( [L2SupervisorEmail] ),
+			      upper( [L3SupervisorEmail] ),
+			      upper( [L4SupervisorEmail] ),
+			      upper( [L5SupervisorEmail] ),
+			      upper( [L6SupervisorEmail] ),
+			      upper( [L7SupervisorEmail] ),
+			      upper( [L8SupervisorEmail] )
+			     }
+			,
+			
+			OR(
+			    upper( [StaffEmail] ) IN
+			        SELECTCOLUMNS(
+			        FILTER( 'Additional Access', 
+			                  'Additional Access'[Requester Email] 
+			                   = upper( UserName() ) ), 
+			          "Person to Impersonate Email",
+			          [Person to Impersonate Email]
+			        ),
+			OR(
+			    upper( [L1SupervisorEmail] ) IN
+			        SELECTCOLUMNS(
+			        FILTER( 'Additional Access', 
+			                  'Additional Access'[Requester Email] 
+			                   = upper( UserName() ) ), 
+			          "Person to Impersonate Email",
+			          [Person to Impersonate Email]
+			        ),
+			OR(
+			    upper( [L2SupervisorEmail] ) IN
+			        SELECTCOLUMNS(
+			        FILTER( 'Additional Access', 
+			                  'Additional Access'[Requester Email] 
+			                   = upper( UserName() ) ), 
+			          "Person to Impersonate Email",
+			          [Person to Impersonate Email]
+			        ),
+			OR(
+			    upper( [L3SupervisorEmail] ) IN
+			        SELECTCOLUMNS(
+			        FILTER( 'Additional Access', 
+			                  'Additional Access'[Requester Email] 
+			                   = upper( UserName() ) ), 
+			          "Person to Impersonate Email",
+			          [Person to Impersonate Email]
+			        ),
+			OR(
+			    upper( [L4SupervisorEmail] ) IN
+			        SELECTCOLUMNS(
+			        FILTER( 'Additional Access', 
+			                  'Additional Access'[Requester Email] 
+			                   = upper( UserName() ) ), 
+			          "Person to Impersonate Email",
+			          [Person to Impersonate Email]
+			        ),
+			OR(
+			    upper( [L5SupervisorEmail] ) IN
+			        SELECTCOLUMNS(
+			        FILTER( 'Additional Access', 
+			                  'Additional Access'[Requester Email] 
+			                   = upper( UserName() ) ), 
+			          "Person to Impersonate Email",
+			          [Person to Impersonate Email]
+			        ),
+			OR(
+			    upper( [L6SupervisorEmail] ) IN
+			        SELECTCOLUMNS(
+			        FILTER( 'Additional Access', 
+			                  'Additional Access'[Requester Email] 
+			                   = upper( UserName() ) ), 
+			          "Person to Impersonate Email",
+			          [Person to Impersonate Email]
+			        ),
+			OR(
+			    upper( [L7SupervisorEmail] ) IN
+			        SELECTCOLUMNS(
+			        FILTER( 'Additional Access', 
+			                  'Additional Access'[Requester Email] 
+			                   = upper( UserName() ) ), 
+			          "Person to Impersonate Email",
+			          [Person to Impersonate Email]
+			        ),
+			    upper( [L8SupervisorEmail] ) IN
+			        SELECTCOLUMNS(
+			        FILTER( 'Additional Access', 
+			                  'Additional Access'[Requester Email] 
+			                   = upper( UserName() ) ), 
+			          "Person to Impersonate Email",
+			          [Person to Impersonate Email]
+			        )
+			
+			)
+			)
+			)
+			)
+			)
+			)
+			)
+			)
+			)
+			```
+
+	tablePermission RB_UserTeamAccess_Combined = ```
+			OR(
+			    upper( UserName() )
+			      in
+			    { 
+			      upper( [UserEmailAddress] )
+			     }
+			,
+			
+			    upper( [UserEmailAddress] ) IN
+			        SELECTCOLUMNS(
+			        FILTER( 'Additional Access', 
+			                  'Additional Access'[Requester Email] 
+			                   = upper( UserName() ) ), 
+			          "Person to Impersonate Email",
+			          [Person to Impersonate Email]
+			        )
+			
+			)
+			```
+
+	annotation PBI_Id = 277d658e8cd24c7c8b115b8fff40d9c5
+

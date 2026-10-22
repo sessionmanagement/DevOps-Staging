@@ -1,0 +1,131 @@
+table 'Yearly Budget'
+	lineageTag: 594c0bfd-5d72-485d-a696-9904fd4e1ae9
+
+	measure 'Daily Budget' = ```
+			
+			VAR SelectedYearlyBudget = SELECTEDVALUE('Yearly Budget'[Yearly Budget], 150000)  -- Default to 150,000 if none selected
+			RETURN
+			DIVIDE(SelectedYearlyBudget, 365)
+			
+			```
+		lineageTag: 47f29afa-1044-4689-a9a6-bfe165462c84
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Cumulative Budget' =
+			
+			VAR SelectedYearlyBudget = SELECTEDVALUE('Yearly Budget'[Yearly Budget])
+			VAR DailyBudget = DIVIDE(SelectedYearlyBudget, 365)
+			VAR CurrentDate = IF(MAX(dim_date[calendar_date]) > TODAY(), TODAY(), MAX(dim_date[calendar_date]))
+			VAR MinCalendarDate = MINX(dim_date, dim_date[calendar_date])
+			VAR DayCount = CALCULATE(
+			    COUNTROWS(dim_date),
+			    ALL(dim_date),
+			    dim_date[calendar_date] <= CurrentDate,
+			    dim_date[calendar_date] >= MinCalendarDate
+			)
+			RETURN
+			DailyBudget * DayCount
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 2b48f609-d3e7-4552-adf5-0e8641b93da8
+
+	measure 'Cumulative Costs' = ```
+			
+			VAR CurrentDate = MAX(dim_date[calendar_date])
+			VAR CurrentYearOffset = MAX(dim_date[year_offset])
+			VAR Result = 
+			    CALCULATE(
+			        [Total Cost],
+			        FILTER(
+			            ALL(dim_date),
+			            dim_date[calendar_date] <= CurrentDate &&
+			            dim_date[year_offset] = CurrentYearOffset
+			        )
+			    )
+			RETURN
+			IF(
+			    MAX(dim_date[calendar_date]) <= TODAY(),
+			    Result,
+			    BLANK()
+			)
+			```
+		lineageTag: 831d16c5-97ab-473a-ac79-f299e9a5204e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Cumulative Costs Previous Year' = ```
+			
+			VAR MinDateCurrentYear = CALCULATE(MIN(dim_date[calendar_date]), ALLSELECTED(dim_date))
+			VAR MaxDateCurrentYear = MAX(dim_date[calendar_date])
+			VAR MinDatePreviousYear = EDATE(MinDateCurrentYear, -12)
+			VAR MaxDatePreviousYear = EDATE(MaxDateCurrentYear, -12)
+			RETURN
+			CALCULATE(
+			    [Total Cost],
+			    FILTER(
+			        ALL(dim_date),
+			        dim_date[calendar_date] >= MinDatePreviousYear &&
+			        dim_date[calendar_date] <= MaxDatePreviousYear
+			    )
+			)
+			
+			```
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: c0a018ad-fd75-4650-a082-cab112a04a16
+
+	measure 'Cumulative Costs Previous Year as at Today''s Date' =
+			
+			VAR _today = TODAY()
+			VAR _todayMinusOneYear = DATE(YEAR(_today) - 1, MONTH(_today), DAY(_today))
+			RETURN
+			CALCULATE(
+			    [Total Cost],
+			    ALL(dim_date),
+			    dim_date[calendar_date] <= _todayMinusOneYear,
+			    dim_date[year_offset] = SELECTEDVALUE(dim_date[year_offset]) -1
+			)
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: f6185e8d-da29-4d46-97f8-ef5dac1e0d2f
+
+	measure 'Cumulative Budget to Today' =
+			
+			CALCULATE([Cumulative Budget], dim_date[calendar_date] <= TODAY())
+		lineageTag: 524d6a1c-6cf1-4e92-a86f-6b5eb9355a37
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Daily Budget to Today' =
+			
+			IF(SELECTEDVALUE(dim_date[calendar_date]) <= TODAY(), [Daily Budget], BLANK())
+		lineageTag: 27123a1c-a14a-430a-88f1-b931be61b58c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Monthly Budget' =
+			
+			VAR DaysInMonth = COUNTROWS(dim_date)
+			RETURN
+			[Daily Budget] * DaysInMonth
+		lineageTag: 6ae6eba7-54f5-4038-b35c-02e7352c2e9c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Yearly Budget'
+		formatString: \$#,0.###############;(\$#,0.###############);\$#,0.###############
+		lineageTag: 44385215-8a54-434c-9067-f737ea63ea6f
+		summarizeBy: none
+		sourceColumn: [Value]
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 0
+				}
+
+		annotation SummarizationSetBy = User
+
+	partition 'Yearly Budget' = calculated
+		mode: import
+		source = GENERATESERIES(50000, 250000, 5000)
+
+	annotation PBI_Id = 36031280afee4db9a5a7914f45693986
+

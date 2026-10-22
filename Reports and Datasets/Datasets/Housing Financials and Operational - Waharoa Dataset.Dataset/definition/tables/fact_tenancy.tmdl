@@ -1,0 +1,235 @@
+table fact_tenancy
+	lineageTag: 6c1a9620-1ce1-4574-a6c6-0805dd9016b3
+
+	column opportunityid
+		dataType: string
+		isHidden
+		isNullable: false
+		sourceProviderType: nchar
+		lineageTag: 282b3933-30a9-4405-87c1-16e4f8b57c29
+		summarizeBy: none
+		sourceColumn: opportunityid
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_tenancystartdate
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: febce337-42e8-4778-ab30-03bd3b14844e
+		summarizeBy: none
+		sourceColumn: zav_tenancystartdate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column zav_vacateddate
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: 46a538e9-c251-4b3e-b443-d0917fc93ed9
+		summarizeBy: none
+		sourceColumn: zav_vacateddate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Tenancy Length (Days)' =
+			
+			IF(
+			    ISBLANK(
+			        fact_tenancy[zav_vacateddate]),
+			        DATEDIFF(fact_tenancy[zav_tenancystartdate], TODAY(), DAY),
+			        DATEDIFF(fact_tenancy[zav_tenancystartdate], fact_tenancy[zav_vacateddate], DAY)
+			)
+		isHidden
+		formatString: 0
+		lineageTag: 65bae975-8239-43e7-8f91-9ae159482494
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_property
+		dataType: string
+		isHidden
+		lineageTag: 5bc7858e-ee9e-4947-b4d7-cac4a30fedf5
+		summarizeBy: none
+		sourceColumn: zav_property
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_propertyname
+		dataType: string
+		isHidden
+		lineageTag: 9a1947f0-a6bc-4a69-91b6-17d46401b93d
+		summarizeBy: none
+		sourceColumn: zav_propertyname
+
+		annotation SummarizationSetBy = Automatic
+
+	column name
+		dataType: string
+		isHidden
+		lineageTag: d084aadd-65c1-429e-b3e4-af62886c337d
+		summarizeBy: none
+		sourceColumn: name
+
+		annotation SummarizationSetBy = Automatic
+
+	column FullAddress = RELATED(dim_property[zav_fulladdress])
+		isHidden
+		lineageTag: 0ee47787-92e0-4be6-b920-9dba708cde74
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_subprogram
+		dataType: string
+		isHidden
+		lineageTag: b359ac45-b316-4341-ac37-913e5aa83a67
+		summarizeBy: none
+		sourceColumn: zav_subprogram
+
+		annotation SummarizationSetBy = Automatic
+
+	column region_name
+		dataType: string
+		isHidden
+		lineageTag: 105e1e5a-b9e7-4367-8647-48265326188b
+		summarizeBy: none
+		sourceColumn: region_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column parentcontactid
+		dataType: string
+		isHidden
+		lineageTag: 85fc1d77-28de-45c9-beda-38ce8f27d6d7
+		summarizeBy: none
+		sourceColumn: parentcontactid
+
+		annotation SummarizationSetBy = Automatic
+
+	column fullname
+		dataType: string
+		isHidden
+		lineageTag: fac769c5-8430-4131-9283-e463c6a303df
+		summarizeBy: none
+		sourceColumn: fullname
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_age
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 637ed8e4-fdf4-45ea-9449-5367a3b29a7a
+		summarizeBy: sum
+		sourceColumn: zav_age
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_ethnicityname
+		dataType: string
+		isHidden
+		lineageTag: 489e08af-1ece-48f7-809b-9601b4ef625c
+		summarizeBy: none
+		sourceColumn: zav_ethnicityname
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_gendername
+		dataType: string
+		isHidden
+		lineageTag: 9ad3be36-c739-4a6c-aa7e-747293d17f08
+		summarizeBy: none
+		sourceColumn: zav_gendername
+
+		annotation SummarizationSetBy = Automatic
+
+	column tenancy_has_unresolved_breach
+		dataType: string
+		isHidden
+		lineageTag: 2fa3fd87-9c16-41cb-9c7e-927eede5c32c
+		summarizeBy: none
+		sourceColumn: tenancy_has_unresolved_breach
+
+		annotation SummarizationSetBy = Automatic
+
+	column tenancy_has_open_tenancytribunal_dispute
+		dataType: string
+		isHidden
+		lineageTag: 52b5e2cb-9717-4ada-9bc0-987234426691
+		summarizeBy: none
+		sourceColumn: tenancy_has_open_tenancytribunal_dispute
+
+		annotation SummarizationSetBy = Automatic
+
+	column tenancy_has_open_breach_or_tribunal_action =
+			
+			IF(
+			    fact_tenancy[tenancy_has_open_tenancytribunal_dispute] = "Yes"
+			    || fact_tenancy[tenancy_has_unresolved_breach] = "Yes",
+			    "Yes",
+			    "No"
+			)
+		isHidden
+		lineageTag: dea55f58-6e1f-4815-b2ae-cedf1576a602
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column tenancy_manager_name =
+			
+			RELATED(dim_tenancy_manager[fullname])
+		isHidden
+		lineageTag: 394bbc7c-e80f-432b-95eb-98e6f258ec49
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_leavingreason
+		dataType: int64
+		formatString: 0
+		lineageTag: fa3dc797-2a44-4026-a29d-4a9dc6cb5e9f
+		summarizeBy: sum
+		sourceColumn: zav_leavingreason
+
+		annotation SummarizationSetBy = Automatic
+
+	column tenancymanagerid
+		dataType: string
+		lineageTag: 11c3e31d-573b-4554-9a91-c4dcc0e1ff6f
+		summarizeBy: none
+		sourceColumn: tenancymanagerid
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_tenancy-86a0de21-ed98-43c9-bb49-729f3ff2eee1 = m
+		mode: import
+		queryGroup: facts
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="WITH RecentOpportunities AS (#(lf)    SELECT#(lf)        opportunityid,#(lf)        name,#(lf)        parentcontactid,#(lf)        zav_leavingreason,#(lf)        zav_property,#(lf)        zav_subprogram,#(lf)        zav_tenancystartdate,#(lf)        zav_vacateddate,#(lf)        zav_propertyname,#(lf)        zav_tenancymanagerid,#(lf)        SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (PARTITION BY opportunityid ORDER BY SinkModifiedOn DESC) AS rn#(lf)    FROM#(lf)        [Zavanti].[vw_opportunity]#(lf)    WHERE#(lf)        statuscode <> 4#(lf))#(lf)SELECT#(lf)    opportunityid,#(lf)    name,#(lf)    parentcontactid,#(lf)    zav_leavingreason,#(lf)    zav_property,#(lf)    zav_subprogram,#(lf)    zav_tenancystartdate,#(lf)    zav_vacateddate,#(lf)    zav_propertyname,#(lf)    zav_tenancymanagerid#(lf)FROM#(lf)    RecentOpportunities#(lf)WHERE#(lf)    rn = 1"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"zav_tenancystartdate", type date}, {"zav_vacateddate", type date}}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"zav_tenancymanagerid", "tenancymanagerid"}}),
+				    #"Merged Queries" = Table.NestedJoin(#"Renamed Columns", {"zav_property"}, dim_property, {"zav_propertyid"}, "dim_property", JoinKind.LeftOuter),
+				    #"Expanded dim_property" = Table.ExpandTableColumn(#"Merged Queries", "dim_property", {"new_postalregionname"}, {"dim_property.new_postalregionname"}),
+				    #"Renamed Columns1" = Table.RenameColumns(#"Expanded dim_property",{{"dim_property.new_postalregionname", "region_name"}}),
+				    #"Merged Queries1" = Table.NestedJoin(#"Renamed Columns1", {"parentcontactid"}, merged_primary_contact, {"contactid"}, "merged_primary_contact", JoinKind.LeftOuter),
+				    #"Expanded merged_primary_contact" = Table.ExpandTableColumn(#"Merged Queries1", "merged_primary_contact", {"fullname", "zav_age", "zav_ethnicityname", "zav_gendername"}, {"fullname", "zav_age", "zav_ethnicityname", "zav_gendername"}),
+				    #"Merged Queries2" = Table.NestedJoin(#"Expanded merged_primary_contact", {"opportunityid"}, work_open_tenancybreach, {"zav_tenancy"}, "work_open_tenancybreach", JoinKind.LeftOuter),
+				    #"Expanded work_open_tenancybreach" = Table.ExpandTableColumn(#"Merged Queries2", "work_open_tenancybreach", {"tenancy_has_unresolved_breach"}, {"tenancy_has_unresolved_breach"}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Expanded work_open_tenancybreach",null,"No",Replacer.ReplaceValue,{"tenancy_has_unresolved_breach"}),
+				    #"Merged Queries3" = Table.NestedJoin(#"Replaced Value", {"opportunityid"}, work_open_tenancytribunal, {"zav_tenancy"}, "work_open_tenancytribunal", JoinKind.LeftOuter),
+				    #"Expanded work_open_tenancytribunal" = Table.ExpandTableColumn(#"Merged Queries3", "work_open_tenancytribunal", {"tenancy_has_open_tenancytribunal_dispute"}, {"tenancy_has_open_tenancytribunal_dispute"}),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Expanded work_open_tenancytribunal",null,"No",Replacer.ReplaceValue,{"tenancy_has_open_tenancytribunal_dispute"})
+				in
+				    #"Replaced Value1"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

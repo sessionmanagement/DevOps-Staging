@@ -1,0 +1,153 @@
+expression 'Row Level Security Employee' =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01"),
+		    edw_vw_row_level_security_employee = Source{[Schema="edw",Item="vw_row_level_security_employee"]}[Data],
+		    ApplyNamingConventions = (columnName as text) as text =>
+		        let
+		            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+		            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+		            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+		            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+		            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+		            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+		            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+		            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+		            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+		            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+		            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+		            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+		            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+		            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+		        in
+		            capitaliseDWH,
+		    #"Transformed Column Names" = Table.TransformColumnNames(edw_vw_row_level_security_employee, each ApplyNamingConventions(_)),
+		    #"Removed Duplicates" = Table.Distinct(#"Transformed Column Names")
+		in
+		    #"Removed Duplicates"
+	lineageTag: 3db50c45-eff3-47a7-98a2-11a6ace8340d
+	queryGroup: 'Row Level Security'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'Additional Access' =
+		let
+		    // Load data from SharePoint
+		    Source = SharePoint.Tables(
+		        "https://emergeaotearoaltd.sharepoint.com/sites/OPS_ITServices/", [Implementation = "2.0", ViewMode = "All"]
+		    ),
+		    // Access specific table by ID
+		    SelectedTable = Source{[Id = "27e19ae7-4448-4dfe-b172-3ee660e6e1df"]}[Items],
+		    // Expand "Requester" List Column
+		    ExpandedRequesterList = Table.ExpandListColumn(SelectedTable, "Requester"),
+		    // Expand "Requester" Record Column to "email"
+		    ExpandedRequesterEmail = Table.ExpandRecordColumn(
+		        ExpandedRequesterList, "Requester", {"email"}, {"Requester Email"}
+		    ),
+		    // Expand "Person to Impersonate" List Column
+		    ExpandedImpersonateList = Table.ExpandListColumn(ExpandedRequesterEmail, "Person to Impersonate"),
+		    // Expand "Person to Impersonate" Record Column to "email"
+		    ExpandedImpersonateEmail = Table.ExpandRecordColumn(
+		        ExpandedImpersonateList, "Person to Impersonate", {"email"}, {"Person to Impersonate Email"}
+		    ),
+		    // Expand "Approved By" List Column
+		    ExpandedApprovedList = Table.ExpandListColumn(ExpandedImpersonateEmail, "Approved By"),
+		    // Expand "Approved By" Record Column to "email"
+		    ExpandedApprovedEmail = Table.ExpandRecordColumn(
+		        ExpandedApprovedList, "Approved By", {"email"}, {"Approved By Email"}
+		    ),
+		    // Remove unnecessary columns
+		    RemovedUnnecessaryColumns = Table.RemoveColumns(
+		        ExpandedApprovedEmail,
+		        {
+		            "Color Tag",
+		            "Compliance Asset Id",
+		            "ID",
+		            "Content Type",
+		            "Attachments",
+		            "Edit",
+		            "Type",
+		            "Item Child Count",
+		            "Folder Child Count",
+		            "Label setting",
+		            "Retention label",
+		            "Retention label Applied",
+		            "Label applied by",
+		            "Item is a Record",
+		            "App Created By",
+		            "App Modified By"
+		        }
+		    ),
+		    // Expand "Created By" List Column
+		    ExpandedCreatedByList = Table.ExpandListColumn(RemovedUnnecessaryColumns, "Created By"),
+		    // Expand "Created By" Record Column to "email"
+		    ExpandedCreatedByEmail = Table.ExpandRecordColumn(
+		        ExpandedCreatedByList, "Created By", {"email"}, {"Created By Email"}
+		    ),
+		    // Expand "Modified By" List Column
+		    ExpandedModifiedByList = Table.ExpandListColumn(ExpandedCreatedByEmail, "Modified By"),
+		    // Expand "Modified By" Record Column to "email"
+		    ExpandedModifiedByEmail = Table.ExpandRecordColumn(
+		        ExpandedModifiedByList, "Modified By", {"email"}, {"Modified By Email"}
+		    ),
+		    // Change data types of specified columns
+		    ChangedColumnTypes = Table.TransformColumnTypes(
+		        ExpandedModifiedByEmail,
+		        {
+		            {"Person to Impersonate Email", type text},
+		            {"Requester Email", type text},
+		            {"Expiry Date", type date},
+		            {"Access Reason", type text},
+		            {"Approved By Email", type text},
+		            {"Approved Date", type date},
+		            {"Modified", type date},
+		            {"Created", type date},
+		            {"Created By Email", type text},
+		            {"Modified By Email", type text}
+		        }
+		    ),
+		    // Filtering rows where "Expiry Date" is greater than or equal to today
+		    ExpiryDateFilter = Table.SelectRows(ChangedColumnTypes, each [Expiry Date] >= Date.From(DateTime.LocalNow())),
+		    // Filter rows where "Report" is the current report
+		    ReportFilter = Table.SelectRows(ExpiryDateFilter, each [Report] = "Payrun Dataset")
+		in
+		    ReportFilter
+	lineageTag: 8c9c55c6-4309-4e1e-99f5-ad58adc7805a
+	queryGroup: 'Row Level Security'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression _Measures =
+		let
+		    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+		    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+		    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+		in
+		    #"Removed Columns"
+	lineageTag: 96182ae2-817d-4919-b95c-5e35a5441b81
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+/// Azure SQL Server
+expression Server = "sql-prod-aus-svc-datawarehouse-01.database.windows.net" meta [IsParameterQuery=true, List={"sql-dev-aue-svc-datawarehouse-01.database.windows.net", "sql-prod-aus-svc-datawarehouse-01.database.windows.net"}, DefaultValue="sql-prod-aus-svc-datawarehouse-01.database.windows.net", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 5e91fd8a-6442-4240-ad26-f7d2280326a3
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+/// SQL Database
+expression Database = "sqldb-prod-datawarehouse-01" meta [IsParameterQuery=true, List={"sqldb-dev-datawarehouse-01", "sqldb-prod-datawarehouse-01"}, DefaultValue="sqldb-prod-datawarehouse-01", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: f10f5fe9-8442-47fa-8ed8-05d6325f1b3d
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+

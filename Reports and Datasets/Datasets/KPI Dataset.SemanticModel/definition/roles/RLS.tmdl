@@ -1,0 +1,23 @@
+role RLS
+	modelPermission: read
+
+	tablePermission 'RLS with Additional Access' = LOWER([User Principal Name]) = LOWER(USERPRINCIPALNAME())
+
+	tablePermission 'Dim KPI' =
+			VAR UserBUs =
+			    CALCULATETABLE(
+			        DISTINCT('RLS with Additional Access'[Relevant Bu]),
+			        LOWER('RLS with Additional Access'[User Principal Name]) = LOWER(USERPRINCIPALNAME())
+			    )
+			VAR KPIBu = 'Dim KPI'[Relevant Bu]
+			RETURN
+			    ISEMPTY(UserBUs)
+			        || COUNTROWS(
+			            FILTER(
+			                UserBUs,
+			                PATHCONTAINS(KPIBu, TRIM('RLS with Additional Access'[Relevant Bu]))
+			            )
+			        ) > 0
+
+	annotation PBI_Id = c3c7998207834682a9fc77ce3606676a
+

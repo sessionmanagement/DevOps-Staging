@@ -1,0 +1,121 @@
+table 'Fact Property Maintenance Task'
+	lineageTag: c9475ea0-05fa-473b-b1cd-5c973ec66ae6
+
+	column 'Dim Property KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: dd1b9017-4030-4e0a-97b3-d48641a8d836
+		summarizeBy: none
+		sourceColumn: Dim Property KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Detail KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 9e2c91d3-90b8-4ed7-9d29-8cc928465369
+		summarizeBy: none
+		sourceColumn: Dim Property Detail KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Healthy Homes KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: dbbe2819-9dcc-418c-ba59-0d931bb59dd2
+		summarizeBy: none
+		sourceColumn: Dim Property Healthy Homes KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Tenancy KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 56eb33e7-ebf0-4ba6-96bb-6b3e36bd9eec
+		summarizeBy: sum
+		sourceColumn: Dim Property Tenancy KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Program KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 2d6daedd-5fb5-446e-98c0-5d5d2c792699
+		summarizeBy: sum
+		sourceColumn: Dim Property Program KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenancy ID'
+		dataType: string
+		lineageTag: 79ef4cf1-825b-41e0-91d2-a6b42b6d1250
+		summarizeBy: none
+		sourceColumn: Property Tenancy ID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Fact Property Maintenance Task' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)    [dim_property_key],#(lf)    [dim_property_detail_key],#(lf)    [dim_property_healthy_homes_key],#(lf)    [dim_property_tenancy_key],#(lf)    [dim_property_program_key],#(lf)    [property_tenancy_id]#(lf)FROM [edw].[vw_fact_property_maintenance_task]"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				
+				    // Step to add and convert date key columns
+				    #"Added and Converted Date Columns" = List.Accumulate(
+				        List.Select(Table.ColumnNames(#"Transformed Column Names"), each Text.EndsWith(_, " Date KEY")),
+				        #"Transformed Column Names",
+				        (state, columnName) =>
+				            Table.AddColumn(
+				                state,
+				                Text.BeforeDelimiter(columnName, " KEY"),
+				                each
+				                    if Record.Field(_, columnName) <> null then
+				                        let
+				                            dateValue = Text.From(Record.Field(_, columnName)),
+				                            yearPart = Text.Start(dateValue, 4),
+				                            monthPart = Text.Middle(dateValue, 4, 2),
+				                            dayPart = Text.End(dateValue, 2),
+				                            formattedDate = yearPart & "-" & monthPart & "-" & dayPart
+				                        in
+				                            if Text.Length(dateValue) = 8 then
+				                                Date.FromText(formattedDate)
+				                            else
+				                                null
+				                    else
+				                        null,
+				                type date
+				            )
+				    ),
+				
+				    // Step to remove columns that start with "DWH" if needed
+				    RemoveDWHColumns = Table.RemoveColumns(
+				        #"Added and Converted Date Columns",
+				        List.Select(Table.ColumnNames(#"Added and Converted Date Columns"), each Text.StartsWith(_, "DWH"))
+				    )
+				in
+				    RemoveDWHColumns
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

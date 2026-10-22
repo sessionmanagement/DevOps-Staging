@@ -1,0 +1,20 @@
+EVALUATE CALCULATETABLE(VALUES ( 'Dim Date'[Calendar Year Month]), RSCustomDaxFilter(@DimDateFinancialYearDesc,EqualToCondition,[Dim Date].[Financial Year Desc],String) )
+
+order by 'Dim Service'[Service Name], [ParameterLevel]
+
+EVALUATE SELECTCOLUMNS (ADDCOLUMNS (SUMMARIZECOLUMNS (ROLLUPADDISSUBTOTAL ('Dim Service'[Service Type Name], "h0"), 
+RSCustomDaxFilter(@DimDateFinancialYearDesc,EqualToCondition,[Dim Date].[Financial Year Desc],String), 
+
+RSCustomDaxFilter(@DimDateCalendarYearMonth,EqualToCondition,[Dim Date].[Calendar Year Month],String), 
+
+RSCustomDaxFilter(@DimServiceCompanyName,EqualToCondition,[Dim Service].[Company Name],String), 
+
+RSCustomDaxFilter(@DimServiceRegionName,EqualToCondition,[Dim Service].[Region Name],String), 
+
+RSCustomDaxFilter(@DimServiceDistrictName,EqualToCondition,[Dim Service].[District Name],String)
+
+RSCustomDaxFilter(@DimServiceDepartmentName,EqualToCondition,[Dim Service].[Department Name],String), 
+
+RSCustomDaxFilter(@DimServiceServiceName,EqualToCondition,[Dim Service].[Service Name],String)),
+
+ "ParameterLevel", if ([h0], 0, 1)), "ParameterCaption", SWITCH([ParameterLevel], 1, 'Dim Service'[Service Type Name], "Blank()"), "ParameterValue", 'Dim Service'[Service Type Name], "ParameterLevel", [ParameterLevel], "'Dim Service'[Service Type Name]", 'Dim Service'[Service Type Name]) order by 'Dim Service'[Service Type Name], [ParameterLevel]

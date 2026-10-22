@@ -1,0 +1,60 @@
+table dim_tenancy
+	lineageTag: 84b2a299-89af-41ae-93bb-8b17d17e899f
+
+	column opportunityid
+		dataType: string
+		isHidden
+		lineageTag: edcb2f09-690f-4ed0-ad48-6de2d18d5f8e
+		summarizeBy: none
+		sourceColumn: opportunityid
+
+		annotation SummarizationSetBy = Automatic
+
+	column name
+		dataType: string
+		lineageTag: 1d7593c1-4183-4a8f-a62f-91eb11f5b459
+		summarizeBy: none
+		sourceColumn: name
+
+		annotation SummarizationSetBy = Automatic
+
+	column tenancy_is_active
+		dataType: string
+		lineageTag: 04a53885-37d6-4e17-aa9b-575f0f9b23d5
+		summarizeBy: none
+		sourceColumn: tenancy_is_active
+
+		annotation SummarizationSetBy = Automatic
+
+	column tenancy_url = CONCATENATE("https://emergeaotearoa.crm6.dynamics.com/main.aspx?appid=cf3d4408-7345-453c-8775-1e5538c40ddf&forceUCI=1&pagetype=entityrecord&etn=opportunity&id=", dim_tenancy[opportunityid])
+		isHidden
+		lineageTag: 62e5b885-cacf-4fac-b7b6-fdc31292fb25
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column open_button =
+			
+			"Open ↗"
+		isHidden
+		lineageTag: eb6d5953-41a5-4525-9b90-222c99cd5294
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_tenancy = m
+		mode: import
+		queryGroup: dimensions
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="WITH RecentOpportunities AS (#(lf)    SELECT#(lf)        opportunityid,#(lf)        name,#(lf)#(tab)#(tab)zav_vacateddate,#(lf)        SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (PARTITION BY opportunityid ORDER BY SinkModifiedOn DESC) AS rn#(lf)    FROM#(lf)        [Zavanti].[vw_opportunity]#(lf)    WHERE#(lf)        statuscode <> 4#(lf))#(lf)SELECT#(lf)    opportunityid,#(lf)    name,#(lf)#(tab)zav_vacateddate#(lf)FROM#(lf)    RecentOpportunities#(lf)WHERE#(lf)    rn = 1#(lf)#(lf)/*Added the filter to remove any tenancies that were set up in error.  This was based on a conversation with Briar Wilson about 109C Maplesden Drive having a Cancelled tenancy row making out the tenancy was open when it was not. */"]),
+				    #"Added Conditional Column" = Table.AddColumn(Source, "tenancy_is_active", each if [zav_vacateddate] = null then "Yes" else "No"),
+				    #"Removed Duplicates" = Table.Distinct(#"Added Conditional Column", {"opportunityid"}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Removed Duplicates",{"zav_vacateddate"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+

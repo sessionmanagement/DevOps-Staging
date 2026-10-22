@@ -1,0 +1,32 @@
+table dim_service
+	lineageTag: 69f86769-ac48-4e95-a5c3-470eb89fbe2f
+
+	column region_name
+		dataType: string
+		lineageTag: 077fc27e-e57a-4b78-b094-c278cb15125d
+		summarizeBy: none
+		sourceColumn: region_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column CompanyCodeKey
+		dataType: string
+		lineageTag: 09b602ee-5e40-439e-9d91-d85e080ee858
+		summarizeBy: none
+		sourceColumn: CompanyCodeKey
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_service = m
+		mode: import
+		queryGroup: Dim
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT#(lf)    [region_name],#(lf)    CONCAT([service_name], CAST([dim_company_key] AS NVARCHAR)) AS CompanyCodeKey#(lf)FROM #(lf)    [edw].[dim_service]#(lf)WHERE #(lf)    DWHIsCurrent = 1#(lf)#(tab)and DWHDMLOperation <> 'D'#(lf)AND ((([dim_service_key] <> -1 AND [dim_service_key] <> 0)) AND [service_name] <> 'Balance Sheet' AND ([service_name] <> 'Entity Missing') AND [service_code] <> 'HAVEN CAFÉ');#(lf)"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

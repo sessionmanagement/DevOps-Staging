@@ -1,0 +1,84 @@
+/// Azure DevOps user identities with display name and email. Used as dimension for assigned-to, created-by, and other user references. Source: OData Users entity.
+table Users
+	lineageTag: eaf73142-b3f7-416f-a86b-86dbade9c6c5
+
+	/// Surrogate key uniquely identifying this user
+	column UserSK
+		dataType: string
+		isHidden
+		lineageTag: ada0b161-51d7-4ace-9b23-e6faa346108b
+		summarizeBy: none
+		sourceColumn: UserSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Natural unique identifier (GUID) for the user
+	column UserId
+		dataType: string
+		lineageTag: b3d7c370-1d0c-4995-a7b5-710f6b7dc020
+		summarizeBy: none
+		sourceColumn: UserId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Display name of the user
+	column UserName
+		dataType: string
+		lineageTag: d54cf00b-ce87-4eee-ba66-869a2e7a73ea
+		summarizeBy: none
+		sourceColumn: UserName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Email address of the user
+	column UserEmail
+		dataType: string
+		lineageTag: e52ba71a-7a5d-4e63-981e-634574953fc6
+		summarizeBy: none
+		sourceColumn: UserEmail
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Timestamp when this record was last updated in the Analytics service
+	column AnalyticsUpdatedDate
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 6b1bf614-b214-4462-b51b-ae61f3792b14
+		summarizeBy: none
+		sourceColumn: AnalyticsUpdatedDate
+
+		variation Variation
+			isDefault
+			relationship: bc36a83a-9018-4a35-b57c-c8b8a383ee4c
+			defaultHierarchy: LocalDateTable_7f192a48-c39f-452d-b0e9-1aa4e84e9082.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Linked GitHub user ID if applicable
+	column GitHubUserId
+		dataType: string
+		lineageTag: fb1a1945-9310-42de-888c-5010ffefcd8a
+		summarizeBy: none
+		sourceColumn: GitHubUserId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Type of user identity (e.g., Member, Service)
+	column UserType
+		dataType: string
+		lineageTag: 377db3c2-51f5-4bd0-895f-89b8326107fb
+		summarizeBy: none
+		sourceColumn: UserType
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Users = m
+		mode: import
+		queryGroup: 'DevOps Tables'
+		source =
+				let
+				    Source = OData.Feed("https://analytics.dev.azure.com/EmergeAotearoa/Data%20and%20Analytics/_odata/v3.0-preview/", null, [Implementation="2.0",OmitValues = ODataOmitValues.Nulls,ODataVersion = 4, Headers=[Authorization=fnGetToken()]]),
+				    Users_table = Source{[Name="Users",Signature="table"]}[Data]
+				in
+				    Users_table
+

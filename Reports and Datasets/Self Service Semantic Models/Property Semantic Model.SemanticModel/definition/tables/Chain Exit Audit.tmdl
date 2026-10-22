@@ -1,0 +1,190 @@
+/// [AUDIT - safe to delete] One row per Transitional Housing stay-chain (chain identity = Chain ID + Tangata Whaiora ID + Chain Start Date, matching the measures), comparing the ORIGINAL exit logic (Old Exit Date = MAX of Vacated Date across the whole chain) against the FIXED logic (Fixed Exit Date = Vacated Date of the LAST tenancy by start date). Filter [Logic Differs] = TRUE to see the chains the fix changes. NOTE: chain identity is unreliable where Tangata Whaiora ID is blank (mostly historical closed accounts). Static snapshot; apply any 12-month window yourself on the exit-date columns.
+table 'Chain Exit Audit'
+	isHidden
+	lineageTag: aac00001-0000-4000-8000-000000000000
+
+	column 'Chain ID'
+		isHidden
+		lineageTag: aac00001-0000-4000-8000-000000000001
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Chain ID]
+
+	column 'Tangata Whaiora ID'
+		isHidden
+		lineageTag: aac00001-0000-4000-8000-000000000002
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tangata Whaiora ID]
+
+	column 'Chain Start Date'
+		isHidden
+		formatString: d/mm/yyyy
+		lineageTag: aac00001-0000-4000-8000-000000000003
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Chain Start Date]
+
+	column 'Tenancy Count'
+		isHidden
+		lineageTag: aac00001-0000-4000-8000-000000000004
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tenancy Count]
+
+	column 'Max Tenancy Start Date'
+		isHidden
+		formatString: d/mm/yyyy
+		lineageTag: aac00001-0000-4000-8000-000000000005
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Max Tenancy Start Date]
+
+	column 'Old Exit Date (MAX Vacated)'
+		isHidden
+		formatString: d/mm/yyyy
+		lineageTag: aac00001-0000-4000-8000-000000000006
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Old Exit Date (MAX Vacated)]
+
+	column 'Fixed Exit Date (Last Tenancy)'
+		isHidden
+		formatString: d/mm/yyyy
+		lineageTag: aac00001-0000-4000-8000-000000000007
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fixed Exit Date (Last Tenancy)]
+
+	column 'Still In Service (Fixed)'
+		isHidden
+		lineageTag: aac00001-0000-4000-8000-000000000008
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Still In Service (Fixed)]
+
+	column 'Old Leaving Reason'
+		isHidden
+		lineageTag: aac00001-0000-4000-8000-000000000009
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Old Leaving Reason]
+
+	column 'Fixed Leaving Reason'
+		isHidden
+		lineageTag: aac00001-0000-4000-8000-00000000000a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fixed Leaving Reason]
+
+	column 'Fixed Exit Point'
+		isHidden
+		lineageTag: aac00001-0000-4000-8000-00000000000b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fixed Exit Point]
+
+	column 'Old Stay Weeks'
+		isHidden
+		lineageTag: aac00001-0000-4000-8000-00000000000c
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Old Stay Weeks]
+
+	column 'Fixed Stay Weeks'
+		isHidden
+		lineageTag: aac00001-0000-4000-8000-00000000000d
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Fixed Stay Weeks]
+
+	column 'Logic Differs'
+		isHidden
+		lineageTag: aac00001-0000-4000-8000-00000000000e
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Logic Differs]
+
+	column 'Tangata Whaiora ID Is Blank'
+		isHidden
+		lineageTag: aac00001-0000-4000-8000-00000000000f
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tangata Whaiora ID Is Blank]
+
+	partition 'Chain Exit Audit' = calculated
+		mode: import
+		source =
+				VAR _TH =
+				    FILTER('Tenancy', RELATED('Property'[Program]) = "Transitional Housing")
+				VAR _Keys =
+				    SUMMARIZE(_TH, 'Tenancy'[Chain ID], 'Tenancy'[Tangata Whaiora ID], 'Tenancy'[Chain Start Date])
+				VAR _Step1 =
+				    ADDCOLUMNS(
+				        _Keys,
+				        "Tenancy Count",
+				            VAR _c = 'Tenancy'[Chain ID]
+				            VAR _t = 'Tenancy'[Tangata Whaiora ID]
+				            VAR _cs = 'Tenancy'[Chain Start Date]
+				            RETURN COUNTROWS(FILTER(_TH, 'Tenancy'[Chain ID] = _c && 'Tenancy'[Tangata Whaiora ID] = _t && 'Tenancy'[Chain Start Date] = _cs)),
+				        "Max Tenancy Start Date",
+				            VAR _c = 'Tenancy'[Chain ID]
+				            VAR _t = 'Tenancy'[Tangata Whaiora ID]
+				            VAR _cs = 'Tenancy'[Chain Start Date]
+				            RETURN MAXX(FILTER(_TH, 'Tenancy'[Chain ID] = _c && 'Tenancy'[Tangata Whaiora ID] = _t && 'Tenancy'[Chain Start Date] = _cs), 'Tenancy'[Tenancy Start Date]),
+				        "Old Exit Date (MAX Vacated)",
+				            VAR _c = 'Tenancy'[Chain ID]
+				            VAR _t = 'Tenancy'[Tangata Whaiora ID]
+				            VAR _cs = 'Tenancy'[Chain Start Date]
+				            RETURN MAXX(FILTER(_TH, 'Tenancy'[Chain ID] = _c && 'Tenancy'[Tangata Whaiora ID] = _t && 'Tenancy'[Chain Start Date] = _cs), 'Tenancy'[Vacated Date])
+				    )
+				VAR _Step2 =
+				    ADDCOLUMNS(
+				        _Step1,
+				        "Fixed Exit Date (Last Tenancy)",
+				            VAR _c = 'Tenancy'[Chain ID]
+				            VAR _t = 'Tenancy'[Tangata Whaiora ID]
+				            VAR _cs = 'Tenancy'[Chain Start Date]
+				            VAR _ms = [Max Tenancy Start Date]
+				            RETURN MAXX(FILTER(_TH, 'Tenancy'[Chain ID] = _c && 'Tenancy'[Tangata Whaiora ID] = _t && 'Tenancy'[Chain Start Date] = _cs && 'Tenancy'[Tenancy Start Date] = _ms), 'Tenancy'[Vacated Date]),
+				        "Fixed Leaving Reason",
+				            VAR _c = 'Tenancy'[Chain ID]
+				            VAR _t = 'Tenancy'[Tangata Whaiora ID]
+				            VAR _cs = 'Tenancy'[Chain Start Date]
+				            VAR _ms = [Max Tenancy Start Date]
+				            RETURN MAXX(FILTER(_TH, 'Tenancy'[Chain ID] = _c && 'Tenancy'[Tangata Whaiora ID] = _t && 'Tenancy'[Chain Start Date] = _cs && 'Tenancy'[Tenancy Start Date] = _ms), 'Tenancy'[Leaving Reason]),
+				        "Fixed Exit Point",
+				            VAR _c = 'Tenancy'[Chain ID]
+				            VAR _t = 'Tenancy'[Tangata Whaiora ID]
+				            VAR _cs = 'Tenancy'[Chain Start Date]
+				            VAR _ms = [Max Tenancy Start Date]
+				            RETURN MAXX(FILTER(_TH, 'Tenancy'[Chain ID] = _c && 'Tenancy'[Tangata Whaiora ID] = _t && 'Tenancy'[Chain Start Date] = _cs && 'Tenancy'[Tenancy Start Date] = _ms), 'Tenancy'[Exit Point]),
+				        "Old Leaving Reason",
+				            VAR _c = 'Tenancy'[Chain ID]
+				            VAR _t = 'Tenancy'[Tangata Whaiora ID]
+				            VAR _cs = 'Tenancy'[Chain Start Date]
+				            VAR _oe = [Old Exit Date (MAX Vacated)]
+				            RETURN MAXX(FILTER(_TH, 'Tenancy'[Chain ID] = _c && 'Tenancy'[Tangata Whaiora ID] = _t && 'Tenancy'[Chain Start Date] = _cs && 'Tenancy'[Vacated Date] = _oe), 'Tenancy'[Leaving Reason])
+				    )
+				RETURN
+				    SELECTCOLUMNS(
+				        _Step2,
+				        "Chain ID", 'Tenancy'[Chain ID],
+				        "Tangata Whaiora ID", 'Tenancy'[Tangata Whaiora ID],
+				        "Tangata Whaiora ID Is Blank", ISBLANK('Tenancy'[Tangata Whaiora ID]),
+				        "Chain Start Date", 'Tenancy'[Chain Start Date],
+				        "Tenancy Count", [Tenancy Count],
+				        "Max Tenancy Start Date", [Max Tenancy Start Date],
+				        "Old Exit Date (MAX Vacated)", [Old Exit Date (MAX Vacated)],
+				        "Fixed Exit Date (Last Tenancy)", [Fixed Exit Date (Last Tenancy)],
+				        "Still In Service (Fixed)", ISBLANK([Fixed Exit Date (Last Tenancy)]),
+				        "Old Leaving Reason", [Old Leaving Reason],
+				        "Fixed Leaving Reason", [Fixed Leaving Reason],
+				        "Fixed Exit Point", [Fixed Exit Point],
+				        "Old Stay Weeks", IF(ISBLANK([Old Exit Date (MAX Vacated)]), BLANK(), DATEDIFF('Tenancy'[Chain Start Date], [Old Exit Date (MAX Vacated)], WEEK)),
+				        "Fixed Stay Weeks", IF(ISBLANK([Fixed Exit Date (Last Tenancy)]), BLANK(), DATEDIFF('Tenancy'[Chain Start Date], [Fixed Exit Date (Last Tenancy)], WEEK)),
+				        "Logic Differs", IF([Old Exit Date (MAX Vacated)] = [Fixed Exit Date (Last Tenancy)] || (ISBLANK([Old Exit Date (MAX Vacated)]) && ISBLANK([Fixed Exit Date (Last Tenancy)])), FALSE, TRUE)
+				    )
+
+	annotation PBI_ResultType = Table
+

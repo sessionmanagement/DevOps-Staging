@@ -1,0 +1,557 @@
+table Changelog
+	lineageTag: e96a511e-1e19-43d2-b091-bce9fc05d8e0
+
+	measure 'Latest Version' =
+			
+			VAR LatestChangeID =
+			    MAX ( 'Changelog'[Change ID] )
+			VAR LatestVersion =
+			    MAXX (
+			        FILTER ( 'Changelog', 'Changelog'[Change ID] = LatestChangeID ),
+			        'Changelog'[Version]
+			    )
+			RETURN
+			    "Tangata Whaiora Dataset - v" & LatestVersion
+		lineageTag: 3fbf9a79-05eb-404d-b582-d9d4195a4ab4
+
+		changedProperty = IsHidden
+
+	column Version
+		dataType: string
+		lineageTag: 1d903aae-5db1-4ff6-aa1b-ed64e61c6ebb
+		summarizeBy: none
+		sourceColumn: Version
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: 2cf1186a-0c42-4df4-9b03-0e9d4d9f72e5
+		summarizeBy: none
+		sourceColumn: Description
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Change ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: d57862cc-a547-463f-8888-1300648eb666
+		summarizeBy: count
+		sourceColumn: Change ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Change Date'
+		dataType: string
+		lineageTag: efa97f30-8573-42b3-a40f-531c630136ed
+		summarizeBy: none
+		sourceColumn: Change Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Changed By'
+		dataType: string
+		lineageTag: f519c384-2447-4b2d-8b7f-fc087ad9cd4d
+		summarizeBy: none
+		sourceColumn: Changed By
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'User Story ID'
+		dataType: string
+		lineageTag: 38818f77-01b3-4074-8d71-b2b4b5e81fda
+		summarizeBy: none
+		sourceColumn: User Story ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Changelog = m
+		mode: import
+		queryGroup: Changelog
+		source =
+				let
+				    // Define the table schema with the entries reversed
+				    InitialTable = #table(
+				        {"Version", "Change Date", "Changed By", "User Story ID", "Description"},
+				        {
+				            // Add new entries at the top here
+				                        {
+				                "2.3.1", /* Version */
+				                #date(2025, 08, 20),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#11117",  /* User Story ID */
+				                "Fixed logic error: End Date column was incorrectly using Discharge Date instead of End Date KEY value"  /* Description */
+				            },
+				            {
+				                "2.3.0", /* Version */
+				                #date(2025, 04, 14),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#10672",  /* User Story ID */
+				                "Exec Data Masking."  /* Description */
+				            },
+				            {
+				                "2.2.0", /* Version */
+				                #date(2025, 04, 14),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#10064",  /* User Story ID */
+				                "New RLS April 9 version."  /* Description */
+				            },
+				            {
+				                "2.1.5", /* Version */
+				                #date(2025, 02, 17),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#9732",  /* User Story ID */
+				                "When client_smoking_status_current = 'Never smoked tobacco', flags set to 1."  /* Description */
+				            },
+				            {
+				                "2.1.4", /* Version */
+				                #date(2025, 01, 27),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#9622",  /* User Story ID */
+				                "Added NHI number flag to Ref Tangata Whaiora Latest Flags"  /* Description */
+				            },
+				            {
+				                "2.1.3", /* Version */
+				                #date(2024, 11, 29),  /* Change Date */
+				                "Timi",  /* Changed By */
+				                "#9355",  /* User Story ID */
+				                "New RB Structure ALL services"  /* Description */
+				            },
+				            {
+				                "2.1.2", /* Version */
+				                #date(2024, 11, 26),  /* Change Date */
+				                "Timi/Mike",  /* Changed By */
+				                "#9355",  /* User Story ID */
+				                "ADHB Awhi Ora fix"  /* Description */
+				            },
+				            {
+				                "2.1.1", /* Version */
+				                #date(2024, 11, 21),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#9355",  /* User Story ID */
+				                "Dim Employee Key bypass and Mind and Body fix"  /* Description */
+				            },
+				            {
+				                "2.1.0", /* Version */
+				                #date(2024, 11, 21),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#9355",  /* User Story ID */
+				                "New RLS 2.0 with all services"  /* Description */
+				            },
+				            {
+				                "2.0.6", /* Version */
+				                #date(2024, 10, 21),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#8600",  /* User Story ID */
+				                "Productionizing changes"  /* Description */
+				            },
+				            {
+				                "2.0.5", /* Version */
+				                #date(2024, 10, 17),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#8600",  /* User Story ID */
+				                "New Timi's RLS v2"  /* Description */
+				            },
+				            {
+				                "2.0.4", /* Version */
+				                #date(2024, 10, 14),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#8600",  /* User Story ID */
+				                "Updated RLS to use COLLATE on joins to disregard case and accents"  /* Description */
+				            },
+				            {
+				                "2.0.3", /* Version */
+				                #date(2024, 10, 11),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#8600",  /* User Story ID */
+				                "Updated modelling to fix RLS full access"  /* Description */
+				            },
+				            {
+				                "2.0.2", /* Version */
+				                #date(2024, 9, 26),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#8600",  /* User Story ID */
+				                "Updated Timi RLS to include Exiting Staff"  /* Description */
+				            },
+				            {
+				                "2.0.1", /* Version */
+				                #date(2024, 9, 26),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#8600",  /* User Story ID */
+				                "Refreshed schema for [edw].[vw_fact_client_activity_breakdown]."  /* Description */
+				            },
+				            {
+				                "2.0.0", /* Version */
+				                #date(2024, 9, 26),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#8600",  /* User Story ID */
+				                "New RLS logic added."  /* Description */
+				            },
+				            {
+				                "1.6.16", /* Version */
+				                #date(2024, 8, 16),  /* Change Date */
+				                "Timi",  /* Changed By */
+				                "#8536",  /* User Story ID */
+				                "Cleaning up data - changed N/A for company to 'Unknown' where dim_service_key= -1?"  /* Description */
+				            },
+				            {
+				                "1.6.18", /* Version */
+				                #date(2024, 8, 7),  /* Change Date */
+				                "Timi",  /* Changed By */
+				                "#8280",  /* User Story ID */
+				                "Simon wants GP Only changed to Mental Health Support - changing Mike's table 1.6.8?"  /* Description */
+				            },
+				            {
+				                "1.6.17", /* Version */
+				                #date(2024, 8, 7),  /* Change Date */
+				                "Timi",  /* Changed By */
+				                "#8280",  /* User Story ID */
+				                "Fixed the smoking cessation 6 month indicators in Ref Tangata Whaiora Latest Flags"  /* Description */
+				            },
+				            {
+				                "1.6.16", /* Version */
+				                #date(2024, 7, 23),  /* Change Date */
+				                "Timi/Mike",  /* Changed By */
+				                "#8280",  /* User Story ID */
+				                "Pasifika Measure incorrectly pointed"  /* Description */
+				            },
+				            {
+				                "1.6.15", /* Version */
+				                #date(2024, 7, 18),  /* Change Date */
+				                "Timi",  /* Changed By */
+				                "#8280",  /* User Story ID */
+				                "Moana Williams wanted Legal status and PrimHD removed from their totals - created new cpx measures"  /* Description */
+				            },
+				            {
+				                "1.6.14", /* Version */
+				                #date(2024, 7, 18),  /* Change Date */
+				                "Timi",  /* Changed By */
+				                "#8280",  /* User Story ID */
+				                "Changing Ref Tangata Whaiora Latest Flags to include No Smoking Advice within 6 Months"  /* Description */
+				            },
+				            {
+				                "1.6.13", /* Version */
+				                #date(2024, 7, 8),  /* Change Date */
+				                "Timi",  /* Changed By */
+				                "#8172",  /* User Story ID */
+				                "Corrected Non Missing to handle M&B not having all fields - Measures Non Missing Physical Health, Mental Health, Legal Status and Substance Use"  /* Description */
+				            },
+				            {
+				                "1.6.12", /* Version */
+				                #date(2024, 6, 21),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#8051",  /* User Story ID */
+				                "Corrected Percent Non Missing to handle M&B not having all fields"  /* Description */
+				            },
+				            {
+				                "1.6.11", /* Version */
+				                #date(2024, 6, 21),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#8051",  /* User Story ID */
+				                "Corrected demography measures to use latest flags"  /* Description */
+				            },
+				            {
+				                "1.6.10", /* Version */
+				                #date(2024, 6, 21),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#8051",  /* User Story ID */
+				                "Changed 'Another Gender / He ira kē anō' to 'Gender Diverse / He ira kē anō' in dim_client"  /* Description */
+				            },
+				            {
+				                "1.6.9", /* Version */
+				                #date(2024, 6, 21),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#8051",  /* User Story ID */
+				                "Added Gender, Maori, Pasifica, and Age in years latest flags in dim_client"  /* Description */
+				            },
+				            {
+				                "1.6.8", /* Version */
+				                #date(2024, 6, 20),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#8051",  /* User Story ID */
+				                "Added demography measures"  /* Description */
+				            },
+				            {
+				                "1.6.7", /* Version */
+				                #date(2024, 6, 17),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#7419",  /* User Story ID */
+				                "Added Latest Tangata Whaiora Ethnicity Group DAX column"  /* Description */
+				            },
+				            {
+				                "1.6.6", /* Version */
+				                #date(2024, 6, 17),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#7419",  /* User Story ID */
+				                "Added demographic report number of clients measure"  /* Description */
+				            },
+				            {
+				                "1.6.5", /* Version */
+				                #date(2024, 6, 13),  /* Change Date */
+				                "Timi",  /* Changed By */
+				                "#7960",  /* User Story ID */
+				                "Fix Referral Goal Mapping"  /* Description */
+				            },
+				            {
+				                "1.6.4", /* Version */
+				                #date(2024, 6, 13),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#7961",  /* User Story ID */
+				                "Fix Tangata Whaiora Dim Client URL"  /* Description */
+				            },
+				            {
+				                "1.6.3", /* Version */
+				                #date(2024, 6, 13),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#7961",  /* User Story ID */
+				                "Fix Tangata Whaiora Dataset URL Measure to Include Mind and Body Company"  /* Description */
+				            },
+				            {
+				                "1.6.2", /* Version */
+				                #date(2024, 6, 12),  /* Change Date */
+				                "Timi",  /* Changed By */
+				                "#7955",  /* User Story ID */
+				                "%Changed Measure Percent Missing (all)"  /* Description */
+				            },
+				            {
+				                "1.6.1", /* Version */
+				                #date(2024, 6, 12),  /* Change Date */
+				                "Mike",  /* Changed By */
+				                "#7959",  /* User Story ID */
+				                "Added tooltip measure for client name"  /* Description */
+				            },
+				            {
+				                "1.6.0", /* Version */
+				                #date(2024, 6, 12),  /* Change Date */
+				                "Timi",  /* Changed By */
+				                "#7955",  /* User Story ID */
+				                "%Making Missing for M&B Not Used columns -1 so we can put another conditional field on them"  /* Description */
+				            },
+				            {
+				                "1.5.9", /* Version */
+				                #date(2024, 6, 12),  /* Change Date */
+				                "Timi",  /* Changed By */
+				                "#7955",  /* User Story ID */
+				                "%Non Missing All Calculation Changed to use the Missing Additions Percent"  /* Description */
+				            },
+				            {
+				                "1.5.8", /* Version */
+				                #date(2024, 6, 12),  /* Change Date */
+				                "Timi",  /* Changed By */
+				                "#7955",  /* User Story ID */
+				                "Ref Tangata Whaiora Latest Flags, Addition of missing , Missing Additions percent -changed to exclude Mental Health, Physical Health, Substance Use and Legal Status for M&B"  /* Description */
+				            },
+				            {
+				                "1.5.7", /* Version */
+				                #date(2024, 6, 10),  /* Change Date */
+				                "MG",  /* Changed By */
+				                "N/A",  /* User Story ID */
+				                "Created Changelog Power Query table."  /* Description */
+				            },
+				            {
+				                "1.5.6", /* Version */
+				                #date(2024, 6, 10),  /* Change Date */
+				                "MG",  /* Changed By */
+				                "N/A",  /* User Story ID */
+				                "Corrected Number Of measures to have 1000 separator."  /* Description */
+				            },
+				            {
+				                "1.5.5", /* Version */
+				                #date(2024, 6, 7),  /* Change Date */
+				                "MG",  /* Changed By */
+				                "N/A",  /* User Story ID */
+				                "Added Client RLS FIX"  /* Description */
+				            },
+				            {
+				                "1.5.4", /* Version */
+				                #date(2024, 6, 5),  /* Change Date */
+				                "Timi",  /* Changed By */
+				                "N/A",  /* User Story ID */
+				                "Added days_accepted to Ref Person Referral to Goals"  /* Description */
+				            },
+				            {
+				                "1.5.3", /* Version */
+				                #date(2024, 6, 4),  /* Change Date */
+				                "Timi",  /* Changed By */
+				                "N/A",  /* User Story ID */
+				                "Added Gender to missing suite"  /* Description */
+				            },
+				            {
+				                "1.5.2", /* Version */
+				                #date(2024, 6, 4),  /* Change Date */
+				                "Timi",  /* Changed By */
+				                "N/A",  /* User Story ID */
+				                "Above didn't work as expected now recreating ref tangata whaiora latest flags using SQL"  /* Description */
+				            },
+				            {
+				                "1.5.1", /* Version */
+				                #date(2024, 5, 29),  /* Change Date */
+				                "MG and GH",  /* Changed By */
+				                "N/A",  /* User Story ID */
+				                "All Access RLS fix and Tangata Whaiora Emergency Contact Missing Flag"  /* Description */
+				            },
+				            {
+				                "1.5.0", /* Version */
+				                #date(2024, 5, 21),  /* Change Date */
+				                "MG",  /* Changed By */
+				                "#7676",  /* User Story ID */
+				                "Adding Timi's MORe measures. #7676"  /* Description */
+				            },
+				            {
+				                "1.4.3", /* Version */
+				                #date(2024, 5, 15),  /* Change Date */
+				                "MG",  /* Changed By */
+				                "#7626",  /* User Story ID */
+				                "Adding support for referral journey. #7626"  /* Description */
+				            },
+				            {
+				                "1.4.2", /* Version */
+				                #date(2024, 4, 22),  /* Change Date */
+				                "GH",  /* Changed By */
+				                "#7343",  /* User Story ID */
+				                "Adding Data and Measure definitions query. #7343"  /* Description */
+				            },
+				            {
+				                "1.4.1", /* Version */
+				                #date(2024, 4, 18),  /* Change Date */
+				                "Mike G",  /* Changed By */
+				                "#3155",  /* User Story ID */
+				                "Added RLS #3155"  /* Description */
+				            },
+				            {
+				                "1.3.1", /* Version */
+				                #date(2024, 4, 17),  /* Change Date */
+				                "Mike G",  /* Changed By */
+				                "N/A",  /* User Story ID */
+				                "Fact Tangata Whaiora Max Referral KEY filtered to [Dim Tangata Whaiora Referral KEY] > 0"  /* Description */
+				            },
+				            {
+				                "1.3.0", /* Version */
+				                #date(2024, 4, 16),  /* Change Date */
+				                "Timi",  /* Changed By */
+				                "N/A",  /* User Story ID */
+				                "Add referrer grouping to dim tangata whaiora referral"  /* Description */
+				            },
+				            {
+				                "1.2.0", /* Version */
+				                #date(2024, 4, 15),  /* Change Date */
+				                "Mike R",  /* Changed By */
+				                "#7277",  /* User Story ID */
+				                "Mike R additions Spring 008 #7277"  /* Description */
+				            },
+				            {
+				                "1.1.9", /* Version */
+				                #date(2024, 4, 16),  /* Change Date */
+				                "Unknown",  /* Changed By */
+				                "N/A",  /* User Story ID */
+				                "Changed incorrect spelling in Pasifika flag. Changed 'unknown' to 'Unknown'"  /* Description */
+				            },
+				            {
+				                "1.1.8", /* Version */
+				                #date(2024, 4, 12),  /* Change Date */
+				                "Unknown",  /* Changed By */
+				                "N/A",  /* User Story ID */
+				                "Rejoined Ref Person to Referral Goal to Fact Tangata Whaiora Referral via dim_client_key."  /* Description */
+				            },
+				            {
+				                "1.1.7", /* Version */
+				                #date(2024, 4, 11),  /* Change Date */
+				                "Unknown",  /* Changed By */
+				                "N/A",  /* User Story ID */
+				                "Add back is current type columns into dim tangata whaiora referral received date"  /* Description */
+				            },
+				            {
+				                "1.1.6", /* Version */
+				                #date(2024, 4, 10),  /* Change Date */
+				                "Unknown",  /* Changed By */
+				                "N/A",  /* User Story ID */
+				                "Added columns to dim tangata whaiora referral - declined, accepted, waitlist, discharge flags."  /* Description */
+				            },
+				            {
+				                "1.1.5", /* Version */
+				                #date(2024, 4, 3),  /* Change Date */
+				                "Unknown",  /* Changed By */
+				                "N/A",  /* User Story ID */
+				                "Changed column flags back from true or false to 1 or 0, made new columns for Maori and Pasifika flags."  /* Description */
+				            },
+				            {
+				                "1.1.4", /* Version */
+				                #date(2024, 3, 19),  /* Change Date */
+				                "Unknown",  /* Changed By */
+				                "N/A",  /* User Story ID */
+				                "Added new reference table so that we can join in goals by referral"  /* Description */
+				            },
+				            {
+				                "1.1.3", /* Version */
+				                #date(2024, 3, 15),  /* Change Date */
+				                "Unknown",  /* Changed By */
+				                "#7255",  /* User Story ID */
+				                "Applied Glen's fix from bug #7255"  /* Description */
+				            },
+				            {
+				                "1.1.2", /* Version */
+				                #date(2024, 3, 14),  /* Change Date */
+				                "Unknown",  /* Changed By */
+				                "N/A",  /* User Story ID */
+				                "Commented out dim client referral custom columns as have been added in EDW"  /* Description */
+				            },
+				            {
+				                "1.1.1", /* Version */
+				                #date(2024, 3, 14),  /* Change Date */
+				                "Unknown",  /* Changed By */
+				                "N/A",  /* User Story ID */
+				                "Addition of TW RecordBase URL in Dim Client"  /* Description */
+				            },
+				            {
+				                "1.1.0", /* Version */
+				                #date(2024, 3, 13),  /* Change Date */
+				                "Unknown",  /* Changed By */
+				                "N/A",  /* User Story ID */
+				                "Addition of latest Mike R PRIMHD data"  /* Description */
+				            },
+				            {
+				                "1.0.2", /* Version */
+				                #date(2024, 1, 26),  /* Change Date */
+				                "Unknown",  /* Changed By */
+				                "N/A",  /* User Story ID */
+				                "Discourage Implicit Measures set to False using Tabular Editor."  /* Description */
+				            },
+				            {
+				                "1.0.1", /* Version */
+				                #date(2024, 1, 25),  /* Change Date */
+				                "Unknown",  /* Changed By */
+				                "N/A",  /* User Story ID */
+				                "Updated all tables that have [DWHDMLOperation] to exclude records marked as deleted 'D'"  /* Description */
+				            }
+				        }
+				    ),
+				
+				    // Reverse the order of the rows so new entries are at the top
+				    ReversedTable = Table.ReverseRows(InitialTable),
+				
+				    // Add an Index column to generate incremental numbers
+				    TableWithIndex = Table.AddIndexColumn(ReversedTable, "Change ID", 1, 1, Int64.Type),
+				
+				    // Reorder the columns to place ChangeID first
+				    ReorderedColumns = Table.ReorderColumns(TableWithIndex, {"Change ID", "Version", "Change Date", "Changed By", "User Story ID", "Description"})
+				in
+				    ReorderedColumns
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

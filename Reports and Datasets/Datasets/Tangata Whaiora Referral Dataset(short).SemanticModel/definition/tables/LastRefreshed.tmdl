@@ -1,0 +1,22 @@
+table LastRefreshed
+	lineageTag: 438a61d9-40b5-4d4e-b497-4cdcb3f49b8a
+
+	column 'Date Last Refreshed'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: c8525b71-af69-40b6-b1e1-357b1b089064
+		summarizeBy: none
+		sourceColumn: Date Last Refreshed
+
+		annotation SummarizationSetBy = Automatic
+
+	partition LastRefreshed = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT DISTINCT#(lf)CONVERT(datetime, SWITCHOFFSET(CONVERT(datetimeoffset, GETDATE()), DATEPART(TZOFFSET,GETDATE() AT TIME ZONE 'New Zealand Standard Time'))) AS [Date Last Refreshed]#(lf)FROM information_schema.columns"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+

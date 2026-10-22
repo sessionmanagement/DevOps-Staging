@@ -1,0 +1,173 @@
+table ChangeLog
+	isHidden
+	lineageTag: e4eafa54-f9c2-4c3a-ae1b-181bac166dd2
+
+	column 'Change ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b2130303-775d-4d9e-9ee6-69fa35db1740
+		summarizeBy: count
+		sourceColumn: Change ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Version
+		dataType: string
+		isHidden
+		lineageTag: 61c5591f-2943-4024-89c2-2a7d88b2e031
+		summarizeBy: none
+		sourceColumn: Version
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Change Date'
+		dataType: string
+		isHidden
+		lineageTag: e88dec5e-e174-48ad-953f-d176a0fbc6b4
+		summarizeBy: none
+		sourceColumn: Change Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Changed By'
+		dataType: string
+		isHidden
+		lineageTag: e38737ba-1fb1-4d3a-b2de-779d9eb38a92
+		summarizeBy: none
+		sourceColumn: Changed By
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'User Story ID'
+		dataType: string
+		isHidden
+		lineageTag: 7608f3da-bcd4-4021-aba3-ee154d7d7e67
+		summarizeBy: none
+		sourceColumn: User Story ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		isHidden
+		lineageTag: 4f9a9c3a-0ac4-407f-b46c-e233cd2ab387
+		summarizeBy: none
+		sourceColumn: Description
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ChangeLog = m
+		mode: import
+		source =
+				let
+				    // Define the table schema without the ChangeID column
+				    InitialTable = #table(
+				        {"Version", "Change Date", "Changed By", "User Story ID", "Description"},
+				        {
+				            {
+				                "1.1.0", /* Version */
+				                #date(2024, 4, 6),  /* Date */
+				                "Mike R",  /* Changed By */
+				                "7101",  /* User Story */
+				                "Split report and dataset"  /* Description */
+				            },
+				            {
+				                "1.1.1", /* Version */
+				                #date(2024, 4, 6),  /* Date */
+				                "Mike R",  /* Changed By */
+				                "7101",  /* User Story */
+				                "Fix some missing source systems"  /* Description */
+				            },
+				            {
+				                "1.1.2", /* Version */
+				                #date(2024, 4, 6),  /* Date */
+				                "Mike R",  /* Changed By */
+				                "7101",  /* User Story */
+				                "Changes/additions in preparation for comparing RecordBase users to IntelliHR; add email address to dim_employee; add new table dim_recordbase_user"  /* Description */
+				            },
+				            {
+				                "1.1.3", /* Version */
+				                #date(2024, 6, 10),  /* Date */
+				                "Mike R",  /* Changed By */
+				                "7101",  /* User Story */
+				                "Finalised changes/additions for comparing RecordBase users to IntelliHR."  /* Description */
+				            },
+				            {
+				                "1.1.4", /* Version */
+				                #date(2024, 6, 12),  /* Date */
+				                "Mike R",  /* Changed By */
+				                "7101",  /* User Story */
+				                "Minor updates to dim_recordbase_user. Added fact_user_team"  /* Description */
+				            },
+				            {
+				                "1.1.5", /* Version */
+				                #date(2024, 7, 8),  /* Date */
+				                "Mike R",  /* Changed By */
+				                "7101",  /* User Story */
+				                "Adjust where clause when getting personaverse employees to ensure all test records are excluded"  /* Description */
+				            },
+				            {
+				                        "1.1.6", /* Version */
+				                #date(2024, 7, 9),  /* Date */
+				                "Mike R",  /* Changed By */
+				                "7101",  /* User Story */
+				                "Add support for reporting on -1 keys (unknown rows). Task 8182"  /* Description */
+				            },
+				            {
+				                        "1.1.7", /* Version */
+				                #date(2024, 8, 19),  /* Date */
+				                "Mike R",  /* Changed By */
+				                "7101",  /* User Story */
+				                "Add TableType to EDW unknown rows query - allow filtering by dimension/fact tables"  /* Description */
+				            },
+				            {
+				                "1.1.8", /* Version */
+				                #date(2024, 11, 18),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "9328",  /* User Story */
+				                "Corrected dim employee hierarchy having null"  /* Description */
+				            },
+				            {
+				                "1.1.9", /* Version */
+				                #date(2025, 06, 04),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "10343",  /* User Story */
+				                "Removed Person Averse. Also pointed BC to ODS"  /* Description */
+				            },
+				            {
+				                "1.1.10", /* Version */
+				                #date(2025, 06, 18),  /* Date */
+				                "Greg H",  /* Changed By */
+				                "10200",  /* User Story */
+				                "Added new pipeline and mismatch count tables"  /* Description */
+				            }
+				        }
+				    ),
+				
+				    // Add an Index column to generate incremental numbers
+				    TableWithIndex = Table.AddIndexColumn(InitialTable, "Change ID", 1, 1, Int64.Type),
+				
+				    // Reorder the columns to place ChangeID first
+				    ReorderedColumns = Table.ReorderColumns(TableWithIndex, {"Change ID", "Version", "Change Date", "Changed By", "User Story ID", "Description"})
+				in
+				    ReorderedColumns
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

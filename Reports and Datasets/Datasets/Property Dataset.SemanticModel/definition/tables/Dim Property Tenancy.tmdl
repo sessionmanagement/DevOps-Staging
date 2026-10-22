@@ -1,0 +1,162 @@
+table 'Dim Property Tenancy'
+	lineageTag: 697aa3ee-01d6-41ee-ac95-da6d0091c1d4
+
+	column 'Dim Property Tenancy KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 7bc9dffa-4e42-4886-ab5b-ea42c2e5a1ef
+		summarizeBy: none
+		sourceColumn: Dim Property Tenancy KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenancy ID'
+		dataType: string
+		lineageTag: 5acaf91b-e6a3-4644-bb2c-1c8a415b020f
+		summarizeBy: none
+		sourceColumn: Property Tenancy ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenancy Tenancy IDentifier'
+		dataType: string
+		lineageTag: dccd77bd-26b5-4576-b2af-281f5f777486
+		summarizeBy: none
+		sourceColumn: Property Tenancy Tenancy IDentifier
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenancy Tenancy Reference'
+		dataType: string
+		lineageTag: 9918aa73-fe0e-42a1-b158-78561c469605
+		summarizeBy: none
+		sourceColumn: Property Tenancy Tenancy Reference
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenancy Tenancy Name'
+		dataType: string
+		lineageTag: bb1e1472-d8de-4528-9b8a-924af63f9c70
+		summarizeBy: none
+		sourceColumn: Property Tenancy Tenancy Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenancy Household Name'
+		dataType: string
+		lineageTag: 8e58a257-1990-4608-b21e-7e0e2d22d431
+		summarizeBy: none
+		sourceColumn: Property Tenancy Household Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenancy Customer Name'
+		dataType: string
+		lineageTag: bb604096-40f4-4c41-9f67-48100e69fe4d
+		summarizeBy: none
+		sourceColumn: Property Tenancy Customer Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenancy Manager Name'
+		dataType: string
+		lineageTag: f0a239f3-0365-4dd7-9699-1fc5de0e1b93
+		summarizeBy: none
+		sourceColumn: Property Tenancy Manager Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenancy Second Tangata Whaiora Name'
+		dataType: string
+		lineageTag: 9c4e20bf-4683-4845-a508-3d84b8114416
+		summarizeBy: none
+		sourceColumn: Property Tenancy Second Tangata Whaiora Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dynamics 365 Link'
+		dataType: string
+		lineageTag: 7401aab3-dcd9-4e1e-ac8e-42896be7cc78
+		dataCategory: WebUrl
+		summarizeBy: none
+		sourceColumn: Dynamics 365 Link
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 1633f853-d828-4a62-8bb9-8916cc07342f
+		summarizeBy: sum
+		sourceColumn: Dim Property KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenant Opportunity Status'
+		dataType: string
+		lineageTag: 57035e79-1886-4529-b898-f47c9dbec8ea
+		summarizeBy: none
+		sourceColumn: Property Tenant Opportunity Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Tenancy Property Name'
+		dataType: string
+		lineageTag: 3f4f05b6-6d42-47af-89b4-86f22275c966
+		summarizeBy: none
+		sourceColumn: Property Tenancy Property Name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Property Tenancy' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source = ```
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)    [dim_property_tenancy_key],#(lf)    [dim_property_key],#(lf)    [property_tenancy_id],#(lf)    [property_tenancy_tenancy_identifier],#(lf)    [property_tenancy_tenancy_reference],#(lf)    [property_tenancy_tenancy_name],#(lf)    [property_tenancy_property_name],#(lf)    [property_tenancy_household_name],#(lf)    [property_tenancy_customer_name],#(lf)    [property_tenancy_manager_name],#(lf)    [property_tenancy_second_client_name],#(lf)    [property_tenant_opportunity_status]#(lf)FROM [edw].[vw_dim_property_tenancy]"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				    
+				    // Step to remove columns that start with "DWH" if needed
+				    RemoveDWHColumns = Table.RemoveColumns(
+				        #"Transformed Column Names",
+				        List.Select(Table.ColumnNames(#"Transformed Column Names"), each Text.StartsWith(_, "DWH"))
+				    ),
+				    
+				    //---------------------------------------------------
+				    // Add Dynamics 365 Link column
+				    //---------------------------------------------------
+				    #"Added Dynamics 365 Link" = Table.AddColumn(
+				        RemoveDWHColumns,
+				        "Dynamics 365 Link",
+				        each
+				            "https://emergeaotearoa.crm6.dynamics.com/main.aspx?appid=cf3d4408-7345-453c-8775-1e5538c40ddf"
+				            & "&forceUCI=1&pagetype=entityrecord&etn=opportunity&id="
+				            & Text.From([Property Tenancy ID]),
+				        type text
+				    )
+				in
+				    #"Added Dynamics 365 Link"
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

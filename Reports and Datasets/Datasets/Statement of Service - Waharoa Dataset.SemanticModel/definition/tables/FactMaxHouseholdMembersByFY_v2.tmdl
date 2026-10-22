@@ -1,0 +1,63 @@
+table FactMaxHouseholdMembersByFY_v2
+	lineageTag: fac70001-11d2-4a7e-9b30-0000000000a1
+
+	column zav_tenancy
+		dataType: string
+		isHidden
+		lineageTag: fac70001-11d2-4a7e-9b30-0000000000a3
+		summarizeBy: none
+		sourceColumn: zav_tenancy
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_hhid
+		dataType: string
+		isHidden
+		lineageTag: fac70001-11d2-4a7e-9b30-0000000000a4
+		summarizeBy: none
+		sourceColumn: zav_hhid
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_year
+		dataType: int64
+		formatString: 0
+		lineageTag: fac70001-11d2-4a7e-9b30-0000000000a5
+		summarizeBy: none
+		sourceColumn: financial_year
+
+		annotation SummarizationSetBy = Automatic
+
+	column fy_last_day
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: fac70001-11d2-4a7e-9b30-0000000000a6
+		summarizeBy: none
+		sourceColumn: fy_last_day
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column max_members_in_fy
+		dataType: int64
+		formatString: #,0
+		lineageTag: fac70001-11d2-4a7e-9b30-0000000000a7
+		summarizeBy: sum
+		sourceColumn: max_members_in_fy
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FactMaxHouseholdMembersByFY_v2-fac70001-11d2-4a7e-9b30-0000000000a2 = m
+		mode: import
+		queryGroup: facts
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="WITH hh AS (#(lf)    SELECT zav_tenancy, zav_hhid,#(lf)           zav_numberofhouseholdmembers AS members,#(lf)           CAST(createdon AS date) AS eff_from_raw,#(lf)           CAST(LEAD(createdon) OVER (PARTITION BY zav_hhid ORDER BY createdon, zav_revision) AS date) AS eff_to_next,#(lf)           ROW_NUMBER() OVER (PARTITION BY zav_hhid ORDER BY createdon, zav_revision) AS rn_asc,#(lf)           ROW_NUMBER() OVER (PARTITION BY zav_hhid ORDER BY createdon DESC, zav_revision DESC) AS rn_desc#(lf)    FROM [Zavanti].[vw_zav_household]#(lf)    WHERE zav_hhid IS NOT NULL AND zav_householdstatus <> 100000000#(lf)),#(lf)ten AS (#(lf)    SELECT opportunityid, tenancy_start, vacated#(lf)    FROM (#(lf)        SELECT opportunityid,#(lf)               CAST(zav_tenancystartdate AS date) AS tenancy_start,#(lf)               CAST(zav_vacateddate AS date) AS vacated,#(lf)               statuscode,#(lf)               ROW_NUMBER() OVER (PARTITION BY opportunityid ORDER BY SinkModifiedOn DESC) AS rn#(lf)        FROM [Zavanti].[vw_opportunity]#(lf)    ) o#(lf)    WHERE o.rn = 1 AND o.statuscode <> 4#(lf)),#(lf)ranged AS (#(lf)    SELECT h.zav_tenancy, h.zav_hhid, h.members,#(lf)           CASE WHEN h.rn_asc = 1 AND t.tenancy_start IS NOT NULL AND t.tenancy_start < h.eff_from_raw#(lf)                THEN t.tenancy_start ELSE h.eff_from_raw END AS eff_from,#(lf)           CASE WHEN h.rn_desc = 1#(lf)                THEN COALESCE(t.vacated, CAST(GETDATE() AS date))#(lf)                ELSE h.eff_to_next END AS eff_to#(lf)    FROM hh h#(lf)    INNER JOIN ten t ON UPPER(t.opportunityid) = UPPER(h.zav_tenancy)#(lf)),#(lf)fy_spine AS (#(lf)    SELECT fy_num, DATEFROMPARTS(fy_num - 1, 7, 1) AS fy_start, DATEFROMPARTS(fy_num, 6, 30) AS fy_end#(lf)    FROM (VALUES (2015),(2016),(2017),(2018),(2019),(2020),(2021),(2022),(2023),(2024),(2025),(2026),(2027),(2028),(2029),(2030),(2031),(2032),(2033),(2034),(2035)) v(fy_num)#(lf)),#(lf)attributed AS (#(lf)    SELECT r.zav_tenancy, r.zav_hhid, f.fy_num, f.fy_end, r.members#(lf)    FROM ranged r#(lf)    JOIN fy_spine f ON r.eff_from <= f.fy_end AND r.eff_to >= f.fy_start#(lf)    WHERE r.eff_to >= r.eff_from#(lf))#(lf)SELECT zav_tenancy, zav_hhid,#(lf)       fy_num AS financial_year,#(lf)       CAST(fy_end AS date) AS fy_last_day,#(lf)       MAX(members) AS max_members_in_fy#(lf)FROM attributed#(lf)GROUP BY zav_tenancy, zav_hhid, fy_num, fy_end"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"fy_last_day", type date}, {"financial_year", Int64.Type}, {"max_members_in_fy", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

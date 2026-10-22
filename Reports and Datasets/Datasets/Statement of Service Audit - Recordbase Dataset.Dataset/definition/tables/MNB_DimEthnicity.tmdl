@@ -1,0 +1,94 @@
+table MNB_DimEthnicity
+	isHidden
+	lineageTag: d7238dae-4680-4139-aa6f-0550bb7af42d
+
+	column CompanyIdentifier
+		dataType: string
+		isHidden
+		lineageTag: 74c4533c-fd9f-43b5-b960-75f6247eded1
+		summarizeBy: none
+		sourceColumn: CompanyIdentifier
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column EthnicityID
+		dataType: string
+		isHidden
+		lineageTag: 53f1af2b-334b-46f1-9f7f-34a788cf8488
+		summarizeBy: none
+		sourceColumn: EthnicityID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column EthnicityValue
+		dataType: string
+		isHidden
+		lineageTag: 2d314e35-b18f-40b2-b43b-51f7832001a5
+		summarizeBy: none
+		sourceColumn: EthnicityValue
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column EthnicityText
+		dataType: string
+		isHidden
+		lineageTag: 79d8058a-b983-4bc8-b5aa-17353d39ae27
+		summarizeBy: none
+		sourceColumn: EthnicityText
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column EthnicityIsActive
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: bb2bd50c-65ff-4a33-a486-3565f4e9a4cb
+		summarizeBy: none
+		sourceColumn: EthnicityIsActive
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column EthnicityBucket
+		dataType: string
+		isHidden
+		lineageTag: 13e91686-d315-4852-aae6-ca1e02953718
+		summarizeBy: none
+		sourceColumn: EthnicityBucket
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column EthnicityParentID
+		dataType: string
+		lineageTag: 4fdadd4f-0329-4171-84f7-017b85ed6a5a
+		summarizeBy: none
+		sourceColumn: EthnicityParentID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition MNB_DimEthnicity-5b1d1220-50e2-44d3-9879-79374bf1d798 = m
+		mode: import
+		queryGroup: MNB
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)'MNB' AS CompanyIdentifier,#(lf)CASE WHEN t1.[EthnicityID] IS NOT NULL THEN CONCAT('M',t1.EthnicityID) ELSE NULL END AS EthnicityID,#(lf)t1.[EthnicityValue],#(lf)t1.[EthnicityText],#(lf)'M' + CAST(t1.[EthnicityParentId] AS VARCHAR(10)) AS EthnicityParentID,#(lf)t1.[EthnicityIsActive],#(lf)CASE#(lf)WHEN t1.EthnicityParentID IS NOT NULL THEN t2.EthnicityText#(lf)WHEN t1.EthnicityText like 'Maori%'  THEN 'Māori'#(lf)WHEN t1.EthnicityText like '%cook island maori%' THEN 'Pasifika'#(lf)WHEN t1.EthnicityText like '%Samoan%' #(lf)OR t1.EthnicityText like '%Tokelauan%' #(lf)OR t1.EthnicityText like '%Cook Island%'#(lf)OR t1.EthnicityText like '%Niuean%'#(lf)OR t1.EthnicityText like '%Tongan%' #(lf)OR t1.EthnicityText like '%Pacific People%'#(lf)OR t1.EthnicityText like '%Fijian%' THEN 'Pasifika'#(lf)WHEN t1.EthnicityText like  '%Indian%' #(lf)OR t1.EthnicityText like  '%Chinese%' #(lf)OR t1.EthnicityText like  '%%sian%' #(lf)OR t1.EthnicityText like  '%cambodian%'#(lf)OR t1.EthnicityText like  '%Vietnam%' #(lf)OR t1.EthnicityText like  '%Filipino%'#(lf)OR t1.EthnicityText like  '%Japanese%' #(lf)OR t1.EthnicityText like  '%Korean%'#(lf)OR t1.EthnicityText like  '%sri lank%'#(lf)THEN 'Asian'#(lf)WHEN t1.EthnicityText like '%African%' #(lf)OR t1.EthnicityText like '%Latin Amer%'  #(lf)OR t1.EthnicityText like '%Middle East%'#(lf)THEN 'Middle Eastern, Latin American, African'#(lf)WHEN t1.EthnicityText like '%new zealand%European%' THEN 'European'#(lf)WHEN t1.EthnicityText like '%European%' OR t1.EthnicityText like '%Greek%'#(lf)OR t1.EthnicityText like '%British%' OR t1.EthnicityText like '%Australian%'#(lf)OR t1.EthnicityText like '%German' OR t1.EthnicityText like '%Italian%'#(lf)OR t1.EthnicityText like '%polish%' OR t1.EthnicityText like '%Dutch%'#(lf)OR t1.EthnicityText like '%yugoslav%'  OR t1.EthnicityText like '%German%'#(lf)THEN 'European'#(lf)WHEN t1.EthnicityText like '%Other%' THEN 'Other'#(lf)WHEN t1.EthnicityText like '%Not Stated%'  #(lf)OR t1.EthnicityText like '%response uniden%'#(lf)OR t1.EthnicityText like '%refused to answer%'#(lf)THEN 'Unknown/Undisclosed' #(lf)ELSE NULL END AS EthnicityBucket#(lf)FROM RBMNB.[dlDimEthnicity] t1#(lf)LEFT OUTER JOIN RBMNB.[dlDimEthnicity] t2 ON t1.EthnicityParentId = t2.EthnicityID#(lf)WHERE t1.EthnicityIsActive = 1"])
+				in
+				    Source
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

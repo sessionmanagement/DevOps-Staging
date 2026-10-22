@@ -1,0 +1,70 @@
+table 'Dim Age'
+	lineageTag: abbc1189-ed04-4283-b428-6a9368e45bec
+
+	column 'Age In Years'
+		dataType: int64
+		formatString: 0
+		lineageTag: 16c3843e-115b-4ab0-aa09-d2634e3668cc
+		summarizeBy: none
+		sourceColumn: Age In Years
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Age Group Impact'
+		dataType: string
+		lineageTag: 3ebb0a84-dcf4-4740-828c-402996d014cb
+		summarizeBy: none
+		sourceColumn: Age Group Impact
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Age Group Sort Order'
+		dataType: int64
+		formatString: 0
+		lineageTag: 84540779-6606-4eba-84f9-281ee51ce169
+		summarizeBy: sum
+		sourceColumn: Age Group Sort Order
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Age' = m
+		mode: import
+		queryGroup: Dims
+		source = ```
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT #(lf)    age_in_years,#(lf)    #(lf)    CASE #(lf)        WHEN age_in_years = -99999 THEN 'Unspecified or Unknown'#(lf)        WHEN age_in_years >= 61 THEN '60+'#(lf)        WHEN age_in_years >= 51 THEN '51-60'#(lf)        WHEN age_in_years >= 41 THEN '41-50'#(lf)        WHEN age_in_years >= 31 THEN '31-40'#(lf)        WHEN age_in_years >= 21 THEN '21-30'#(lf)        ELSE '0-20'#(lf)    END AS age_group_impact,#(lf)    #(lf)    CASE #(lf)        WHEN age_in_years = -99999 THEN 0#(lf)        WHEN age_in_years >= 61 THEN 6#(lf)        WHEN age_in_years >= 51 THEN 5#(lf)        WHEN age_in_years >= 41 THEN 4#(lf)        WHEN age_in_years >= 31 THEN 3#(lf)        WHEN age_in_years >= 21 THEN 2#(lf)        ELSE 1#(lf)    END AS age_group_sort_order#(lf)#(lf)FROM edw.vw_dim_age_group#(lf)#(lf)UNION#(lf)#(lf)SELECT #(lf)    -99999 AS age_in_years,#(lf)    'Unspecified or Unknown' AS age_group_impact,#(lf)    0 AS age_group_sort_order"]),
+				    
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				    
+				    #"Changed Type" = Table.TransformColumnTypes(#"Transformed Column Names", {
+				        {"Age In Years", Int64.Type}, 
+				        {"Age Group Impact", type text}, 
+				        {"Age Group Sort Order", Int64.Type}
+				    })
+				in
+				    #"Changed Type"
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

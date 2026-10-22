@@ -1,0 +1,239 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "name": "fb069a4051ec34160a2a",
+  "position": {
+    "x": 288,
+    "y": 397.41151490404241,
+    "z": 10000,
+    "height": 274.58848509595748,
+    "width": 462.45161290322579
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dim Tangata Whaiora"
+                    }
+                  },
+                  "Property": "Latest Tangata Whaiora Ethnicity Group"
+                }
+              },
+              "queryRef": "Dim Tangata Whaiora.Latest Tangata Whaiora Ethnicity Group",
+              "nativeQueryRef": "Ethnicity Group",
+              "active": true,
+              "displayName": "Ethnicity Group"
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fact Tangata Whaiora Referral"
+                    }
+                  },
+                  "Property": "__TotalReferralsActive"
+                }
+              },
+              "queryRef": "Fact Tangata Whaiora Referral.__TotalReferralsActive",
+              "nativeQueryRef": "Currently Active",
+              "displayName": "Currently Active"
+            },
+            {
+              "field": {
+                "Arithmetic": {
+                  "Left": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Fact Tangata Whaiora Referral"
+                        }
+                      },
+                      "Property": "__TotalReferralsActive"
+                    }
+                  },
+                  "Right": {
+                    "ScopedEval": {
+                      "Expression": {
+                        "Measure": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Entity": "Fact Tangata Whaiora Referral"
+                            }
+                          },
+                          "Property": "__TotalReferralsActive"
+                        }
+                      },
+                      "Scope": [
+                        {
+                          "RoleRef": {
+                            "Role": "Columns"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "Operator": 3
+                }
+              },
+              "queryRef": "Divide(Fact Tangata Whaiora Referral.__TotalReferralsActive, ScopedEval(Fact Tangata Whaiora Referral.__TotalReferralsActive, [Role.Columns]))",
+              "nativeQueryRef": "Percent",
+              "displayName": "Percent"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Dim Tangata Whaiora"
+                  }
+                },
+                "Property": "Latest Tangata Whaiora Ethnicity Group"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "80.45454545454545D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Fact Tangata Whaiora Referral.__TotalReferralsActive"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "105.0909090909091D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Divide(Fact Tangata Whaiora Referral.__TotalReferralsActive, ScopedEval(Fact Tangata Whaiora Referral.__TotalReferralsActive, [Role.Columns]))"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "167.67332227244123D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Dim Tangata Whaiora.Latest Tangata Whaiora Ethnicity Group"
+          }
+        }
+      ],
+      "columnHeaders": [
+        {
+          "properties": {}
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "d9278f911a36cb8311bb",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dim Tangata Whaiora"
+              }
+            },
+            "Property": "Latest Tangata Whaiora Ethnicity Group"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "8b355f2c88ca0a01046c",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Fact Tangata Whaiora Referral"
+              }
+            },
+            "Property": "__TotalReferralsActive"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "663cf02e0eb3767c1864",
+        "field": {
+          "Arithmetic": {
+            "Left": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Fact Tangata Whaiora Referral"
+                  }
+                },
+                "Property": "__TotalReferralsActive"
+              }
+            },
+            "Right": {
+              "ScopedEval": {
+                "Expression": {
+                  "Measure": {
+                    "Expression": {
+                      "SourceRef": {
+                        "Entity": "Fact Tangata Whaiora Referral"
+                      }
+                    },
+                    "Property": "__TotalReferralsActive"
+                  }
+                },
+                "Scope": [
+                  {
+                    "RoleRef": {
+                      "Role": "Columns"
+                    }
+                  }
+                ]
+              }
+            },
+            "Operator": 3
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}

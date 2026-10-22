@@ -1,0 +1,87 @@
+
+  EVALUATE
+  ADDCOLUMNS(
+      SUMMARIZE(
+          dim_date,
+          dim_date[financial_year_num]
+      ),
+
+      // Base counts
+      "Portfolio Count", [Housing Portfolio Count (by Year)],
+
+      // Growth measures
+      "YoY Growth #", [YoY Growth in Housing Portfolio #],
+      "YoY Growth %", [YoY Growth in Housing Portfolio %],
+
+      // Manual verification calculations
+      "Previous FY Count",
+          VAR CurrentFY = [financial_year_num]
+          VAR PrevFY = CurrentFY - 1
+          RETURN
+          CALCULATE(
+              [Housing Portfolio Count (by Year)],
+              ALL(dim_date),
+              dim_date[financial_year_num] = PrevFY
+          ),
+
+      "Manual Growth #",
+          VAR CurrentCount = [Housing Portfolio Count (by Year)]
+          VAR PrevCount =
+              VAR CurrentFY = [financial_year_num]
+              VAR PrevFY = CurrentFY - 1
+              RETURN
+              CALCULATE(
+                  [Housing Portfolio Count (by Year)],
+                  ALL(dim_date),
+                  dim_date[financial_year_num] = PrevFY
+              )
+          RETURN CurrentCount - PrevCount,
+
+      "Manual Growth %",
+          VAR CurrentCount = [Housing Portfolio Count (by Year)]
+          VAR PrevCount =
+              VAR CurrentFY = [financial_year_num]
+              VAR PrevFY = CurrentFY - 1
+              RETURN
+              CALCULATE(
+                  [Housing Portfolio Count (by Year)],
+                  ALL(dim_date),
+                  dim_date[financial_year_num] = PrevFY
+              )
+          RETURN DIVIDE(CurrentCount - PrevCount, PrevCount, BLANK()),
+
+      // Verification flags
+      "Growth # Match?", [YoY Growth in Housing Portfolio #] =
+          VAR CurrentCount = [Housing Portfolio Count (by Year)]
+          VAR PrevCount =
+              VAR CurrentFY = [financial_year_num]
+              VAR PrevFY = CurrentFY - 1
+              RETURN
+              CALCULATE(
+                  [Housing Portfolio Count (by Year)],
+                  ALL(dim_date),
+                  dim_date[financial_year_num] = PrevFY
+              )
+          RETURN CurrentCount - PrevCount,
+
+      "Growth % Match?",
+          VAR MeasureValue = [YoY Growth in Housing Portfolio %]
+          VAR CurrentCount = [Housing Portfolio Count (by Year)]
+          VAR PrevCount =
+              VAR CurrentFY = [financial_year_num]
+              VAR PrevFY = CurrentFY - 1
+              RETURN
+              CALCULATE(
+                  [Housing Portfolio Count (by Year)],
+                  ALL(dim_date),
+                  dim_date[financial_year_num] = PrevFY
+              )
+          VAR ManualCalc = DIVIDE(CurrentCount - PrevCount, PrevCount, BLANK())
+          RETURN
+              IF(
+                  ISBLANK(MeasureValue) && ISBLANK(ManualCalc),
+                  TRUE(),
+                  ABS(MeasureValue - ManualCalc) < 0.0001
+              )
+  )
+  ORDER BY dim_date[financial_year_num] DESC

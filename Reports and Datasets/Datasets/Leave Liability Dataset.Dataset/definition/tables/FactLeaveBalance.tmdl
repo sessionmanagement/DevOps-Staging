@@ -1,0 +1,273 @@
+table FactLeaveBalance
+	lineageTag: 917e54f9-472e-446b-8859-edceddc4145b
+
+	column employee_id
+		dataType: string
+		lineageTag: 8a3296fe-a066-4f92-b369-6b4ad3d3262c
+		summarizeBy: none
+		sourceColumn: employee_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column leave_type_id
+		dataType: string
+		lineageTag: 4ca2f4c0-fa63-48fa-897a-cbe24fbee503
+		summarizeBy: none
+		sourceColumn: leave_type_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column effective_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 350f21be-6230-464a-8091-f416be019cc4
+		summarizeBy: none
+		sourceColumn: effective_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column unit
+		dataType: string
+		lineageTag: dfd6358b-1f18-4b56-83e2-9a7bf985ef9c
+		summarizeBy: none
+		sourceColumn: unit
+
+		annotation SummarizationSetBy = Automatic
+
+	column entitlement
+		dataType: double
+		lineageTag: 08a42ab2-045a-4946-a4fd-765ac7427b64
+		summarizeBy: sum
+		sourceColumn: entitlement
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column accrual
+		dataType: double
+		lineageTag: deea09a0-6712-4e6a-bd6a-6ff00ba1f276
+		summarizeBy: sum
+		sourceColumn: accrual
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column taken
+		dataType: double
+		lineageTag: eb240850-d940-4613-885b-866fc12dfb3c
+		summarizeBy: sum
+		sourceColumn: taken
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column balance
+		dataType: double
+		lineageTag: be364658-a32c-43bc-abeb-8bfcdbe2e9aa
+		summarizeBy: sum
+		sourceColumn: balance
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column next_entitlement
+		dataType: double
+		lineageTag: 7d085501-d67b-4813-8e50-be9bde350d1e
+		summarizeBy: sum
+		sourceColumn: next_entitlement
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Kaimahi = RELATED(DimPeople[Kaimahi Name])
+		lineageTag: 8070027e-4a7c-4952-9290-0f61e8a02178
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Entitled Leave Balance'
+		dataType: double
+		lineageTag: e6681130-3ccf-4b28-a57c-87fb86227018
+		summarizeBy: sum
+		sourceColumn: Entitled Leave Balance
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column DaysUntilAnniversary = ```
+			DATEDIFF(TODAY(),FactLeaveBalance[anniversary],DAY) 
+			```
+		formatString: 0
+		lineageTag: 73450d13-63e6-49c0-a24f-558ec598dd38
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column DaysUntilEOFY = DATEDIFF(TODAY(), RELATED(DimDate[financial_last_day_of_year_date]),DAY)
+		formatString: 0
+		lineageTag: 6f647fd7-2f0b-4164-b9ad-0005040f6cbd
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column AccrualAtAnnivesary = (FactLeaveBalance[next_entitlement]-FactLeaveBalance[accrual]) * RELATED(DimPeople[standard_hours_per_week_value])
+		formatString: 0.00
+		lineageTag: c152b6dc-3451-4069-bdc4-2b010f0c8e22
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column AccrualAtEOFY = FactLeaveBalance[AccrualAtAnnivesary] / FactLeaveBalance[DaysUntilAnniversary] * FactLeaveBalance[DaysUntilEOFY]
+		formatString: 0.00
+		lineageTag: 338562b5-cd10-4f7a-ac5a-c6f7859a0527
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column company_id
+		dataType: string
+		lineageTag: 6ddf6b60-8327-4133-96da-e8bd9fcf830e
+		summarizeBy: none
+		sourceColumn: company_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column EmpID
+		dataType: int64
+		formatString: 0
+		lineageTag: 90f73c8a-29f6-458b-82e4-2a43c2d5717a
+		summarizeBy: count
+		sourceColumn: EmpID
+
+		annotation SummarizationSetBy = Automatic
+
+	column businessUnit_id
+		dataType: string
+		lineageTag: 36394726-44fb-4739-ba77-ea6183dd3b4d
+		summarizeBy: none
+		sourceColumn: businessUnit_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Hourly Balance' = ```
+			
+			VAR LeaveName = FactLeaveBalance[leave_name]
+			VAR Balance = FactLeaveBalance[balance]
+			VAR StandardHoursPerWeek = RELATED(DimPeople[standard_hours_per_week_value])
+			VAR HoursPerDay = RELATED(DimPeople[HoursPerDay])
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        LeaveName = "Annual Leave", Balance * StandardHoursPerWeek,
+			        LeaveName = "Well Being Leave", Balance * HoursPerDay,
+			        LeaveName = "Sick Leave", Balance * HoursPerDay,
+			        LeaveName = "Alternative Holidays", Balance * HoursPerDay,
+			        Balance
+			    )
+			
+			```
+		lineageTag: 9520dbaf-f737-41d4-b892-adfe2e9c2442
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column CompanyID+EmpID
+		dataType: string
+		lineageTag: 13376ea3-adbd-4050-8c8b-ff13bdd3a861
+		summarizeBy: none
+		sourceColumn: CompanyID+EmpID
+
+		annotation SummarizationSetBy = Automatic
+
+	column leave_name
+		dataType: string
+		lineageTag: 15f205c0-be86-4475-b447-3f4678b81748
+		summarizeBy: none
+		sourceColumn: leave_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Hourly Entitled Balance' = FactLeaveBalance[Entitled Leave Balance] * RELATED('DimPeople'[standard_hours_per_week_value])
+		formatString: 0.00
+		lineageTag: b66a17b5-ed85-4da9-bdd3-d9aa419c5e18
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column Anniversary
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: c209137f-226a-46d9-8d29-7d51b5169e4d
+		summarizeBy: none
+		sourceColumn: Anniversary
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Total Leave'
+		dataType: double
+		lineageTag: 9abd204a-1f88-4a5c-bb81-b321ddafd920
+		summarizeBy: sum
+		sourceColumn: Total Leave
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Total Leave Group' = ```
+			
+			SWITCH (
+			    TRUE (),
+			    'FactLeaveBalance'[Total Leave] >= 0
+			        && 'FactLeaveBalance'[Total Leave] <= 50, "0-50 Hours",
+			    'FactLeaveBalance'[Total Leave] > 50
+			        && 'FactLeaveBalance'[Total Leave] <= 100, "51-100 Hours",
+			    'FactLeaveBalance'[Total Leave] > 100
+			        && 'FactLeaveBalance'[Total Leave] <= 130, "101-130 Hours",
+			    'FactLeaveBalance'[Total Leave] > 130
+			        && 'FactLeaveBalance'[Total Leave] <= 160, "131-160 Hours",
+			    'FactLeaveBalance'[Total Leave] > 160
+			        && 'FactLeaveBalance'[Total Leave] <= 200, "161-200 Hours",
+			    'FactLeaveBalance'[Total Leave] > 200, "200+ Hours"
+			)
+			
+			```
+		lineageTag: 539ba277-981a-4fcf-a9e6-3b1c2327bfdb
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FactLeaveBalance-82ff8d4f-2edc-42a4-8ccf-bb764af40eb3 = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT DISTINCT#(lf)    [employee_id],#(lf)    [leave_types].[leave_type_id],#(lf)    [name] AS [leave_name],#(lf)    [effective_date],#(lf)    [unit],#(lf)    [entitlement],#(lf)    [accrual],#(lf)    [taken],#(lf)    [balance],#(lf)    [anniversary] AS [Anniversary],#(lf)    [next_entitlement]#(lf)FROM [Datapay].[leave_balances]#(lf)INNER JOIN [Datapay].[leave_types] ON [leave_balances].[leave_type_id] = [leave_types].[leave_type_id]#(lf)WHERE [leave_balances].ODSIsCurrent = 1#(lf)"]),
+				    #"Merged Queries" = Table.NestedJoin(Source, {"employee_id"}, DimPeople, {"id"}, "Datapay employees", JoinKind.LeftOuter),
+				    #"Expanded Datapay employees" = Table.ExpandTableColumn(#"Merged Queries", "Datapay employees", {"company_id", "code"}, {"company_id", "EmpID"}),
+				    #"Merged Queries1" = Table.NestedJoin(#"Expanded Datapay employees", {"EmpID"}, #"intelli Jobs", {"person_employeeNumber"}, "intelli Jobs", JoinKind.LeftOuter),
+				    #"Expanded intelli Jobs" = Table.ExpandTableColumn(#"Merged Queries1", "intelli Jobs", {"businessUnit_id"}, {"businessUnit_id"}),
+				    #"Added Custom" = Table.AddColumn(#"Expanded intelli Jobs", "Entitled Leave Balance", each [balance] - [accrual]),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Added Custom",{"employee_id", "leave_type_id", "effective_date", "unit", "entitlement", "accrual", "taken", "balance", "Entitled Leave Balance", "Anniversary", "next_entitlement", "company_id", "EmpID", "businessUnit_id"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Reordered Columns",{{"Entitled Leave Balance", type number}, {"effective_date", type date}, {"Anniversary", type date}}),
+				    #"Inserted Merged Column" = Table.AddColumn(#"Changed Type", "CompanyID+EmpID", each Text.Combine({[company_id], "+", Text.From([EmpID], "en-US")}), type text),
+				    #"Merged Queries2" = Table.NestedJoin(#"Inserted Merged Column", {"employee_id"}, FactLeaveBalanceSummary, {"employee_id"}, "FactLeaveBalanceSummary", JoinKind.LeftOuter),
+				    #"Expanded FactLeaveBalanceSummary" = Table.ExpandTableColumn(#"Merged Queries2", "FactLeaveBalanceSummary", {"hourly_balance"}, {"Total Leave"})
+				in
+				    #"Expanded FactLeaveBalanceSummary"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,119 @@
+/// RPG Epic multi-line text fields fetched from Azure DevOps REST API. Includes Problem Statement (Html), Proposed Solution, and Expected Output. Each field has raw HTML and plain text versions. Dynamically queries active (non-Closed, non-Removed) Epics.
+table WorkItemRPGDetails
+	lineageTag: 9ae639ec-d33a-4062-ad01-1a7f52b891bf
+
+	/// Work item ID linking to the WorkItems table
+	column WorkItemId
+		dataType: string
+		lineageTag: e9ef7d17-67ed-453c-bba8-54fbbaf352ee
+		summarizeBy: none
+		sourceColumn: WorkItemId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Plain text version of Problem Statement with HTML stripped
+	column ProblemStatementText
+		dataType: string
+		lineageTag: f6ca9b8a-23ef-46ce-959e-b9ed22319ef6
+		summarizeBy: none
+		sourceColumn: ProblemStatementText
+
+	/// Plain text version of Proposed Solution with HTML stripped
+	column ProposedSolutionText
+		dataType: string
+		lineageTag: a0e7e3b6-bdda-4392-b42e-35f66734ddb9
+		summarizeBy: none
+		sourceColumn: ProposedSolutionText
+
+	/// Plain text version of Expected Output with HTML stripped
+	column ExpectedOutputText
+		dataType: string
+		lineageTag: eea6c51e-eeab-433d-a83b-3f50929eaec3
+		summarizeBy: none
+		sourceColumn: ExpectedOutputText
+
+	/// Plain text version of RPG Benefit To Business with HTML stripped
+	column BenefitToBusinessText
+		dataType: string
+		lineageTag: f814d02c-f5f1-472d-acd8-6da345437005
+		summarizeBy: none
+		sourceColumn: BenefitToBusinessText
+
+	partition WorkItemRPGDetails = m
+		mode: import
+		source =
+				let
+				    // Step 1: Get Epic IDs from OData
+				    Source = OData.Feed(
+				        "https://analytics.dev.azure.com/EmergeAotearoa/Data%20and%20Analytics/_odata/v3.0-preview/",
+				        null,
+				        [Implementation = "2.0", OmitValues = ODataOmitValues.Nulls, ODataVersion = 4, Headers=[Authorization=fnGetToken()]]
+				    ),
+				    WorkItemsTable = Source{[Name="WorkItems",Signature="table"]}[Data],
+				    Filtered = Table.SelectRows(WorkItemsTable, each
+				        [WorkItemType] = "Epic" and [State] <> "Closed" and [State] <> "Removed"
+				    ),
+				    JustIds = Table.SelectColumns(Filtered, {"WorkItemId"}),
+				    IdValues = Table.Column(JustIds, "WorkItemId"),
+				    IdString = Text.Combine(List.Transform(IdValues, Text.From), ","),
+				
+				    // Step 2: Batch GET all RPG multi-line fields via REST API
+				    ApiResponse = Json.Document(Web.Contents(
+				        "https://dev.azure.com/EmergeAotearoa/Data%20and%20Analytics/_apis/wit/workitems",
+				        [
+				            Query = [ids = IdString, #"fields" = "System.Id,Custom.ProblemStatement,Custom.RPGProposedSolution,Custom.RPGExpectedOutput,Custom.RPGBenefitToBusiness", #"api-version" = "7.0"],
+				            Headers = [Authorization = fnGetToken()],
+				            ManualStatusHandling = {400, 401, 403, 404, 500}
+				        ]
+				    )),
+				
+				    // Step 3: Parse into table
+				    Items = Table.FromList(ApiResponse[value], Splitter.SplitByNothing()),
+				    Expanded = Table.ExpandRecordColumn(Items, "Column1", {"id", "fields"}, {"WorkItemId", "fields"}),
+				    Result = Table.ExpandRecordColumn(Expanded, "fields", {"Custom.ProblemStatement", "Custom.RPGProposedSolution", "Custom.RPGExpectedOutput", "Custom.RPGBenefitToBusiness"}, {"ProblemStatement", "ProposedSolution", "ExpectedOutput", "BenefitToBusiness"}),
+				
+				    // Step 4: Strip HTML to plain text function
+				    StripHtml = (html as nullable text) as nullable text =>
+				        if html = null then null
+				        else let
+				            s1 = Text.Replace(html, "</div>", "#(lf)"),
+				            s2 = Text.Replace(s1, "</p>", "#(lf)"),
+				            s3 = Text.Replace(s2, "</li>", "#(lf)"),
+				            s4 = Text.Replace(s3, "</h1>", "#(lf)"),
+				            s5 = Text.Replace(s4, "</h2>", "#(lf)"),
+				            s6 = Text.Replace(s5, "</h3>", "#(lf)"),
+				            s7 = Text.Replace(s6, "</h4>", "#(lf)"),
+				            s8 = Text.Replace(s7, "</tr>", "#(lf)"),
+				            s9 = Text.Replace(s8, "</td>", " | "),
+				            s10 = Text.Replace(s9, "<br>", "#(lf)"),
+				            s11 = Text.Replace(s10, "<br/>", "#(lf)"),
+				            s12 = Text.Replace(s11, "<br />", "#(lf)"),
+				            parts = Text.Split(s12, "<"),
+				            cleaned = List.Transform(parts, each
+				                let pos = Text.PositionOf(_, ">")
+				                in if pos = -1 then _ else Text.Middle(_, pos + 1)
+				            ),
+				            joined = Text.Combine(cleaned),
+				            e1 = Text.Replace(joined, "&nbsp;", " "),
+				            e2 = Text.Replace(e1, "&amp;", "&"),
+				            e3 = Text.Replace(e2, "&lt;", "<"),
+				            e4 = Text.Replace(e3, "&gt;", ">"),
+				            e5 = Text.Replace(e4, "&quot;", """"),
+				            trimmed = Text.Trim(e5)
+				        in trimmed,
+				
+				    // Step 5: Add plain text columns
+				    AddProblemText = Table.AddColumn(Result, "ProblemStatementText", each StripHtml([ProblemStatement]), type text),
+				    AddSolutionText = Table.AddColumn(AddProblemText, "ProposedSolutionText", each StripHtml([ProposedSolution]), type text),
+				    AddOutputText = Table.AddColumn(AddSolutionText, "ExpectedOutputText", each StripHtml([ExpectedOutput]), type text),
+				    AddBenefitText = Table.AddColumn(AddOutputText, "BenefitToBusinessText", each StripHtml([BenefitToBusiness]), type text),
+				
+				    // Step 6: Remove raw HTML columns, keep only plain text
+				    FinalResult = Table.RemoveColumns(AddBenefitText, {"ProblemStatement", "ProposedSolution", "ExpectedOutput", "BenefitToBusiness"})
+				in
+				    FinalResult
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

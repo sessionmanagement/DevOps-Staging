@@ -1,0 +1,58 @@
+table fact_property_for_disposed
+	lineageTag: 9ff41d46-e62b-4d02-8a12-16bb50b7d4b0
+
+	column zav_propertyid
+		dataType: string
+		isHidden
+		lineageTag: 71706393-5a0e-446e-a770-67ca49d5b043
+		summarizeBy: none
+		sourceColumn: zav_propertyid
+
+		annotation SummarizationSetBy = Automatic
+
+	column statuscode
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 9f6786d0-e291-48a3-9683-dbb453825c87
+		summarizeBy: sum
+		sourceColumn: statuscode
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_acquireddate
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: f4d80ae2-7be1-4cc8-ba32-7545975fabaa
+		summarizeBy: none
+		sourceColumn: zav_acquireddate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column zav_confirmeddisposaldate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 5072683f-a130-4c17-9bcf-089db0ee760a
+		summarizeBy: none
+		sourceColumn: zav_confirmeddisposaldate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition fact_property_for_disposed-7fa18c0e-a7a5-4cc6-952a-2776e7764691 = m
+		mode: import
+		queryGroup: facts
+		source =
+				let
+				    Source = fact_property
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

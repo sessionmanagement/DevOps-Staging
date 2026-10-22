@@ -1,0 +1,255 @@
+table Changelog
+	lineageTag: e96a511e-1e19-43d2-b091-bce9fc05d8e0
+
+	measure 'Latest Version' =
+			
+			VAR LatestChangeID =
+			    MAX ( 'Changelog'[Change ID] )
+			VAR LatestVersion =
+			    MAXX (
+			        FILTER ( 'Changelog', 'Changelog'[Change ID] = LatestChangeID ),
+			        'Changelog'[Version]
+			    )
+			RETURN
+			    "Tangata Whaiora Referral Dataset - v" & LatestVersion
+		lineageTag: 3fbf9a79-05eb-404d-b582-d9d4195a4ab4
+
+		changedProperty = IsHidden
+
+	column Version
+		dataType: string
+		lineageTag: 1d903aae-5db1-4ff6-aa1b-ed64e61c6ebb
+		summarizeBy: none
+		sourceColumn: Version
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: 2cf1186a-0c42-4df4-9b03-0e9d4d9f72e5
+		summarizeBy: none
+		sourceColumn: Description
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Change ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: d57862cc-a547-463f-8888-1300648eb666
+		summarizeBy: count
+		sourceColumn: Change ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Change Date'
+		dataType: string
+		lineageTag: efa97f30-8573-42b3-a40f-531c630136ed
+		summarizeBy: none
+		sourceColumn: Change Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Changed By'
+		dataType: string
+		lineageTag: f519c384-2447-4b2d-8b7f-fc087ad9cd4d
+		summarizeBy: none
+		sourceColumn: Changed By
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'User Story ID'
+		dataType: string
+		lineageTag: 38818f77-01b3-4074-8d71-b2b4b5e81fda
+		summarizeBy: none
+		sourceColumn: User Story ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Changelog = m
+		mode: import
+		queryGroup: Changelog
+		source = ```
+				let
+				    // Define the table schema with the entries reversed
+				    InitialTable = #table(
+				        {"Version", "Change Date", "Changed By", "User Story ID", "Description"},
+				        {
+				            // Add new entries at the top here
+				                  {
+				                "1.0.22", /* Version */
+				                #date(2025, 12, 10),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Changed Measures and Definition Table to point to Tangata Whaiora Referral Dataset"  /* Description */
+				            },  {
+				                "1.0.21", /* Version */
+				                #date(2025, 11, 12),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "New column Referral Status over all to add discharged to accepted"  /* Description */
+				            }, 
+				               {
+				                "1.0.20", /* Version */
+				                #date(2025, 10, 22),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Exclusion column added to dim_team"  /* Description */
+				            },  
+				             {
+				                "1.0.19", /* Version */
+				                #date(2025, 10, 21),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "gender diverse fix"  /* Description */
+				            },      
+				            {
+				                "1.0.18", /* Version */
+				                #date(2025, 10, 21),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Added Asian and European Flags, Added Service Group to get HD, Housing"  /* Description */
+				            }, 
+				             {
+				                "1.0.17", /* Version */
+				                #date(2025, 10, 20),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Added length of stay variable to get current LOS"  /* Description */
+				            },      {
+				                "1.0.16", /* Version */
+				                #date(2025, 10, 16),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Added financial quarter offset to dim date"  /* Description */
+				            },
+				             {
+				                "1.0.15", /* Version */
+				                #date(2025, 10, 15),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Changed the join in Fact Referral to use client_id not the dim key"  /* Description */
+				            },
+				            {
+				                "1.0.14", /* Version */
+				                #date(2025, 09, 24),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Accepted and Discharged on Same day not showing as active, adding in."  /* Description */
+				            },
+				            {
+				                "1.0.13", /* Version */
+				                #date(2025, 07, 03),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Added exec masking."  /* Description */
+				            },
+				            {
+				                "1.0.12", /* Version */
+				                #date(2025, 06, 04),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Added Column for easy switch between referral types"  /* Description */
+				            },
+				            {
+				                "1.0.11", /* Version */
+				                #date(2025, 03, 04),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Changed link between for dim_service to Fact_TW_Referral"  /* Description */
+				            },
+				            {
+				                "1.0.10", /* Version */
+				                #date(2025, 03, 03),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9379",  /* User Story */
+				                "Changed link between dim_service and dim_client_team"  /* Description */
+				            },
+				             {
+				                "1.0.9", /* Version */
+				                #date(2025, 02, 04),  /* Date */
+				                "Timi",  /* Changed By */
+				                "9620",  /* User Story */
+				                "Changed filter on additional access"  /* Description */
+				            },
+				            {
+				                "1.0.8", /* Version */
+				                #date(2025, 01, 27),  /* Date */
+				                "Mike",  /* Changed By */
+				                "8643",  /* User Story */
+				                "Added RecordBase RLS model"  /* Description */
+				            },
+				            {
+				                "1.0.7", /* Version */
+				                #date(2024, 12, 2),  /* Date */
+				                "Timi",  /* Changed By */
+				                "8643",  /* User Story */
+				                "Changed dim service mapping from joining to dim client team to joining to fact client referral"  /* Description */
+				            },
+							{
+				                "1.0.5", /* Version */
+				                #date(2024, 9, 3),  /* Date */
+				                "Timi",  /* Changed By */
+				                "6787",  /* User Story */
+				                "Error in absences - had select top 100 - so have changed it"  /* Description */
+				            },
+							{
+				                "1.0.4", /* Version */
+				                #date(2024, 9, 3),  /* Date */
+				                "Timi",  /* Changed By */
+				                "6787",  /* User Story */
+				                "Changing Company Name blank and N/A to Unknown"  /* Description */
+				            },
+				            {
+				                "1.0.3", /* Version */
+				                #date(2024, 9, 3),  /* Date */
+				                "Timi",  /* Changed By */
+				                "6787",  /* User Story */
+				                "Adding to TW Fact Referral Absence Data"  /* Description */
+				            },
+							{
+				                "1.0.2", /* Version */
+				                #date(2024, 8, 2),  /* Date */
+				                "Timi",  /* Changed By */
+				                "6787",  /* User Story */
+				                "Adding in Dim Age Group"  /* Description */
+				            },
+							{
+				                "1.0.1", /* Version */
+				                #date(2024, 7, 5),  /* Date */
+				                "Timi",  /* Changed By */
+				                "6787",  /* User Story */
+				                "Dataset Creation "  /* Description */
+				            }
+				        }
+				    ),
+				
+				    // Reverse the order of the rows so new entries are at the top
+				    ReversedTable = Table.ReverseRows(InitialTable),
+				
+				    // Add an Index column to generate incremental numbers
+				    TableWithIndex = Table.AddIndexColumn(ReversedTable, "Change ID", 1, 1, Int64.Type),
+				
+				    // Reorder the columns to place ChangeID first
+				    ReorderedColumns = Table.ReorderColumns(TableWithIndex, {"Change ID", "Version", "Change Date", "Changed By", "User Story ID", "Description"})
+				in
+				    ReorderedColumns
+				```
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

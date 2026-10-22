@@ -1,0 +1,127 @@
+/// Reference table defining maintenance task categories and types. Contains the classification hierarchy, priority levels, and financial coding (G/L codes) for maintenance work. Used to categorise and report on maintenance activities by type.
+table 'Property Maintenance Type'
+	lineageTag: 7d41a921-c7c8-40da-9189-32f7cb54b3e4
+
+	column 'Dim Property Maintenace Type ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b2cb53de-686a-4e16-ae0b-c80ca97cbc36
+		summarizeBy: none
+		sourceColumn: Dim Property Maintenace Type ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Maintenance Type ID'
+		dataType: string
+		isHidden
+		lineageTag: fb90da15-eb8d-4f6d-9b0e-f55ab7092bac
+		summarizeBy: none
+		sourceColumn: Property Maintenance Type ID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Default General Ledger code for this maintenance type.
+	column 'G/L Code'
+		dataType: string
+		isHidden
+		lineageTag: 7a4b5e0d-169f-4515-bf53-02a90c421225
+		summarizeBy: none
+		sourceColumn: G/L Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Descriptive name of the maintenance type category.
+	column 'Maintenance Type Name'
+		dataType: string
+		lineageTag: a4ee7bfa-bff4-4f52-800a-798325dbbd0a
+		summarizeBy: none
+		sourceColumn: Name
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Code classifying the type of maintenance work.
+	column 'Work Type Code'
+		dataType: string
+		isHidden
+		lineageTag: cdc847bf-24f8-4dca-b103-54391e5c757c
+		summarizeBy: none
+		sourceColumn: Work Type Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Priority level under service level agreements.
+	column 'Service Agreement Priority'
+		dataType: string
+		lineageTag: 85a86c94-b483-4d32-ab00-3e609c4b6a7c
+		summarizeBy: none
+		sourceColumn: Service Agreement Priority
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Semicolon-delimited list of the maintenance priority levels that apply to this maintenance type (e.g. 'Standard;Void;Emergency;Urgent', 'Minor upgrade;Planned', 'Cyclical'). A type may map to several priorities; this is not a single default value.
+	column Priority
+		dataType: string
+		lineageTag: 99b83d72-3293-4755-b7e8-00451bb9c137
+		summarizeBy: none
+		sourceColumn: Priority
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Flag indicating if costs for this type are typically recoverable from owners.
+	column 'Is Owner Recovery'
+		dataType: int64
+		formatString: 0
+		lineageTag: 0b9a1418-74f4-406c-a68a-6b2da2132687
+		summarizeBy: none
+		sourceColumn: Owner Recovery Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Flag indicating if this maintenance type is covered by a service agreement.
+	column 'Has Service Agreement'
+		dataType: int64
+		formatString: 0
+		lineageTag: ec04ced1-813d-433d-9b22-ef4388a55245
+		summarizeBy: none
+		sourceColumn: Service Agreement Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Flag indicating if tenants are typically liable for this maintenance type.
+	column 'Is Tenant Liable'
+		dataType: int64
+		formatString: 0
+		lineageTag: 987d3085-25c8-44cc-b145-f5ca6aa04dfa
+		summarizeBy: none
+		sourceColumn: Tenant Liable Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Owning Business Central company / legal entity that carries this maintenance type's costs: 'EAL Emerge Aotearoa Limited (BC)' or 'EAHT Emerge Aotearoa Housing Trust (BC)' (blank for generic/unassigned types). Despite the column name this holds the BC entity, not an accounting account type.
+	column 'Account Type'
+		dataType: string
+		lineageTag: 7a115a65-f0cb-476d-b5f3-0594cc9ec56d
+		summarizeBy: none
+		sourceColumn: Account Type
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Property Maintenance Type' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT [dim_property_maintenace_type_id],#(lf)[property_maintenance_type_id],#(lf)[property_maintenance_type_account_code] AS [G/L Code],#(lf)[property_maintenance_type] AS [Name],#(lf)[property_maintenance_type_code] AS [Work Type Code],#(lf)[property_maintenance_service_agreement_priority] AS [Service Agreement Priority],#(lf)[property_maintenance_priority] AS [Priority],#(lf)[property_maintenance_owner_recovery_flag] AS [Owner Recovery Flag],#(lf)[property_maintenance_service_agreement_flag] AS [Service Agreement Flag],#(lf)[property_maintenance_tenant_liable_flag] AS [Tenant Liable Flag],#(lf)[property_maintenance_account_type] AS [Account Type]#(lf)FROM [edw].[dim_property_maintenace_type]#(lf)WHERE [property_maintenance_deleted_flag] IS NULL#(lf)AND [DWHIsCurrent] = 1#(lf)AND [DWHDMLOperation] <> 'D'#(lf)AND [property_maintenance_type_id] IS NOT NULL"]),
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, fnApplyNamingConventions)
+				in
+				    #"Transformed Column Names"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

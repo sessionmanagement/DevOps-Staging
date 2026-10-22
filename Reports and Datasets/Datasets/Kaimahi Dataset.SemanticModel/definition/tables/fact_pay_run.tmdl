@@ -1,0 +1,183 @@
+table fact_pay_run
+	lineageTag: d97c5456-bd04-44a7-b0b3-b79763daa0ca
+
+	column employee_id
+		dataType: int64
+		formatString: 0
+		lineageTag: a73e01da-6678-4ef4-a7c7-bfad4755ce58
+		summarizeBy: none
+		sourceColumn: employee_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column pay_component_name
+		dataType: string
+		lineageTag: bbc19557-5890-4f94-ae5f-c0f5564562b1
+		summarizeBy: none
+		sourceColumn: pay_component_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column pay_component_category
+		dataType: string
+		lineageTag: 4ebf3599-45ba-4952-b820-203c32e7a380
+		summarizeBy: none
+		sourceColumn: pay_component_category
+
+		annotation SummarizationSetBy = Automatic
+
+	column pay_period_start_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 0103451a-0408-4d90-b20a-5dacd16ba164
+		summarizeBy: none
+		sourceColumn: pay_period_start_date
+
+		variation Variation
+			isDefault
+			relationship: 44240fb3-aadb-42da-828a-01eb6c90d6bf
+			defaultHierarchy: LocalDateTable_5f84d85d-98bd-46e8-8f4a-04b2c75d380c.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column pay_period_end_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 94ae2225-5985-4ae8-ac26-39efe1800b5b
+		summarizeBy: none
+		sourceColumn: pay_period_end_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column hours_amount
+		dataType: double
+		lineageTag: 69765852-165f-4599-8094-b7d05ac15d6e
+		summarizeBy: sum
+		sourceColumn: hours_amount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column sub_department
+		dataType: string
+		lineageTag: 30f21c8d-b093-4220-a6be-7767539dc3b7
+		summarizeBy: none
+		sourceColumn: sub_department
+
+		annotation SummarizationSetBy = Automatic
+
+	column sub_department_code
+		dataType: string
+		lineageTag: ea7c4320-a269-4ac5-9aaa-b516dff53d57
+		summarizeBy: none
+		sourceColumn: sub_department_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column remuneration_type
+		dataType: string
+		lineageTag: e097d0a1-7a01-4ba9-9f5b-b8f958db9440
+		summarizeBy: none
+		sourceColumn: remuneration_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column work_class
+		dataType: string
+		lineageTag: 7336a1be-f066-458a-89e2-692d0f0ffb01
+		summarizeBy: none
+		sourceColumn: work_class
+
+		annotation SummarizationSetBy = Automatic
+
+	column work_type
+		dataType: string
+		lineageTag: 13dde1de-56ec-4809-91fc-d9bdae2957ce
+		summarizeBy: none
+		sourceColumn: work_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month
+		dataType: string
+		lineageTag: 8b33657b-d4d4-487d-9d58-d7e987fa0aaf
+		summarizeBy: none
+		sourceColumn: Month
+		sortByColumn: 'Month Number'
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Unit of time'
+		dataType: string
+		lineageTag: c22a2cd5-6e8a-488e-9022-7e041e0a0362
+		summarizeBy: none
+		sourceColumn: Unit of time
+
+		annotation SummarizationSetBy = Automatic
+
+	column Total_Hours
+		dataType: double
+		lineageTag: 325c20e7-6862-4458-8a89-655e7932e46f
+		summarizeBy: sum
+		sourceColumn: Total_Hours
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column employee_job_name
+		dataType: string
+		lineageTag: de4a1673-9408-4602-b9be-999f1448bbe7
+		summarizeBy: none
+		sourceColumn: employee_job_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_service_key
+		dataType: int64
+		formatString: 0
+		lineageTag: b768bc98-ef61-42a3-a7b3-4ac8e047c20e
+		summarizeBy: none
+		sourceColumn: dim_service_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_employee_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 506fa64d-d21f-4177-b8bb-576ce4a22527
+		summarizeBy: sum
+		sourceColumn: dim_employee_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Month Number'
+		dataType: int64
+		formatString: 0
+		lineageTag: 46ba44da-f652-4c25-9d1b-a1995908b7d7
+		summarizeBy: sum
+		sourceColumn: Month Number
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_pay_run = m
+		mode: import
+		queryGroup: Fact
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="#(lf)WITH pay_slip_items AS#(lf)(#(lf)    SELECT#(lf)        psi.fact_employee_pay_slip_item_key,#(lf)        psi.employee_id,#(lf)        psi.dim_employee_key,#(lf)        psi.company_code,#(lf)        ps.pay_period_start_date,#(lf)        ps.pay_period_end_date,#(lf)        UPPER(LTRIM(RTRIM(psi.item_type_detail))) AS item_type_detail_norm,#(lf)        CAST(ROUND(COALESCE(psi.item_amount, 0), 2) AS DECIMAL(18,2)) AS item_amount_2dp,#(lf)        psi.item_summary,#(lf)        ROW_NUMBER() OVER#(lf)        (#(lf)            PARTITION BY#(lf)                psi.employee_id,#(lf)                psi.company_code,#(lf)                ps.pay_period_start_date,#(lf)                ps.pay_period_end_date,#(lf)                UPPER(LTRIM(RTRIM(psi.item_type_detail))),#(lf)                CAST(ROUND(COALESCE(psi.item_amount, 0), 2) AS DECIMAL(18,2))#(lf)            ORDER BY#(lf)                psi.pay_packet_id,#(lf)                psi.pay_packet_row_id,#(lf)                psi.fact_employee_pay_slip_item_key#(lf)        ) AS match_seq#(lf)    FROM edw.fact_employee_pay_slip_item AS psi#(lf)    INNER JOIN edw.fact_employee_pay_slip AS ps#(lf)        ON ps.pay_packet_id = psi.pay_packet_id#(lf)       AND ps.employee_id = psi.employee_id#(lf)       AND ps.company_code = psi.company_code#(lf)    WHERE ISNULL(psi.DWHDMLOperation, '') <> 'D'#(lf)      AND ISNULL(ps.DWHDMLOperation, '') <> 'D'#(lf)),#(lf)pay_run_match_base AS#(lf)(#(lf)    SELECT#(lf)        pri.fact_employee_pay_run_item_key,#(lf)        pri.employee_id,#(lf)        pri.dim_employee_key,#(lf)        pri.company_code,#(lf)        pri.pay_period_start_date,#(lf)        pri.pay_period_end_date,#(lf)        UPPER(LTRIM(RTRIM(pri.pay_component_name))) AS pay_component_name_norm,#(lf)        CAST(ROUND(COALESCE(pri.total_amount, 0), 2) AS DECIMAL(18,2)) AS total_amount_2dp,#(lf)        ROW_NUMBER() OVER#(lf)        (#(lf)            PARTITION BY#(lf)                pri.employee_id,#(lf)                pri.company_code,#(lf)                pri.pay_period_start_date,#(lf)                pri.pay_period_end_date,#(lf)                UPPER(LTRIM(RTRIM(pri.pay_component_name))),#(lf)                CAST(ROUND(COALESCE(pri.total_amount, 0), 2) AS DECIMAL(18,2))#(lf)            ORDER BY#(lf)                pri.pay_run_id,#(lf)                pri.fact_employee_pay_run_item_key#(lf)        ) AS match_seq#(lf)    FROM edw.fact_employee_pay_run_item AS pri#(lf)),#(lf)matched_item_summary AS#(lf)(#(lf)    SELECT#(lf)        pri.fact_employee_pay_run_item_key,#(lf)        psi.item_summary#(lf)    FROM pay_run_match_base AS pri#(lf)    LEFT JOIN pay_slip_items AS psi#(lf)        ON psi.employee_id = pri.employee_id#(lf)       AND psi.company_code = pri.company_code#(lf)       AND psi.pay_period_start_date = pri.pay_period_start_date#(lf)       AND psi.pay_period_end_date = pri.pay_period_end_date#(lf)       AND psi.item_type_detail_norm = pri.pay_component_name_norm#(lf)       AND psi.item_amount_2dp = pri.total_amount_2dp#(lf)       AND psi.match_seq = pri.match_seq#(lf)),#(lf)base_result_raw AS#(lf)(#(lf)    SELECT#(lf)        pri.fact_employee_pay_run_item_key,#(lf)        pri.hours_amount,#(lf)        mis.item_summary#(lf)    FROM edw.fact_employee_pay_run_item AS pri#(lf)    LEFT JOIN matched_item_summary AS mis#(lf)        ON mis.fact_employee_pay_run_item_key = pri.fact_employee_pay_run_item_key#(lf)),#(lf)unit_resolved AS#(lf)(#(lf)    SELECT#(lf)        br.fact_employee_pay_run_item_key,#(lf)        br.hours_amount,#(lf)        br.item_summary,#(lf)        pv.hours_value,#(lf)        pv.days_value,#(lf)        pv.weeks_value,#(lf)        CASE#(lf)            WHEN mv.hours_matches = 1 THEN 'Hours'#(lf)            WHEN mv.days_matches = 1 THEN 'Days'#(lf)            WHEN mv.weeks_matches = 1 THEN 'Weeks'#(lf)            WHEN mv.unit_count = 1 AND pv.hours_value IS NOT NULL THEN 'Hours'#(lf)            WHEN mv.unit_count = 1 AND pv.days_value IS NOT NULL THEN 'Days'#(lf)            WHEN mv.unit_count = 1 AND pv.weeks_value IS NOT NULL THEN 'Weeks'#(lf)            ELSE ''#(lf)        END AS [Unit of time]#(lf)    FROM base_result_raw AS br#(lf)    OUTER APPLY#(lf)    (#(lf)        SELECT#(lf)            ' ' + LOWER(#(lf)                REPLACE(#(lf)                    REPLACE(#(lf)                        REPLACE(#(lf)                            REPLACE(#(lf)                                REPLACE(COALESCE(br.item_summary, ''), '(', ' '),#(lf)                            ')', ' '),#(lf)                        '@', ' '),#(lf)                    ',', ' '),#(lf)                CHAR(9), ' ')#(lf)            ) + ' ' AS summary_norm,#(lf)            CASE#(lf)                WHEN br.hours_amount IS NOT NULL#(lf)                    THEN CAST(ROUND(br.hours_amount, 5) AS DECIMAL(18,5))#(lf)                ELSE NULL#(lf)            END AS hours_amount_5dp#(lf)    ) AS n#(lf)    OUTER APPLY#(lf)    (#(lf)        SELECT#(lf)            COALESCE(NULLIF(CHARINDEX(' hours ', n.summary_norm), 0), NULLIF(CHARINDEX(' hour ', n.summary_norm), 0)) AS hours_pos,#(lf)            COALESCE(NULLIF(CHARINDEX(' days ',  n.summary_norm), 0), NULLIF(CHARINDEX(' day ',  n.summary_norm), 0)) AS days_pos,#(lf)            COALESCE(NULLIF(CHARINDEX(' weeks ', n.summary_norm), 0), NULLIF(CHARINDEX(' week ', n.summary_norm), 0)) AS weeks_pos#(lf)    ) AS p#(lf)    OUTER APPLY#(lf)    (#(lf)        SELECT#(lf)            LTRIM(RTRIM(LEFT(n.summary_norm, p.hours_pos - 1))) AS before_hours,#(lf)            LTRIM(RTRIM(LEFT(n.summary_norm, p.days_pos - 1)))  AS before_days,#(lf)            LTRIM(RTRIM(LEFT(n.summary_norm, p.weeks_pos - 1))) AS before_weeks#(lf)    ) AS b#(lf)    OUTER APPLY#(lf)    (#(lf)        SELECT#(lf)            TRY_CONVERT#(lf)            (#(lf)                DECIMAL(18,5),#(lf)                REVERSE#(lf)                (#(lf)                    LEFT#(lf)                    (#(lf)                        REVERSE(COALESCE(b.before_hours, '')),#(lf)                        CHARINDEX(' ', REVERSE(COALESCE(b.before_hours, '')) + ' ') - 1#(lf)                    )#(lf)                )#(lf)            ) AS hours_value,#(lf)            TRY_CONVERT#(lf)            (#(lf)                DECIMAL(18,5),#(lf)                REVERSE#(lf)                (#(lf)                    LEFT#(lf)                    (#(lf)                        REVERSE(COALESCE(b.before_days, '')),#(lf)                        CHARINDEX(' ', REVERSE(COALESCE(b.before_days, '')) + ' ') - 1#(lf)                    )#(lf)                )#(lf)            ) AS days_value,#(lf)            TRY_CONVERT#(lf)            (#(lf)                DECIMAL(18,5),#(lf)                REVERSE#(lf)                (#(lf)                    LEFT#(lf)                    (#(lf)                        REVERSE(COALESCE(b.before_weeks, '')),#(lf)                        CHARINDEX(' ', REVERSE(COALESCE(b.before_weeks, '')) + ' ') - 1#(lf)                    )#(lf)                )#(lf)            ) AS weeks_value#(lf)    ) AS pv#(lf)    OUTER APPLY#(lf)    (#(lf)        SELECT#(lf)            CASE WHEN pv.hours_value = n.hours_amount_5dp THEN 1 ELSE 0 END AS hours_matches,#(lf)            CASE WHEN pv.days_value  = n.hours_amount_5dp THEN 1 ELSE 0 END AS days_matches,#(lf)            CASE WHEN pv.weeks_value = n.hours_amount_5dp THEN 1 ELSE 0 END AS weeks_matches,#(lf)            CASE WHEN pv.hours_value IS NOT NULL THEN 1 ELSE 0 END#(lf)          + CASE WHEN pv.days_value  IS NOT NULL THEN 1 ELSE 0 END#(lf)          + CASE WHEN pv.weeks_value IS NOT NULL THEN 1 ELSE 0 END AS unit_count#(lf)    ) AS mv#(lf)),#(lf)latest_service AS#(lf)(#(lf)    SELECT#(lf)        ds.dim_service_key,#(lf)        ds.service_code,#(lf)        ds.service_name,#(lf)        ROW_NUMBER() OVER#(lf)        (#(lf)            PARTITION BY ds.service_code#(lf)            ORDER BY#(lf)                ds.dwheffectivefrom DESC,#(lf)                ds.dim_service_key DESC#(lf)        ) AS rn#(lf)    FROM edw.vw_dim_service AS ds#(lf)    WHERE ISNULL(ds.DWHDMLOperation, '') <> 'D'#(lf)),#(lf)#(lf)final_calc AS#(lf)(#(lf)    SELECT#(lf)        ur.fact_employee_pay_run_item_key,#(lf)        CASE#(lf)            WHEN NULLIF(ur.[Unit of time], '') IS NOT NULL THEN ur.[Unit of time]#(lf)            WHEN ur.hours_amount IS NOT NULL THEN 'Hours'#(lf)            ELSE ''#(lf)        END AS [Unit of time],#(lf)        ur.item_summary,#(lf)        CASE#(lf)            WHEN ur.[Unit of time] = 'Hours' THEN ur.hours_value#(lf)            WHEN ur.[Unit of time] = 'Days'  THEN ur.days_value * 8#(lf)            WHEN ur.[Unit of time] = 'Weeks' THEN ur.weeks_value * 40#(lf)            WHEN NULLIF(ur.[Unit of time], '') IS NULL#(lf)             AND ur.hours_amount IS NOT NULL THEN CAST(ur.hours_amount AS DECIMAL(18,5))#(lf)            ELSE NULL#(lf)        END AS Total_Hours#(lf)    FROM unit_resolved AS ur#(lf))#(lf)SELECT#(lf)    pri.dim_employee_key,#(lf)    pri.employee_id,#(lf)    pri.pay_component_name,#(lf)    pri.pay_component_category,#(lf)    pri.pay_period_start_date,#(lf)    pri.pay_period_end_date,#(lf)    pri.hours_amount,#(lf)    pri.sub_department,#(lf)    pri.sub_department_code,#(lf)    ds.dim_service_key,#(lf)    pri.remuneration_type,#(lf)    pri.work_class,#(lf)    pri.work_type,#(lf)    DATENAME(MONTH, pay_period_end_date) AS [Month],#(lf)    MONTH(pay_period_end_date) AS [Month Number],#(lf)#(lf)   -- Below Logic is removed on Jay's request. Pae Awhina 130247. Finance uses the month of the pay period end date to decide what month to report it in.#(lf)    #(lf)    --CASE#(lf)    --    WHEN MONTH(pay_period_start_date) = MONTH(pay_period_end_date) THEN#(lf)    --        DATENAME(MONTH, pay_period_start_date)#(lf)    --    ELSE#(lf)    --        CASE#(lf)    --            WHEN DATEDIFF(#(lf)    --                     DAY,#(lf)    --                     pay_period_start_date,#(lf)    --                     EOMONTH(pay_period_start_date)#(lf)    --                 )#(lf)    --                 >= DAY(pay_period_end_date)#(lf)    --            THEN DATENAME(MONTH, pay_period_start_date)#(lf)    --            ELSE DATENAME(MONTH, pay_period_end_date)#(lf)    --        END#(lf)    --END AS [Month],#(lf)    fc.[Unit of time],#(lf)    fc.Total_Hours,#(lf)    e.[employee_job_name]#(lf)FROM edw.fact_employee_pay_run_item AS pri#(lf)#(lf)LEFT JOIN final_calc AS fc#(lf)    ON fc.fact_employee_pay_run_item_key = pri.fact_employee_pay_run_item_key#(lf)#(lf)LEFT JOIN edw.vw_dim_employee AS e#(lf)    ON pri.dim_employee_key = e.dim_employee_key#(lf)#(lf)LEFT JOIN latest_service AS ds#(lf)    ON pri.sub_department_code = ds.service_code#(lf)   AND ds.rn = 1#(lf)#(lf)WHERE fc.Total_Hours IS NOT NULL#(lf)#(lf)ORDER BY#(lf)    pri.pay_run_id,#(lf)    pri.employee_id,#(lf)    pri.pay_component_code,#(lf)    pri.fact_employee_pay_run_item_key;#(lf)"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{ {"pay_period_start_date", type date}, {"pay_period_end_date", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

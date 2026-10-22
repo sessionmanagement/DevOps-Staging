@@ -1,0 +1,62 @@
+table dim_roles
+	lineageTag: ea147b2b-e67c-4160-b6fc-be53e9f1b5ff
+
+	column id
+		dataType: string
+		lineageTag: fdd85102-2d45-45eb-8496-7a1743b7f9c2
+		summarizeBy: none
+		sourceColumn: id
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_active
+		dataType: int64
+		formatString: 0
+		lineageTag: 545b13e6-4efc-43dd-8831-fb5992188ffc
+		summarizeBy: sum
+		sourceColumn: is_active
+
+		annotation SummarizationSetBy = Automatic
+
+	column name
+		dataType: string
+		lineageTag: 4c67db62-383b-40c6-870b-19cb2ff43d08
+		summarizeBy: none
+		sourceColumn: name
+
+		annotation SummarizationSetBy = Automatic
+
+	column cost_code
+		dataType: string
+		lineageTag: 842d0f07-dcae-4cb1-8f4f-07a2f2bd6834
+		summarizeBy: none
+		sourceColumn: cost_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column comments
+		dataType: string
+		lineageTag: df18d1cc-441c-4a54-aa24-4f616b4e2729
+		summarizeBy: none
+		sourceColumn: comments
+
+		annotation SummarizationSetBy = Automatic
+
+	column contract_id
+		dataType: string
+		lineageTag: 5ada51f1-4fb2-4fe1-9104-f524a4254439
+		summarizeBy: none
+		sourceColumn: contract_id
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_roles = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT [id]#(lf)      ,[is_active]#(lf)      ,[name]#(lf)      ,[cost_code]#(lf)      ,[comments]#(lf)      ,[contract_id]#(lf)  FROM [EmpLive].[roles]#(lf)  WHERE ODSIsCurrent=1"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+

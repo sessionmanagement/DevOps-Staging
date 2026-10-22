@@ -1,0 +1,110 @@
+table MNB_Work_ReferralDaysExplosion
+	isHidden
+	lineageTag: 203eee54-d718-42a9-a4e6-0fb716d4401c
+
+	column CompanyIdentifier
+		dataType: string
+		isHidden
+		lineageTag: 60eb3d54-225c-4019-8866-bd3b9fd55a41
+		summarizeBy: none
+		sourceColumn: CompanyIdentifier
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column AcceptedDate
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: e2dad8ff-8f6e-4a62-91c3-ac91c7d90efc
+		summarizeBy: sum
+		sourceColumn: AcceptedDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column DischargeDate
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 0fcaf9fb-5d33-4df9-aaf1-7833a6429589
+		summarizeBy: sum
+		sourceColumn: DischargeDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ID
+		dataType: string
+		isHidden
+		lineageTag: 254256d5-e9a9-45a8-89d2-ed372100e9e7
+		summarizeBy: none
+		sourceColumn: ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonID
+		dataType: string
+		isHidden
+		lineageTag: a4918fe8-3fea-4c01-90a5-b2d36579543d
+		summarizeBy: none
+		sourceColumn: PersonID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamID
+		dataType: string
+		isHidden
+		lineageTag: 1704c625-7fc2-4ee3-99c2-cb4d5c7649ce
+		summarizeBy: none
+		sourceColumn: TeamID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionID
+		dataType: string
+		isHidden
+		lineageTag: 1db67622-a5b8-42b0-87ad-385c714e7fb8
+		summarizeBy: none
+		sourceColumn: TeamFunctionID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column DischargeDateTrue
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: e0d30b32-5dc6-499e-af22-ba09a684e807
+		summarizeBy: none
+		sourceColumn: DischargeDateTrue
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition MNB_Work_ReferralDaysExplosion-f9988d10-65a1-4544-91fa-055525ef40a1 = m
+		mode: import
+		queryGroup: MNB
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT DISTINCT#(lf)'MNB' AS CompanyIdentifier,#(lf)CAST(lfr.AcceptedDate AS DATE) AS AcceptedDate,#(lf)CASE WHEN CAST(lfr.DischargeDate AS DATE) IS NULL THEN CAST(GETDATE() AS DATE) ELSE CAST(lfr.DischargeDate AS DATE) END AS DischargeDate,#(lf)CAST(lfr.DischargeDate AS DATE) AS DischargeDateTrue,#(lf)CASE WHEN lfr.ID IS NOT NULL THEN CONCAT('M',lfr.ID) ELSE NULL END AS ID,#(lf)CASE WHEN lfr.PersonID IS NOT NULL THEN CONCAT('M',lfr.PersonID) ELSE NULL END AS PersonID,#(lf)CASE WHEN lfr.TeamID IS NOT NULL THEN CONCAT('M',lfr.TeamID) ELSE NULL END AS TeamID,#(lf)CASE WHEN tf.TeamFunctionID IS NOT NULL THEN CONCAT('M',tf.TeamFunctionID) ELSE NULL END AS TeamFunctionID#(lf)FROM RBMNB.[legacyFactReferral] lfr#(lf)LEFT OUTER JOIN RBMNB.[dlDimTeam] t ON t.TeamID = lfr.TeamID#(lf)LEFT OUTER JOIN RBMNB.[dlDimTeamFunction] tf ON tf.TeamFunctionID = t.TeamFunctionID#(lf)WHERE ID IS NOT NULL#(lf)AND AcceptedDate IS NOT NULL"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"AcceptedDate", Int64.Type}, {"DischargeDate", Int64.Type}, {"DischargeDateTrue", type date}})
+				in
+				    #"Changed Type"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

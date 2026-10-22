@@ -1,0 +1,135 @@
+table 'intellihr people'
+	lineageTag: 2ab5bc8d-188b-46cc-9c8b-f5914557d0fb
+
+	column displayName
+		dataType: string
+		lineageTag: ae58687d-c032-4875-9b91-c500b41680f9
+		summarizeBy: none
+		sourceColumn: displayName
+
+		annotation SummarizationSetBy = Automatic
+
+	column dateOfBirth
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 897c4f12-196d-4c3d-be4b-66b83dfda3f6
+		summarizeBy: none
+		sourceColumn: dateOfBirth
+
+		variation Variation
+			isDefault
+			relationship: 77b0fd31-6f08-4266-8b78-72702f76c846
+			defaultHierarchy: LocalDateTable_c415cc39-100c-4963-b57f-d83eaf5ba43c.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column gender
+		dataType: string
+		lineageTag: 240c0b14-35fa-4576-86a2-77e7d426a806
+		summarizeBy: none
+		sourceColumn: gender
+
+		annotation SummarizationSetBy = Automatic
+
+	column employeeNumber
+		dataType: int64
+		formatString: 0
+		lineageTag: 9648d8cc-56c1-40ad-ac1d-f04058396b54
+		summarizeBy: none
+		sourceColumn: employeeNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column employmentStatus
+		dataType: string
+		lineageTag: 8538b523-e4e2-4226-bd37-224a3a5019ae
+		summarizeBy: none
+		sourceColumn: employmentStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Age Ranges' =
+			
+			SWITCH (
+			    /* Add in a clause for IF blank as Unknown */
+			    TRUE (),
+			    ISBLANK('intellihr people'[Total Years]), "Not set",
+			    'intellihr people'[Total Years] >= 0 && 'intellihr people'[Total Years] < 21, " 0-20",
+			    'intellihr people'[Total Years] < 31, " 21-30",
+			    'intellihr people'[Total Years] < 41, " 31-40",
+			    'intellihr people'[Total Years] < 51, " 41-50",
+			    'intellihr people'[Total Years] < 61, " 51-60",
+			    'intellihr people'[Total Years] < 71, " 61-70",
+			    'intellihr people'[Total Years] >= 71, " 70+",
+			    "Not set"
+			)
+		lineageTag: e594dd62-d5e0-4040-b3ce-c538ab48e8f3
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column people_id
+		dataType: string
+		lineageTag: 5e0ab0f9-fbea-4326-8afd-99d50b6e0944
+		summarizeBy: none
+		sourceColumn: people_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column DisplayAge = ```
+			
+			SWITCH(
+			    TRUE(),
+			    ISBLANK('intellihr people'[Total Years]), "Not Set",
+			    TRUE(), FORMAT('intellihr people'[Total Years], "0")
+			)
+			
+			```
+		dataType: string
+		lineageTag: 3162f2c6-cf77-4f96-996b-4acfd2e36273
+		summarizeBy: none
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Total Years'
+		dataType: int64
+		formatString: 0
+		lineageTag: 25a488d0-95b6-4a83-ad37-282ecc047853
+		summarizeBy: sum
+		sourceColumn: Total Years
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'intellihr people-774f988c-6d84-44a4-81c8-685cf1cdf33c' = m
+		mode: import
+		queryGroup: 'Raw Intelli Data'
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT#(lf)    [people_id],#(lf)    [displayName],#(lf)    [dateOfBirth],#(lf)    [gender],#(lf)    [employeeNumber],#(lf)    [employmentStatus]#(lf)FROM [IntelliHR].[people]#(lf)WHERE [autoIncrementIntellihrId] <> 100412 AND ([ODSIsCurrent] = 1) AND (([employeeNumber] IS NOT NULL AND [employeeNumber] <> ''));"]),
+				    #"Inserted Age" = Table.AddColumn(
+				        Source,
+				        "Total Years",
+				        each
+				            if [dateOfBirth] <> null then
+				                let
+				                    currentDate = DateTime.LocalNow(),
+				                    birthDate = [dateOfBirth],
+				                    ageYears = Date.Year(currentDate) - Date.Year(birthDate),
+				                    // Adjust age if the current date has not yet reached the birthdate for the current year
+				                    adjust = if Date.From(currentDate) < Date.AddYears(Date.From(birthDate), ageYears) then -1 else 0
+				                in
+				                    ageYears + adjust
+				            else
+				                // Return null if dateOfBirth is null
+				                null,
+				        Int64.Type
+				    )
+				in
+				    #"Inserted Age"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

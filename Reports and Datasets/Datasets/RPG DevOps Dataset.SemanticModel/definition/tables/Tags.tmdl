@@ -1,0 +1,53 @@
+/// Work item tags used for ad-hoc classification and filtering. Source: OData Tags entity.
+table Tags
+	lineageTag: 5fc9d805-c8fb-4ade-9f32-903947276d34
+
+	/// Surrogate key uniquely identifying the tag
+	column TagSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: c39be04b-be3a-4ce8-86fb-c8e33c4f41d7
+		summarizeBy: none
+		sourceColumn: TagSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to the Projects dimension table
+	column ProjectSK
+		dataType: string
+		isHidden
+		lineageTag: 62d824ae-1a26-4261-9636-37b72d36b394
+		summarizeBy: none
+		sourceColumn: ProjectSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unique identifier for the tag within the project
+	column TagId
+		dataType: string
+		lineageTag: 48f48831-cb19-440d-a07a-97398aa9994e
+		summarizeBy: none
+		sourceColumn: TagId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Display name of the tag applied to work items
+	column TagName
+		dataType: string
+		lineageTag: a1268efb-daa1-49f6-a4d3-8c10ea98f378
+		summarizeBy: none
+		sourceColumn: TagName
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Tags = m
+		mode: import
+		queryGroup: 'DevOps Tables'
+		source =
+				let
+				    Source = OData.Feed("https://analytics.dev.azure.com/EmergeAotearoa/Data%20and%20Analytics/_odata/v3.0-preview/", null, [Implementation="2.0",OmitValues = ODataOmitValues.Nulls,ODataVersion = 4, Headers=[Authorization=fnGetToken()]]),
+				    Tags_table = Source{[Name="Tags",Signature="table"]}[Data]
+				in
+				    Tags_table
+

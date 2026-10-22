@@ -1,0 +1,175 @@
+table fact_tenancy_for_data_page
+	lineageTag: 125ee4c2-a400-4375-bb86-a897ffa584a1
+
+	column opportunityid
+		dataType: string
+		isHidden
+		lineageTag: 98eccdcc-6c3a-4f90-85fa-9bbccabf8148
+		summarizeBy: none
+		sourceColumn: opportunityid
+
+		annotation SummarizationSetBy = Automatic
+
+	column name
+		dataType: string
+		isHidden
+		lineageTag: a64e19df-e0d7-4c17-b435-069ad5e56667
+		summarizeBy: none
+		sourceColumn: name
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_property
+		dataType: string
+		isHidden
+		lineageTag: 89844aac-f236-4ce4-8607-e55f30285a02
+		summarizeBy: none
+		sourceColumn: zav_property
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_tenancystartdate
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: 15f09f3f-1697-466b-8085-c0d67eb804b1
+		summarizeBy: none
+		sourceColumn: zav_tenancystartdate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column zav_vacateddate
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: 3fa9e716-c3ae-4590-bf53-581f418fb89c
+		summarizeBy: none
+		sourceColumn: zav_vacateddate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column zav_propertyname
+		dataType: string
+		isHidden
+		lineageTag: cc30047e-5aa1-4ff1-bb67-6bba4bcbe886
+		summarizeBy: none
+		sourceColumn: zav_propertyname
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tenancy Length (Days)' =
+			
+			IF(
+			    ISBLANK(
+			        fact_tenancy_for_data_page[zav_vacateddate]),
+			        DATEDIFF(fact_tenancy_for_data_page[zav_tenancystartdate], TODAY(), DAY),
+			        DATEDIFF(fact_tenancy_for_data_page[zav_tenancystartdate], fact_tenancy_for_data_page[zav_vacateddate], DAY)
+			)
+		isHidden
+		formatString: 0
+		lineageTag: 78c7878b-cdf2-4bd2-a906-945a5e1797cc
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column FullAddress = RELATED(dim_property[zav_fulladdress])
+		isHidden
+		lineageTag: 5bab6b97-e306-4c91-a293-b8d2583cb752
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_subprogram
+		dataType: string
+		isHidden
+		lineageTag: 850badab-5bd0-4259-b3d4-0cb366274e7b
+		summarizeBy: none
+		sourceColumn: zav_subprogram
+
+		annotation SummarizationSetBy = Automatic
+
+	column region_name
+		dataType: string
+		isHidden
+		lineageTag: 82c9eb33-bad1-462e-8af8-556c48b6258e
+		summarizeBy: none
+		sourceColumn: region_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column parentcontactid
+		dataType: string
+		isHidden
+		lineageTag: 4f476d24-8981-4ffe-8902-478c94448c83
+		summarizeBy: none
+		sourceColumn: parentcontactid
+
+		annotation SummarizationSetBy = Automatic
+
+	column fullname
+		dataType: string
+		isHidden
+		lineageTag: b18b7ddd-a60f-476d-8dce-f19cea1f8d42
+		summarizeBy: none
+		sourceColumn: fullname
+
+		annotation SummarizationSetBy = Automatic
+
+	column new_dateofbirth
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: fd24d9e6-5ee6-4be7-85a9-2ee01221ed98
+		summarizeBy: none
+		sourceColumn: new_dateofbirth
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column zav_ethnicity
+		dataType: string
+		isHidden
+		lineageTag: f35baa11-4f38-4d7d-a50a-71391842d4fc
+		summarizeBy: none
+		sourceColumn: zav_ethnicity
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_gender
+		dataType: double
+		isHidden
+		lineageTag: c891842b-f249-4d98-a049-406dd5b6d084
+		summarizeBy: none
+		sourceColumn: zav_gender
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column zav_leavingreason
+		dataType: string
+		isHidden
+		lineageTag: 88e41044-b1e3-4a9d-bc3b-18ff263b611e
+		summarizeBy: none
+		sourceColumn: zav_leavingreason
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_tenancy_for_data_page-5d958caf-8222-4a58-aaed-1c5e78868e3b = m
+		mode: import
+		queryGroup: facts
+		source =
+				let
+				    Source = fact_tenancy
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

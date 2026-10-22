@@ -1,0 +1,342 @@
+table 'Fact Tangata Whaiora PRIMHD Review'
+	lineageTag: 34a10e39-bdcb-4456-b096-7183befb7e71
+
+	column PrimhdServiceReviewId
+		dataType: int64
+		formatString: 0
+		lineageTag: 18b38dba-9524-4740-9a27-31339dad031d
+		summarizeBy: count
+		sourceColumn: PrimhdServiceReviewId
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Tangata Whaiora Unique KEY'
+		dataType: string
+		isHidden
+		lineageTag: c5842396-723c-4b10-afcf-bf987ac4dd9a
+		summarizeBy: none
+		sourceColumn: Dim Tangata Whaiora Unique KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PrimhdServiceReviewReviewDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 94ad115d-32c5-4708-a311-a09949f3ae0f
+		summarizeBy: none
+		sourceColumn: PrimhdServiceReviewReviewDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column PrimhdServiceReviewCreatedDate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 0ada7bc9-f710-472b-b73b-3bdea30e197a
+		summarizeBy: none
+		sourceColumn: PrimhdServiceReviewCreatedDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Tangata Whaiora Referral Unique KEY'
+		dataType: string
+		isHidden
+		lineageTag: 761e42ee-efa1-4767-9f5c-f050f54794fb
+		summarizeBy: none
+		sourceColumn: Dim Tangata Whaiora Referral Unique KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim PRIMHD Review Accommodation Status Unique KEY'
+		dataType: string
+		isHidden
+		lineageTag: ac1cafae-48a4-43cd-adc6-bbf2bf337996
+		summarizeBy: none
+		sourceColumn: Dim PRIMHD Review Accommodation Status Unique KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim PRIMHD Review Employment Status Unique KEY'
+		dataType: string
+		isHidden
+		lineageTag: d79c86d3-5794-4f23-b539-0e68f441c1e5
+		summarizeBy: none
+		sourceColumn: Dim PRIMHD Review Employment Status Unique KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim PRIMHD Review Education Status Unique KEY'
+		dataType: string
+		isHidden
+		lineageTag: cb8e19d2-bc60-4122-83b8-f4bee664e7ff
+		summarizeBy: none
+		sourceColumn: Dim PRIMHD Review Education Status Unique KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim PRIMHD Review Wellness Plan Status Unique KEY'
+		dataType: string
+		isHidden
+		lineageTag: 642ffb9f-e921-4dc1-b05c-3003967a2c4b
+		summarizeBy: none
+		sourceColumn: Dim PRIMHD Review Wellness Plan Status Unique KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReferralEndDateOrToday
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: a29c6037-121a-46d0-a64c-1fb72a60ce5d
+		summarizeBy: none
+		sourceColumn: ReferralEndDateOrToday
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column NextEnteredPrimhdReviewDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 841e75a3-9c59-4792-8bc1-ec8a8d2dc071
+		summarizeBy: none
+		sourceColumn: NextEnteredPrimhdReviewDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column PrimhdServiceReviewValidToDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: f80d2335-a78c-4444-93bd-a3ba22707ac8
+		summarizeBy: none
+		sourceColumn: PrimhdServiceReviewValidToDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column AcceptedDate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 4e8ec646-ca24-4d0d-ab6e-257192fbd3d0
+		summarizeBy: none
+		sourceColumn: AcceptedDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column AcceptedDateAsDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 5bc4ef17-78e4-4646-a9da-d06d4243951c
+		summarizeBy: none
+		sourceColumn: AcceptedDateAsDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column HoursBetweenReferralStartAndPRIMHDReview
+		dataType: int64
+		formatString: 0
+		lineageTag: b673ee68-6cab-4a22-84a6-2ede66cdb330
+		summarizeBy: sum
+		sourceColumn: HoursBetweenReferralStartAndPRIMHDReview
+
+		annotation SummarizationSetBy = Automatic
+
+	column PRIMHDReviewNumber
+		dataType: int64
+		formatString: 0
+		lineageTag: fbf9f8f1-3148-460b-8efc-fb58d7557332
+		summarizeBy: sum
+		sourceColumn: PRIMHDReviewNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column PRIMHDReviewCompletedWithin48HoursOfReferralAcceptance =
+			
+			IF(
+			    'Fact Tangata Whaiora PRIMHD Review'[PRIMHDReviewNumber] > 1 || ISBLANK('Fact Tangata Whaiora PRIMHD Review'[HoursBetweenReferralStartAndPRIMHDReview]),
+			    "N/A",
+			    IF(
+			        'Fact Tangata Whaiora PRIMHD Review'[PRIMHDReviewNumber] = 1 && 'Fact Tangata Whaiora PRIMHD Review'[HoursBetweenReferralStartAndPRIMHDReview] <= 48 && 'Fact Tangata Whaiora PRIMHD Review'[HoursBetweenReferralStartAndPRIMHDReview] >= -48,
+			        "Yes",
+			        "No"
+			    )
+			)
+		lineageTag: 78f9b75f-d32a-4894-be44-c7bb73ccebe4
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column PreviousEnteredPrimhdReviewDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 9d618451-5b2d-49b0-9a57-d4ad6a17631b
+		summarizeBy: none
+		sourceColumn: PreviousEnteredPrimhdReviewDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column DaysUntilNextPRIMHDReview =
+			
+			IF(
+			    ISBLANK(
+			        'Fact Tangata Whaiora PRIMHD Review'[NextEnteredPrimhdReviewDate]),
+			        BLANK(),
+			        DATEDIFF(
+			            'Fact Tangata Whaiora PRIMHD Review'[PrimhdServiceReviewReviewDate],
+			            'Fact Tangata Whaiora PRIMHD Review'[NextEnteredPrimhdReviewDate],
+			            DAY
+			        )
+			)
+		formatString: 0
+		lineageTag: 451ba736-dcf8-435f-913f-e4e27adb18c0
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column DaysSincePreviousPRIMHDReview =
+			
+			IF(
+			    ISBLANK(
+			        'Fact Tangata Whaiora PRIMHD Review'[PreviousEnteredPrimhdReviewDate]),
+			        BLANK(),
+			        DATEDIFF(
+			            'Fact Tangata Whaiora PRIMHD Review'[PreviousEnteredPrimhdReviewDate],
+			            'Fact Tangata Whaiora PRIMHD Review'[PrimhdServiceReviewReviewDate],
+			            DAY
+			        )
+			)
+		formatString: 0
+		lineageTag: 33fce05f-c47a-4d43-bdd1-8617db80f161
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsLastReview
+		dataType: string
+		lineageTag: 2c52b103-bb48-4a91-99e5-5fcd797871fc
+		summarizeBy: none
+		sourceColumn: IsLastReview
+
+		annotation SummarizationSetBy = Automatic
+
+	column DischargeDate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: b3873d87-fd5f-4be9-859b-40c982e10b2f
+		summarizeBy: none
+		sourceColumn: DischargeDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column PRIMHDReviewCompletedWithin48HoursOfReferralDischarge =
+			
+			IF(
+			    'Fact Tangata Whaiora PRIMHD Review'[IsLastReview] = "No" || ISBLANK('Fact Tangata Whaiora PRIMHD Review'[DischargeDate]),
+			    "N/A",
+			    IF(
+			        'Fact Tangata Whaiora PRIMHD Review'[IsLastReview] = "Yes" && 'Fact Tangata Whaiora PRIMHD Review'[HoursBetweenReferralDischargeAndPRIMHDReview] <= 48 && 'Fact Tangata Whaiora PRIMHD Review'[HoursBetweenReferralDischargeAndPRIMHDReview] >= -48,
+			        "Yes",
+			        "No"
+			    )
+			)
+		lineageTag: c8586136-cbfd-4c7c-bc2b-dbc9bc4af49c
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column HoursBetweenReferralDischargeAndPRIMHDReview
+		dataType: int64
+		formatString: 0
+		lineageTag: 5f175664-8aa6-4577-84b9-4dc9a8ba61de
+		summarizeBy: sum
+		sourceColumn: HoursBetweenReferralDischargeAndPRIMHDReview
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReferralIsDischarged
+		dataType: string
+		lineageTag: bd099a36-d883-4c80-8bd7-a50c8b1ec046
+		summarizeBy: none
+		sourceColumn: ReferralIsDischarged
+
+		annotation SummarizationSetBy = Automatic
+
+	column DataQualityErrors =
+			
+			IF(
+			    AND(
+			        NOT(ISBLANK('Fact Tangata Whaiora PRIMHD Review'[DaysSincePreviousPRIMHDReview])),
+			        'Fact Tangata Whaiora PRIMHD Review'[DaysSincePreviousPRIMHDReview] = 0
+			    ) || AND(
+			        NOT(ISBLANK('Fact Tangata Whaiora PRIMHD Review'[DaysUntilNextPRIMHDReview])),
+			        'Fact Tangata Whaiora PRIMHD Review'[DaysUntilNextPRIMHDReview] = 0
+			    ),
+			    "Two PRIMHD reviews entered on same date",
+			    "No errors"
+			)
+		lineageTag: b24be67f-c655-4af4-a6a9-0cb5e24009bb
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column PrimhdServiceReviewCreatedDateASDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 052714b7-60ff-4cde-8f03-c2e36c4c50e7
+		summarizeBy: none
+		sourceColumn: PrimhdServiceReviewCreatedDateASDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column PreviousPRIMHDReviewWithin90Days =
+			
+			IF(
+			    ISBLANK(
+			        'Fact Tangata Whaiora PRIMHD Review'[DaysSincePreviousPRIMHDReview]
+			    ),
+			    "N/A",
+			    IF(
+			        'Fact Tangata Whaiora PRIMHD Review'[DaysSincePreviousPRIMHDReview] <= 90,
+			        "Yes",
+			        "No"
+			    )
+			)
+		lineageTag: 44df3049-cff3-4a81-94f3-8e86a9723986
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Fact Tangata Whaiora PRIMHD Review' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ods", [Query="WITH PrimhdServiceReviews AS (#(lf)    SELECT #(lf)        [PrimhdServiceReviewId],#(lf)        CAST(p.[PersonId] AS nvarchar(20)) + '-1' AS [Dim Tangata Whaiora Unique KEY],#(lf)        CAST([PrimhdServiceReviewReviewDate] AS date) AS [PrimhdServiceReviewReviewDate],#(lf)#(tab)#(tab)r.AcceptedDate,#(lf)#(tab)#(tab)CAST(r.AcceptedDate AS date) AS AcceptedDateAsDate,#(lf)        ISNULL(CAST(r.DischargeDate AS date), CAST(GETDATE() AS date)) AS ReferralEndDateOrToday,#(lf)#(tab)#(tab)r.DischargeDate,#(lf)        CAST(p.[ReferralId] AS nvarchar(20)) + '_' + CAST(p.[PersonId] AS nvarchar(20)) + '_1' AS [Dim Tangata Whaiora Referral Unique KEY],#(lf)        CAST([AccommodationStatusId] AS nvarchar(20)) + '-1' AS [Dim PRIMHD Review Accommodation Status Unique KEY],#(lf)        CAST([EmploymentStatusId] AS nvarchar(20)) + '-1' AS [Dim PRIMHD Review Employment Status Unique KEY],#(lf)        CAST([EducationStatusId] AS nvarchar(20)) + '-1' AS [Dim PRIMHD Review Education Status Unique KEY],#(lf)        CAST([WellnessPlanStatusId] AS nvarchar(20)) + '-1' AS [Dim PRIMHD Review Wellness Plan Status Unique KEY],#(lf)        [PrimhdServiceReviewCreatedDate],#(lf)#(tab)#(tab)CAST([PrimhdServiceReviewCreatedDate] AS date) AS [PrimhdServiceReviewCreatedDateASDate],#(lf)#(tab)#(tab)DATEDIFF(Hour, r.AcceptedDate, p.PrimhdServiceReviewReviewDate) AS HoursBetweenReferralStartAndPRIMHDReview,#(lf)#(tab)#(tab)DATEDIFF(Hour, p.PrimhdServiceReviewReviewDate, r.DischargeDate) AS HoursBetweenReferralDischargeAndPRIMHDReview#(lf)#(lf)    FROM [RBEAL].[dlFactPrimhdServiceReview] p#(lf)    INNER JOIN [RBEAL].legacyFactReferral r ON p.ReferralId = r.ID#(lf)    UNION ALL#(lf)    SELECT #(lf)        [PrimhdServiceReviewId],#(lf)        CAST(p.[PersonId] AS nvarchar(20)) + '-5' AS [Dim Tangata Whaiora Unique KEY],#(lf)        CAST([PrimhdServiceReviewReviewDate] AS date) AS [PrimhdServiceReviewReviewDate],#(lf)#(tab)#(tab)r.AcceptedDate,#(lf)#(tab)#(tab)CAST(r.AcceptedDate AS date) AS AcceptedDateAsDate,#(lf)        ISNULL(CAST(r.DischargeDate AS date), CAST(GETDATE() AS date)) AS ReferralEndDateOrToday,#(lf)#(tab)#(tab)r.DischargeDate,#(lf)        CAST(p.[ReferralId] AS nvarchar(20)) + '_' + CAST(p.[PersonId] AS nvarchar(20)) + '_5' AS [Dim Tangata Whaiora Referral Unique KEY],#(lf)        CAST([AccommodationStatusId] AS nvarchar(20)) + '-5' AS [Dim PRIMHD Review Accommodation Status Unique KEY],#(lf)        CAST([EmploymentStatusId] AS nvarchar(20)) + '-5' AS [Dim PRIMHD Review Employment Status Unique KEY],#(lf)        CAST([EducationStatusId] AS nvarchar(20)) + '-5' AS [Dim PRIMHD Review Education Status Unique KEY],#(lf)        CAST([WellnessPlanStatusId] AS nvarchar(20)) + '-5' AS [Dim PRIMHD Review Wellness Plan Status Unique KEY],#(lf)        [PrimhdServiceReviewCreatedDate],#(lf)#(tab)#(tab)CAST([PrimhdServiceReviewCreatedDate] AS date) AS [PrimhdServiceReviewCreatedDateASDate],#(lf)#(tab)#(tab)DATEDIFF(Hour, r.AcceptedDate, p.PrimhdServiceReviewReviewDate) AS HoursBetweenReferralStartAndPRIMHDReview,#(lf)#(tab)#(tab)DATEDIFF(Hour, p.PrimhdServiceReviewReviewDate, r.DischargeDate) AS HoursBetweenReferralDischargeAndPRIMHDReview#(lf)    FROM [RBMNB].[dlFactPrimhdServiceReview] p#(lf)    INNER JOIN [RBEAL].legacyFactReferral r ON p.ReferralId = r.ID#(lf)),#(lf)RankedReviews AS (#(lf)SELECT *,#(lf)    LEAD([PrimhdServiceReviewReviewDate]) OVER (#(lf)        PARTITION BY [Dim Tangata Whaiora Referral Unique KEY] #(lf)        ORDER BY [PrimhdServiceReviewReviewDate]#(lf)    ) AS NextEnteredPrimhdReviewDate,#(lf)    LAG([PrimhdServiceReviewReviewDate]) OVER (#(lf)        PARTITION BY [Dim Tangata Whaiora Referral Unique KEY] #(lf)        ORDER BY [PrimhdServiceReviewReviewDate]#(lf)    ) AS PreviousEnteredPrimhdReviewDate,#(lf)    ROW_NUMBER() OVER (#(lf)        PARTITION BY [Dim Tangata Whaiora Referral Unique KEY] #(lf)        ORDER BY [PrimhdServiceReviewReviewDate]#(lf)    ) AS PRIMHDReviewNumber,#(lf)    ROW_NUMBER() OVER (#(lf)        PARTITION BY [Dim Tangata Whaiora Referral Unique KEY] #(lf)        ORDER BY [PrimhdServiceReviewReviewDate] DESC#(lf)    ) AS ReversePRIMHDReviewNumber#(lf)FROM PrimhdServiceReviews#(lf))#(lf)SELECT *,#(lf)    CASE#(lf)        WHEN NextEnteredPrimhdReviewDate IS NULL OR NextEnteredPrimhdReviewDate > ReferralEndDateOrToday THEN ReferralEndDateOrToday#(lf)        ELSE NextEnteredPrimhdReviewDate#(lf)    END AS PrimhdServiceReviewValidToDate,#(lf)    CASE#(lf)        WHEN ReversePRIMHDReviewNumber = 1 THEN 'Yes'#(lf)        ELSE 'No'#(lf)    END AS IsLastReview,#(lf)#(tab)CASE#(lf)#(tab)#(tab)WHEN DischargeDate IS NOT NULL THEN 'Yes'#(lf)#(tab)#(tab)ELSE 'No'#(lf)#(tab)END AS ReferralIsDischarged#(lf)FROM RankedReviews"]),
+				    #"Removed Columns" = Table.RemoveColumns(Source,{"ReversePRIMHDReviewNumber"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Removed Columns",{{"PrimhdServiceReviewReviewDate", type date}, {"ReferralEndDateOrToday", type date}, {"NextEnteredPrimhdReviewDate", type date}, {"PrimhdServiceReviewValidToDate", type date}, {"AcceptedDateAsDate", type date}, {"PreviousEnteredPrimhdReviewDate", type date}, {"PrimhdServiceReviewCreatedDateASDate", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

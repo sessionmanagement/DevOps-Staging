@@ -1,0 +1,164 @@
+/// Individual tenants and household members associated with tenancies. Contains demographic information, contact details, and tenancy relationship data. Each tenant links to a tenancy via Property Tenancy ID. Includes both primary tenants (lease signatories) and other household occupants.
+table 'Transitional Housing Referrals'
+	lineageTag: b7d0c51e-62a4-4819-96c7-e38f1ce507d9
+
+	column 'Tangata Whaiora ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 13aac434-6e38-454a-93a4-5f5fbdf81ad4
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referrer Name'
+		dataType: string
+		lineageTag: 73a5d5cd-f182-42ce-9b98-2dfa4629697d
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referrer Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Accepted Reason'
+		dataType: string
+		lineageTag: 5ae5735f-1057-422f-8e8b-06d103cb9446
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Accepted Reason
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Accepted Reason Code'
+		dataType: string
+		lineageTag: 9b807ed3-0210-410d-82ac-546cfe048dc9
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Accepted Reason Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Discharge Reason'
+		dataType: string
+		lineageTag: f47df81f-8adb-4534-9301-cd724bb5d986
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Discharge Reason
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Discharge Reason Code'
+		dataType: string
+		lineageTag: 252ca521-7efb-40b8-b6e2-c2544553369f
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Discharge Reason Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Status'
+		dataType: string
+		lineageTag: de4b7a54-e311-4bba-81f6-7738b6ce2b4d
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Name'
+		dataType: string
+		lineageTag: 33af21ca-526d-4bec-9fd5-9ab2ba777dff
+		summarizeBy: none
+		sourceColumn: Service Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Type Name'
+		dataType: string
+		lineageTag: 5bb886c1-4784-4097-a325-10bfbc525c0f
+		summarizeBy: none
+		sourceColumn: Service Type Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Finance Funder Name'
+		dataType: string
+		lineageTag: 4c7b2166-5e42-421c-99eb-d181863a4bb8
+		summarizeBy: none
+		sourceColumn: Finance Funder Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team Name'
+		dataType: string
+		lineageTag: 2c3dba6d-2d8d-411d-bc35-0635d76f8fae
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Team Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Received Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 98f301ac-fe93-4795-809f-cf850e7f500d
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Received Date
+
+		variation Variation
+			isDefault
+			relationship: 2ff58524-11c5-4989-9212-ff2ac459b400
+			defaultHierarchy: LocalDateTable_494f92df-3996-4bca-8074-71d3734981f5.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Tangata Whaiora Referral Accepted Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 8d608942-f481-4a80-ab98-b2c596f9239c
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Accepted Date
+
+		variation Variation
+			isDefault
+			relationship: 88cfe7fc-ed18-4d7e-8cd7-c23b35234ec3
+			defaultHierarchy: LocalDateTable_c4414844-8259-4696-9677-052b7a065f1f.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Tangata Whaiora Referral Discharge Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: ab4317c6-a2a8-4efa-807d-bd632de26ffc
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Referral Discharge Date
+
+		variation Variation
+			isDefault
+			relationship: 0784d06b-71bd-4a6e-85a9-55f1676bd28a
+			defaultHierarchy: LocalDateTable_184ad335-9098-49b3-8fb1-3c4f9b91b0d2.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition 'Working Table for Referrals' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="#(lf)SELECT distinct#(lf)    -- Client identification#(lf)    c.client_id,#(lf)#(lf)    -- Referrer information#(lf)    cr.client_referrer_name,#(lf)    --cr.client_referrer_code,#(lf)#(lf)    -- Accept reason#(lf)    cr.client_referral_accepted_reason,#(lf)    --cr.client_referral_accepted_comment,#(lf)    cr.client_referral_accepted_reason_code,#(lf)#(lf)    -- Discharge reason#(lf)    cr.client_referral_discharge_reason,#(lf)    cr.client_referral_discharge_reason_code,#(lf)#(lf)    -- Context columns#(lf)    cr.client_referral_status,#(lf)    s.service_name,#(lf)    s.service_type_name,#(lf)    s.finance_funder_name,#(lf)    ct.client_team_name,#(lf)#(lf)    -- Date keys (integer format YYYYMMDD)#(lf)    fcr.client_referral_received_date_key,#(lf)    fcr.client_referral_accepted_date_key,#(lf)    fcr.client_referral_discharge_date_key#(lf)#(lf)FROM edw.vw_fact_client_referral AS fcr#(lf)    INNER JOIN edw.vw_dim_client_referral AS cr#(lf)        ON fcr.dim_client_referral_key = cr.dim_client_referral_key#(lf)    INNER JOIN edw.vw_dim_client AS c#(lf)        ON fcr.dim_client_key = c.dim_client_key#(lf)    INNER JOIN edw.vw_dim_client_team AS ct#(lf)        ON fcr.dim_client_team_key = ct.dim_client_team_key#(lf)    INNER JOIN edw.vw_dim_service AS s#(lf)        ON ct.dim_service_key = s.dim_service_key#(lf)#(lf)WHERE#(lf)    -- Filter for Transitional Housing services#(lf)    fcr.DWHDMLOperation <> 'D'#(lf)    AND cr.client_referral_status <> 'Declined'#(lf)    and cr.client_referral_status <> 'Pending'#(lf)    and cr.client_referral_type = 'InboundReferral'#(lf)    and service_type_name = 'Emergency Housing Service'#(lf)    and client_team_name not like '%f/up%'"]),
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, fnApplyNamingConventions),
+				    #"Convert Dates" = Table.TransformColumns(#"Transformed Column Names", {
+				        {"Tangata Whaiora Referral Received Date KEY", each if _ = null or _ = 0 then null else Date.FromText(Text.Start(Text.From(_), 4) & "-" & Text.Middle(Text.From(_), 4, 2) & "-" & Text.End(Text.From(_), 2)), type date},
+				        {"Tangata Whaiora Referral Accepted Date KEY", each if _ = null or _ = 0 then null else Date.FromText(Text.Start(Text.From(_), 4) & "-" & Text.Middle(Text.From(_), 4, 2) & "-" & Text.End(Text.From(_), 2)), type date},
+				        {"Tangata Whaiora Referral Discharge Date KEY", each if _ = null or _ = 0 then null else Date.FromText(Text.Start(Text.From(_), 4) & "-" & Text.Middle(Text.From(_), 4, 2) & "-" & Text.End(Text.From(_), 2)), type date}
+				    }),
+				    #"Rename Date Columns" = Table.RenameColumns(#"Convert Dates", {
+				        {"Tangata Whaiora Referral Received Date KEY", "Tangata Whaiora Referral Received Date"},
+				        {"Tangata Whaiora Referral Accepted Date KEY", "Tangata Whaiora Referral Accepted Date"},
+				        {"Tangata Whaiora Referral Discharge Date KEY", "Tangata Whaiora Referral Discharge Date"}
+				    })
+				in
+				    #"Rename Date Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

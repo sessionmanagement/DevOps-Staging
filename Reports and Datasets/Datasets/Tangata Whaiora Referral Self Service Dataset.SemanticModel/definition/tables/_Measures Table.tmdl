@@ -1,0 +1,600 @@
+table '_Measures Table'
+	lineageTag: 9bc1be18-3417-42d5-b2de-ea0b3527404a
+
+	measure 'Tangata Whaiora Display Name (Referral) Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME() IN VALUES('Executinve Masking'[User Principal Name]),
+			    "Tangata Whaiora ID: " & FORMAT(SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora ID]), "0"),
+			    SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora Display Name])
+			)
+		displayFolder: Data Masking
+		lineageTag: 624e5720-7f28-4813-bbd0-1a5348d45bd2
+
+		changedProperty = IsHidden
+
+	measure 'Tangata Whaiora First Name (Referral) Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME() IN VALUES('Executinve Masking'[User Principal Name]),
+			    "Tangata Whaiora ID: " & FORMAT(SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora ID]), "0"),
+			    SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora First Name])
+			)
+		displayFolder: Data Masking
+		lineageTag: f7489cad-86ed-4fae-93db-b55a0306c5ac
+
+		changedProperty = IsHidden
+
+	measure 'Tangata Whaiora Last Name (Referral) Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME() IN VALUES('Executinve Masking'[User Principal Name]),
+			    "Tangata Whaiora ID: " & FORMAT(SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora ID]), "0"),
+			    SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora Last Name])
+			)
+		displayFolder: Data Masking
+		lineageTag: 206da4c3-9565-454c-9f1b-39e1f8386e40
+
+		changedProperty = IsHidden
+
+	measure 'Tangata Whaiora Middle Name (Referral) Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME() IN VALUES('Executinve Masking'[User Principal Name]),
+			    "Tangata Whaiora ID: " & FORMAT(SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora ID]), "0"),
+			    SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora Middle Name])
+			)
+		displayFolder: Data Masking
+		lineageTag: f0d5b051-6b40-44a3-857a-e5cb3ea42a56
+
+		changedProperty = IsHidden
+
+	measure 'Tangata Whaiora Preferred Name (Referral) Masked' =
+			
+			IF (
+			    USERPRINCIPALNAME() IN VALUES('Executinve Masking'[User Principal Name]),
+			    "Tangata Whaiora ID: " & FORMAT(SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora ID]), "0"),
+			    SELECTEDVALUE('Dim Tangata Whaiora'[Tangata Whaiora Preferred Name])
+			)
+		displayFolder: Data Masking
+		lineageTag: 9fd45804-a0bb-4042-ae08-45b50507c241
+
+		changedProperty = IsHidden
+
+	measure IsTwoYearsAgoByDate =
+			
+			VAR FYStartMonth = 7
+			VAR ThisFYStart =
+			    DATE(YEAR(TODAY()) - IF(MONTH(TODAY()) < FYStartMonth, 1, 0), FYStartMonth, 1)
+			VAR StartDate = EDATE(ThisFYStart, -24)
+			VAR EndDate = EDATE(ThisFYStart, -13) + DAY(ThisFYStart) - 1
+			RETURN
+			IF(
+			    SELECTEDVALUE('Dim Date'[Calendar Date]) >= StartDate &&
+			    SELECTEDVALUE('Dim Date'[Calendar Date]) <= EndDate,
+			    1,
+			    0
+			)
+		lineageTag: 49f96abf-183a-45fe-a0ca-9848e95687fa
+
+		changedProperty = IsHidden
+
+	measure 'Number of Tangata Whaiora' =
+			
+			CALCULATE (
+			    DISTINCTCOUNT ( 'Fact Tangata Whaiora Referral'[Tangata Whaiora ID] ),
+			    FILTER ( 'Dim Date', 'Dim Date'[Current Date Rolling Day Offset] = -1 )
+			)
+		formatString: #,0
+		displayFolder: Tangata Whaiora Measures\Demographics
+		lineageTag: c5b6fa75-908f-461e-946c-6ddc2217b777
+
+	measure 'Number of Clients' = [Number of Tangata Whaiora]
+		formatString: 0
+		displayFolder: Tangata Whaiora Measures\Demographics
+		lineageTag: d76c49af-5244-4b9e-b9ad-f6427ee8d14c
+
+	measure 'Number of Clients (format)' = [Number of Clients]
+		formatString: #,0
+		displayFolder: Tangata Whaiora Measures\Demographics
+		lineageTag: 75a40a6d-97e5-43c6-b053-e3093d149bbd
+
+	measure 'Number of Clients Maori' =
+			
+			CALCULATE (
+			    [Number of Clients],
+			    'Dim Tangata Whaiora'[Latest Tangata Whaiora Ethnicity Group] = "Maori"
+			)
+		formatString: #,0
+		displayFolder: Tangata Whaiora Measures\Demographics
+		lineageTag: 889eeca6-cdaa-4b4f-b773-8dab655a61ca
+
+	measure 'Number of Clients Pasifika' =
+			
+			CALCULATE (
+			    [Number of Clients],
+			    'Dim Tangata Whaiora'[Latest Tangata Whaiora Pasifika] = "Pasifika"
+			)
+		formatString: #,0
+		displayFolder: Tangata Whaiora Measures\Demographics
+		lineageTag: b39c17f1-ec2d-4120-b585-eab0380215ab
+
+	measure '%Whaiora Māori' =
+			
+			DIVIDE ( [Number of Clients Maori], [Number of Clients (format)] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Tangata Whaiora Measures\Demographics
+		lineageTag: 8fa57910-6760-4c4d-b9ea-3330d60d5331
+
+	measure '%Whaiora Pasifika' =
+			
+			DIVIDE ( [Number of Clients Pasifika], [Number of Clients (format)] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Tangata Whaiora Measures\Demographics
+		lineageTag: bebc42e3-835b-441f-8675-25c6ea230b91
+
+	measure '%Tangata Whaiora Ethnic Group' =
+			
+			VAR Numerator = [Number of Clients]
+			VAR Denominator =
+			    CALCULATE (
+			        [Number of Clients],
+			        REMOVEFILTERS ( 'Dim Tangata Whaiora'[Latest Tangata Whaiora Ethnicity Group] )
+			    )
+			RETURN
+			    DIVIDE ( Numerator, Denominator, 0 )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Tangata Whaiora Measures\Demographics
+		lineageTag: b85a24d7-2ad0-44cc-8812-416706a13a41
+
+	measure '%Tangata Whaiora Gender' =
+			
+			VAR Numerator = [Number of Clients]
+			VAR Denominator =
+			    CALCULATE (
+			        [Number of Clients],
+			        REMOVEFILTERS ( 'Dim Tangata Whaiora'[Latest Tangata Whaiora Gender] )
+			    )
+			RETURN
+			    DIVIDE ( Numerator, Denominator, 0 )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Tangata Whaiora Measures\Demographics
+		lineageTag: eeafb8cc-b7cb-40af-b016-683e14ff2a73
+
+	measure 'Tangata Whaiora Count (Referral Explosion)' =
+			
+			CALCULATE (
+			    DISTINCTCOUNT ( 'Fact Tangata Whaiora Referral'[Tangata Whaiora Referral ID] ),
+			    'Fact Tangata Whaiora Referral'[Referral Status] IN { "Accepted", "Accepted and Discharged", "Discharged" },
+			    USERELATIONSHIP ( 'Fact Tangata Whaiora Referral'[Dim Date KEY], 'Dim Date'[Dim Date KEY] )
+			)
+		formatString: #,0
+		displayFolder: Tangata Whaiora Measures\Demographics
+		lineageTag: f8a131e6-32dc-4a72-8f4f-01a2afcf1184
+
+	measure FiltersApplied =
+			
+			VAR __ParentAreas =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Company Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[Company Name] ) )
+			            ),
+			            'Dim Service'[Company Name], ASC
+			        ),
+			        "AreaParentName_display", 'Dim Service'[Company Name]
+			    )
+			VAR __ParentAreasCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Company Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Company Name] ) ),
+			        0
+			    )
+			VAR __MoreParentAreas =
+			    IF (
+			        __ParentAreasCount > 10,
+			        " and " & ( __ParentAreasCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __Services =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ),
+			                NOT ( ISBLANK ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ) )
+			            ),
+			            'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name], ASC
+			        ),
+			        "TeamName_display", 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name]
+			    )
+			VAR __ServicesCount =
+			    IF (
+			        ISFILTERED ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ) ),
+			        0
+			    )
+			VAR __MoreServices =
+			    IF ( __ServicesCount > 10, " and " & ( __ServicesCount - 10 ) & " more", "" )
+			VAR _FC_ParentAreas =
+			    IF (
+			        __ParentAreasCount > 0,
+			        "| Company: " & CONCATENATEX ( __ParentAreas, [AreaParentName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentAreas =
+			    IF (
+			        __ParentAreasCount > 5,
+			        " and " & ( __ParentAreasCount - 10 ) & " more",
+			        ""
+			    )
+			VAR _FC_Services =
+			    IF (
+			        __ServicesCount > 0,
+			        "| Teams chosen: " & CONCATENATEX ( __Services, [TeamName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreServices =
+			    IF ( __ServicesCount > 5, " and " & ( __ServicesCount - 10 ) & " more", "" )
+			VAR __ParentRegion =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Region Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[Region Name] ) )
+			            ),
+			            'Dim Service'[Region Name], ASC
+			        ),
+			        "AreaParentRegionName_display", 'Dim Service'[Region Name]
+			    )
+			VAR __ParentRegionCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Region Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Region Name] ) ),
+			        0
+			    )
+			VAR _FC_ParentRegion =
+			    IF (
+			        __ParentRegionCount > 0,
+			        "| Region: "
+			            & CONCATENATEX ( __ParentRegion, [AreaParentRegionName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentRegionAreas =
+			    IF (
+			        __ParentRegionCount > 5,
+			        " and " & ( __ParentRegionCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __ParentDistrict =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[District Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[District Name] ) )
+			            ),
+			            'Dim Service'[District Name], ASC
+			        ),
+			        "AreaParentDistrictName_display", 'Dim Service'[District Name]
+			    )
+			VAR __ParentDistrictCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[District Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[District Name] ) ),
+			        0
+			    )
+			VAR _FC_ParentDistrict =
+			    IF (
+			        __ParentDistrictCount > 0,
+			        "| District: "
+			            & CONCATENATEX ( __ParentDistrict, [AreaParentDistrictName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentDistrictAreas =
+			    IF (
+			        __ParentDistrictCount > 5,
+			        " and " & ( __ParentDistrictCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __ParentServiceType =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Service Type Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[Service Type Name] ) )
+			            ),
+			            'Dim Service'[Service Type Name], ASC
+			        ),
+			        "AreaParentServiceTypeName_display", 'Dim Service'[Service Type Name]
+			    )
+			VAR __ParentServiceTypeCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Service Type Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Service Type Name] ) ),
+			        0
+			    )
+			VAR _FC_ParentServiceType =
+			    IF (
+			        __ParentServiceTypeCount > 0,
+			        "| Service Type: "
+			            & CONCATENATEX ( __ParentServiceType, [AreaParentServiceTypeName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentServiceTypeAreas =
+			    IF (
+			        __ParentServiceTypeCount > 5,
+			        " and " & ( __ParentServiceTypeCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __ParentTeamFunction =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] ),
+			                NOT ( ISBLANK ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] ) )
+			            ),
+			            'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function], ASC
+			        ),
+			        "AreaParentTeamFunction_display", 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function]
+			    )
+			VAR __ParentTeamFunctionCount =
+			    IF (
+			        ISFILTERED ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] ),
+			        COUNTROWS (
+			            VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] )
+			        ),
+			        0
+			    )
+			VAR _FC_ParentTeamFunction =
+			    IF (
+			        __ParentTeamFunctionCount > 0,
+			        "| Team Function: "
+			            & CONCATENATEX ( __ParentTeamFunction, [AreaParentTeamFunction_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentTeamFunctionAreas =
+			    IF (
+			        __ParentTeamFunctionCount > 5,
+			        " and " & ( __ParentTeamFunctionCount - 10 ) & " more",
+			        ""
+			    )
+			RETURN
+			    " Number of active Tangata Whaiora: " & [Number of Tangata Whaiora]
+			        & UNICHAR ( 10 )
+			        & UNICHAR ( 13 ) & " -- Summary of filters applied to page: " & " " & _FC_ParentAreas & _FC_MoreParentAreas & " " & _FC_ParentRegion & _FC_MoreParentRegionAreas & " " & _FC_ParentDistrict & _FC_MoreParentDistrictAreas & " " & _FC_ParentServiceType & _FC_MoreParentServiceTypeAreas
+			        & UNICHAR ( 10 )
+			        & UNICHAR ( 13 ) & _FC_ParentTeamFunction & _FC_MoreParentTeamFunctionAreas & _FC_Services & _FC_MoreServices
+		displayFolder: Tangata Whaiora Measures\Demographics
+		lineageTag: ea1212c0-2a9e-497d-a42f-ee6a0ef2c3d4
+
+	measure 'Number of Tangata Whaiora Referrals' =
+			
+			CALCULATE (
+			    DISTINCTCOUNT ( 'Fact Tangata Whaiora Referral'[Tangata Whaiora Referral ID] ),
+			    FILTER ( 'Dim Date', 'Dim Date'[Current Date Rolling Day Offset] = -1 )
+			)
+		formatString: #,0
+		displayFolder: Tangata Whaiora Measures\Demographics
+		lineageTag: 7d4d8f5e-fb6c-4724-a170-bafb91c45c2e
+
+	measure FiltersAppliedReferral =
+			
+			VAR __ParentAreas =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Company Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[Company Name] ) )
+			            ),
+			            'Dim Service'[Company Name], ASC
+			        ),
+			        "AreaParentName_display", 'Dim Service'[Company Name]
+			    )
+			VAR __ParentAreasCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Company Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Company Name] ) ),
+			        0
+			    )
+			VAR __MoreParentAreas =
+			    IF (
+			        __ParentAreasCount > 10,
+			        " and " & ( __ParentAreasCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __Services =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ),
+			                NOT ( ISBLANK ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ) )
+			            ),
+			            'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name], ASC
+			        ),
+			        "TeamName_display", 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name]
+			    )
+			VAR __ServicesCount =
+			    IF (
+			        ISFILTERED ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Name] ) ),
+			        0
+			    )
+			VAR __MoreServices =
+			    IF ( __ServicesCount > 10, " and " & ( __ServicesCount - 10 ) & " more", "" )
+			VAR _FC_ParentAreas =
+			    IF (
+			        __ParentAreasCount > 0,
+			        "| Company: " & CONCATENATEX ( __ParentAreas, [AreaParentName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentAreas =
+			    IF (
+			        __ParentAreasCount > 5,
+			        " and " & ( __ParentAreasCount - 10 ) & " more",
+			        ""
+			    )
+			VAR _FC_Services =
+			    IF (
+			        __ServicesCount > 0,
+			        "| Teams chosen: " & CONCATENATEX ( __Services, [TeamName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreServices =
+			    IF ( __ServicesCount > 5, " and " & ( __ServicesCount - 10 ) & " more", "" )
+			VAR __ParentRegion =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Region Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[Region Name] ) )
+			            ),
+			            'Dim Service'[Region Name], ASC
+			        ),
+			        "AreaParentRegionName_display", 'Dim Service'[Region Name]
+			    )
+			VAR __ParentRegionCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Region Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Region Name] ) ),
+			        0
+			    )
+			VAR _FC_ParentRegion =
+			    IF (
+			        __ParentRegionCount > 0,
+			        "| Region: "
+			            & CONCATENATEX ( __ParentRegion, [AreaParentRegionName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentRegionAreas =
+			    IF (
+			        __ParentRegionCount > 5,
+			        " and " & ( __ParentRegionCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __ParentDistrict =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[District Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[District Name] ) )
+			            ),
+			            'Dim Service'[District Name], ASC
+			        ),
+			        "AreaParentDistrictName_display", 'Dim Service'[District Name]
+			    )
+			VAR __ParentDistrictCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[District Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[District Name] ) ),
+			        0
+			    )
+			VAR _FC_ParentDistrict =
+			    IF (
+			        __ParentDistrictCount > 0,
+			        "| District: "
+			            & CONCATENATEX ( __ParentDistrict, [AreaParentDistrictName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentDistrictAreas =
+			    IF (
+			        __ParentDistrictCount > 5,
+			        " and " & ( __ParentDistrictCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __ParentServiceType =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Service Type Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[Service Type Name] ) )
+			            ),
+			            'Dim Service'[Service Type Name], ASC
+			        ),
+			        "AreaParentServiceTypeName_display", 'Dim Service'[Service Type Name]
+			    )
+			VAR __ParentServiceTypeCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Service Type Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Service Type Name] ) ),
+			        0
+			    )
+			VAR _FC_ParentServiceType =
+			    IF (
+			        __ParentServiceTypeCount > 0,
+			        "| Service Type: "
+			            & CONCATENATEX ( __ParentServiceType, [AreaParentServiceTypeName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentServiceTypeAreas =
+			    IF (
+			        __ParentServiceTypeCount > 5,
+			        " and " & ( __ParentServiceTypeCount - 10 ) & " more",
+			        ""
+			    )
+			VAR __ParentTeamFunction =
+			    ADDCOLUMNS (
+			        TOPN (
+			            10,
+			            FILTER (
+			                VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] ),
+			                NOT ( ISBLANK ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] ) )
+			            ),
+			            'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function], ASC
+			        ),
+			        "AreaParentTeamFunction_display", 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function]
+			    )
+			VAR __ParentTeamFunctionCount =
+			    IF (
+			        ISFILTERED ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] ),
+			        COUNTROWS (
+			            VALUES ( 'Dim Tangata Whaiora Team'[Tangata Whaiora Team Function] )
+			        ),
+			        0
+			    )
+			VAR _FC_ParentTeamFunction =
+			    IF (
+			        __ParentTeamFunctionCount > 0,
+			        "| Team Function: "
+			            & CONCATENATEX ( __ParentTeamFunction, [AreaParentTeamFunction_display], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreParentTeamFunctionAreas =
+			    IF (
+			        __ParentTeamFunctionCount > 5,
+			        " and " & ( __ParentTeamFunctionCount - 10 ) & " more",
+			        ""
+			    )
+			RETURN
+			    " Number of active Tangata Whaiora referrals: " & [Number of Tangata Whaiora Referrals]
+			        & UNICHAR ( 10 )
+			        & UNICHAR ( 13 ) & " -- Summary of filters applied to page: " & " " & _FC_ParentAreas & _FC_MoreParentAreas & " " & _FC_ParentRegion & _FC_MoreParentRegionAreas & " " & _FC_ParentDistrict & _FC_MoreParentDistrictAreas & " " & _FC_ParentServiceType & _FC_MoreParentServiceTypeAreas
+			        & UNICHAR ( 10 )
+			        & UNICHAR ( 13 ) & _FC_ParentTeamFunction & _FC_MoreParentTeamFunctionAreas & _FC_Services & _FC_MoreServices
+		displayFolder: Tangata Whaiora Measures\Demographics
+		lineageTag: 8ec8da20-26f1-4a5f-87c3-e9d775224cf3
+
+	partition '_Measures Table' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

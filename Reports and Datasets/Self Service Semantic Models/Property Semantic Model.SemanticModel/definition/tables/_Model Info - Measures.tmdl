@@ -1,0 +1,72 @@
+/// Model documentation table listing all measures in this semantic model. Shows measure names, DAX expressions, descriptions, and formatting. Use this to understand calculations and find specific measures. This is metadata only - not for reporting data.
+table '_Model Info - Measures'
+	isHidden
+	lineageTag: adedecc7-bd0d-4dca-afa4-9d9be9fa77be
+
+	column 'Measure Name'
+		isHidden
+		lineageTag: c02e51ed-d384-42a1-9806-986ee3f314c1
+		isNameInferred
+		sourceColumn: [Measure Name]
+
+	column 'Table Name'
+		isHidden
+		lineageTag: 086b03ac-3508-4c72-b427-4a100c93435b
+		isNameInferred
+		sourceColumn: [Table Name]
+
+	column Description
+		isHidden
+		lineageTag: d1877590-158c-4067-8fc3-0b3733607cc2
+		isNameInferred
+		sourceColumn: [Description]
+
+	column Expression
+		isHidden
+		lineageTag: 67165b90-a13c-4466-8fb0-51e7f874c4ae
+		isNameInferred
+		sourceColumn: [Expression]
+
+	column 'Format String'
+		isHidden
+		lineageTag: f9ed70d9-9d91-42eb-a0fd-3c066d68bf0d
+		isNameInferred
+		sourceColumn: [Format String]
+
+	column 'Is Hidden'
+		isHidden
+		lineageTag: e0383170-bd2e-4cfc-8f82-c8ec5de80dd8
+		isNameInferred
+		sourceColumn: [Is Hidden]
+
+	column 'Display Folder'
+		isHidden
+		lineageTag: 6e29d8aa-f6a3-4feb-a92f-f5923267ff5a
+		isNameInferred
+		sourceColumn: [Display Folder]
+
+	column State
+		isHidden
+		lineageTag: 3581d576-a4cd-43f5-81be-a3e46a0abc88
+		isNameInferred
+		sourceColumn: [State]
+
+	partition '_Model Info - Measures' = calculated
+		mode: import
+		source =
+				SELECTCOLUMNS(
+				    FILTER(
+				        INFO.VIEW.MEASURES(),
+				        NOT(CONTAINSSTRING([Table], "LocalDateTable_")) &&
+				        NOT(CONTAINSSTRING([Table], "DateTableTemplate_"))
+				    ),
+				    "Measure Name", [Name],
+				    "Table Name", [Table],
+				    "Description", [Description],
+				    "Expression", [Expression],
+				    "Format String", [FormatString],
+				    "Is Hidden", [IsHidden],
+				    "Display Folder", [DisplayFolder],
+				    "State", [State]
+				)
+

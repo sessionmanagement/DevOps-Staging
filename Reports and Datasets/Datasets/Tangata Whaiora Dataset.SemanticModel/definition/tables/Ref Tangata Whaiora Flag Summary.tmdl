@@ -1,0 +1,326 @@
+table 'Ref Tangata Whaiora Flag Summary'
+	lineageTag: e916d9f7-f295-4297-afa1-4c1af1a287a2
+
+	measure 'Total Missing Fields' =
+			
+			CALCULATE (
+			    SUM ( 'Ref Tangata Whaiora Flag Summary'[Missing] ),
+			    ALLEXCEPT (
+			        'Ref Tangata Whaiora Flag Summary',
+			        'Ref Tangata Whaiora Flag Summary'[Field]
+			    )
+			)
+		lineageTag: 1052fd8f-3a6e-4a9b-958e-e4a1b6079647
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Non Missing Fields' =
+			
+			[Total Fields Count] - [Total Missing Fields]
+		lineageTag: fd187bfc-6dd9-4e72-8e97-530aea5a4ca9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Top 5 Least Complete Fields' =
+			
+			IF (
+			    RANKX (
+			        ALL ( 'Ref Tangata Whaiora Flag Summary'[Field] ),
+			        [Total Missing Fields],
+			        ,
+			        DESC,
+			        DENSE
+			    ) <= 5,
+			    [Total Missing Fields],
+			    BLANK ()
+			)
+		lineageTag: 11a8c49e-fe96-4df0-ad38-dc7856f8bea9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Top5 Most Complete Fields' =
+			
+			IF (
+			    RANKX (
+			        ALL ( 'Ref Tangata Whaiora Flag Summary'[Field] ),
+			        [Total Non Missing Fields],
+			        ,
+			        DESC,
+			        DENSE
+			    ) <= 5,
+			    [Total Non Missing Fields],
+			    BLANK ()
+			)
+		lineageTag: 12089c87-f2f0-4fc9-a411-3866f416d9b4
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Fields Count' =
+			
+			CALCULATE (
+			    COUNTROWS ( 'Ref Tangata Whaiora Flag Summary' ),
+			    ALLEXCEPT (
+			        'Ref Tangata Whaiora Flag Summary',
+			        'Ref Tangata Whaiora Flag Summary'[Field]
+			    )
+			)
+		formatString: 0
+		lineageTag: 5dafbbeb-7993-49a2-a1b4-cdb24203475a
+
+	measure 'Percent Missing Fields' =
+			
+			DIVIDE ( [Total Missing Fields], [Total Fields Count], 0 )
+		formatString: 0%;-0%;0%
+		lineageTag: 73bfa5e2-d2d2-45ae-85a4-c5dfa02cd6eb
+
+	measure 'Percent Non Missing Fields' =
+			
+			CALCULATE (
+			    IF (
+			        RIGHT (
+			            MAX ( 'Ref Tangata Whaiora Flag Summary'[Ref Tangata Whaiora Unique KEY] ),
+			            2
+			        ) = "-5"
+			            && VALUES ( 'Ref Tangata Whaiora Flag Summary'[Field] )
+			                IN {
+			                    "Legal Status",
+			                    "Mental Health Condition",
+			                    "Physical Condition",
+			                    "Substance Use"
+			                },
+			        0,
+			        DIVIDE ( [Total Non Missing Fields], [Total Fields Count], 0 )
+			    )
+			)
+		formatString: 0%;-0%;0%
+		lineageTag: ddbc3e62-b3cd-411e-ad33-e12970300f1a
+
+	measure 'Top 5 Least Complete Fields Percent' =
+			
+			IF (
+			    RANKX (
+			        ALL ( 'Ref Tangata Whaiora Flag Summary'[Field] ),
+			        [Percent Missing Fields],
+			        ,
+			        DESC,
+			        DENSE
+			    ) <= 5,
+			    [Percent Missing Fields],
+			    BLANK ()
+			)
+		formatString: 0%;-0%;0%
+		lineageTag: 4a04fe63-1e78-4427-b8f7-a5c865bc1cbe
+
+	measure 'Top 5 Most Complete Fields Percent' =
+			
+			IF (
+			    RANKX (
+			        ALL ( 'Ref Tangata Whaiora Flag Summary'[Field] ),
+			        [Percent Non Missing Fields],
+			        ,
+			        DESC,
+			        DENSE
+			    ) <= 5,
+			    [Percent Non Missing Fields],
+			    BLANK ()
+			)
+		formatString: 0%;-0%;0%
+		lineageTag: b0bf64ec-42af-4e94-a30e-42175a09d8a4
+
+	measure 'Rank Percent Missing Fields' =
+			
+			RANKX (
+			    ALL ( 'Ref Tangata Whaiora Flag Summary'[Field] ),
+			    [Percent Missing Fields],
+			    ,
+			    DESC,
+			    DENSE
+			)
+		formatString: 0%;-0%;0%
+		lineageTag: 56f22179-7449-4bd3-a644-e410c2d34192
+
+	measure 'Rank Percent Non Missing Fields' =
+			
+			RANKX (
+			    ALL ( 'Ref Tangata Whaiora Flag Summary'[Field] ),
+			    [Percent Non Missing Fields],
+			    ,
+			    DESC,
+			    DENSE
+			)
+		formatString: 0%;-0%;0%
+		lineageTag: 1faa3a39-210d-4ee0-a35d-d2f511b20fc4
+
+	measure 'Combined Top 5 Fields Percent' =
+			
+			VAR CurrentField =
+			    SELECTEDVALUE ( 'Ref Tangata Whaiora Flag Summary'[Field] )
+			VAR MissingRank = [Rank Percent Missing Fields]
+			VAR NonMissingRank = [Rank Percent Non Missing Fields]
+			RETURN
+			    IF (
+			        MissingRank <= 5,
+			        - [Percent Missing Fields],
+			        -- Negative value for missing to distinguish visually
+			        IF (
+			            NonMissingRank <= 5,
+			            [Percent Non Missing Fields],
+			            BLANK ()
+			        )
+			    )
+		formatString: 0%;-0%;0%
+		lineageTag: 9fb975f1-836d-4181-ad59-c27c657294ca
+
+	measure 'Combined Fields Percent' =
+			
+			VAR CurrentField =
+			    SELECTEDVALUE ( 'Ref Tangata Whaiora Flag Summary'[Field] )
+			VAR NonMissing = [Percent Non Missing Fields]
+			VAR Missing = [Percent Missing Fields]
+			RETURN
+			    IF ( NonMissing >= 0.5, NonMissing, - NonMissing )
+		formatString: 0%;-0%;0%
+		lineageTag: a1e2ac10-1f51-486a-9007-76df0819ebc8
+
+	column 'Ref Tangata Whaiora Unique KEY'
+		lineageTag: b9b9e029-d89d-487b-9e47-131a8b07c1d3
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Ref Tangata Whaiora Unique KEY]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Status Is Active'
+		lineageTag: 65236fe0-056a-469d-bd13-2620b85152fa
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tangata Whaiora Status Is Active]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Field
+		lineageTag: 59401ec1-06ae-4f69-8f0c-69fee7557015
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Field]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Missing
+		formatString: 0
+		lineageTag: 3c3d50eb-7edb-4d2f-9083-b25208781703
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Missing]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Ref Tangata Whaiora Flag Summary' = calculated
+		mode: import
+		source = ```
+				
+				UNION (
+				    SELECTCOLUMNS (
+				        'Ref Tangata Whaiora Latest Flags',
+				        "Ref Tangata Whaiora Unique KEY", 'Ref Tangata Whaiora Latest Flags'[Ref Tangata Whaiora Unique KEY],
+				        "Field", SUBSTITUTE("Tangata Whaiora Address Missing Flag", "Tangata Whaiora Address Missing Flag", "Primary Address"),
+				        "Missing", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Address Missing Flag],
+				        "Tangata Whaiora Status Is Active", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Status Is Active]
+				    ),
+				    SELECTCOLUMNS (
+				        'Ref Tangata Whaiora Latest Flags',
+				        "Ref Tangata Whaiora Unique KEY", 'Ref Tangata Whaiora Latest Flags'[Ref Tangata Whaiora Unique KEY],
+				        "Field", SUBSTITUTE("Tangata Whaiora Contact Phone Missing Flag", "Tangata Whaiora Contact Phone Missing Flag", "Contact Phone"),
+				        "Missing", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Contact Phone Missing Flag],
+				        "Tangata Whaiora Status Is Active", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Status Is Active]
+				    ),
+				    SELECTCOLUMNS (
+				        'Ref Tangata Whaiora Latest Flags',
+				        "Ref Tangata Whaiora Unique KEY", 'Ref Tangata Whaiora Latest Flags'[Ref Tangata Whaiora Unique KEY],
+				        "Field", SUBSTITUTE("Tangata Whaiora Legal Status Missing Flag", "Tangata Whaiora Legal Status Missing Flag", "Legal Status"),
+				        "Missing", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Legal Status Missing Flag],
+				        "Tangata Whaiora Status Is Active", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Status Is Active]
+				    ),
+				    SELECTCOLUMNS (
+				        'Ref Tangata Whaiora Latest Flags',
+				        "Ref Tangata Whaiora Unique KEY", 'Ref Tangata Whaiora Latest Flags'[Ref Tangata Whaiora Unique KEY],
+				        "Field", SUBSTITUTE("Tangata Whaiora Smoking Status Missing Flag", "Tangata Whaiora Smoking Status Missing Flag", "Smoking Status"),
+				        "Missing", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Smoking Status Missing Flag],
+				        "Tangata Whaiora Status Is Active", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Status Is Active]
+				    ),
+				    SELECTCOLUMNS (
+				        'Ref Tangata Whaiora Latest Flags',
+				        "Ref Tangata Whaiora Unique KEY", 'Ref Tangata Whaiora Latest Flags'[Ref Tangata Whaiora Unique KEY],
+				        "Field", SUBSTITUTE("Tangata Whaiora Primhd Review Missing Flag", "Tangata Whaiora Primhd Review Missing Flag", "Primhd Review"),
+				        "Missing", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Primhd Review Missing Flag],
+				        "Tangata Whaiora Status Is Active", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Status Is Active]
+				    ),
+				    SELECTCOLUMNS (
+				        'Ref Tangata Whaiora Latest Flags',
+				        "Ref Tangata Whaiora Unique KEY", 'Ref Tangata Whaiora Latest Flags'[Ref Tangata Whaiora Unique KEY],
+				        "Field", SUBSTITUTE("Tangata Whaiora Gp Only Missing Flag", "Tangata Whaiora Gp Only Missing Flag", "Mental Health Support (Gp Only)"),
+				        "Missing", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Gp Only Missing Flag],
+				        "Tangata Whaiora Status Is Active", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Status Is Active]
+				    ),
+				    SELECTCOLUMNS (
+				        'Ref Tangata Whaiora Latest Flags',
+				        "Ref Tangata Whaiora Unique KEY", 'Ref Tangata Whaiora Latest Flags'[Ref Tangata Whaiora Unique KEY],
+				        "Field", SUBSTITUTE("Tangata Whaiora Gp Registration Missing Flag", "Tangata Whaiora Gp Registration Missing Flag", "Gp Registration"),
+				        "Missing", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Gp Registration Missing Flag],
+				        "Tangata Whaiora Status Is Active", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Status Is Active]
+				    ),
+				    SELECTCOLUMNS (
+				        'Ref Tangata Whaiora Latest Flags',
+				        "Ref Tangata Whaiora Unique KEY", 'Ref Tangata Whaiora Latest Flags'[Ref Tangata Whaiora Unique KEY],
+				        "Field", SUBSTITUTE(SUBSTITUTE("Tangata Whaiora Mental Health Condition Missing Flag", "Tangata Whaiora ", ""), " Missing Flag", ""),
+				        "Missing", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Mental Health Condition Missing Flag],
+				        "Tangata Whaiora Status Is Active", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Status Is Active]
+				    ),
+				    SELECTCOLUMNS (
+				        'Ref Tangata Whaiora Latest Flags',
+				        "Ref Tangata Whaiora Unique KEY", 'Ref Tangata Whaiora Latest Flags'[Ref Tangata Whaiora Unique KEY],
+				        "Field", SUBSTITUTE("Tangata Whaiora Physical Condition Missing Flag", "Tangata Whaiora Physical Condition Missing Flag", "Physical Condition"),
+				        "Missing", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Physical Condition Missing Flag],
+				        "Tangata Whaiora Status Is Active", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Status Is Active]
+				    ),
+				    SELECTCOLUMNS (
+				        'Ref Tangata Whaiora Latest Flags',
+				        "Ref Tangata Whaiora Unique KEY", 'Ref Tangata Whaiora Latest Flags'[Ref Tangata Whaiora Unique KEY],
+				        "Field", SUBSTITUTE("Tangata Whaiora Substance Condition Missing Flag", "Tangata Whaiora Substance Condition Missing Flag", "Substance Use"),
+				        "Missing", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Substance Condition Missing Flag],
+				        "Tangata Whaiora Status Is Active", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Status Is Active]
+				    ),
+				    SELECTCOLUMNS (
+				        'Ref Tangata Whaiora Latest Flags',
+				        "Ref Tangata Whaiora Unique KEY", 'Ref Tangata Whaiora Latest Flags'[Ref Tangata Whaiora Unique KEY],
+				        "Field", SUBSTITUTE("Tangata Whaiora Ethnicity Group Missing Flag", "Tangata Whaiora Ethnicity Group Missing Flag", "Ethnicity"),
+				        "Missing", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Ethnicity Group Missing Flag],
+				        "Tangata Whaiora Status Is Active", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Status Is Active]
+				    ),
+				    SELECTCOLUMNS (
+				        'Ref Tangata Whaiora Latest Flags',
+				        "Ref Tangata Whaiora Unique KEY", 'Ref Tangata Whaiora Latest Flags'[Ref Tangata Whaiora Unique KEY],
+				        "Field", SUBSTITUTE("Tangata Whaiora Residency Missing Flag", "Tangata Whaiora Residency Missing Flag", "Residency"),
+				        "Missing", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Residency Missing Flag],
+				        "Tangata Whaiora Status Is Active", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Status Is Active]
+				    ),
+				    SELECTCOLUMNS (
+				        'Ref Tangata Whaiora Latest Flags',
+				        "Ref Tangata Whaiora Unique KEY", 'Ref Tangata Whaiora Latest Flags'[Ref Tangata Whaiora Unique KEY],
+				        "Field", SUBSTITUTE("Tangata Whaiora Emergency Contact Missing Flag", "Tangata Whaiora Emergency Contact Missing Flag", "Emergency Contact"),
+				        "Missing", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Emergency Contact Phone Missing Flag],
+				        "Tangata Whaiora Status Is Active", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Status Is Active]
+				    ),
+				    SELECTCOLUMNS (
+				        'Ref Tangata Whaiora Latest Flags',
+				        "Ref Tangata Whaiora Unique KEY", 'Ref Tangata Whaiora Latest Flags'[Ref Tangata Whaiora Unique KEY],
+				        "Field", SUBSTITUTE("Tangata Whaiora Gender Missing Flag", "Tangata Whaiora Gender Missing Flag", "Gender"),
+				        "Missing", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Gender Missing Flag],
+				        "Tangata Whaiora Status Is Active", 'Ref Tangata Whaiora Latest Flags'[Tangata Whaiora Status Is Active]
+				    )
+				)
+				
+				```
+
+	annotation PBI_Id = 2d325c1a3c4b4ed38ad5d890f343a76f
+

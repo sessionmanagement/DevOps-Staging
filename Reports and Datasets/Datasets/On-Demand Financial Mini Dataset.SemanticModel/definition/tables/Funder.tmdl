@@ -1,0 +1,123 @@
+table Funder
+	isHidden
+	lineageTag: 4fc14690-c1b0-4aa1-994e-91fbe772c0e7
+
+	column 'Dim Finance Funder KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d3980d46-a57a-4aad-9cd2-fd69b2354835
+		summarizeBy: none
+		sourceColumn: Dim Finance Funder KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Is Current'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 2a257e7a-19e0-4c57-8959-eca44470ec65
+		summarizeBy: none
+		sourceColumn: DWH Is Current
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Funder Dimension Value ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 446d4f58-f6c1-457a-82a1-35e5cb680fc8
+		summarizeBy: none
+		sourceColumn: Funder Dimension Value ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Funder Code'
+		dataType: string
+		isHidden
+		lineageTag: f65600ce-4b29-402e-9204-00a6d095fe7f
+		summarizeBy: none
+		sourceColumn: Funder Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Funder Name'
+		dataType: string
+		isHidden
+		lineageTag: 9ff77530-3498-4085-a0e1-deec7f6115db
+		summarizeBy: none
+		sourceColumn: Funder Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Funder Company Name'
+		dataType: string
+		isHidden
+		lineageTag: 66dd3a7b-9f30-4ed1-90f5-a90d7f1fd546
+		summarizeBy: none
+		sourceColumn: Funder Company Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Funder Last Modified Date Time'
+		dataType: dateTime
+		isHidden
+		formatString: General Date
+		lineageTag: 1b9ba773-b9e0-400c-b967-9e94625d8239
+		summarizeBy: none
+		sourceColumn: Funder Last Modified Date Time
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Funder = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database),
+				    dim_finance_funder = Source{[Schema = "edw", Item = "vw_dim_finance_funder"]}[Data],
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(dim_finance_funder, each ApplyNamingConventions(_)),
+				    #"Removed Columns" = Table.RemoveColumns(#"Transformed Column Names", {"DWH Source System", "DWH Dml Operation"}),
+				    #"Removed Finance Prefix" = Table.TransformColumnNames(#"Removed Columns", each if Text.StartsWith(_, "Finance ") then Text.AfterDelimiter(_, "Finance ") else _),
+				    #"Removed Columns1" = Table.RemoveColumns(#"Removed Finance Prefix",{"DWH Effective From", "DWH Effective To", "DWH Batch ID"})
+				in
+				    #"Removed Columns1"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

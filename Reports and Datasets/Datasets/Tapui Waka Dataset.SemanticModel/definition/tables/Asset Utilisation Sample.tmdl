@@ -1,0 +1,53 @@
+table 'Asset Utilisation Sample'
+	lineageTag: 226d2a2e-c7ca-4bf8-a034-292160b59682
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 0809c1b0-0a43-48d8-b620-d10463e731b7
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Asset Name'
+		dataType: string
+		lineageTag: 0590464c-0185-4940-b8d9-a846115173ce
+		summarizeBy: none
+		sourceColumn: Asset Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Kilometers
+		dataType: double
+		lineageTag: 615c065f-00d6-4c1c-b435-840491ce434b
+		summarizeBy: sum
+		sourceColumn: Kilometers
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Asset Utilisation Sample' = m
+		mode: import
+		queryGroup: 'Excel Spreadsheets'
+		source =
+				let
+				    Source = SharePoint.Files("https://emergeaotearoaltd.sharepoint.com/sites/DRCollaboration/", [ApiVersion = 15]),
+				    #"Filtered Rows" = Table.SelectRows(Source, each Text.Contains([Name], "20240710") or Text.Contains([Name], "20240730")),
+				    #"Filtered Rows1" = Table.SelectRows(#"Filtered Rows", each ([Name] = "Asset Utilisation Sample 20240710.xlsx")),
+				    #"Asset Utilisation Sample 20240710 xlsx_https://emergeaotearoaltd sharepoint com/sites/DRCollaboration/Shared Documents/General/Power BI Report/Tapui Waka/Sample Data/" = #"Filtered Rows1"{[Name="Asset Utilisation Sample 20240710.xlsx",#"Folder Path"="https://emergeaotearoaltd.sharepoint.com/sites/DRCollaboration/Shared Documents/General/Power BI Report/Tapui Waka/Sample Data/"]}[Content],
+				    #"Imported Excel Workbook" = Excel.Workbook(#"Asset Utilisation Sample 20240710 xlsx_https://emergeaotearoaltd sharepoint com/sites/DRCollaboration/Shared Documents/General/Power BI Report/Tapui Waka/Sample Data/"),
+				    #"Flat Data_Sheet" = #"Imported Excel Workbook"{[Item="Flat Data",Kind="Sheet"]}[Data],
+				    #"Removed Top Rows" = Table.Skip(#"Flat Data_Sheet",1),
+				    #"Promoted Headers" = Table.PromoteHeaders(#"Removed Top Rows", [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"Date", type date}, {"Asset Name", type text}, {"Kilometers", type number}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

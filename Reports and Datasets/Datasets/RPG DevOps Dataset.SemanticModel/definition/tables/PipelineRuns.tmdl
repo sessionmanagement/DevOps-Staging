@@ -1,0 +1,265 @@
+/// Pipeline execution instances with queue, start, and completion timestamps plus outcome status. Source: OData PipelineRuns entity.
+table PipelineRuns
+	lineageTag: 623103e9-aba1-4c37-8212-9b57df965e9e
+
+	/// Surrogate key linking to Projects dimension
+	column ProjectSK
+		dataType: string
+		isHidden
+		lineageTag: 70109834-ff75-4244-abb7-657602afb2e2
+		summarizeBy: none
+		sourceColumn: ProjectSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key uniquely identifying this pipeline run
+	column PipelineRunSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 18883e2c-f955-4a24-afc5-a9a67c8aa6f7
+		summarizeBy: none
+		sourceColumn: PipelineRunSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Natural ID of the pipeline run
+	column PipelineRunId
+		dataType: int64
+		formatString: 0
+		lineageTag: 2cadfaee-e098-4d26-aa30-9cf8810fa63d
+		summarizeBy: count
+		sourceColumn: PipelineRunId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Natural ID of the pipeline
+	column PipelineId
+		dataType: int64
+		formatString: 0
+		lineageTag: db690aa8-d8fe-45c0-b9d0-d6104f5f4c20
+		summarizeBy: count
+		sourceColumn: PipelineId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to Pipelines dimension
+	column PipelineSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: cbce808f-b8ac-45d6-aa27-dc9bff25cbda
+		summarizeBy: none
+		sourceColumn: PipelineSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to Branches dimension
+	column BranchSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 5d4a63ea-4ea7-4fe7-b3c7-98a2dec3474d
+		summarizeBy: none
+		sourceColumn: BranchSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Build/run number string
+	column RunNumber
+		dataType: string
+		lineageTag: 3bb6502e-7198-4628-be4a-a5c1b9bb5731
+		summarizeBy: none
+		sourceColumn: RunNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Revision number within the run
+	column RunNumberRevision
+		dataType: int64
+		formatString: 0
+		lineageTag: d040f92c-7c7f-4245-88ba-b46c437d55b0
+		summarizeBy: sum
+		sourceColumn: RunNumberRevision
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Reason the pipeline was triggered (Manual, IndividualCI, Schedule, etc.)
+	column RunReason
+		dataType: string
+		lineageTag: cf637bdf-192c-4b72-8a90-517a36fbdccd
+		summarizeBy: none
+		sourceColumn: RunReason
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Outcome of the pipeline run (Succeed, Failed, Canceled, etc.)
+	column RunOutcome
+		dataType: string
+		lineageTag: 01e8bd42-7458-4240-a6e1-eeb68bfc77b5
+		summarizeBy: none
+		sourceColumn: RunOutcome
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date and time when the pipeline run was queued
+	column QueuedDate
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: ecccf13e-213a-4293-834c-f92ef3390f64
+		summarizeBy: none
+		sourceColumn: QueuedDate
+
+		variation Variation
+			isDefault
+			relationship: 9786c208-1fff-410c-a5e6-b3461604aaf6
+			defaultHierarchy: LocalDateTable_2319fce9-b1c7-48ef-8e01-520db4f2a542.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to Dates dimension for QueuedDate
+	column QueuedDateSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: f534b1cf-4c00-4229-8ee9-6a7b557c705c
+		summarizeBy: none
+		sourceColumn: QueuedDateSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date and time when the pipeline run started executing
+	column StartedDate
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 5cd1b11d-4f43-4f7f-86ed-f9bd29d46434
+		summarizeBy: none
+		sourceColumn: StartedDate
+
+		variation Variation
+			isDefault
+			relationship: f3246516-4cd3-4371-9db7-109241b151c6
+			defaultHierarchy: LocalDateTable_865c01d3-78f8-453d-8aac-a2e48543a8a3.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to Dates dimension for StartedDate
+	column StartedDateSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 567f1b80-279f-4942-8662-fd19d67d9b93
+		summarizeBy: none
+		sourceColumn: StartedDateSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date and time when the pipeline run completed
+	column CompletedDate
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 462c6419-1a38-4df7-9b68-6f4ffb3bc430
+		summarizeBy: none
+		sourceColumn: CompletedDate
+
+		variation Variation
+			isDefault
+			relationship: cc451b08-62e3-4d8d-87fb-49ed748cc310
+			defaultHierarchy: LocalDateTable_7bd1ba18-06be-4e42-873f-7ef492e5c7f4.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to Dates dimension for CompletedDate
+	column CompletedDateSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 588ffbdd-78c2-4736-8917-927f5d05488c
+		summarizeBy: none
+		sourceColumn: CompletedDateSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Duration of the pipeline run in seconds
+	column RunDurationSeconds
+		dataType: double
+		lineageTag: 94f7ed65-2e6c-4417-b686-44d375eb0bd4
+		summarizeBy: sum
+		sourceColumn: RunDurationSeconds
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Time spent in queue before execution in seconds
+	column QueueDurationSeconds
+		dataType: double
+		lineageTag: da46ca0b-2830-4340-8235-50c7b7eae2eb
+		summarizeBy: sum
+		sourceColumn: QueueDurationSeconds
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Total duration including queue time in seconds
+	column TotalDurationSeconds
+		dataType: double
+		lineageTag: af0eb3b7-5789-452a-bfef-ae863dd67a38
+		summarizeBy: sum
+		sourceColumn: TotalDurationSeconds
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Count of succeeded runs (0 or 1)
+	column SucceededCount
+		dataType: int64
+		formatString: 0
+		lineageTag: 9b7c8d71-c4a6-4377-839a-288e22636e0b
+		summarizeBy: sum
+		sourceColumn: SucceededCount
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Count of partially succeeded runs (0 or 1)
+	column PartiallySucceededCount
+		dataType: int64
+		formatString: 0
+		lineageTag: 9f4b3f91-4ecc-46a3-95af-71e45acb3fa4
+		summarizeBy: sum
+		sourceColumn: PartiallySucceededCount
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Count of failed runs (0 or 1)
+	column FailedCount
+		dataType: int64
+		formatString: 0
+		lineageTag: e4ca687d-ff54-4cca-99f9-78496a79774a
+		summarizeBy: sum
+		sourceColumn: FailedCount
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Count of canceled runs (0 or 1)
+	column CanceledCount
+		dataType: int64
+		formatString: 0
+		lineageTag: bb5d0f28-a419-4e19-89e9-c32b64d6de80
+		summarizeBy: sum
+		sourceColumn: CanceledCount
+
+		annotation SummarizationSetBy = Automatic
+
+	partition PipelineRuns = m
+		mode: import
+		queryGroup: 'DevOps Tables'
+		source =
+				let
+				    Source = OData.Feed("https://analytics.dev.azure.com/EmergeAotearoa/Data%20and%20Analytics/_odata/v3.0-preview/", null, [Implementation="2.0",OmitValues = ODataOmitValues.Nulls,ODataVersion = 4, Headers=[Authorization=fnGetToken()]]),
+				    PipelineRuns_table = Source{[Name="PipelineRuns",Signature="table"]}[Data]
+				in
+				    PipelineRuns_table
+

@@ -1,0 +1,62 @@
+/// Individual task definitions used within pipeline jobs. Source: OData PipelineTasks entity.
+table PipelineTasks
+	lineageTag: e6ebb971-7515-429f-b5b3-765fff77eb25
+
+	/// Surrogate key uniquely identifying the pipeline task definition
+	column PipelineTaskSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: c432202f-16d7-4cc0-b6c7-1bc378b4f0d8
+		summarizeBy: none
+		sourceColumn: PipelineTaskSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to the Projects dimension table
+	column ProjectSK
+		dataType: string
+		isHidden
+		lineageTag: ce5f9a6a-aa10-4194-9c3e-a25dce54bcf6
+		summarizeBy: none
+		sourceColumn: ProjectSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unique identifier (GUID) for the task definition
+	column TaskDefinitionId
+		dataType: string
+		lineageTag: b8856baa-1ba0-480a-81af-c7db8bc56b4b
+		summarizeBy: none
+		sourceColumn: TaskDefinitionId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Display name of the pipeline task definition
+	column TaskDefinitionName
+		dataType: string
+		lineageTag: ef2238e8-8a02-4d0a-a672-ab919cea28d1
+		summarizeBy: none
+		sourceColumn: TaskDefinitionName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Version number of the pipeline task definition
+	column TaskDefinitionVersion
+		dataType: string
+		lineageTag: 38fda892-0849-46a8-994e-b65f987c300f
+		summarizeBy: none
+		sourceColumn: TaskDefinitionVersion
+
+		annotation SummarizationSetBy = Automatic
+
+	partition PipelineTasks = m
+		mode: import
+		queryGroup: 'DevOps Tables'
+		source =
+				let
+				    Source = OData.Feed("https://analytics.dev.azure.com/EmergeAotearoa/Data%20and%20Analytics/_odata/v3.0-preview/", null, [Implementation="2.0",OmitValues = ODataOmitValues.Nulls,ODataVersion = 4, Headers=[Authorization=fnGetToken()]]),
+				    PipelineTasks_table = Source{[Name="PipelineTasks",Signature="table"]}[Data]
+				in
+				    PipelineTasks_table
+

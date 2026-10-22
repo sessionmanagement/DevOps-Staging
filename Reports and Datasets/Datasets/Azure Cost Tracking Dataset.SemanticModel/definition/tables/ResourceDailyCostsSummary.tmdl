@@ -1,0 +1,69 @@
+table ResourceDailyCostsSummary
+	lineageTag: 9b54e8c8-2b5d-4fb5-a37d-310b715d7f06
+
+	measure '(Parameter) N Month StdDev Daily Cost' =
+			
+			VAR _Months = SELECTEDVALUE('Rolling Average No. of Months'[Rolling Average No. of Months])
+			RETURN
+			CALCULATE(
+			    STDEVX.S(
+			        VALUES(dim_date[calendar_date]),
+			        CALCULATE(SUM(ResourceDailyCostsSummary[Total Costs]))
+			    ),
+			    FILTER(
+			        ALL(dim_date),
+			        dim_date[calendar_date] <= MAX(dim_date[calendar_date]) &&
+			        dim_date[calendar_date] > EDATE(MAX(dim_date[calendar_date]), -_Months)
+			    ),
+			    FILTER(
+			        ALL(ResourceDailyCostsSummary),
+			        ResourceDailyCostsSummary[dim_resource_key] = MAX(ResourceDailyCostsSummary[dim_resource_key])
+			    )
+			)
+		lineageTag: fffd9c24-692d-4dbc-9f09-6862efb22b61
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column calendar_date
+		formatString: Short Date
+		lineageTag: 0297c7ed-6895-4980-a943-dd3dd0a95893
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: dim_date[calendar_date]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column dim_resource_key
+		lineageTag: 49d35b25-79da-4050-ab63-f0ba31535661
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: dim_resource[dim_resource_key]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Total Costs'
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		lineageTag: 4b811f2d-a883-4317-88ed-0acc3e0e2a11
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Total Costs]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	partition ResourceDailyCostsSummary = calculated
+		mode: import
+		source =
+				
+				SUMMARIZE(
+				    fact_costs,
+				    dim_date[calendar_date],
+				    dim_resource[dim_resource_key],
+				    "Total Costs", SUM(fact_costs[total_costs])
+				)
+
+	annotation PBI_Id = 8d04ed3e5fc6476ea83a77df0874818b
+

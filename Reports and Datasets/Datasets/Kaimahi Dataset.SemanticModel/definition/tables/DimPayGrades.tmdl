@@ -1,0 +1,61 @@
+table DimPayGrades
+	lineageTag: 498918a9-0e5e-44ce-9002-08a75109989b
+
+	column payGrade_name
+		dataType: string
+		lineageTag: f2c9d712-f517-40e5-aecd-55fc4c9721ee
+		summarizeBy: none
+		sourceColumn: payGrade_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column code
+		dataType: string
+		lineageTag: 5bc40e21-e959-4da4-8802-88842242d992
+		summarizeBy: none
+		sourceColumn: code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Job Family'
+		dataType: string
+		lineageTag: d6a21184-0175-4b10-bf58-7ed1a59030ff
+		summarizeBy: none
+		sourceColumn: Job Family
+
+		annotation SummarizationSetBy = Automatic
+
+	column Grade
+		dataType: string
+		lineageTag: 413bf156-ba66-4811-890f-999c8dbebea4
+		summarizeBy: none
+		sourceColumn: Grade
+
+		annotation SummarizationSetBy = Automatic
+
+	column Step
+		dataType: string
+		lineageTag: ecabf146-00a1-4742-b8a2-356cd359ff67
+		summarizeBy: none
+		sourceColumn: Step
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimPayGrades = m
+		mode: import
+		queryGroup: Dim
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="    SELECT#(lf)      DISTINCT#(lf)        fer.fact_employee_remuneration_pay_grade_name#(lf)            AS payGrade_name,#(lf)#(lf)        fer.fact_employee_remuneration_pay_grade_code#(lf)            AS code#(lf)          --  fact_employee_remuneration_job_status#(lf)            #(lf)#(lf)     #(lf)#(lf)#(lf)    FROM edw.fact_employee_remuneration fer#(lf)#(lf)    WHERE fer.DWHIsCurrent = 1#(lf)      AND fer.DWHDMLOperation <> 'D'#(lf)      AND fer.dim_employee_key > 1#(lf)      AND fact_employee_remuneration_job_status IN ('Current Job', 'Ending Job')"]),
+				    #"Duplicated Column" = Table.DuplicateColumn(Source, "code", "code - Copy"),
+				    #"Split Column by Delimiter" = Table.SplitColumn(#"Duplicated Column", "code - Copy", Splitter.SplitTextByDelimiter("_", QuoteStyle.None), {"code - Copy.1", "code - Copy.2", "code - Copy.3"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Split Column by Delimiter",{{"code - Copy.1", type text}, {"code - Copy.2", type text}, {"code - Copy.3", type text}}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"code - Copy.1", "Job Family"}, {"code - Copy.2", "Grade"}, {"code - Copy.3", "Step"}}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Renamed Columns",null,"No Pay Grade",Replacer.ReplaceValue,{"Grade"})
+				in
+				    #"Replaced Value"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

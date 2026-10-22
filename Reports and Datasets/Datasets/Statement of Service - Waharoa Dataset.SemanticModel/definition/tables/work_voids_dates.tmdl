@@ -1,0 +1,167 @@
+table work_voids_dates
+	isHidden
+	lineageTag: cdc4cd21-5178-48e6-8e30-ad39e1ef65e3
+
+	column origin
+		dataType: string
+		isHidden
+		lineageTag: a28af109-019f-495d-a4b6-b59a63078fdb
+		summarizeBy: none
+		sourceColumn: origin
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_property
+		dataType: string
+		isHidden
+		lineageTag: 8683eef7-dab2-48f9-bc11-6d3de0fe718e
+		summarizeBy: none
+		sourceColumn: zav_property
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column void_start_date
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: f4742766-3d0e-44e6-a34b-df18976b2f2b
+		summarizeBy: none
+		sourceColumn: void_start_date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column void_end_date
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: a0cd9ee2-f5db-4370-886f-3c1452aac264
+		summarizeBy: none
+		sourceColumn: void_end_date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column explosion
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 11d181be-0b86-41c2-ae13-95b0ce54f864
+		summarizeBy: none
+		sourceColumn: explosion
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column count = 1
+		isHidden
+		formatString: 0
+		lineageTag: 14050e2a-b00f-4f10-854f-56e97f16337a
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_confirmeddisposaldate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: e8fd699e-e7a0-4d95-8185-651a28e3ed7d
+		summarizeBy: none
+		sourceColumn: zav_confirmeddisposaldate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column void_end_date_true
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: e729afbb-0267-4b81-92d1-705a23b15b1d
+		summarizeBy: none
+		sourceColumn: void_end_date_true
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column zav_fulladdress
+		dataType: string
+		isHidden
+		lineageTag: 3f7e4e1c-c629-4ccf-9924-0206db86aeb4
+		summarizeBy: none
+		sourceColumn: zav_fulladdress
+
+		annotation SummarizationSetBy = Automatic
+
+	column earliest_tenancy_start_date
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: c4425669-96b9-4029-8456-d404e980b518
+		summarizeBy: none
+		sourceColumn: earliest_tenancy_start_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column void_started_before_first_tenancy
+		dataType: string
+		isHidden
+		lineageTag: e5c11424-895a-442d-907d-1dc9e3abea6b
+		summarizeBy: none
+		sourceColumn: void_started_before_first_tenancy
+
+		annotation SummarizationSetBy = Automatic
+
+	column void_ended_after_first_tenancy
+		dataType: string
+		isHidden
+		lineageTag: 45589126-9858-4642-a361-e1b0cc61668a
+		summarizeBy: none
+		sourceColumn: void_ended_after_first_tenancy
+
+		annotation SummarizationSetBy = Automatic
+
+	partition work_voids_dates = m
+		mode: import
+		queryGroup: work
+		source =
+				let
+				    Source = work_voids_vacated_properties_inactive,
+				    #"Removed Other Columns" = Table.SelectColumns(Source,{"origin", "zav_property", "void_start_date", "void_end_date"}),
+				    #"Appended Query" = Table.Combine({#"Removed Other Columns", work_voids_currently_active, work_voids_newly_acquired_properties}),
+				    #"Removed Other Columns1" = Table.SelectColumns(#"Appended Query",{"origin", "zav_property", "void_start_date", "void_end_date"}),
+				    #"Merged Queries" = Table.NestedJoin(Table.TransformColumns(#"Removed Other Columns1", {{"zav_property", Text.Upper}}), {"zav_property"}, Table.TransformColumns(dim_property, {{"zav_propertyid", Text.Upper}}), {"zav_propertyid"}, "dim_property", JoinKind.LeftOuter),
+				    #"Expanded dim_property" = Table.ExpandTableColumn(#"Merged Queries", "dim_property", {"zav_fulladdress", "zav_confirmeddisposaldate", "earliest_tenancy_start_date"}, {"zav_fulladdress", "zav_confirmeddisposaldate", "earliest_tenancy_start_date"}),
+				    #"Added Conditional Column" = Table.AddColumn(#"Expanded dim_property", "void_end_date_true", each if [zav_confirmeddisposaldate] = null then [void_end_date] else if [zav_confirmeddisposaldate] < [void_end_date] then [zav_confirmeddisposaldate] else [void_end_date]),
+				    #"Added Conditional Column1" = Table.AddColumn(#"Added Conditional Column", "void_started_before_first_tenancy", each if [earliest_tenancy_start_date] = null then 0 else if [void_start_date] < [earliest_tenancy_start_date] then 1 else 0),
+				    #"Added Conditional Column2" = Table.AddColumn(#"Added Conditional Column1", "void_ended_after_first_tenancy", each if [earliest_tenancy_start_date] = null then 0 else if [void_end_date] > [earliest_tenancy_start_date] then 1 else 0),
+				    #"Filtered Rows" = Table.SelectRows(#"Added Conditional Column2", each ([zav_fulladdress] = "1/8A Hillside Road, Papatoetoe, Auckland 2025")),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Filtered Rows",{{"void_start_date", Int64.Type}, {"void_end_date_true", Int64.Type}}),
+				    #"Added Custom" = Table.AddColumn(#"Changed Type", "explosion", each {[void_start_date]..[void_end_date_true]}),
+				    #"Expanded explosion" = Table.ExpandListColumn(#"Added Custom", "explosion"),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Expanded explosion",{{"explosion", type date}, {"void_start_date", type date}, {"void_end_date_true", type date}})
+				in
+				    #"Changed Type1"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

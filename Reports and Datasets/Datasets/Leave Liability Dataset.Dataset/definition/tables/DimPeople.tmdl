@@ -1,0 +1,178 @@
+table DimPeople
+	lineageTag: dcd6599d-3478-4493-a2db-8e50b3307e70
+
+	column id
+		dataType: string
+		lineageTag: 93ddf81d-6b33-4953-8ad5-baf719c05dde
+		summarizeBy: none
+		sourceColumn: id
+
+		annotation SummarizationSetBy = Automatic
+
+	column company_id
+		dataType: string
+		lineageTag: 80f32af3-2e28-4d7d-ae76-41afc8626011
+		summarizeBy: none
+		sourceColumn: company_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column code
+		dataType: int64
+		formatString: 0
+		lineageTag: ae28c42b-19f8-459b-b8b4-58caee2f981c
+		summarizeBy: sum
+		sourceColumn: code
+
+		annotation SummarizationSetBy = Automatic
+
+	column termination_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 040b26a9-3c3a-453a-a9fc-2c10773590c1
+		summarizeBy: none
+		sourceColumn: termination_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column standard_hours_per_week_value
+		dataType: double
+		lineageTag: c227aa07-d048-44d4-91d6-79419938a1b1
+		summarizeBy: sum
+		sourceColumn: standard_hours_per_week_value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column standard_days_per_week_value
+		dataType: double
+		lineageTag: 78e86791-21f9-4ef2-b568-ac4e098e6599
+		summarizeBy: sum
+		sourceColumn: standard_days_per_week_value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column FilterOutLeavers
+		dataType: string
+		lineageTag: 4b505429-6849-4fc4-a6ac-9a968a20527d
+		summarizeBy: none
+		sourceColumn: FilterOutLeavers
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Total Hours Per Year'
+		dataType: string
+		lineageTag: f5924679-3a65-4503-974c-25ec80852f48
+		summarizeBy: none
+		sourceColumn: Total Hours Per Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column HoursPerDay
+		dataType: double
+		formatString: 0.00
+		lineageTag: 5ecf6001-4ae2-4e8d-9e82-3874cb282b17
+		summarizeBy: sum
+		sourceColumn: HoursPerDay
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column people_id
+		dataType: string
+		lineageTag: 19a28e37-fffc-4c00-8579-860d6f220733
+		summarizeBy: none
+		sourceColumn: people_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Kaimahi Name'
+		dataType: string
+		lineageTag: 514d4129-6260-4b1f-b837-f7fbc645b91e
+		summarizeBy: none
+		sourceColumn: Kaimahi Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column employmentStatus
+		dataType: string
+		lineageTag: b786e5e6-f1f0-4001-9397-ded6d2aec509
+		summarizeBy: none
+		sourceColumn: employmentStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column supervisorPerson_displayName
+		dataType: string
+		lineageTag: 6fcd83c0-f668-4bbe-b53d-e1800509ee7b
+		summarizeBy: none
+		sourceColumn: supervisorPerson_displayName
+
+		annotation SummarizationSetBy = Automatic
+
+	column CompanyID+EmpID
+		dataType: string
+		lineageTag: 5a534888-4a79-4328-adc6-06abc0f214d5
+		summarizeBy: none
+		sourceColumn: CompanyID+EmpID
+
+		annotation SummarizationSetBy = Automatic
+
+	column email
+		dataType: string
+		lineageTag: dd16e22b-9162-49a7-8190-aa4ca2a08e2f
+		summarizeBy: none
+		sourceColumn: email
+
+		annotation SummarizationSetBy = Automatic
+
+	column StillAround
+		dataType: string
+		lineageTag: 25ecbdc3-f51c-4c0b-a4f2-e3ee06f0c5f3
+		summarizeBy: none
+		sourceColumn: StillAround
+
+		annotation SummarizationSetBy = Automatic
+
+	column standard_hours_per_week_value2
+		dataType: double
+		lineageTag: 21a2cb52-9dff-4a9e-aed8-a4d83431bf02
+		summarizeBy: sum
+		sourceColumn: standard_hours_per_week_value2
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition DimPeople-761b2790-1a80-4808-a6db-65656ce7bdfc = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT#(lf)    [id],#(lf)    [code],#(lf)    [company_id],#(lf)    [standard_hours_per_week_value]#(lf)    ,[termination_date]#(lf)    ,[standard_hours_per_week_value]#(lf)    ,[standard_days_per_week_value]#(lf)FROM [Datapay].[employees]#(lf)  WHERE ODSIsCurrent=1;#(lf)"]),
+				    /* 2023-05-10 GH - Identified that there are duplicates due to some employees having 2 records for 2 companies. Filtering out the records where the employee has left to match Intelli */
+				    #"Add column to identify leavers" = Table.AddColumn(Source, "FilterOutLeavers", each if [termination_date] is null then null else if Date.From([termination_date]) < Date.From(DateTime.LocalNow()) then 1 else null),
+				    #"Added Custom" = Table.AddColumn(#"Add column to identify leavers", "Total Hours Per Year", each [standard_hours_per_week_value] * 52),
+				    #"Adding HoursPerDay" = Table.AddColumn(#"Added Custom", "HoursPerDay", each if [standard_days_per_week_value] = 0 then 0 else [standard_hours_per_week_value] / [standard_days_per_week_value]),
+				    #"Merged Queries" = Table.NestedJoin(#"Adding HoursPerDay", {"code"}, #"DimPeople working", {"employeeNumber"}, "DimPeople working", JoinKind.LeftOuter),
+				    #"Expanded DimPeople working" = Table.ExpandTableColumn(#"Merged Queries", "DimPeople working", {"people_id", "displayName", "employmentStatus", "primaryEmailAddress_email"}, {"people_id", "Kaimahi Name", "employmentStatus", "email"}),
+				    #"Merged Queries1" = Table.NestedJoin(#"Expanded DimPeople working", {"code"}, #"intelli Jobs", {"person_employeeNumber"}, "intelli Jobs", JoinKind.LeftOuter),
+				    #"Expanded intelli Jobs" = Table.ExpandTableColumn(#"Merged Queries1", "intelli Jobs", {"supervisorPerson_displayName"}, {"supervisorPerson_displayName"}),
+				    #"Inserted Merged Column" = Table.AddColumn(#"Expanded intelli Jobs", "CompanyID+EmpID", each Text.Combine({[company_id], "+", Text.From([code], "en-US")}), type text),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Inserted Merged Column",{{"termination_date", type date}}),
+				    #"Flag Active balances" =  Table.AddColumn(#"Changed Type", "StillAround", each if [termination_date] = null or DateTime.Date(DateTimeZone.UtcNow()) < [termination_date] then 1 else 0),
+				    #"Filtered Rows" = Table.SelectRows(#"Flag Active balances", each ([StillAround] = 1))
+				
+				in
+				    #"Filtered Rows"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

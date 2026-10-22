@@ -1,0 +1,77 @@
+table 'Service Groupings'
+	lineageTag: c320bb52-9973-4a6a-8aa3-6d810319eb2d
+
+	column 'Company Name'
+		dataType: string
+		lineageTag: e18f43dc-ced0-42cf-af24-e12490879376
+		summarizeBy: none
+		sourceColumn: Company Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: b9f3c8b8-8ee7-4c08-a552-2bb352a4afb6
+		summarizeBy: count
+		sourceColumn: Service ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Service KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 49cff8a9-1f39-4ed6-8e5b-9d37db0cad4c
+		summarizeBy: sum
+		sourceColumn: Dim Service KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Service Unique KEY'
+		dataType: string
+		lineageTag: 612dde5b-3c17-41c6-82d1-b5327219745c
+		summarizeBy: none
+		sourceColumn: Dim Service Unique KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Type Group Name'
+		dataType: string
+		lineageTag: 4fa8aa9c-3846-450b-8b16-dba53a0312f3
+		summarizeBy: none
+		sourceColumn: Service Type Group Name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Service Groupings' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)  dim_service.company_name#(lf) ,dim_service.service_id#(lf) ,dim_service.dim_service_key#(lf) ,dim_service.dim_service_unique_key#(lf) ,CASE #(lf)    WHEN LTRIM(RTRIM(ISNULL(dim_kpi_service_type_grouping.service_type_group_name, ''))) = '' #(lf)    THEN 'Ungrouped'#(lf)    ELSE dim_kpi_service_type_grouping.service_type_group_name#(lf)  END AS service_type_group_name#(lf)FROM edw.dim_service#(lf)LEFT JOIN edw.dim_kpi_service_type #(lf)  ON dim_service.service_type_name = dim_kpi_service_type.service_type#(lf)  AND dim_kpi_service_type.dwhiscurrent = 1#(lf)  AND dim_kpi_service_type.dwhdmloperation <> 'D'#(lf)LEFT JOIN edw.bridge_kpi_service_type_to_grouping #(lf)  ON dim_kpi_service_type.dim_kpi_service_type_key = bridge_kpi_service_type_to_grouping.dim_kpi_service_type_key#(lf)LEFT JOIN edw.dim_kpi_service_type_grouping #(lf)  ON bridge_kpi_service_type_to_grouping.dim_kpi_service_type_grouping_key = dim_kpi_service_type_grouping.dim_kpi_service_type_grouping_key#(lf)  AND dim_kpi_service_type_grouping.dwhiscurrent = 1#(lf)WHERE dim_service.dwhiscurrent = 1#(lf)  AND dim_service.dwhdmloperation <> 'D'#(lf)  AND dim_service.dim_service_key > 0"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				    #"Filtered Rows" = Table.SelectRows(#"Transformed Column Names", each true)
+				in
+				    #"Filtered Rows"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

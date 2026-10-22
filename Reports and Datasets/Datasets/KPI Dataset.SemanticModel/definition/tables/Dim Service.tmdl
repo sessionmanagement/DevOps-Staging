@@ -1,0 +1,260 @@
+table 'Dim Service'
+	lineageTag: 41dbdea5-1a5c-40b7-8b5c-09d03ac9839b
+
+	column 'Dim Service KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: d1517a48-37ae-4ff2-81a2-677e1e1bc491
+		summarizeBy: none
+		sourceColumn: Dim Service KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Company KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 3d4d3841-88f0-4928-88db-6b4b1eb9d64a
+		summarizeBy: sum
+		sourceColumn: Dim Company KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 09b41f45-5ac0-4426-8c16-ba241a4f1f25
+		summarizeBy: count
+		sourceColumn: Service ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Service Unique KEY'
+		dataType: string
+		lineageTag: a4545a0d-54cf-4448-a9c1-b89c741218e3
+		summarizeBy: none
+		sourceColumn: Dim Service Unique KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Code'
+		dataType: string
+		lineageTag: bb3b9dc0-1722-4f0f-a0d4-f1e08c950585
+		summarizeBy: none
+		sourceColumn: Service Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Name'
+		dataType: string
+		lineageTag: 38af4690-f6af-43b3-9fbc-26c1152f0d82
+		summarizeBy: none
+		sourceColumn: Service Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Type Code'
+		dataType: string
+		lineageTag: b7213c6a-26d5-4f00-a8c5-680fc21fa066
+		summarizeBy: none
+		sourceColumn: Service Type Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Type Name'
+		dataType: string
+		lineageTag: cc12ebea-f79b-411d-b330-eef87d6da1a9
+		summarizeBy: none
+		sourceColumn: Service Type Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Department Code'
+		dataType: string
+		lineageTag: 1f30c77b-7bce-4f49-8d12-3b006f9d1b52
+		summarizeBy: none
+		sourceColumn: Department Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Department Name'
+		dataType: string
+		lineageTag: c97feadd-d494-466c-bfc8-25bfaca6f3b9
+		summarizeBy: none
+		sourceColumn: Department Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'District Code'
+		dataType: string
+		lineageTag: fef8fd2f-48c0-4af2-8673-840cfd745a4b
+		summarizeBy: none
+		sourceColumn: District Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'District Name'
+		dataType: string
+		lineageTag: 1cc3b7a8-f363-45e8-a50f-24e3d19d1ff0
+		summarizeBy: none
+		sourceColumn: District Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Region Code'
+		dataType: string
+		lineageTag: f2c987cb-7686-48da-a145-964d577a2adf
+		summarizeBy: none
+		sourceColumn: Region Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Region Name'
+		dataType: string
+		lineageTag: 7a377ca1-0709-45d6-9f50-54918fc6ffa7
+		summarizeBy: none
+		sourceColumn: Region Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company Name'
+		dataType: string
+		lineageTag: 6319280d-cd4a-4764-86fc-9b87f358a10f
+		summarizeBy: none
+		sourceColumn: Company Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Last Modified Date Time'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 0d4b867a-a68b-4352-8117-eed95b3674ed
+		summarizeBy: none
+		sourceColumn: Service Last Modified Date Time
+
+		variation Variation
+			isDefault
+			relationship: 9e353a30-32fe-4498-82b5-c53cc80727e8
+			defaultHierarchy: LocalDateTable_1627b7d4-9fa2-451c-873b-e151658819c6.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Is Current'
+		dataType: int64
+		formatString: 0
+		lineageTag: 2154525e-70d1-4dbb-8aa8-189c01ebf90a
+		summarizeBy: sum
+		sourceColumn: DWH Is Current
+
+		annotation SummarizationSetBy = Automatic
+
+	column Service_Name_(abbrev) = ```
+			
+			IF(
+			    SEARCH("Emergency Housing", 'Dim Service'[Service Name], 1, 0) > 0, 
+			    "EH " & MID('Dim Service'[Service Name], SEARCH("Housing", 'Dim Service'[Service Name], 1) + 7, LEN('Dim Service'[Service Name])), 
+			
+			IF(
+			    SEARCH("SNG Motels", 'Dim Service'[Service Name], 1, 0) > 0, 
+			    "SNG " & MID('Dim Service'[Service Name], SEARCH("Motels", 'Dim Service'[Service Name], 1) + 6, LEN('Dim Service'[Service Name])),
+			
+			IF(
+			    SEARCH("Sustaining Tenancies", 'Dim Service'[Service Name], 1, 0) > 0, 
+			    "ST " & MID('Dim Service'[Service Name], SEARCH("Tenancies", 'Dim Service'[Service Name], 1) + 9, LEN('Dim Service'[Service Name])),
+			
+			    'Dim Service'[Service Name]
+			)))
+			```
+		lineageTag: 716365bb-be61-4634-8234-4dcdf6c3fc24
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Target Definitions.Service Action Plan Link'
+		dataType: string
+		lineageTag: 5d1aa1f1-81ca-4352-b315-853016f5ac96
+		dataCategory: WebUrl
+		summarizeBy: none
+		sourceColumn: Dim Target Definitions.Service Action Plan Link
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Business Unit'
+		dataType: string
+		lineageTag: ee3348b7-97d9-4e58-8e1f-510d5dc9bf33
+		summarizeBy: none
+		sourceColumn: Business Unit
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Service' = m
+		mode: import
+		queryGroup: 'EDW Dim Tables'
+		source = ```
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT  [dim_service_key]#(lf)      ,[dim_company_key]#(lf)      ,[service_id]#(lf)      ,[dim_service_unique_key]#(lf)      ,[service_code]#(lf)      ,[service_name]#(lf)      #(lf)      #(lf)      ,[service_type_code]#(lf)      ,[service_type_name]#(lf)      ,[department_code]#(lf)      ,[department_name]#(lf)      ,[district_code]#(lf)      ,[district_name]#(lf)      ,[region_code]#(lf)      ,[region_name]#(lf)      #(lf)    #(lf)      ,[company_name]#(lf)      ,[service_last_modified_date_time]#(lf)     #(lf)      ,[DWHIsCurrent]#(lf)  FROM [edw].[vw_dim_service]#(lf)  WHERE DWHDMLOperation <> 'd'"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceKaimahi = Text.Replace(columnName, "employee_", "Kaimahi_"),
+				            replaceClient = Text.Replace(replaceKaimahi, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				    #"Merged Queries" = Table.NestedJoin(#"Transformed Column Names", {"Dim Service KEY"}, #"Dim Target Definitions", {"Dim Service KEY"}, "Dim Target Definitions", JoinKind.LeftOuter),
+				    #"Expanded Dim Target Definitions" = Table.ExpandTableColumn(#"Merged Queries", "Dim Target Definitions", {"Service Action Plan Link"}, {"Dim Target Definitions.Service Action Plan Link"}),
+				    #"Added Tenancy Column" = Table.AddColumn(
+				        #"Expanded Dim Target Definitions",
+				        "Tenancy District Name",
+				        each if List.Contains(
+				            {
+				                "Pam Hollows - Tenancy Manager",
+				                "Cairy Timpson - Tenancy Manager",
+				                "Kate Zabranski-Todd - Tenancy Manager",
+				                "Bridget White - Tenancy Manager",
+				                "Paull Hart-Tahi - Tenancy Manager",
+				                "Hardy Narang - Tenancy Manager",
+				                "Tenancy Manager",
+				                "Nikita Safole - Tenancy Manager",
+				                "Lynda Peach - Tenancy Manager",
+				                "Julie Rogers - Tenancy Manager"
+				            },
+				            [District Name]
+				        ) then "Tenancy Manager" else [District Name] 
+				    ),
+				    #"Removed Columns1" = Table.RemoveColumns(#"Added Tenancy Column",{"District Name"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns1",{{"Tenancy District Name", "District Name"}}),
+				    Custom1 = Table.AddColumn(#"Renamed Columns", "Business Unit", each let
+				            dept = if [Department Name] = null then "" else Text.Trim([Department Name]),
+				            reg  = if [Region Name]   = null then "" else Text.Trim([Region Name]),
+				            comp = [Dim Company KEY]
+				        in
+				            if dept = "" and Text.Contains(reg, "Tenancy", Comparer.OrdinalIgnoreCase) then "Tenancy"
+				            else if dept = "" and reg = "" and comp = 6 then "Unknown"
+				            else if Text.Contains(dept, "Health", Comparer.OrdinalIgnoreCase) and Text.Contains(dept, "Disability", Comparer.OrdinalIgnoreCase) then "Health & Disability"
+				            else if Text.Contains(dept, "Peer", Comparer.OrdinalIgnoreCase) then "Health & Disability"
+				            else if Text.Contains(dept, "Housing", Comparer.OrdinalIgnoreCase) then "Housing"
+				            else if Text.Contains(dept, "Tenancy", Comparer.OrdinalIgnoreCase) then "Tenancy"
+				            else if Text.Contains(dept, "Owned", Comparer.OrdinalIgnoreCase) then "Tenancy"
+				            else if Text.Contains(dept, "Leased", Comparer.OrdinalIgnoreCase) then "Tenancy"
+				            else if Text.Contains(dept, "Shared", Comparer.OrdinalIgnoreCase) then "Shared Services"
+				            else "Unknown")
+				in
+				    Custom1
+				```
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,52 @@
+table dim_table
+	lineageTag: 7f20840a-b08b-44c6-ab48-78c6f2afdaa3
+
+	column table_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 4a3d7d1d-fb45-49d0-a722-ebf11d1716e1
+		summarizeBy: none
+		sourceColumn: table_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column SourceSystem
+		dataType: string
+		lineageTag: 3581e61e-1637-430f-81ac-8843158d238f
+		summarizeBy: none
+		sourceColumn: SourceSystem
+
+		annotation SummarizationSetBy = Automatic
+
+	column TableName
+		dataType: string
+		lineageTag: 8bd5f649-ccea-456a-9f1b-e09397f0f5eb
+		summarizeBy: none
+		sourceColumn: TableName
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'SourceSystem Hierarchy'
+		lineageTag: b0052eb0-7fed-4006-b312-256c677150b6
+
+		level 'Source System'
+			lineageTag: c39dc409-37d6-4ace-b866-49b8b2f143ce
+			column: SourceSystem
+
+		level 'Table Name'
+			lineageTag: 9dcb4945-cbe8-4def-b995-e1cd53a36d27
+			column: TableName
+
+	partition dim_table = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-fk-01.database.windows.net", "Framework", [Query="WITH ParsedTables AS (#(lf)    SELECT#(lf)        TargetTableName,#(lf)        DataLoadId,#(lf)        LEFT(TargetTableName, CHARINDEX('.', TargetTableName) - 1) AS SystemPrefix,#(lf)        SUBSTRING(TargetTableName, CHARINDEX('.', TargetTableName) + 1, LEN(TargetTableName) - CHARINDEX('.', TargetTableName)) AS TableName#(lf)    FROM [ETL].[DataLoadStatus]#(lf)    WHERE TargetTableName IS NOT NULL#(lf)      AND CHARINDEX('.', TargetTableName) > 0#(lf)),#(lf)RankedTables AS (#(lf)    SELECT#(lf)        CASE #(lf)            WHEN SystemPrefix = 'edw' THEN 'ODS'#(lf)            ELSE SystemPrefix#(lf)        END AS SourceSystem,#(lf)        TableName,#(lf)        DataLoadId,#(lf)        ROW_NUMBER() OVER (#(lf)            PARTITION BY CASE #(lf)                            WHEN SystemPrefix = 'edw' THEN 'ODS'#(lf)                            ELSE SystemPrefix#(lf)                         END, #(lf)                         TableName #(lf)            ORDER BY DataLoadId#(lf)        ) AS rn#(lf)    FROM ParsedTables#(lf))#(lf)SELECT #(lf)    ROW_NUMBER() OVER (ORDER BY SourceSystem, TableName) AS table_key,#(lf)    SourceSystem,#(lf)    TableName#(lf)FROM RankedTables#(lf)WHERE rn = 1#(lf)ORDER BY table_key;#(lf)"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+

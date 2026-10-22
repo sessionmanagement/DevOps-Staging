@@ -1,0 +1,106 @@
+table Department
+	lineageTag: 1cbe58a5-b8b7-48c1-ab57-a67d2213e4b7
+
+	column 'Dim Department KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 0ccf1436-5023-46c9-ac80-3d569133c9e0
+		summarizeBy: none
+		sourceColumn: Dim Department KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Department Dimension Value ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 8f41c9c0-7757-434b-b47d-5f6e47fb23b9
+		summarizeBy: none
+		sourceColumn: Department Dimension Value ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Department Code'
+		dataType: string
+		lineageTag: ce3d30c9-71e6-4a2c-a0d3-fc14417061bf
+		summarizeBy: none
+		sourceColumn: Department Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Department Name'
+		dataType: string
+		lineageTag: 346ca38f-d18f-4701-916a-33c6d722bb98
+		summarizeBy: none
+		sourceColumn: Department Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Department Company Name'
+		dataType: string
+		lineageTag: a8fa03f4-1c5b-42f5-96db-8638074ca3bb
+		summarizeBy: none
+		sourceColumn: Department Company Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Department Last Modified Date Time'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 324b34aa-dfa8-479d-ab5c-ec9f36205499
+		summarizeBy: none
+		sourceColumn: Department Last Modified Date Time
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Is Current'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: f4e9f52b-8d66-4727-bb2a-e42d57be76f0
+		summarizeBy: none
+		sourceColumn: DWH Is Current
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Department = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database),
+				    dim_department = Source{[Schema = "edw", Item = "vw_dim_department"]}[Data],
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(dim_department, each ApplyNamingConventions(_)),
+				    #"Removed Columns" = Table.RemoveColumns(#"Transformed Column Names",{"DWH Source System", "DWH Dml Operation", "DWH Batch ID", "DWH Effective From", "DWH Effective To"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

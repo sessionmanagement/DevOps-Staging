@@ -1,0 +1,74 @@
+table 'Fact Extras'
+	lineageTag: 06669cbe-a845-492c-af61-92025ad50f47
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: a7394db9-bd90-4503-94b2-fffea16a2f4d
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Measure
+		dataType: string
+		lineageTag: 6b1d3d57-128b-4ca5-bc0e-a12d4b39ea91
+		summarizeBy: none
+		sourceColumn: Measure
+
+		annotation SummarizationSetBy = Automatic
+
+	column Source
+		dataType: string
+		lineageTag: 8e713267-4dd4-453b-bd9c-37088bea21fe
+		summarizeBy: none
+		sourceColumn: Source
+
+		annotation SummarizationSetBy = Automatic
+
+	column Value
+		dataType: int64
+		formatString: 0
+		lineageTag: 1133fb25-8d19-47a9-a55a-015c2dd60cab
+		summarizeBy: sum
+		sourceColumn: Value
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Fact Extras' = m
+		mode: import
+		queryGroup: Facts
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("jZRNb4MwDED/CuJcqSFO7HBcq0nbadJYtUPVA2vTDg2BRml//8h2WWNH9JZIz+bFH2y3OailwqVW2uSL/K0f6zbbnP1wnm7Pp64Z/XQwpDHfLf7BNg1jgZjd0iH1w35srp7jmkzBc6doQAROb7rm++Kzdd22gS4IKLCL0lBKO2JLcILFH7rq+6+mO914OHQpvPLDtdn7gK/Wvw+0vBopNJKANBoL6PvR4Pr4lL1/1l19mc7VSxUqAWS4qMAZBdxS4KwzXFHgSAl+FePQKa7HMSoEO45ZKrmcgFklDOfx2A+H+qP12avvQsnjJzlh/meDkHvPBsV7qe8JAqHP4lZYVJqj8rYZF7tAMm1JAiqnRR3JYhLV2lnO8p6WSsASPzOiQvh+Ys8ccnS+7cCD+JIYM83h7gc=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Date = _t, Measure = _t, Source = _t, Value = _t]),
+				    #"Sorted Rows" = Table.Sort(Source,{{"Source", Order.Ascending}, {"Date", Order.Descending}}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Sorted Rows",{{"Date", type date}, {"Total Users", Int64.Type}, {"Active Users", Int64.Type}}),
+				ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(#"Sorted Rows", each ApplyNamingConventions(_)),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Transformed Column Names",{{"Date", type date}, {"Value", Int64.Type}})
+				in
+				    #"Changed Type1"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

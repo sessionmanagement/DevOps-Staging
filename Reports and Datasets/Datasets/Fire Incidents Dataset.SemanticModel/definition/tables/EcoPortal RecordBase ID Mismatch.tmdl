@@ -1,0 +1,124 @@
+table 'EcoPortal RecordBase ID Mismatch'
+	lineageTag: aa5a2a1b-da4f-4ab3-a745-3c5215fcc4db
+
+	column incident_source
+		dataType: string
+		lineageTag: 2550397e-8d58-4b22-b53c-90bd36d34a9c
+		summarizeBy: none
+		sourceColumn: incident_source
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_date_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 14e15fe5-ea2d-4e94-8842-e9d728901a68
+		summarizeBy: sum
+		sourceColumn: incident_date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_datetime
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 50ca81f7-8ca3-4ad5-8c12-391292c2ae67
+		summarizeBy: none
+		sourceColumn: incident_datetime
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column incident_id
+		dataType: string
+		lineageTag: eabd1a45-c4dd-4d53-a054-5e80545352cd
+		summarizeBy: none
+		sourceColumn: incident_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_details
+		dataType: string
+		lineageTag: 023f0b2f-f9a9-41f3-8b4a-8fcc14e4bbfb
+		summarizeBy: none
+		sourceColumn: incident_details
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_location
+		dataType: string
+		lineageTag: a4ee6274-b346-4210-bfaf-d58ada26332e
+		summarizeBy: none
+		sourceColumn: incident_location
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_in_recordbase
+		dataType: string
+		lineageTag: 5fb32118-a403-41be-a747-0c96cae7e7e7
+		summarizeBy: none
+		sourceColumn: incident_in_recordbase
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_recordbase_reference
+		dataType: string
+		lineageTag: 6fb112f4-710b-40a7-92d6-082c87c82e7c
+		summarizeBy: none
+		sourceColumn: incident_recordbase_reference
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_type_classification
+		dataType: string
+		lineageTag: d14ea65d-fe70-47a4-8d23-254d09930263
+		summarizeBy: none
+		sourceColumn: incident_type_classification
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_fire_risk_classification
+		dataType: string
+		lineageTag: edca413c-e078-4d23-a77b-584ebd3b82a9
+		summarizeBy: none
+		sourceColumn: incident_fire_risk_classification
+
+		annotation SummarizationSetBy = Automatic
+
+	column incident_status
+		dataType: string
+		lineageTag: a174dd2b-d97b-47e0-ab24-960c8b17ccac
+		summarizeBy: none
+		sourceColumn: incident_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column full_address
+		dataType: string
+		lineageTag: 908cc072-ebf4-4ee0-9fef-30ee2606aae3
+		summarizeBy: none
+		sourceColumn: full_address
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'EcoPortal RecordBase ID Mismatch' = m
+		mode: import
+		source =
+				let
+				    Source = #"EcoPortal Data",
+				    #"Filtered Rows" = Table.SelectRows(Source, each ([incident_in_recordbase] = "Y")),
+				    #"Merged Queries" = Table.NestedJoin(#"Filtered Rows", {"incident_recordbase_reference"}, #"RecordBase All Incident IDs", {"incident_id"}, "RecordBase All Incident IDs", JoinKind.LeftOuter),
+				    #"Expanded RecordBase All Incident IDs" = Table.ExpandTableColumn(#"Merged Queries", "RecordBase All Incident IDs", {"incident_id"}, {"incident_id.1"}),
+				    #"Filtered Rows1" = Table.SelectRows(#"Expanded RecordBase All Incident IDs", each ([incident_id.1] = null)),
+				    #"Removed Columns" = Table.RemoveColumns(#"Filtered Rows1",{"incident_id.1", "region_name", "district_name", "service_code"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

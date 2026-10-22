@@ -1,0 +1,1183 @@
+/// Current state snapshot of all Azure DevOps work items (User Stories, Bugs, Tasks, Features, Epics). Central fact table for backlog and delivery reporting. Source: OData WorkItems entity.
+table WorkItems
+	lineageTag: 0b2599a9-5d5a-4251-816c-033dcd8a8a19
+
+	/// Unique identifier for the work item in Azure DevOps
+	column WorkItemId
+		dataType: int64
+		formatString: 0
+		lineageTag: 2420bd39-1253-48c2-808d-8a9158744eb8
+		summarizeBy: none
+		sourceColumn: WorkItemId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date when the work item first entered an In Progress state
+	column InProgressDate
+		dataType: dateTime
+		formatString: dd/MM/yyyy
+		lineageTag: 2b65d369-f312-45ed-a0ff-34a9ecb060c8
+		summarizeBy: none
+		sourceColumn: InProgressDate
+
+		variation Variation
+			isDefault
+			relationship: 1236beee-6960-44d6-8128-65c04544bb9a
+			defaultHierarchy: LocalDateTable_79cd398d-aed9-4418-91f6-67b7e9eb6409.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date when the work item was completed (moved to Done/Closed)
+	column CompletedDate
+		dataType: dateTime
+		formatString: dd/MM/yyyy
+		lineageTag: 6d7228a4-2a8a-450f-a9e1-aa5a692be62f
+		summarizeBy: none
+		sourceColumn: CompletedDate
+
+		variation Variation
+			isDefault
+			relationship: 0ed237c8-039e-41c6-8e22-ee9cbca83628
+			defaultHierarchy: LocalDateTable_b701f946-0e52-4578-858a-a60465d1f3a5.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Number of days from work item creation to completion (lead time metric)
+	column LeadTimeDays
+		dataType: double
+		lineageTag: 12a5e8f6-7489-4305-b9e2-3dfdd1e0a488
+		summarizeBy: sum
+		sourceColumn: LeadTimeDays
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Number of days from In Progress to completion (cycle time metric)
+	column CycleTimeDays
+		dataType: double
+		lineageTag: 24f5cb1e-b8a0-4b07-a1a4-90cafc6fcbec
+		summarizeBy: sum
+		sourceColumn: CycleTimeDays
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Surrogate key linking to Dates dimension for InProgressDate
+	column InProgressDateSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b6b2dcdf-ccfb-4612-8859-211dfe3390a4
+		summarizeBy: sum
+		sourceColumn: InProgressDateSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to Dates dimension for CompletedDate
+	column CompletedDateSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 2191b27f-c5ab-400d-bc4d-2fc87734e2b3
+		summarizeBy: sum
+		sourceColumn: CompletedDateSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Timestamp when this record was last updated in the Analytics service
+	column AnalyticsUpdatedDate
+		dataType: dateTime
+		formatString: dd/MM/yyyy
+		lineageTag: aba13878-d102-4e9b-9122-37998fd9622b
+		summarizeBy: none
+		sourceColumn: AnalyticsUpdatedDate
+
+		variation Variation
+			isDefault
+			relationship: 3e416ffe-57c1-4a02-b9f8-8175078a61b2
+			defaultHierarchy: LocalDateTable_18f7acd3-e1ca-4ede-ae3f-3807357b86f4.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to Projects dimension
+	column ProjectSK
+		dataType: string
+		isHidden
+		lineageTag: 73466cb3-4677-4a54-8eb7-dd21ec1e9f63
+		summarizeBy: none
+		sourceColumn: ProjectSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key for the current revision of this work item
+	column WorkItemRevisionSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 6fa33e56-5f9d-4b06-b266-fd1080b3132e
+		summarizeBy: sum
+		sourceColumn: WorkItemRevisionSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to Areas dimension for area path classification
+	column AreaSK
+		dataType: string
+		isHidden
+		lineageTag: 15cc2fdd-0122-45a3-8a14-cf14b9c4406e
+		summarizeBy: none
+		sourceColumn: AreaSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to Iterations dimension for sprint/iteration path
+	column IterationSK
+		dataType: string
+		isHidden
+		lineageTag: 411a60a5-18cd-4723-ac66-df86181890ce
+		summarizeBy: none
+		sourceColumn: IterationSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to Users dimension for the assigned-to person
+	column AssignedToUserSK
+		dataType: string
+		isHidden
+		lineageTag: 146bb4c2-cba3-4f0d-bc15-2a3491fd37e2
+		summarizeBy: none
+		sourceColumn: AssignedToUserSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to Users dimension for the last person who changed the work item
+	column ChangedByUserSK
+		dataType: string
+		isHidden
+		lineageTag: 8e9d80bb-0459-4a1a-83e3-dd85f3a5f022
+		summarizeBy: none
+		sourceColumn: ChangedByUserSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to Users dimension for the person who created the work item
+	column CreatedByUserSK
+		dataType: string
+		isHidden
+		lineageTag: cf15278b-5a73-41fd-9df0-5e4fefa1ac96
+		summarizeBy: none
+		sourceColumn: CreatedByUserSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to Users dimension for the person who activated the work item
+	column ActivatedByUserSK
+		dataType: string
+		isHidden
+		lineageTag: 0c42d5d6-99a9-4c3f-bb78-a01c7c8f3f57
+		summarizeBy: none
+		sourceColumn: ActivatedByUserSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to Users dimension for the person who closed the work item
+	column ClosedByUserSK
+		dataType: string
+		isHidden
+		lineageTag: aeee3202-815c-4b2a-b757-e135f0518b49
+		summarizeBy: none
+		sourceColumn: ClosedByUserSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to Users dimension for the person who resolved the work item
+	column ResolvedByUserSK
+		dataType: string
+		isHidden
+		lineageTag: 1cd7ecd1-70fd-4982-8a7c-d3e620d261c6
+		summarizeBy: none
+		sourceColumn: ResolvedByUserSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to Dates dimension for ActivatedDate
+	column ActivatedDateSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 4910e307-1841-4aad-ba4d-6343e1d17386
+		summarizeBy: sum
+		sourceColumn: ActivatedDateSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to Dates dimension for ChangedDate
+	column ChangedDateSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 6e87ac9f-a10b-42bf-92d6-1d22182d0408
+		summarizeBy: sum
+		sourceColumn: ChangedDateSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to Dates dimension for ClosedDate
+	column ClosedDateSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: db1bdb7a-dd43-4790-b6ec-4c06001adbb9
+		summarizeBy: sum
+		sourceColumn: ClosedDateSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to Dates dimension for CreatedDate
+	column CreatedDateSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 4289c346-c0bb-40ad-9f9a-feee912d4a74
+		summarizeBy: sum
+		sourceColumn: CreatedDateSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to Dates dimension for ResolvedDate
+	column ResolvedDateSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 3dffa2a7-e5cc-4f76-a132-8ded0e7d7fda
+		summarizeBy: sum
+		sourceColumn: ResolvedDateSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to Dates dimension for StateChangeDate
+	column StateChangeDateSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: c9c5ba7b-5e7a-45e4-b158-6bc05f8a4a28
+		summarizeBy: sum
+		sourceColumn: StateChangeDateSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Current revision number of the work item
+	column Revision
+		dataType: int64
+		formatString: 0
+		lineageTag: 1b2841d2-0379-4093-80c2-df03a58c4977
+		summarizeBy: sum
+		sourceColumn: Revision
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Analytics watermark value used for incremental synchronisation
+	column Watermark
+		dataType: int64
+		formatString: 0
+		lineageTag: 337c4c89-1900-4498-89ea-67f097275fe8
+		summarizeBy: sum
+		sourceColumn: Watermark
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Title/name of the work item
+	column Title
+		dataType: string
+		lineageTag: 795f29a2-c9ae-4dfb-83bb-5e4d5009bf40
+		summarizeBy: none
+		sourceColumn: Title
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Type of work item (e.g., User Story, Bug, Task, Feature, Epic)
+	column WorkItemType
+		dataType: string
+		lineageTag: c8642e17-ce77-4c8f-988b-2ff1b4d56e8a
+		summarizeBy: none
+		sourceColumn: WorkItemType
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date and time when the work item was last changed
+	column ChangedDate
+		dataType: dateTime
+		formatString: dd/MM/yyyy
+		lineageTag: 3f33489c-758e-4f4e-a777-d672beecf128
+		summarizeBy: none
+		sourceColumn: ChangedDate
+
+		variation Variation
+			isDefault
+			relationship: b547a874-2413-40b0-a80c-27307825aaf0
+			defaultHierarchy: LocalDateTable_a6f11994-804a-4daa-948e-f71161ed6b9d.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date and time when the work item was created
+	column CreatedDate
+		dataType: dateTime
+		formatString: dd/MM/yyyy
+		lineageTag: f2e4ea96-68b5-44dd-a50d-f715e469809f
+		summarizeBy: none
+		sourceColumn: CreatedDate
+
+		variation Variation
+			isDefault
+			relationship: ec795387-1ed8-4569-8384-1e8c78fb6431
+			defaultHierarchy: LocalDateTable_571b38cb-4e12-47bc-b27d-4845fd270ac7.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Current state of the work item (e.g., New, Active, Resolved, Closed)
+	column State
+		dataType: string
+		lineageTag: 395332f1-984e-43d5-bc1f-3ff7e32dda48
+		summarizeBy: none
+		sourceColumn: State
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Reason for the current state transition
+	column Reason
+		dataType: string
+		lineageTag: a1595440-b0e5-4999-8c79-22db745e8679
+		summarizeBy: none
+		sourceColumn: Reason
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Build or environment where a bug was found
+	column FoundIn
+		dataType: string
+		lineageTag: ec96e8cf-017a-40c7-9a0d-00df5e94844d
+		summarizeBy: none
+		sourceColumn: FoundIn
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Build in which the work item was integrated or fixed
+	column IntegrationBuild
+		dataType: string
+		lineageTag: 784e9e71-79b6-4a62-9d9c-4d616f3dae0e
+		summarizeBy: none
+		sourceColumn: IntegrationBuild
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date and time when the work item was activated
+	column ActivatedDate
+		dataType: dateTime
+		formatString: dd/MM/yyyy
+		lineageTag: 9bf910a6-cf7e-4d14-aa66-26a2dcdeb83c
+		summarizeBy: none
+		sourceColumn: ActivatedDate
+
+		variation Variation
+			isDefault
+			relationship: 867d74c0-ec53-47f4-a1cb-8344db7c3d95
+			defaultHierarchy: LocalDateTable_cbda13c2-a4d6-41a3-8ff5-20f993d8e5f1.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Type of activity (e.g., Development, Testing, Documentation)
+	column Activity
+		dataType: string
+		lineageTag: 89321144-05c7-41f0-b031-3c0ae02580a9
+		summarizeBy: none
+		sourceColumn: Activity
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Business value score assigned to the work item
+	column BusinessValue
+		dataType: int64
+		formatString: 0
+		lineageTag: 6c4b0257-116e-4961-8c75-ed400476749f
+		summarizeBy: sum
+		sourceColumn: BusinessValue
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date and time when the work item was closed
+	column ClosedDate
+		dataType: dateTime
+		formatString: dd/MM/yyyy
+		lineageTag: b0e15619-8682-483f-8020-c848f5ababa3
+		summarizeBy: none
+		sourceColumn: ClosedDate
+
+		variation Variation
+			isDefault
+			relationship: 751291ea-a45b-474e-ad29-bc673bf699b8
+			defaultHierarchy: LocalDateTable_8b13adee-747a-4003-afb4-a1d3fd4d027e.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Whether this item is flagged as an issue (Yes/No)
+	column Issue
+		dataType: string
+		lineageTag: 8be5adbf-d325-4fcc-bd93-020887d324c0
+		summarizeBy: none
+		sourceColumn: Issue
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Priority level (1=Critical, 2=High, 3=Medium, 4=Low)
+	column Priority
+		dataType: int64
+		formatString: 0
+		lineageTag: 0ef70963-dd05-42f9-a65a-883ef70b6747
+		summarizeBy: sum
+		sourceColumn: Priority
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Feedback rating value
+	column Rating
+		dataType: string
+		lineageTag: 3c557ee5-e2fc-4ee9-aeaa-a71f0daed3cb
+		summarizeBy: none
+		sourceColumn: Rating
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date and time when the work item was resolved
+	column ResolvedDate
+		dataType: dateTime
+		formatString: dd/MM/yyyy
+		lineageTag: 8f8f84d5-c814-4b17-8a1f-bcf8b95e559f
+		summarizeBy: none
+		sourceColumn: ResolvedDate
+
+		variation Variation
+			isDefault
+			relationship: 637fea3d-e3a5-46a0-8d61-5993931d3b51
+			defaultHierarchy: LocalDateTable_266ec8e0-f4df-4eff-87ac-b23f2cefe45b.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Reason provided when the work item was resolved
+	column ResolvedReason
+		dataType: string
+		lineageTag: d6c21c36-8346-4af0-bf8e-2d0d1d16f120
+		summarizeBy: none
+		sourceColumn: ResolvedReason
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Risk assessment level (1-High, 2-Medium, 3-Low)
+	column Risk
+		dataType: string
+		lineageTag: 848be398-16d2-4126-b0f2-671e2d4d373a
+		summarizeBy: none
+		sourceColumn: Risk
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Severity level for bugs (1-Critical, 2-High, 3-Medium, 4-Low)
+	column Severity
+		dataType: string
+		lineageTag: 6f0b4179-8853-491e-be55-0e8265cba41d
+		summarizeBy: none
+		sourceColumn: Severity
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Stack rank value used for backlog ordering
+	column StackRank
+		dataType: double
+		lineageTag: 4aa6d036-04f5-4bd6-859e-d09967e321b6
+		summarizeBy: sum
+		sourceColumn: StackRank
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Time criticality score for prioritisation using WSJF
+	column TimeCriticality
+		dataType: double
+		lineageTag: 66c0fd41-64cd-48c0-8f3c-92d245291c14
+		summarizeBy: sum
+		sourceColumn: TimeCriticality
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Value area classification (Business or Architectural)
+	column ValueArea
+		dataType: string
+		lineageTag: 2ad5a2f1-dc92-4cb4-bf4f-956cc4a9b2ef
+		summarizeBy: none
+		sourceColumn: ValueArea
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Hours of completed work logged against this work item
+	column CompletedWork
+		dataType: double
+		lineageTag: e32e57f1-1a23-4b8d-a1db-e17cdcda364e
+		summarizeBy: sum
+		sourceColumn: CompletedWork
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Due date for the work item
+	column DueDate
+		dataType: dateTime
+		formatString: dd/MM/yyyy
+		lineageTag: a29c9464-5757-4dfb-ae74-195441e9663f
+		summarizeBy: none
+		sourceColumn: DueDate
+
+		variation Variation
+			isDefault
+			relationship: 46962cba-c741-44e4-a276-acb62f4a574c
+			defaultHierarchy: LocalDateTable_6a96b282-5be0-4da3-aa17-45d91c71f699.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Effort estimate for the work item (typically story points for features)
+	column Effort
+		dataType: double
+		lineageTag: a3bdace4-8797-42eb-ae6b-34ab4d70611f
+		summarizeBy: sum
+		sourceColumn: Effort
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Scheduled finish date for the work item
+	column FinishDate
+		dataType: dateTime
+		formatString: dd/MM/yyyy
+		lineageTag: bdb327e9-4bab-42e5-9bee-722c2057b10a
+		summarizeBy: none
+		sourceColumn: FinishDate
+
+		variation Variation
+			isDefault
+			relationship: 45c3e8f5-b7bd-4654-bbc6-8332f7d90092
+			defaultHierarchy: LocalDateTable_6ab90e1d-3d39-4064-b158-43928cf8a0d3.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Original hours estimate for task completion
+	column OriginalEstimate
+		dataType: double
+		lineageTag: afd2d0dd-ffd2-4dad-9a7a-8256ca0d862f
+		summarizeBy: sum
+		sourceColumn: OriginalEstimate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Hours of remaining work on this work item
+	column RemainingWork
+		dataType: double
+		lineageTag: a72d5ccf-1ecb-472f-a3b4-51ec5c3543bf
+		summarizeBy: sum
+		sourceColumn: RemainingWork
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Scheduled start date for the work item
+	column StartDate
+		dataType: dateTime
+		formatString: dd/MM/yyyy
+		lineageTag: 5216bbbd-ac24-443a-bae9-e54699a9bf92
+		summarizeBy: none
+		sourceColumn: StartDate
+
+		variation Variation
+			isDefault
+			relationship: 9dfda04b-a055-4b98-8742-8c5a418e9aaf
+			defaultHierarchy: LocalDateTable_d60d28c7-ac99-4926-a5de-7af134c1381e.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Story point estimate for relative sizing
+	column StoryPoints
+		dataType: double
+		lineageTag: ff9d4ca9-e10e-483c-b356-fff784183c0b
+		summarizeBy: sum
+		sourceColumn: StoryPoints
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Target completion date for the work item
+	column TargetDate
+		dataType: dateTime
+		formatString: dd/MM/yyyy
+		lineageTag: ff965221-00a4-4365-b9c7-c547747447ec
+		summarizeBy: none
+		sourceColumn: TargetDate
+
+		variation Variation
+			isDefault
+			relationship: e297c9f3-b4b2-4712-b6ee-93d92d3301b2
+			defaultHierarchy: LocalDateTable_a49d2bd6-dc56-43d4-8d8f-2c938a1f846b.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Work item ID of the parent item in the hierarchy
+	column ParentWorkItemId
+		dataType: int64
+		formatString: 0
+		lineageTag: 8819141c-ed7a-4297-b7d9-a8fbb6ce3457
+		summarizeBy: count
+		sourceColumn: ParentWorkItemId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Semicolon-delimited list of tags applied to the work item
+	column TagNames
+		dataType: string
+		lineageTag: 5892667a-5bea-42b9-9f59-abad5d09cf9a
+		summarizeBy: none
+		sourceColumn: TagNames
+
+		annotation SummarizationSetBy = Automatic
+
+	/// State category grouping (Proposed, InProgress, Resolved, Completed, Removed)
+	column StateCategory
+		dataType: string
+		lineageTag: 2cf2edfb-8b45-437e-b5e9-2c82493f2eab
+		summarizeBy: none
+		sourceColumn: StateCategory
+
+		annotation SummarizationSetBy = Automatic
+
+	/// ID of the associated automated test
+	column AutomatedTestId
+		dataType: string
+		lineageTag: 625e6487-19ed-49b8-8efd-828638acd990
+		summarizeBy: none
+		sourceColumn: AutomatedTestId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Name of the associated automated test
+	column AutomatedTestName
+		dataType: string
+		lineageTag: b609b8d7-b1c4-4e31-9e32-c8d41a001719
+		summarizeBy: none
+		sourceColumn: AutomatedTestName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Storage location/assembly of the automated test
+	column AutomatedTestStorage
+		dataType: string
+		lineageTag: 24e2a06d-5302-4d10-85eb-2b0ab1581cc3
+		summarizeBy: none
+		sourceColumn: AutomatedTestStorage
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Type of automated test associated with this work item
+	column AutomatedTestType
+		dataType: string
+		lineageTag: 77090225-4d7e-4a25-90cd-6cf489265943
+		summarizeBy: none
+		sourceColumn: AutomatedTestType
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Automation status of the test case (Automated, Not Automated, Planned)
+	column AutomationStatus
+		dataType: string
+		lineageTag: 11c48823-01a2-4c98-a1ea-5bb3cba24887
+		summarizeBy: none
+		sourceColumn: AutomationStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date and time when the state last changed
+	column StateChangeDate
+		dataType: dateTime
+		formatString: dd/MM/yyyy
+		lineageTag: 9e9461c9-95a6-44a7-8024-1a317fa8c502
+		summarizeBy: none
+		sourceColumn: StateChangeDate
+
+		variation Variation
+			isDefault
+			relationship: 76e2aa7b-6138-4f66-aeee-f1dd6cd6ecef
+			defaultHierarchy: LocalDateTable_5fe75bcd-3bb7-4e20-a643-e397f6e2ac20.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Count field used for aggregation (always 1 per work item)
+	column Count
+		dataType: int64
+		formatString: 0
+		lineageTag: b867ebab-98cd-4547-92b1-c49f491c5d96
+		summarizeBy: sum
+		sourceColumn: Count
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Number of comments on the work item
+	column CommentCount
+		dataType: int64
+		formatString: 0
+		lineageTag: dfbf33be-7fa3-4c66-ab8c-29499c8bf621
+		summarizeBy: sum
+		sourceColumn: CommentCount
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Business area classification for the work item (custom field)
+	column Custom_BusinessArea
+		dataType: string
+		lineageTag: 457ae1c7-555a-431a-b79f-6b5adfc84698
+		summarizeBy: none
+		sourceColumn: Custom_BusinessArea
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Business group or division the work item belongs to (custom field)
+	column Custom_BusinessGroup
+		dataType: string
+		lineageTag: fc8f8666-74d1-4160-b009-ef23a5e31172
+		summarizeBy: none
+		sourceColumn: Custom_BusinessGroup
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Target environment for deployment (custom field; note: field name has typo in source)
+	column Custom_Environmetn
+		dataType: string
+		lineageTag: 78d73058-5369-4790-aa35-80ef4f20b9d2
+		summarizeBy: none
+		sourceColumn: Custom_Environmetn
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Business owner responsible for the work item (custom field)
+	column Custom_Owner
+		dataType: string
+		lineageTag: 3b0f527b-704f-410e-9fdd-0d4eed906e6b
+		summarizeBy: none
+		sourceColumn: Custom_Owner
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Person who requested the work item (custom field)
+	column Custom_Requester
+		dataType: string
+		lineageTag: 43117c41-afe3-4c58-a8cc-2cf0f147f920
+		summarizeBy: none
+		sourceColumn: Custom_Requester
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to the requestor user identity (custom field)
+	column Custom_RequestorSK
+		dataType: string
+		isHidden
+		lineageTag: 624acdc0-c203-496d-8346-ea5f5ecf89d4
+		summarizeBy: none
+		sourceColumn: Custom_RequestorSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// MoSCoW priority classification for RPG (Must Have, Should Have, Could Have, Won't Have)
+	column Custom_RPGMoSCoW
+		dataType: string
+		lineageTag: 2dcf9127-8d73-4ffd-9bf5-17e45e704732
+		summarizeBy: none
+		sourceColumn: Custom_RPGMoSCoW
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Effort sizing estimate (e.g., T-shirt sizing: S, M, L, XL) (custom field)
+	column Custom_Sizing
+		dataType: string
+		lineageTag: 0257b606-d244-4588-95e5-4ac37ff6dd1b
+		summarizeBy: none
+		sourceColumn: Custom_Sizing
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to the subject matter expert user identity (custom field)
+	column Custom_SubjectMatterExpertSK
+		dataType: string
+		isHidden
+		lineageTag: 84291f9d-3b0b-4385-ad5a-ce0addcdcd7e
+		summarizeBy: none
+		sourceColumn: Custom_SubjectMatterExpertSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to the user who accepted the code review
+	column Microsoft_VSTS_CodeReview_AcceptedBySK
+		dataType: string
+		isHidden
+		lineageTag: 52353b7c-3984-4aa3-923f-57d707ec798a
+		summarizeBy: none
+		sourceColumn: Microsoft_VSTS_CodeReview_AcceptedBySK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date when the code review was accepted
+	column Microsoft_VSTS_CodeReview_AcceptedDate
+		dataType: dateTime
+		formatString: dd/MM/yyyy
+		lineageTag: 52d62dfe-9541-478b-8ea5-c94707c26b25
+		summarizeBy: none
+		sourceColumn: Microsoft_VSTS_CodeReview_AcceptedDate
+
+		variation Variation
+			isDefault
+			relationship: 5bf48376-ce59-4a91-88c7-22e7ee1b6684
+			defaultHierarchy: LocalDateTable_9bfd6c90-9c9a-4d5c-9b8b-8e1fa846a521.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Status when the code review was closed
+	column Microsoft_VSTS_CodeReview_ClosedStatus
+		dataType: string
+		lineageTag: c49c18eb-a73b-4dd1-aa58-1c0baed4ef5f
+		summarizeBy: none
+		sourceColumn: Microsoft_VSTS_CodeReview_ClosedStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Numeric code for the code review closed status
+	column Microsoft_VSTS_CodeReview_ClosedStatusCode
+		dataType: int64
+		formatString: 0
+		lineageTag: 0a6d664f-1279-4ee8-be94-145fbffb1484
+		summarizeBy: count
+		sourceColumn: Microsoft_VSTS_CodeReview_ClosedStatusCode
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Comment provided when closing the code review
+	column Microsoft_VSTS_CodeReview_ClosingComment
+		dataType: string
+		lineageTag: 406d1076-5ebf-44ae-914f-d450974631eb
+		summarizeBy: none
+		sourceColumn: Microsoft_VSTS_CodeReview_ClosingComment
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Context information for the code review
+	column Microsoft_VSTS_CodeReview_Context
+		dataType: string
+		lineageTag: 56fc9a88-885f-4f86-aa24-b1c8645c34d6
+		summarizeBy: none
+		sourceColumn: Microsoft_VSTS_CodeReview_Context
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Numeric code for the code review context
+	column Microsoft_VSTS_CodeReview_ContextCode
+		dataType: int64
+		formatString: 0
+		lineageTag: afc69364-0d13-4989-9431-01c7f5b20477
+		summarizeBy: count
+		sourceColumn: Microsoft_VSTS_CodeReview_ContextCode
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Owner of the code review context
+	column Microsoft_VSTS_CodeReview_ContextOwner
+		dataType: string
+		lineageTag: 58bc0605-ea86-4b8e-8ac7-57b537dd155f
+		summarizeBy: none
+		sourceColumn: Microsoft_VSTS_CodeReview_ContextOwner
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Type of code review context
+	column Microsoft_VSTS_CodeReview_ContextType
+		dataType: string
+		lineageTag: 8dbcd582-a58c-4c1f-9011-0b9672940a8a
+		summarizeBy: none
+		sourceColumn: Microsoft_VSTS_CodeReview_ContextType
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to the user who reviewed the work item
+	column Microsoft_VSTS_Common_ReviewedBySK
+		dataType: string
+		isHidden
+		lineageTag: b5648e12-95a6-4575-bd5e-06a55fc17a9f
+		summarizeBy: none
+		sourceColumn: Microsoft_VSTS_Common_ReviewedBySK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Numeric state code for the work item
+	column Microsoft_VSTS_Common_StateCode
+		dataType: int64
+		formatString: 0
+		lineageTag: 7edb9e34-63fc-40ab-ac10-01188f8ce5f8
+		summarizeBy: count
+		sourceColumn: Microsoft_VSTS_Common_StateCode
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Application type for feedback requests
+	column Microsoft_VSTS_Feedback_ApplicationType
+		dataType: string
+		lineageTag: 4a812109-35cb-4ad7-ae9f-8bfd562a617b
+		summarizeBy: none
+		sourceColumn: Microsoft_VSTS_Feedback_ApplicationType
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Test suite type classification
+	column Microsoft_VSTS_TCM_TestSuiteType
+		dataType: string
+		lineageTag: 31d7f61f-1e3e-4e29-b82f-cb101cdd1b83
+		summarizeBy: none
+		sourceColumn: Microsoft_VSTS_TCM_TestSuiteType
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Numeric ID for the test suite type
+	column Microsoft_VSTS_TCM_TestSuiteTypeId
+		dataType: int64
+		formatString: 0
+		lineageTag: 792d64d1-a2f5-400f-869f-b021f9ca3196
+		summarizeBy: count
+		sourceColumn: Microsoft_VSTS_TCM_TestSuiteTypeId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Which business domain this request serves (Finance, Property/Housing, HR/PX, Client Services, Cross-functional, Other).
+	column Custom_RPGBusinessDomain
+		dataType: string
+		lineageTag: 4cb1d6db-84ca-4604-ae69-afb4a7fbd281
+		summarizeBy: none
+		sourceColumn: Custom_RPGBusinessDomain
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Who will use the output of this initiative (e.g., Housing team, Finance Partners).
+	column Custom_RPGIntendedAudience
+		dataType: string
+		lineageTag: 4a8ce525-a682-4121-8356-fe6aafc56fcc
+		summarizeBy: none
+		sourceColumn: Custom_RPGIntendedAudience
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Sum of estimated max days for all child and grandchild work items, based on T-shirt sizing (XS=1, S=2, M=5, L=10, XL=15). Computed as a calculated column to avoid SUMMARIZECOLUMNS auto-exist issues.
+	column 'Epic Estimated Days' =
+			VAR _EpicId = WorkItems[WorkItemId]
+			VAR _Children = FILTER(ALL(WorkItems), WorkItems[ParentWorkItemId] = _EpicId)
+			VAR _ChildIds = SELECTCOLUMNS(_Children, "Id", WorkItems[WorkItemId])
+			VAR _Grandchildren = FILTER(ALL(WorkItems), CONTAINSROW(_ChildIds, WorkItems[ParentWorkItemId]))
+			VAR _AllDescendants = UNION(
+			    SELECTCOLUMNS(_Children, "Sizing", WorkItems[Custom_Sizing]),
+			    SELECTCOLUMNS(_Grandchildren, "Sizing", WorkItems[Custom_Sizing])
+			)
+			VAR _SizedDescendants = FILTER(_AllDescendants, NOT ISBLANK([Sizing]))
+			VAR _Total = SUMX(
+			    _SizedDescendants,
+			    SWITCH(
+			        [Sizing],
+			        "XS (<1 day)", 1,
+			        "S (1-2 days)", 2,
+			        "M (3-5 days)", 5,
+			        "L (6-10 days)", 10,
+			        "XL (10+ days)", 15,
+			        0
+			    )
+			)
+			RETURN IF(_Total > 0, _Total)
+		dataType: int64
+		formatString: 0
+		lineageTag: 72cd6fc7-c096-4f20-96ad-7d7198e22237
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Number of days since this work item was created. Computed at refresh time.
+	column 'Days in Backlog' = INT(TODAY() - WorkItems[CreatedDate])
+		dataType: int64
+		formatString: 0
+		lineageTag: 0b6fd488-9185-4e28-90f1-541f36871d47
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Count of filled RPG detail fields (0-4): Problem Statement, Proposed Solution, Expected Output, Benefit To Business.
+	column 'RPG Readiness' =
+			VAR _id = FORMAT(WorkItems[WorkItemId], "0")
+			VAR _hasProblem = IF(LEN(LOOKUPVALUE(WorkItemRPGDetails[ProblemStatementText], WorkItemRPGDetails[WorkItemId], _id)) > 0, 1, 0)
+			VAR _hasSolution = IF(LEN(LOOKUPVALUE(WorkItemRPGDetails[ProposedSolutionText], WorkItemRPGDetails[WorkItemId], _id)) > 0, 1, 0)
+			VAR _hasOutput = IF(LEN(LOOKUPVALUE(WorkItemRPGDetails[ExpectedOutputText], WorkItemRPGDetails[WorkItemId], _id)) > 0, 1, 0)
+			VAR _hasBenefit = IF(LEN(LOOKUPVALUE(WorkItemRPGDetails[BenefitToBusinessText], WorkItemRPGDetails[WorkItemId], _id)) > 0, 1, 0)
+			RETURN _hasProblem + _hasSolution + _hasOutput + _hasBenefit
+		dataType: int64
+		formatString: 0
+		lineageTag: cfb38b89-bba3-49d5-8a46-73a441116120
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	/// High-level readiness label based on RPG Readiness score (0-4).
+	column 'Readiness Status' =
+			SWITCH(
+			    WorkItems[RPG Readiness],
+			    0, "No details provided",
+			    1, "Mostly incomplete",
+			    2, "Partially complete",
+			    3, "Almost ready",
+			    4, "Ready for prioritisation",
+			    "Unknown"
+			)
+		dataType: string
+		lineageTag: d724b11c-4865-43a0-b419-cd0a5ce694bc
+		summarizeBy: none
+		sortByColumn: 'RPG Readiness'
+
+	/// Date this request was received on.
+	column Custom_RequestReceived
+		dataType: dateTime
+		formatString: dd/MM/yyyy
+		lineageTag: ea79e0e7-d347-431d-9228-3254bb5ca0d5
+		summarizeBy: none
+		sourceColumn: Custom_RequestReceived
+
+		variation Variation
+			isDefault
+			relationship: 5dc86cd0-6855-4aa2-89b7-83612835faae
+			defaultHierarchy: LocalDateTable_bb1b8073-22b6-4261-ad4e-a53068788fc2.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Do we have all the data in EDW/ODS?
+	column Custom_IsDataAvailable
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 6ab29e67-a835-44d3-b150-47d0ccd7002f
+		summarizeBy: none
+		sourceColumn: Custom_IsDataAvailable
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Board column name from the Epics board (e.g., New, Prioritized, Active). Calculated column looked up from WorkItemBoardSnapshot via bi-directional relationship.
+	column 'Board Column' =
+			VAR _col = LOOKUPVALUE(
+			    WorkItemBoardSnapshot[ColumnName],
+			    WorkItemBoardSnapshot[WorkItemId], WorkItems[WorkItemId]
+			)
+			RETURN IF(NOT ISBLANK(_col), _col)
+		dataType: string
+		lineageTag: a2954a54-5e09-44bc-b5e2-158add27bad8
+		summarizeBy: none
+		sortByColumn: 'Board Column Order'
+
+	/// Sort order for Board Column. Use as Sort By Column for Board Column.
+	column 'Board Column Order' =
+			VAR _col = LOOKUPVALUE(
+			    WorkItemBoardSnapshot[ColumnName],
+			    WorkItemBoardSnapshot[WorkItemId], WorkItems[WorkItemId]
+			)
+			RETURN
+			    SWITCH(
+			        _col,
+			        "New", 1,
+			        "To Be Prioritized", 2,
+			        "To Be Scoped", 2,
+			        "Prioritized", 3,
+			        "Active", 4,
+			        "With Business", 5,
+			        "Under Development", 6,
+			        "Completed", 7,
+			        "Deprioritised", 8,
+			        99
+			    )
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 3e24d5ad-0f76-4aea-8b5c-e7da779b4472
+		summarizeBy: none
+
+	/// Benefit to business text from WorkItemRPGDetails. Calculated column looked up via WorkItemId to avoid BothDirections cross-filter issues in visuals.
+	column 'Benefit To Business' =
+			VAR _val = LOOKUPVALUE(
+			    WorkItemRPGDetails[BenefitToBusinessText],
+			    WorkItemRPGDetails[WorkItemId], FORMAT(WorkItems[WorkItemId], "0")
+			)
+			RETURN IF(NOT ISBLANK(_val), _val)
+		dataType: string
+		lineageTag: 08959b65-e73e-4058-8a71-53028b9809a9
+		summarizeBy: none
+
+	/// Date when the work item most recently changed board column. Looked up from BoardColumnChangeHistory.
+	column 'Board Column Change Date' =
+			VAR _id = WorkItems[WorkItemId]
+			RETURN CALCULATE(
+			    MAX(BoardColumnChangeHistory[ChangeDate]),
+			    REMOVEFILTERS(),
+			    BoardColumnChangeHistory[WorkItemId] = _id
+			)
+		dataType: dateTime
+		formatString: dd/MM/yyyy
+		lineageTag: 7cac349f-a045-45af-8956-7ede117842b1
+		summarizeBy: none
+
+	/// Previous board column before the current board status, based on the latest board column change row for the work item.
+	column 'Previous Status' =
+			VAR _CurrentStatus = WorkItems[Board Column]
+			VAR _WorkItemId = WorkItems[WorkItemId]
+			VAR _LatestChange =
+			    TOPN(
+			        1,
+			        FILTER(
+			            ALL(BoardColumnChangeHistory),
+			            BoardColumnChangeHistory[WorkItemId] = _WorkItemId
+			        ),
+			        BoardColumnChangeHistory[ChangeDate], DESC
+			    )
+			VAR _PreviousStatus = MAXX(_LatestChange, BoardColumnChangeHistory[PreviousBoardColumn])
+			RETURN
+			    IF(
+			        ISBLANK(_CurrentStatus),
+			        BLANK(),
+			        COALESCE(_PreviousStatus, "Initial")
+			    )
+		dataType: string
+		displayFolder: RPG Board
+		lineageTag: 6f4c2ef7-875e-460a-9d4b-10b6a65d34db
+		summarizeBy: none
+
+	partition WorkItems = m
+		mode: import
+		queryGroup: 'DevOps Tables'
+		source =
+				let
+				    Source = OData.Feed("https://analytics.dev.azure.com/EmergeAotearoa/Data%20and%20Analytics/_odata/v3.0-preview/", null, [Implementation="2.0",OmitValues = ODataOmitValues.Nulls,ODataVersion = 4, Headers=[Authorization=fnGetToken()]]),
+				    WorkItems_table = Source{[Name="WorkItems",Signature="table"]}[Data]
+				in
+				    WorkItems_table
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

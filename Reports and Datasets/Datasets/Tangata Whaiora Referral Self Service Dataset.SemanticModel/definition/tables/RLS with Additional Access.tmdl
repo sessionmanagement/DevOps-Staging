@@ -1,0 +1,254 @@
+table 'RLS with Additional Access'
+	isHidden
+	lineageTag: dfcaa126-d8ee-4bf0-b357-b6478b1dbe21
+
+	column 'Hierarchy Number'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 44733131-fd7a-4528-97dd-8e241ee8d4eb
+		summarizeBy: sum
+		sourceColumn: Hierarchy Number
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Employee KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 50725a2a-5bd3-4785-82ec-e222e339a945
+		summarizeBy: sum
+		sourceColumn: Dim Employee KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 76ed423e-9154-45fe-9387-adb7d3900d52
+		summarizeBy: none
+		sourceColumn: Employee ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column 'Employee Job Name'
+		dataType: string
+		isHidden
+		lineageTag: 29bfa583-a335-49c8-923a-6ed199d6df9f
+		summarizeBy: none
+		sourceColumn: Employee Job Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Name'
+		dataType: string
+		isHidden
+		lineageTag: 8a2a0a18-559b-4e35-844b-5a2d38dd088b
+		summarizeBy: none
+		sourceColumn: Service Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Service KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 2589fa10-b2a0-415f-9b18-1c43cea755b0
+		summarizeBy: sum
+		sourceColumn: Dim Service KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 569f5709-6db4-4d2c-b0bb-b121402d7452
+		summarizeBy: none
+		sourceColumn: Service ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column 'Department Name'
+		dataType: string
+		isHidden
+		lineageTag: ab464031-d688-434f-b128-8f9a614c9250
+		summarizeBy: none
+		sourceColumn: Department Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'District Name'
+		dataType: string
+		isHidden
+		lineageTag: 9e99349b-6e48-4a16-b5af-1b4a879cbb1f
+		summarizeBy: none
+		sourceColumn: District Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Region Name'
+		dataType: string
+		isHidden
+		lineageTag: b474cbc5-2c19-41f2-8c2d-e6519454cc88
+		summarizeBy: none
+		sourceColumn: Region Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Company
+		dataType: string
+		isHidden
+		lineageTag: a020326f-1a0d-4726-b97c-76415b4398b8
+		summarizeBy: none
+		sourceColumn: Company
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team Area'
+		dataType: string
+		isHidden
+		lineageTag: f8421f65-2643-4291-8098-87be7cfeb5f4
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Team Area
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team Function'
+		dataType: string
+		isHidden
+		lineageTag: 7faa1f17-04a5-49a7-8d69-162fa4b5e2f5
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Team Function
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team Name'
+		dataType: string
+		isHidden
+		lineageTag: 0af4484b-c89e-435c-bcc4-38f393d7c7ac
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Team Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: efe931b1-195b-4e1c-ad01-80866ccdc2a5
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Team ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Company KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 00d015db-f350-48cf-9f88-947a798a3592
+		summarizeBy: none
+		sourceColumn: Dim Company KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'User Principal Name'
+		dataType: string
+		isHidden
+		lineageTag: f66e8c05-cbc8-45e3-b08f-dd6de4d9e4dc
+		summarizeBy: none
+		sourceColumn: User Principal Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'RLS with Additional Access' = m
+		mode: import
+		queryGroup: 'Row Level Security\New RLS for RB'
+		source =
+				let
+				    // Load both tables
+				    RowLevelSecurity = @#"RLS - New RB Structure ALL services",
+				    AdditionalAccess = #"Additional Access",
+				    PBI_Service_RLS_Impersonation = #"PBI Service RLS Impersonation",
+				
+				    // Join tables
+				    JoinedTable = Table.Join(
+				        AdditionalAccess, "Person to Impersonate Email", RowLevelSecurity, "User Principal Name", JoinKind.RightOuter
+				    ),
+				
+				    #"Added Conditional Column" = Table.AddColumn(
+				        JoinedTable, "Custom", each if [Requester Email] = null then [User Principal Name] else [Requester Email]
+				    ),
+				
+				    #"Removed Columns" = Table.RemoveColumns(
+				        #"Added Conditional Column",
+				        {
+				            "Report",
+				            "Requester Email",
+				            "Person to Impersonate Email",
+				            "Expiry Date",
+				            "Access Reason",
+				            "Approved By Email",
+				            "Approved Date",
+				            "Modified",
+				            "Created",
+				            "Created By Email",
+				            "Modified By Email",
+				            "Version",
+				            "User Principal Name"
+				        }
+				    ),
+				
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns", {{"Custom", "User Principal Name"}}),
+				
+				    #"Reordered Columns" = Table.ReorderColumns(
+				        #"Renamed Columns", {"User Principal Name"}
+				    ),
+				
+				    #"Changed Type" = Table.TransformColumnTypes(#"Reordered Columns", {{"User Principal Name", type text}}),
+				    #"Appended Query" = Table.Combine({#"Changed Type", #"RLS - New RB Structure ALL services"}),
+				    #"Removed Duplicates" = Table.Distinct(#"Appended Query")
+				in
+				    #"Removed Duplicates"
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

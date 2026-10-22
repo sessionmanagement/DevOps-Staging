@@ -1,0 +1,109 @@
+table fact_user_team
+	lineageTag: b85e1d1d-8a6f-4f1d-8135-5221e1f270c4
+
+	measure UserTeamsConcatenated =
+			
+			CONCATENATEX(
+			    VALUES(fact_user_team[TeamFull]),
+			    fact_user_team[TeamFull],
+			    UNICHAR(10),
+			    fact_user_team[TeamFull],
+			    ASC
+			)
+		lineageTag: 0c1bbf37-68b3-438e-a8f7-fdde9cc4ea9b
+
+	column UserTeamID
+		dataType: int64
+		formatString: 0
+		lineageTag: 5db8a290-11be-405b-8161-651aa1bc484b
+		summarizeBy: count
+		sourceColumn: UserTeamID
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserID
+		dataType: string
+		lineageTag: 6eee8c9e-2335-4624-a714-9d70084bfca4
+		summarizeBy: none
+		sourceColumn: UserID
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamID
+		dataType: string
+		lineageTag: 70f245bb-44df-4fcf-9a66-6cdfc9efb61d
+		summarizeBy: none
+		sourceColumn: TeamID
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamCode
+		dataType: string
+		lineageTag: 9348762c-e3cf-4d78-b03c-feec571229e2
+		summarizeBy: none
+		sourceColumn: TeamCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamName
+		dataType: string
+		lineageTag: 3bfe44f5-4ddd-4ef9-bd96-51890b25fdd9
+		summarizeBy: none
+		sourceColumn: TeamName
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamDescription
+		dataType: string
+		lineageTag: 5cfed83b-d8d4-498a-82ae-d3f1f5f30ee4
+		summarizeBy: none
+		sourceColumn: TeamDescription
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamUDF5
+		dataType: string
+		lineageTag: 4bd0f1c8-636b-4fc5-8b44-149b5a914f5b
+		summarizeBy: none
+		sourceColumn: TeamUDF5
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionName
+		dataType: string
+		lineageTag: d6cdcc68-7f54-46e7-a345-3467aaf78ffc
+		summarizeBy: none
+		sourceColumn: TeamFunctionName
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFull = CONCATENATE(fact_user_team[TeamFunctionName] & " :: ",fact_user_team[TeamName])
+		lineageTag: 6462a6f2-48a0-458f-8b30-fbcb6956ad3a
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'TeamFunctionName Hierarchy'
+		lineageTag: 4baf1b6a-d2a4-4ad3-8cab-7885f75d3a9c
+
+		level 'Team Function Name'
+			lineageTag: 3cb313ca-afd9-40a1-ac61-7fc0d727ea3f
+			column: TeamFunctionName
+
+		level 'Team Name'
+			lineageTag: 6e434e72-c0b5-46b9-907b-a245b3f58fca
+			column: TeamName
+
+	partition fact_user_team = m
+		mode: import
+		queryGroup: RecordBase
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT#(lf)fut.UserTeamID,#(lf)CONCAT('E-',fut.UserID) AS UserID,#(lf)CONCAT('E-',dt.TeamID) AS TeamID,#(lf)dt.TeamCode,#(lf)dt.TeamName,#(lf)dt.TeamDescription,#(lf)dt.TeamUDF5,#(lf)dtf.TeamFunctionName#(lf)FROM [RBEAL].[dlFactUserTeam] fut#(lf)INNER JOIN [RBEAL].[dlDimTeam] dt ON fut.TeamID = dt.TeamID#(lf)INNER JOIN [RBEAL].[dlDimTeamFunction] dtf ON dt.TeamFunctionID = dtf.TeamFunctionID#(lf)WHERE fut.UserTeamDeletedDate IS NOT NULL AND dt.TeamEndDate IS NULL#(lf)UNION ALL#(lf)SELECT#(lf)fut.UserTeamID,#(lf)CONCAT('M-',fut.UserID) AS UserID,#(lf)CONCAT('M-',dt.TeamID) AS TeamID,#(lf)dt.TeamCode,#(lf)dt.TeamName,#(lf)dt.TeamDescription,#(lf)dt.TeamUDF5,#(lf)dtf.TeamFunctionName#(lf)FROM [RBMNB].[dlFactUserTeam] fut#(lf)INNER JOIN [RBMNB].[dlDimTeam] dt ON fut.TeamID = dt.TeamID#(lf)INNER JOIN [RBMNB].[dlDimTeamFunction] dtf ON dt.TeamFunctionID = dtf.TeamFunctionID#(lf)WHERE fut.UserTeamDeletedDate IS NOT NULL AND dt.TeamEndDate IS NULL"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

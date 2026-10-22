@@ -1,0 +1,57 @@
+table 'Dim Gender'
+	lineageTag: c85832ee-90a1-4d8f-b406-a2e085e1a96b
+
+	column 'Dim Gender KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 86bb6d32-5820-42f5-bc4c-bb6b5e2926c2
+		summarizeBy: none
+		sourceColumn: Dim Gender KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Gender Name'
+		dataType: string
+		lineageTag: 1272b5b2-57a2-45bb-9e87-fc236b3b1fca
+		summarizeBy: none
+		sourceColumn: Gender Name
+		sortByColumn: 'Dim Gender KEY'
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Gender' = m
+		mode: import
+		queryGroup: Dims
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)    [dim_gender_key],#(lf)    [gender_name]#(lf)FROM [edw].[vw_dim_gender]#(lf)WHERE (([dim_gender_key] <> -1 AND [dim_gender_key] <> 0));"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				    #"Filtered Rows" = Table.SelectRows(#"Transformed Column Names", each ([Dim Gender KEY] <> -1 and [Dim Gender KEY] <> 0)),
+				    #"Replaced Value" = Table.ReplaceValue(#"Filtered Rows","Another Gender / He ira kē anō","Gender Diverse / He ira kē anō",Replacer.ReplaceText,{"Gender Name"})
+				in
+				    #"Replaced Value"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

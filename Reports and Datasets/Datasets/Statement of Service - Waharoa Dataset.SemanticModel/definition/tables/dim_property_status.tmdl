@@ -1,0 +1,37 @@
+table dim_property_status
+	lineageTag: 423fa5b9-024d-45e8-b155-71c7795d9dec
+
+	column statuscode
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 39a2698c-3c52-4053-9a19-0bdbbed9ef8a
+		summarizeBy: none
+		sourceColumn: statuscode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column statuscodename
+		dataType: string
+		lineageTag: 511be108-83f4-474f-976e-abf495b914fb
+		summarizeBy: none
+		sourceColumn: statuscodename
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_property_status-0d3abb71-2ecc-45bc-8fad-7ad786268036 = m
+		mode: import
+		queryGroup: dimensions
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT DISTINCT CASE dp.property_statuscode WHEN 'Active' THEN 1 WHEN 'Inactive' THEN 2 WHEN 'Disposed' THEN 100000000 END AS statuscode, dp.property_statuscode AS statuscodename FROM [edw].[dim_property] dp WHERE dp.[DWHIsCurrent] = 1 AND dp.[DWHDMLOperation] <> 'D' AND dp.[property_id] IS NOT NULL AND dp.property_statuscode IN ('Active','Inactive','Disposed')"]),
+				    #"Filtered Rows" = Table.SelectRows(Source, each ([statuscode] <> null))
+				in
+				    #"Filtered Rows"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

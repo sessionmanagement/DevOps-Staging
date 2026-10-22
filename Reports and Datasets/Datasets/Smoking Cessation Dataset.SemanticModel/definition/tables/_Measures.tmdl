@@ -1,0 +1,495 @@
+table _Measures
+	lineageTag: d7709112-34a3-4bae-9afb-03c288aa6289
+
+	measure 'Title: All Teams Page' =
+			
+			IF(
+			    HASONEVALUE(dim_date[financial_year_num]),
+			        CONCATENATE("Referral Summary | FY ",SELECTEDVALUE(dim_date[financial_year_num])),
+			        "Referral Summary | Multiple FYs"
+			)
+		lineageTag: 601a6639-d4a7-4118-afdc-7145e19fa737
+
+	measure 'Smoking Assessment Count' =
+			
+			DISTINCTCOUNT(fact_smoking_assessment_explosion[PersonSmokingHistoryID])
+		formatString: 0
+		lineageTag: 691ec5e9-ec20-439e-bc56-4b5851eccf9e
+
+	measure 'Count of assessments with brief advice' =
+			
+			CALCULATE([Smoking Assessment Count], fact_smoking_assessment_explosion[BriefAdviceGiven] = "Yes", fact_smoking_assessment_explosion[ActiveReferralAtTimeOfAssessmentExists] = "Yes")
+		formatString: 0
+		lineageTag: d4a6119a-7f00-4167-9042-71f18798a1e2
+
+	measure 'Count distinct clients with assessments' =
+			
+			DISTINCTCOUNT(fact_smoking_assessment_explosion[PersonID])
+		formatString: 0
+		lineageTag: 9e9a52d0-3171-4957-90a5-1eb7e7dc2e21
+
+	measure 'Unique improved clients' =
+			
+			CALCULATE([Count distinct clients with assessments], fact_smoking_assessment_explosion[ImprovementOnPrevAssessmentStatus] = "Improvement")
+		formatString: 0
+		lineageTag: abef5de2-0d6a-4e92-ae37-9e6d6a579cc0
+
+	measure 'Unique regressed clients' =
+			
+			CALCULATE([Count distinct clients with assessments], fact_smoking_assessment_explosion[ImprovementOnPrevAssessmentStatus] = "Regression")
+		formatString: 0
+		lineageTag: 72a0b572-5fbb-485a-a4e4-396e3f0c51f0
+
+	measure 'Unique no-change clients' =
+			
+			CALCULATE([Count distinct clients with assessments], fact_smoking_assessment_explosion[ImprovementOnPrevAssessmentStatus] = "No change")
+		formatString: 0
+		lineageTag: 56a9dca2-5aca-4b20-b61f-ed14e2bc3821
+
+	measure 'Unique first-time assessed clients' =
+			
+			CALCULATE([Count distinct clients with assessments], fact_smoking_assessment_explosion[ImprovementOnPrevAssessmentStatus] = "No prior assessment")
+		formatString: 0
+		lineageTag: 76167041-1865-490f-be68-4dd2a11e29e7
+
+	measure 'DV - Template 1' =
+			
+			SWITCH(
+			    SELECTEDVALUE(template1[id]),
+			    1, IF(ISBLANK([Smoking Assessment Count]),0,[Smoking Assessment Count]),
+			    2, IF(ISBLANK([Count of assessments with brief advice]),0,[Count of assessments with brief advice]),
+			    3, IF(ISBLANK([Count of assessments where support services offered]),0,[Count of assessments where support services offered]),
+			    4, IF(ISBLANK([Count distinct clients with assessments]),0,[Count distinct clients with assessments]),
+			    5, IF(ISBLANK([Unique improved clients]),0,[Unique improved clients]),
+			    6, IF(ISBLANK([Unique regressed clients]),0,[Unique regressed clients]),
+			    7, IF(ISBLANK([Unique no-change clients]),0,[Unique no-change clients]),
+			    8, IF(ISBLANK([Unique first-time assessed clients]),0,[Unique first-time assessed clients]),
+			    9, IF(ISBLANK([Assessments for smokers where advice not given]),0,[Assessments for smokers where advice not given]),
+			    10,IF(ISBLANK([% of current clients with active referral that have ever had a smoking assessment]),FORMAT(0,"percent"),FORMAT([% of current clients with active referral that have ever had a smoking assessment],"percent")),
+			    11,IF(ISBLANK([% of current clients whose most recent smoking status is current smoker]),FORMAT(0,"percent"),FORMAT([% of current clients whose most recent smoking status is current smoker],"percent")),
+			    12,IF(ISBLANK([% of current clients whose most recent smoking status is current smoker and were given brief advice to quit]),FORMAT(0,"percent"),FORMAT([% of current clients whose most recent smoking status is current smoker and were given brief advice to quit],"percent")),
+			    13,IF(ISBLANK([% of current clients whose most recent smoking status is current smoker and referred to cessation services]),FORMAT(0,"percent"),FORMAT([% of current clients whose most recent smoking status is current smoker and referred to cessation services],"percent")),
+			    14,IF(ISBLANK([Number of current clients who have ever had a smoking status recorded by the provider]),0,[Number of current clients who have ever had a smoking status recorded by the provider]),
+			    15,IF(ISBLANK([Number of current clients whose most recent smoking status is current smoker]),0,[Number of current clients whose most recent smoking status is current smoker]),
+			    16,IF(ISBLANK([Count of assessments where client referred to cessation services]),0,[Count of assessments where client referred to cessation services])
+			)
+		formatString: 0
+		lineageTag: d0c8e6cf-af71-4ea8-8081-f5907d3490cc
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Assessments for smokers where advice not given' =
+			
+			CALCULATE([Smoking Assessment Count],fact_smoking_assessment_explosion[AssessmentRank] > 2, fact_smoking_assessment_explosion[BriefAdviceGiven] = "No")
+		formatString: 0
+		lineageTag: 26828d53-b095-4d5b-a307-a6dde10d3382
+
+	measure 'Count of assessments where support services offered' =
+			
+			CALCULATE([Smoking Assessment Count], fact_smoking_assessment_explosion[SupportServicesOfferedYN] = "Yes")
+		formatString: 0
+		lineageTag: 7db2d88a-e154-467c-b743-e27ec07cf32a
+
+	measure 'Count of active referrals' =
+			
+			DISTINCTCOUNT(fact_referral[ID])
+		formatString: 0
+		lineageTag: 8e8eb8de-aa37-48ae-8d22-31cdc4c74cc5
+
+	measure 'Count of distinct people with active referrals' =
+			
+			DISTINCTCOUNT(fact_referral[PersonID])
+		formatString: 0
+		lineageTag: 9e647c6b-daf9-4d72-a253-29eb2b561b6e
+
+	measure 'Count of ALL distinct people with a smoking assessment' =
+			
+			CALCULATE(DISTINCTCOUNT(fact_smoking_assessment_explosion[PersonID]),ALL(dim_date))
+		formatString: 0
+		lineageTag: e91133d5-cca7-430d-afde-4c21ab5ea3a5
+
+	measure 'Number of current clients who have ever had a smoking status recorded by the provider' =
+			
+			//CALCULATE(DISTINCTCOUNT(fact_smoking_assessment_explosion[PersonID]),fact_smoking_assessment_explosion[ActiveReferralAtTimeOfAssessmentExists] = "Yes")
+			VAR _MaxDate = MAX(dim_date[calendar_date])
+			RETURN
+			CALCULATE(
+			    DISTINCTCOUNT(fact_referral[PersonID]),
+			    fact_referral[PersonEarliestSmokingAssessment] <= _MaxDate,
+			    NOT(ISBLANK(fact_referral[PersonEarliestSmokingAssessment]))
+			)
+		formatString: 0
+		lineageTag: 5b4e8475-7285-440a-a4ad-4359948164d8
+
+	measure '% of current clients with active referral that have ever had a smoking assessment' =
+			
+			[Number of current clients who have ever had a smoking status recorded by the provider] / [Count of distinct people with active referrals]
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: f0e46db9-0f8d-49ef-a817-92f9db7cbc05
+
+	measure 'Number of current clients whose most recent smoking status is current smoker' = ```
+			
+			VAR _MaxDate = MAX(dim_date[calendar_date])
+			RETURN
+			CALCULATE (
+			    DISTINCTCOUNT ( fact_all_person_assessment_history_slim[PersonID] ),
+			    TREATAS (
+			        VALUES ( fact_referral[PersonID] ),
+			        fact_all_person_assessment_history_slim[PersonID]
+			    ),
+			    FILTER (
+			        ALL ( fact_all_person_assessment_history_slim ),
+			        fact_all_person_assessment_history_slim[PersonSmokingHistoryAssessmentDate] <= _MaxDate &&
+			        fact_all_person_assessment_history_slim[MaxRowNumberAscPerson] = MAXX (
+			            FILTER (
+			                ALL(fact_all_person_assessment_history_slim), 
+			                fact_all_person_assessment_history_slim[PersonID] = EARLIER ( fact_all_person_assessment_history_slim[PersonID] ) &&
+			                fact_all_person_assessment_history_slim[PersonSmokingHistoryAssessmentDate] <= _MaxDate
+			            ),
+			            fact_all_person_assessment_history_slim[MaxRowNumberAscPerson]
+			        ) && fact_all_person_assessment_history_slim[SmokerStatus] = "Smoker"
+			    )
+			)
+			
+			
+			/*
+			VAR _MaxDate = MAX(dim_date[calendar_date])
+			RETURN
+			CALCULATE(
+			    DISTINCTCOUNT(fact_smoking_assessment_explosion[PersonID]),
+			    fact_smoking_assessment_explosion[AcceptedDate] <= _MaxDate,
+			    OR(ISBLANK(fact_smoking_assessment_explosion[DischargeDate]),fact_smoking_assessment_explosion[DischargeDate] > _MaxDate),
+			    fact_smoking_assessment_explosion[SmokerOrNonSmoker] = "Smoker"
+			)
+			*/
+			/*
+			CALCULATE(DISTINCTCOUNT(fact_smoking_assessment_explosion[PersonID]),
+			fact_smoking_assessment_explosion[ActiveReferralAtTimeOfAssessmentExists] = "Yes",
+			fact_smoking_assessment_explosion[SmokerOrNonSmoker] = "Smoker")
+			*/
+			```
+		formatString: 0
+		lineageTag: b1fbd140-ea10-45e1-ac56-520ba88737de
+
+	measure '% of current clients whose most recent smoking status is current smoker' =
+			
+			[Number of current clients whose most recent smoking status is current smoker] / [Number of current clients who have ever had a smoking status recorded by the provider]
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: ba8aff05-637e-4c1a-9f1f-abe0fba707ae
+
+	measure '% of current clients whose most recent smoking status is current smoker and were given brief advice to quit' =
+			
+			/* come back to this top measure. Need to work on the Number of people given brief advice in last 6 months measure. */
+			[Number of people given brief advice in last 6 months] / [Number of current clients whose most recent smoking status is current smoker]
+			
+			
+			/*CALCULATE([Number of current clients whose most recent smoking status is current smoker],fact_smoking_assessment_explosion[BriefAdviceGiven] = "Yes") / [Number of current clients whose most recent smoking status is current smoker]
+			Above measure is for current status only.
+			*/
+		lineageTag: 7aaded34-24b6-4944-97f0-06935e9347d7
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% of current clients whose most recent smoking status is current smoker and referred to cessation services' =
+			
+			[Number of people provided with some form of support in last 6 months] / [Number of current clients whose most recent smoking status is current smoker]
+			
+			//[Number of people referred to cessation services in last 6 months] / [Number of current clients whose most recent smoking status is current smoker]
+			
+			/*
+			CALCULATE([Number of current clients whose most recent smoking status is current smoker],fact_smoking_assessment_explosion[SupportServicesOfferedYN] = "Yes") / [Number of current clients whose most recent smoking status is current smoker]
+			*/
+		lineageTag: 843f7ac7-c657-4329-922e-927802c776bf
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Count of active clients as of today' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT(dim_person[PersonID]),
+			    fact_referral[DischargeDateOrToday] = TODAY()
+			)
+		formatString: 0
+		lineageTag: 09c78695-5125-43b5-8807-524b45d666a6
+
+	measure 'Filters Applied' =
+			
+			VAR FC_dim_date_calendar_date = "DATE RANGE: " & FORMAT(MIN('dim_date'[calendar_date]), "dd/MM/yyyy") & " - " & FORMAT(MAX('dim_date'[calendar_date]), "dd/MM/yyyy")
+			
+			VAR dim_team_TeamStatus = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_team'[TeamStatus]), NOT(ISBLANK('dim_team'[TeamStatus]))), 'dim_team'[TeamStatus], ASC),
+			    "TeamStatus_display", 'dim_team'[TeamStatus]
+			)
+			VAR dim_team_TeamStatusCount = IF(ISFILTERED('dim_team'[TeamStatus]), COUNTROWS(VALUES('dim_team'[TeamStatus])), 0)
+			VAR More_dim_team_TeamStatus = IF(dim_team_TeamStatusCount > 5, " and " & (dim_team_TeamStatusCount - 5) & " more", "")
+			VAR FC_dim_team_TeamStatus = IF(dim_team_TeamStatusCount > 0, "TEAM STATUS: " & CONCATENATEX(dim_team_TeamStatus, [TeamStatus_display], ", "), BLANK()) & More_dim_team_TeamStatus
+			
+			VAR dim_team_Company = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_team'[Company]), NOT(ISBLANK('dim_team'[Company]))), 'dim_team'[Company], ASC),
+			    "Company_display", 'dim_team'[Company]
+			)
+			VAR dim_team_CompanyCount = IF(ISFILTERED('dim_team'[Company]), COUNTROWS(VALUES('dim_team'[Company])), 0)
+			VAR More_dim_team_Company = IF(dim_team_CompanyCount > 5, " and " & (dim_team_CompanyCount - 5) & " more", "")
+			VAR FC_dim_team_Company = IF(dim_team_CompanyCount > 0, "COMPANIES CHOSEN: " & CONCATENATEX(dim_team_Company, [Company_display], ", "), BLANK()) & More_dim_team_Company
+			
+			VAR dim_team_AreaName = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_team'[AreaName]), NOT(ISBLANK('dim_team'[AreaName]))), 'dim_team'[AreaName], ASC),
+			    "AreaName_display", 'dim_team'[AreaName]
+			)
+			VAR dim_team_AreaNameCount = IF(ISFILTERED('dim_team'[AreaName]), COUNTROWS(VALUES('dim_team'[AreaName])), 0)
+			VAR More_dim_team_AreaName = IF(dim_team_AreaNameCount > 5, " and " & (dim_team_AreaNameCount - 5) & " more", "")
+			VAR FC_dim_team_AreaName = IF(dim_team_AreaNameCount > 0, "AREA NAMES CHOSEN: " & CONCATENATEX(dim_team_AreaName, [AreaName_display], ", "), BLANK()) & More_dim_team_AreaName
+			
+			VAR dim_team_TeamName = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_team'[TeamName]), NOT(ISBLANK('dim_team'[TeamName]))), 'dim_team'[TeamName], ASC),
+			    "TeamName_display", 'dim_team'[TeamName]
+			)
+			VAR dim_team_TeamNameCount = IF(ISFILTERED('dim_team'[TeamName]), COUNTROWS(VALUES('dim_team'[TeamName])), 0)
+			VAR More_dim_team_TeamName = IF(dim_team_TeamNameCount > 5, " and " & (dim_team_TeamNameCount - 5) & " more", "")
+			VAR FC_dim_team_TeamName = IF(dim_team_TeamNameCount > 0, "TEAMS CHOSEN: " & CONCATENATEX(dim_team_TeamName, [TeamName_display], ", "), BLANK()) & More_dim_team_TeamName
+			
+			VAR dim_ethnicity_EthnicityBucket = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_ethnicity'[EthnicityBucket]), NOT(ISBLANK('dim_ethnicity'[EthnicityBucket]))), 'dim_ethnicity'[EthnicityBucket], ASC),
+			    "EthnicityBucket_display", 'dim_ethnicity'[EthnicityBucket]
+			)
+			VAR dim_ethnicity_EthnicityBucketCount = IF(ISFILTERED('dim_ethnicity'[EthnicityBucket]), COUNTROWS(VALUES('dim_ethnicity'[EthnicityBucket])), 0)
+			VAR More_dim_ethnicity_EthnicityBucket = IF(dim_ethnicity_EthnicityBucketCount > 5, " and " & (dim_ethnicity_EthnicityBucketCount - 5) & " more", "")
+			VAR FC_dim_ethnicity_EthnicityBucket = IF(dim_ethnicity_EthnicityBucketCount > 0, "ETHNICITIES CHOSEN: " & CONCATENATEX(dim_ethnicity_EthnicityBucket, [EthnicityBucket_display], ", "), BLANK()) & More_dim_ethnicity_EthnicityBucket
+			
+			VAR dim_gender_GenderText = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_gender'[GenderText]), NOT(ISBLANK('dim_gender'[GenderText]))), 'dim_gender'[GenderText], ASC),
+			    "GenderText_display", 'dim_gender'[GenderText]
+			)
+			VAR dim_gender_GenderTextCount = IF(ISFILTERED('dim_gender'[GenderText]), COUNTROWS(VALUES('dim_gender'[GenderText])), 0)
+			VAR More_dim_gender_GenderText = IF(dim_gender_GenderTextCount > 5, " and " & (dim_gender_GenderTextCount - 5) & " more", "")
+			VAR FC_dim_gender_GenderText = IF(dim_gender_GenderTextCount > 0, "GENDERS CHOSEN: " & CONCATENATEX(dim_gender_GenderText, [GenderText_display], ", "), BLANK()) & More_dim_gender_GenderText
+			
+			VAR dim_age_AgeBucket = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_age'[AgeBucket]), NOT(ISBLANK('dim_age'[AgeBucket]))), 'dim_age'[AgeBucket], ASC),
+			    "AgeBucket_display", 'dim_age'[AgeBucket]
+			)
+			VAR dim_age_AgeBucketCount = IF(ISFILTERED('dim_age'[AgeBucket]), COUNTROWS(VALUES('dim_age'[AgeBucket])), 0)
+			VAR More_dim_age_AgeBucket = IF(dim_age_AgeBucketCount > 5, " and " & (dim_age_AgeBucketCount - 5) & " more", "")
+			VAR FC_dim_age_AgeBucket = IF(dim_age_AgeBucketCount > 0, "AGE BUCKETS CHOSEN: " & CONCATENATEX(dim_age_AgeBucket, [AgeBucket_display], ", "), BLANK()) & More_dim_age_AgeBucket
+			
+			RETURN
+			IF(
+			    (ISBLANK(FC_dim_date_calendar_date) || FC_dim_date_calendar_date = "") && (ISBLANK(FC_dim_team_TeamStatus) || FC_dim_team_TeamStatus = "") && (ISBLANK(FC_dim_team_Company) || FC_dim_team_Company = "") && (ISBLANK(FC_dim_team_AreaName) || FC_dim_team_AreaName = "") && (ISBLANK(FC_dim_team_TeamName) || FC_dim_team_TeamName = "") && (ISBLANK(FC_dim_ethnicity_EthnicityBucket) || FC_dim_ethnicity_EthnicityBucket = "") && (ISBLANK(FC_dim_gender_GenderText) || FC_dim_gender_GenderText = "") && (ISBLANK(FC_dim_age_AgeBucket) || FC_dim_age_AgeBucket = ""),
+			    "No filters are currently applied to this page.",
+			    "Please note that the following filters are currently applied to this page: " &
+			    CONCATENATEX(FILTER({ FC_dim_date_calendar_date, FC_dim_team_TeamStatus, FC_dim_team_Company, FC_dim_team_AreaName, FC_dim_team_TeamName, FC_dim_ethnicity_EthnicityBucket, FC_dim_gender_GenderText, FC_dim_age_AgeBucket }, [Value] <> BLANK()), [Value], " | ")
+			)
+		lineageTag: 6350a3f6-2767-429d-9120-ff0c8964ae25
+
+	measure 'Formatting for Improvement Status' =
+			
+			IF(
+			    SELECTEDVALUE(fact_smoking_assessment_explosion[ImprovementOnPrevAssessmentStatus]) = "Improvement", "#30ba8d",
+			    IF(SELECTEDVALUE(fact_smoking_assessment_explosion[ImprovementOnPrevAssessmentStatus]) = "Regression", "#f47c20")
+			)
+		lineageTag: 7644d9c0-9ef6-435b-acea-af0f5553a1a6
+
+	measure FiltersAppliedForTodayPages =
+			
+			VAR FC_dim_date_calendar_date = IF(ISFILTERED('dim_date'[calendar_date]), "DATE RANGE: " & FORMAT(MIN('dim_date'[calendar_date]), "dd/MM/yyyy") & " - " & FORMAT(MAX('dim_date'[calendar_date]), "dd/MM/yyyy"), BLANK())
+			
+			VAR dim_team_TeamStatus = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_team'[TeamStatus]), NOT(ISBLANK('dim_team'[TeamStatus]))), 'dim_team'[TeamStatus], ASC),
+			    "TeamStatus_display", 'dim_team'[TeamStatus]
+			)
+			VAR dim_team_TeamStatusCount = IF(ISFILTERED('dim_team'[TeamStatus]), COUNTROWS(VALUES('dim_team'[TeamStatus])), 0)
+			VAR More_dim_team_TeamStatus = IF(dim_team_TeamStatusCount > 5, " and " & (dim_team_TeamStatusCount - 5) & " more", "")
+			VAR FC_dim_team_TeamStatus = IF(dim_team_TeamStatusCount > 0, "TEAM STATUS: " & CONCATENATEX(dim_team_TeamStatus, [TeamStatus_display], ", "), BLANK()) & More_dim_team_TeamStatus
+			
+			VAR dim_team_Company = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_team'[Company]), NOT(ISBLANK('dim_team'[Company]))), 'dim_team'[Company], ASC),
+			    "Company_display", 'dim_team'[Company]
+			)
+			VAR dim_team_CompanyCount = IF(ISFILTERED('dim_team'[Company]), COUNTROWS(VALUES('dim_team'[Company])), 0)
+			VAR More_dim_team_Company = IF(dim_team_CompanyCount > 5, " and " & (dim_team_CompanyCount - 5) & " more", "")
+			VAR FC_dim_team_Company = IF(dim_team_CompanyCount > 0, "COMPANIES CHOSEN: " & CONCATENATEX(dim_team_Company, [Company_display], ", "), BLANK()) & More_dim_team_Company
+			
+			VAR dim_team_AreaName = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_team'[AreaName]), NOT(ISBLANK('dim_team'[AreaName]))), 'dim_team'[AreaName], ASC),
+			    "AreaName_display", 'dim_team'[AreaName]
+			)
+			VAR dim_team_AreaNameCount = IF(ISFILTERED('dim_team'[AreaName]), COUNTROWS(VALUES('dim_team'[AreaName])), 0)
+			VAR More_dim_team_AreaName = IF(dim_team_AreaNameCount > 5, " and " & (dim_team_AreaNameCount - 5) & " more", "")
+			VAR FC_dim_team_AreaName = IF(dim_team_AreaNameCount > 0, "AREA NAMES CHOSEN: " & CONCATENATEX(dim_team_AreaName, [AreaName_display], ", "), BLANK()) & More_dim_team_AreaName
+			
+			VAR dim_team_TeamName = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_team'[TeamName]), NOT(ISBLANK('dim_team'[TeamName]))), 'dim_team'[TeamName], ASC),
+			    "TeamName_display", 'dim_team'[TeamName]
+			)
+			VAR dim_team_TeamNameCount = IF(ISFILTERED('dim_team'[TeamName]), COUNTROWS(VALUES('dim_team'[TeamName])), 0)
+			VAR More_dim_team_TeamName = IF(dim_team_TeamNameCount > 5, " and " & (dim_team_TeamNameCount - 5) & " more", "")
+			VAR FC_dim_team_TeamName = IF(dim_team_TeamNameCount > 0, "TEAMS CHOSEN: " & CONCATENATEX(dim_team_TeamName, [TeamName_display], ", "), BLANK()) & More_dim_team_TeamName
+			
+			VAR dim_ethnicity_EthnicityBucket = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_ethnicity'[EthnicityBucket]), NOT(ISBLANK('dim_ethnicity'[EthnicityBucket]))), 'dim_ethnicity'[EthnicityBucket], ASC),
+			    "EthnicityBucket_display", 'dim_ethnicity'[EthnicityBucket]
+			)
+			VAR dim_ethnicity_EthnicityBucketCount = IF(ISFILTERED('dim_ethnicity'[EthnicityBucket]), COUNTROWS(VALUES('dim_ethnicity'[EthnicityBucket])), 0)
+			VAR More_dim_ethnicity_EthnicityBucket = IF(dim_ethnicity_EthnicityBucketCount > 5, " and " & (dim_ethnicity_EthnicityBucketCount - 5) & " more", "")
+			VAR FC_dim_ethnicity_EthnicityBucket = IF(dim_ethnicity_EthnicityBucketCount > 0, "ETHNICITIES CHOSEN: " & CONCATENATEX(dim_ethnicity_EthnicityBucket, [EthnicityBucket_display], ", "), BLANK()) & More_dim_ethnicity_EthnicityBucket
+			
+			VAR dim_gender_GenderText = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_gender'[GenderText]), NOT(ISBLANK('dim_gender'[GenderText]))), 'dim_gender'[GenderText], ASC),
+			    "GenderText_display", 'dim_gender'[GenderText]
+			)
+			VAR dim_gender_GenderTextCount = IF(ISFILTERED('dim_gender'[GenderText]), COUNTROWS(VALUES('dim_gender'[GenderText])), 0)
+			VAR More_dim_gender_GenderText = IF(dim_gender_GenderTextCount > 5, " and " & (dim_gender_GenderTextCount - 5) & " more", "")
+			VAR FC_dim_gender_GenderText = IF(dim_gender_GenderTextCount > 0, "GENDERS CHOSEN: " & CONCATENATEX(dim_gender_GenderText, [GenderText_display], ", "), BLANK()) & More_dim_gender_GenderText
+			
+			VAR dim_age_AgeBucket = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES('dim_age'[AgeBucket]), NOT(ISBLANK('dim_age'[AgeBucket]))), 'dim_age'[AgeBucket], ASC),
+			    "AgeBucket_display", 'dim_age'[AgeBucket]
+			)
+			VAR dim_age_AgeBucketCount = IF(ISFILTERED('dim_age'[AgeBucket]), COUNTROWS(VALUES('dim_age'[AgeBucket])), 0)
+			VAR More_dim_age_AgeBucket = IF(dim_age_AgeBucketCount > 5, " and " & (dim_age_AgeBucketCount - 5) & " more", "")
+			VAR FC_dim_age_AgeBucket = IF(dim_age_AgeBucketCount > 0, "AGE BUCKETS CHOSEN: " & CONCATENATEX(dim_age_AgeBucket, [AgeBucket_display], ", "), BLANK()) & More_dim_age_AgeBucket
+			
+			RETURN
+			IF(
+			    (ISBLANK(FC_dim_date_calendar_date) || FC_dim_date_calendar_date = "") && (ISBLANK(FC_dim_team_TeamStatus) || FC_dim_team_TeamStatus = "") && (ISBLANK(FC_dim_team_Company) || FC_dim_team_Company = "") && (ISBLANK(FC_dim_team_AreaName) || FC_dim_team_AreaName = "") && (ISBLANK(FC_dim_team_TeamName) || FC_dim_team_TeamName = "") && (ISBLANK(FC_dim_ethnicity_EthnicityBucket) || FC_dim_ethnicity_EthnicityBucket = "") && (ISBLANK(FC_dim_gender_GenderText) || FC_dim_gender_GenderText = "") && (ISBLANK(FC_dim_age_AgeBucket) || FC_dim_age_AgeBucket = ""),
+			    "No filters are currently applied to this page.",
+			    "Please note that the following filters are currently applied to this page: " &
+			    CONCATENATEX(FILTER({ FC_dim_date_calendar_date, FC_dim_team_TeamStatus, FC_dim_team_Company, FC_dim_team_AreaName, FC_dim_team_TeamName, FC_dim_ethnicity_EthnicityBucket, FC_dim_gender_GenderText, FC_dim_age_AgeBucket }, [Value] <> BLANK()), [Value], " | ")
+			)
+		lineageTag: 0457335f-b33b-49c7-8765-a718d52b5491
+
+	measure 'Number of people given brief advice in last 6 months' = ```
+			
+			VAR _MaxDate = MAX(dim_date[calendar_date])
+			VAR _StartDate = EDATE(_MaxDate, -6)
+			
+			VAR _PersonsMostRecentStatusAsSmoker =
+			    CALCULATETABLE (
+			        VALUES ( fact_all_person_assessment_history_slim[PersonID] ),
+			        FILTER (
+			            ALL ( fact_all_person_assessment_history_slim ),
+			            fact_all_person_assessment_history_slim[PersonSmokingHistoryAssessmentDate] <= _MaxDate &&
+			            fact_all_person_assessment_history_slim[MaxRowNumberAscPerson] = MAXX (
+			                FILTER (
+			                    ALL(fact_all_person_assessment_history_slim), 
+			                    fact_all_person_assessment_history_slim[PersonID] = EARLIER ( fact_all_person_assessment_history_slim[PersonID] ) &&
+			                    fact_all_person_assessment_history_slim[PersonSmokingHistoryAssessmentDate] <= _MaxDate
+			                ),
+			                fact_all_person_assessment_history_slim[MaxRowNumberAscPerson]
+			            ) && fact_all_person_assessment_history_slim[SmokerStatus] = "Smoker"
+			        )
+			    )
+			
+			RETURN
+			CALCULATE (
+			    DISTINCTCOUNT ( fact_all_person_assessment_history_slim[PersonID] ),
+			    TREATAS (
+			        VALUES ( fact_referral[PersonID] ),
+			        fact_all_person_assessment_history_slim[PersonID]
+			    ),
+			    _PersonsMostRecentStatusAsSmoker,
+			    fact_all_person_assessment_history_slim[PersonSmokingHistoryAssessmentDate] >= _StartDate,
+			    fact_all_person_assessment_history_slim[PersonSmokingHistoryAssessmentDate] <= _MaxDate,
+			    fact_all_person_assessment_history_slim[BriefAdviceGiven] = "Yes"
+			)
+			```
+		formatString: 0
+		lineageTag: 1612084a-6042-4df3-8b11-efe85d9746ba
+
+	measure 'Number of people referred to cessation services in last 6 months' = ```
+			
+			VAR _MaxDate = MAX(dim_date[calendar_date])
+			VAR _StartDate = EDATE(_MaxDate, -6)
+			
+			VAR _PersonsMostRecentStatusAsSmoker =
+			    CALCULATETABLE (
+			        VALUES ( fact_all_person_assessment_history_slim[PersonID] ),
+			        FILTER (
+			            ALL ( fact_all_person_assessment_history_slim ),
+			            fact_all_person_assessment_history_slim[PersonSmokingHistoryAssessmentDate] <= _MaxDate &&
+			            fact_all_person_assessment_history_slim[MaxRowNumberAscPerson] = MAXX (
+			                FILTER (
+			                    ALL(fact_all_person_assessment_history_slim), 
+			                    fact_all_person_assessment_history_slim[PersonID] = EARLIER ( fact_all_person_assessment_history_slim[PersonID] ) &&
+			                    fact_all_person_assessment_history_slim[PersonSmokingHistoryAssessmentDate] >= _StartDate &&
+			                    fact_all_person_assessment_history_slim[PersonSmokingHistoryAssessmentDate] <= _MaxDate
+			                ),
+			                fact_all_person_assessment_history_slim[MaxRowNumberAscPerson]
+			            ) && fact_all_person_assessment_history_slim[SmokerStatus] = "Smoker"
+			            && fact_all_person_assessment_history_slim[ReferredToCessationServices] = "Yes"
+			        )
+			    )
+			
+			RETURN
+			CALCULATE (
+			    DISTINCTCOUNT ( fact_all_person_assessment_history_slim[PersonID] ),
+			    TREATAS (
+			        VALUES ( fact_referral[PersonID] ),
+			        fact_all_person_assessment_history_slim[PersonID]
+			    ),
+			    _PersonsMostRecentStatusAsSmoker
+			)
+			
+			```
+		formatString: 0
+		lineageTag: fa1bc59d-84b9-40e4-8ee4-5ac7bbeded22
+
+	measure 'Number of people provided with some form of support in last 6 months' = ```
+			
+			VAR _MaxDate = MAX(dim_date[calendar_date])
+			VAR _StartDate = EDATE(_MaxDate, -6)
+			
+			VAR _PersonsMostRecentStatusAsSmoker =
+			    CALCULATETABLE (
+			        VALUES ( fact_all_person_assessment_history_slim[PersonID] ),
+			        FILTER (
+			            ALL ( fact_all_person_assessment_history_slim ),
+			            fact_all_person_assessment_history_slim[PersonSmokingHistoryAssessmentDate] <= _MaxDate &&
+			            fact_all_person_assessment_history_slim[MaxRowNumberAscPerson] = MAXX (
+			                FILTER (
+			                    ALL(fact_all_person_assessment_history_slim), 
+			                    fact_all_person_assessment_history_slim[PersonID] = EARLIER ( fact_all_person_assessment_history_slim[PersonID] ) &&
+			                    fact_all_person_assessment_history_slim[PersonSmokingHistoryAssessmentDate] >= _StartDate &&
+			                    fact_all_person_assessment_history_slim[PersonSmokingHistoryAssessmentDate] <= _MaxDate
+			                ),
+			                fact_all_person_assessment_history_slim[MaxRowNumberAscPerson]
+			            ) && fact_all_person_assessment_history_slim[SmokerStatus] = "Smoker"
+			            && fact_all_person_assessment_history_slim[GivenSupportServices] = "Yes"
+			        )
+			    )
+			
+			RETURN
+			CALCULATE (
+			    DISTINCTCOUNT ( fact_all_person_assessment_history_slim[PersonID] ),
+			    TREATAS (
+			        VALUES ( fact_referral[PersonID] ),
+			        fact_all_person_assessment_history_slim[PersonID]
+			    ),
+			    _PersonsMostRecentStatusAsSmoker
+			)
+			
+			```
+		formatString: 0
+		lineageTag: 968240f1-1772-4348-9004-280d065dadd5
+
+	measure 'Count of assessments where client referred to cessation services' =
+			
+			CALCULATE([Smoking Assessment Count], fact_smoking_assessment_explosion[ReferredToExternalCessationSupportServiceYN] = "Yes", fact_smoking_assessment_explosion[ActiveReferralAtTimeOfAssessmentExists] = "Yes")
+		formatString: 0
+		lineageTag: 8c4abdab-05b5-4505-84ad-d58e611c0cdf
+
+	measure RefreshedAt_forDisplay = "Data Last Refreshed: " & FORMAT(LASTDATE(info_last_refreshed[Date Last Refreshed]), "dd/MM/YYYY - hh:mm AM/PM")
+		lineageTag: 87feb09d-518a-4d33-9a0e-addfb57bb258
+
+	partition _Measures-349fffc3-8312-4569-9898-4ac05039bc17 = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [_Measures = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"_Measures", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"_Measures"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+

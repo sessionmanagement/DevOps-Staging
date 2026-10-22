@@ -1,0 +1,353 @@
+table Referrals
+	lineageTag: c75e17ab-06ef-43f6-9ef8-709d507402fa
+
+	measure max(date) = max(Referrals[Referral Status Start Date])
+		formatString: General Date
+		lineageTag: afc8113c-00d6-4b37-b4b4-10e8de0130b9
+
+	measure Discharges = ```
+			
+			VAR SumDischarges=
+			sum(Referrals[Exit (Discharged)])
+			return
+			divide(sumdischarges,1,0)
+			
+			```
+		formatString: 0
+		lineageTag: 0a7f6290-75db-41fd-88a9-085d0c22f6ed
+
+		changedProperty = FormatString
+
+	measure Discharges2 = ```
+			
+			var result = sum([Exit (Discharged)])
+			return
+			if(result,result,0)
+			
+			```
+		formatString: 0
+		lineageTag: 10e15402-661b-41f2-bfa8-91fcc3ba84f9
+
+	column TeamRegion
+		dataType: string
+		lineageTag: 3566cc46-78f2-40ba-a619-3772506122c1
+		summarizeBy: none
+		sourceColumn: TeamRegion
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Data Type'
+		dataType: string
+		lineageTag: b29d8769-77f2-4f09-989f-64c72f32605b
+		summarizeBy: none
+		sourceColumn: Data Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column seen_count
+		dataType: int64
+		formatString: 0
+		lineageTag: dc3b23f0-188b-4527-994e-489100b92887
+		summarizeBy: sum
+		sourceColumn: seen_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Exit (Discharged)'
+		dataType: int64
+		formatString: 0
+		lineageTag: a12c7c87-ce5a-4f56-b898-25fdac40a58b
+		summarizeBy: sum
+		sourceColumn: Exit (Discharged)
+
+		annotation SummarizationSetBy = Automatic
+
+	column referralno
+		dataType: int64
+		formatString: 0
+		lineageTag: b58174ea-66e1-462a-b263-d24401143312
+		summarizeBy: sum
+		sourceColumn: referralno
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 8bca0d70-6eed-4045-a78a-6d75efad4552
+		summarizeBy: none
+		sourceColumn: Referral ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Status Start Date'
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 9c2e8db3-3a71-4c6f-a5f7-4f17ac45054a
+		summarizeBy: none
+		sourceColumn: Referral Status Start Date
+
+		variation Variation
+			isDefault
+			relationship: 7232bc5c-ee05-4fd1-b49e-8bdc43ee84c3
+			defaultHierarchy: LocalDateTable_6e42d532-541e-45ba-b698-24172414a5db.'Date Hierarchy'
+
+		changedProperty = DataType
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column referralstatustypecode
+		dataType: string
+		lineageTag: e648311e-8d6a-4678-98a8-6aa7c349141d
+		summarizeBy: none
+		sourceColumn: referralstatustypecode
+
+		annotation SummarizationSetBy = Automatic
+
+	column referralstatustypegroup
+		dataType: string
+		lineageTag: 9e0b640a-dbc1-48ce-9207-f4fea17ea4c7
+		summarizeBy: none
+		sourceColumn: referralstatustypegroup
+
+		annotation SummarizationSetBy = Automatic
+
+	column referralstatustypestatusorder
+		dataType: int64
+		formatString: 0
+		lineageTag: 05253d6a-21c4-485c-b45d-f9f780e7d73c
+		summarizeBy: sum
+		sourceColumn: referralstatustypestatusorder
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Person Id'
+		dataType: int64
+		formatString: 0
+		lineageTag: 2d34e946-fe33-4d24-b5cb-5594330d54d1
+		summarizeBy: sum
+		sourceColumn: Person Id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Received Date'
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: e12106f6-f7ed-4425-bdb5-07a8073cf16c
+		summarizeBy: none
+		sourceColumn: Referral Received Date
+
+		variation Variation
+			isDefault
+			relationship: e3d0fc44-793b-4dd3-9f6e-047266a141a8
+			defaultHierarchy: LocalDateTable_ceb8226c-7e1e-4a93-b6f0-2b3cfddc3021.'Date Hierarchy'
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column teamname
+		dataType: string
+		lineageTag: e6aa9ddc-4647-4126-90d3-0ac9c47058b1
+		summarizeBy: none
+		sourceColumn: teamname
+
+		annotation SummarizationSetBy = Automatic
+
+	column personfirstname
+		dataType: string
+		lineageTag: be406fd0-4e2b-41a5-85e7-b73c7646cb09
+		summarizeBy: none
+		sourceColumn: personfirstname
+
+		annotation SummarizationSetBy = Automatic
+
+	column personlastname
+		dataType: string
+		lineageTag: 1e509ec5-a1be-4699-a64a-943393399f0b
+		summarizeBy: none
+		sourceColumn: personlastname
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonDateOfBirth
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 45d7c9e8-48a9-4717-a71b-305384857913
+		summarizeBy: none
+		sourceColumn: PersonDateOfBirth
+
+		variation Variation
+			isDefault
+			relationship: edab3157-2e36-48b5-92ba-079145e23188
+			defaultHierarchy: LocalDateTable_4474f75c-61e6-477c-8c7f-8821aa8f6ba9.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column EthnicityText
+		dataType: string
+		lineageTag: c975814d-3d7e-4401-b141-0471cb48fcc7
+		summarizeBy: none
+		sourceColumn: EthnicityText
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Status Type Reason Description'
+		dataType: string
+		lineageTag: 4913198b-39c9-4568-986c-60a9d7b840e8
+		summarizeBy: none
+		sourceColumn: Referral Status Type Reason Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column age_start
+		dataType: string
+		lineageTag: 618e59f4-958f-4ebb-abe5-5f50fb48df0c
+		summarizeBy: none
+		sourceColumn: age_start
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column ageatreferralstart
+		dataType: string
+		lineageTag: 86ce5dea-67fd-45b1-8983-380acff9e0e2
+		summarizeBy: none
+		sourceColumn: ageatreferralstart
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Seen Status'
+		dataType: string
+		lineageTag: 381bc79d-6037-4965-9388-d400f171647b
+		summarizeBy: none
+		sourceColumn: Seen Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column referraldatepure
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: fd0b9c58-97a7-4f5c-a689-d564fee35231
+		summarizeBy: none
+		sourceColumn: referraldatepure
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column 'Referral Type'
+		dataType: string
+		lineageTag: 75566e59-d0c0-436d-b128-604b3f6e3f82
+		summarizeBy: none
+		sourceColumn: Referral Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column teamid
+		dataType: int64
+		formatString: 0
+		lineageTag: 22874ca6-436f-45cf-b01d-41cd24b20a02
+		summarizeBy: none
+		sourceColumn: teamid
+
+		annotation SummarizationSetBy = Automatic
+
+	column outbound_count
+		dataType: int64
+		formatString: 0
+		lineageTag: 6567ee95-28b1-4f80-9599-894832bc92b5
+		summarizeBy: sum
+		sourceColumn: outbound_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Days Waiting'
+		dataType: string
+		lineageTag: 67db7d90-2b83-4ef4-9004-5db957d57eea
+		summarizeBy: none
+		sourceColumn: Days Waiting
+
+		annotation SummarizationSetBy = Automatic
+
+	column EthnicityValue
+		dataType: string
+		lineageTag: c38cd174-bd59-4816-9b22-3e8282c15761
+		summarizeBy: none
+		sourceColumn: EthnicityValue
+
+		annotation SummarizationSetBy = Automatic
+
+	column EthnicityGroup
+		dataType: string
+		lineageTag: ee241c96-ad4e-4c45-be0e-0dbee82dd058
+		summarizeBy: none
+		sourceColumn: EthnicityGroup
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referrer Description'
+		dataType: string
+		lineageTag: 30f7b0fe-b4ec-4d79-b8f7-6660749d1a88
+		summarizeBy: none
+		sourceColumn: Referrer Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReferrerName
+		dataType: string
+		lineageTag: 5d1625bc-8956-4c91-a46e-d43094d18900
+		summarizeBy: none
+		sourceColumn: ReferrerName
+
+		annotation SummarizationSetBy = Automatic
+
+	column includestatus
+		dataType: int64
+		formatString: 0
+		lineageTag: bf927521-3952-4ad5-9d1a-9e7e49ca8a96
+		summarizeBy: sum
+		sourceColumn: includestatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Person Name'
+		dataType: string
+		lineageTag: 2bdffc61-b4cd-49f7-ba34-a1facd72fb5b
+		summarizeBy: none
+		sourceColumn: Person Name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Referrals-271a86cb-5c80-4639-b952-30cf5d96ca5b = m
+		mode: import
+		source = ```
+				let
+				    Source = Sql.Database("eal-sql01.database.windows.net", "Recordbase_EmergeAotearoa_Elite", [Query="#(lf)#(lf)if object_id ('tempdb..#test') is not null drop table #test#(lf)if object_id ('tempdb..#testy2') is not null drop table #testy2#(lf)if object_id ('tempdb..#referralbystatus2') is not null drop table #referralbystatus2#(lf)if object_id ('tempdb..#accepts2') is not null drop table #accepts2#(lf)if object_id ('tempdb..#createdpivot') is not null drop table #createdpivot #(lf)if object_id ('tempdb..#lastdata') is not null drop table #lastdata #(lf)if object_id ('tempdb..#ethnicity') is not null drop table #ethnicity #(lf)if object_id ('tempdb..#outbound') is not null drop table #outbound #(lf)if object_id ('tempdb..#ALMOSTFINAL') is not null drop table #ALMOSTFINAL #(lf)if object_id ('tempdb..#FINAL') is not null drop table #FINAL #(lf)if object_id ('tempdb..#grouponly') is not null drop table #grouponly#(lf)if object_id ('tempdb..#grouponly1') is not null drop table #grouponly1#(lf)if object_id ('tempdb..#grouponly0') is not null drop table #grouponly0#(lf)if object_id ('tempdb..#maxseen') is not null drop table #maxseen #(lf)if object_id ('tempdb..#seenwithgroup') is not null drop table #seenwithgroup  #(lf)if object_id ('tempdb..#finalfinal') is not null drop table #finalfinal#(lf)#(lf)SELECT factreferralstatus.ReferralID#(lf), referralstatusstartdate#(lf),referralstatustypecode#(lf), referralstatustypegroup#(lf), referralstatustypestatusorder#(lf), factreferral.personid#(lf), ReferralReceivedDate#(lf), dimteam.TeamID#(lf), teamname #(lf), personfirstname#(lf), personlastname #(lf), PersonDateOfBirth#(lf), EthnicityText#(lf), EthnicityParentId#(lf), ReferralStatusTypeReasonDescription#(lf), ReferrerDescription#(lf), ReferrerName#(lf),datediff(day,persondateofbirth, referralstatusstartdate)/365.0 as age_start#(lf)into #test#(lf)  FROM [dl].[FactReferralStatus]#(lf)  inner join dl.DimReferralStatusType on FactReferralStatus.ReferralStatusTypeID = DimReferralStatusType.ReferralStatusTypeID#(lf)  inner join dl.factreferral on FactReferralStatus.referralid = factreferral.referralid#(lf)  inner join dl.DimPerson on factreferral.PersonID = dimperson.personid#(lf)  inner join dl.dimteam on factreferral.teamid = dimteam.teamid#(lf)  inner join dl.DimTeamFunction on dimteam.TeamFunctionID = dimteamfunction.TeamFunctionID#(lf)  inner join dl.dimethnicity on dimperson.ethnicity1id = dimethnicity.EthnicityID#(lf)  left join dl.DimReferralStatusTypeReason on FactReferralStatus.ReferralStatusTypeReasonID = DimReferralStatusTypeReason.ReferralStatusTypeReasonID#(lf)  left join dl.dimreferrer on FactReferral.SourceReferrerID = DimReferrer.ReferrerID#(lf)  where   teamname like '%ease%up%'and ReferralStatusStartDate >'2019-06-30'#(lf)  order by ReferralStatusStartDate#(lf)#(lf)  select *, floor(age_start) as ageatreferralstart #(lf)  into #referralbystatus2#(lf)  from #test#(lf)#(lf)  select #(lf)  row_number () over (partition by personid order by personid, referralstatustypegroup, referralstatusstartdate desc) as referralno,#(lf)    *#(lf)  into #accepts2#(lf)  from #referralbystatus2#(lf)  where referralstatustypecode = 'accepted'#(lf)  #(lf)  select#(lf)#(tab)personid,#(lf)#(tab)[1],#(lf)#(tab)[2],#(lf)#(tab)[3],#(lf)#(tab)[4],#(lf)#(tab)[5],#(lf)#(tab)datediff(month,[2],[1]) as diff2and1,#(lf)#(tab)datediff(month,[3],[2]) as diff3and2,#(lf)#(tab)datediff(month,[4],[3]) as diff4and3,#(lf)#(tab)datediff(month,[5],[4]) as diff5and4#(lf)into #createdpivot#(lf)from#(lf)(select personid , referralno, referralstatusstartdate#(lf)from #accepts2 #(lf)) as data1#(lf)pivot(max(referralstatusstartdate) for #(lf)referralno in #(lf)([1],#(lf)[2],#(lf)[3],#(lf)[4],#(lf)[5]#(lf)))as pvt #(lf)order by personid #(lf)#(lf)--===only has 1 referral - all good, take this referral#(lf)select personid , [1] as createddate #(lf)into #testy2#(lf)from #createdpivot #(lf)where [2] is null #(lf)#(lf)union all#(lf)#(lf)--===where there is a second referral only#(lf)select personid, [1] from #createdpivot #(lf)where [2] is not null and diff2and1 >3 and [3] is null#(lf)union all#(lf)select personid, [2] from #createdpivot #(lf)where [2] is not null and diff2and1 >3 and [3] is null#(lf)--so first referral is over 11 months of second referral so both are ok so take both#(lf)#(lf)--=====first is within 11 months of second referral - take second referral only#(lf)#(lf)union all#(lf)select personid, [2] from #createdpivot #(lf)where [2] is not null and diff2and1 <=3 and [3] is null#(lf)--===================================#(lf)--===where there is a 3rd referral#(lf)-- if all referrals are more than 11 months then keep all 3 referrals#(lf)union all#(lf)select personid, [3] from #createdpivot#(lf)where [3] is not null and [4] is null and diff3and2 >3 and diff2and1 >3 #(lf)union all#(lf)select personid, [2] from #createdpivot#(lf)where [3] is not null and [4] is null and diff3and2 >3 and diff2and1 >3#(lf)union all#(lf)select personid, [1] from #createdpivot#(lf)where [3] is not null and [4] is null and diff3and2 >3 and diff2and1 >3 #(lf)--======#(lf)union all#(lf)select personid, [3] from #createdpivot#(lf)where [3] is not null and [4] is null and diff3and2 >3 and diff2and1 <=3 #(lf)union all#(lf)select personid, [2] from #createdpivot#(lf)where [3] is not null and [4] is null and diff3and2 >3 and diff2and1 <=3#(lf)#(lf)union all#(lf)select personid, [3] from #createdpivot#(lf)where [3] is not null and [4] is null and diff3and2 <=3 and diff2and1 <=3 #(lf)--=================================#(lf)--and where there's a 4th referral.... #(lf)union all#(lf)select personid, [4] from #createdpivot#(lf)where [4] is not null and [5] is  null and diff4and3 >3 and diff3and2 >3 and diff2and1 >3 #(lf)union all#(lf)select personid, [3] from #createdpivot#(lf)where [4] is not null and [5] is null and diff4and3 >3 and diff3and2 >3 and diff2and1 >3#(lf)union all#(lf)select personid, [2] from #createdpivot#(lf)where [4] is not null and [5] is null and diff4and3 >3 and diff3and2 >3 and diff2and1 >3 #(lf)union all#(lf)select personid, [1] from #createdpivot#(lf)where [4] is not null and [5] is null and diff4and3 >3 and diff3and2 >3 and diff2and1 >3#(lf)--=========================#(lf)union all#(lf)select personid, [4] from #createdpivot#(lf)where [4] is not null and [5] is null  and diff4and3 >3 and diff3and2 >3 and diff2and1<=3#(lf)union all#(lf)select personid, [3] from #createdpivot#(lf)where [4] is not null and [5] is null  and diff4and3 >3 and diff3and2 >3 and diff2and1<=3#(lf)union all#(lf)select personid, [2] from #createdpivot#(lf)where [4] is not null and [5] is null  and diff4and3 >3 and diff3and2 >3 and diff2and1<=3#(lf)--======#(lf)union all#(lf)select personid, [4] from #createdpivot#(lf)where [4] is not null and [5] is null  and diff4and3 >3 and diff3and2 <=3 and diff2and1<=3#(lf)union all#(lf)select personid, [3] from #createdpivot#(lf)where [4] is not null and [5] is null  and diff4and3 >3 and diff3and2 <=3 and diff2and1<=3#(lf)--======#(lf)union all#(lf)select personid, [4] from #createdpivot#(lf)where [4] is not null and [5] is null  and diff4and3 <=3 and diff3and2 <=3 and diff2and1<=3#(lf)---====and god forbid, someone has 5 referrals #(lf)union all#(lf)select personid, [5] from #createdpivot#(lf)where [4] is not null and [5] is  not null and diff5and4 >3 and diff4and3 >3 and diff3and2 >3 and diff2and1 >3 #(lf)union all#(lf)select personid, [4] from #createdpivot#(lf)where [4] is not null and [5] is not null and diff5and4 >3 and diff4and3 >3  and diff3and2 >3 and diff2and1 >3#(lf)union all#(lf)select personid, [3] from #createdpivot#(lf)where [4] is not null and [5] is not null and diff5and4 >3 and diff4and3 >3  and diff3and2 >3 and diff2and1 >3 #(lf)union all#(lf)select personid, [2] from #createdpivot#(lf)where [4] is not null and [5] is not null and diff5and4 >3 and diff4and3 >3 and  diff3and2 >3 and diff2and1 >3#(lf)union all#(lf)select personid, [1] from #createdpivot#(lf)where [4] is not null and [5] is not null and diff5and4 >3  and diff4and3 >3 and diff3and2 >3 and diff2and1 >3#(lf)--=========================#(lf)union all#(lf)select personid, [5] from #createdpivot#(lf)where [4] is not null and [5] is not null  and diff5and4 >3 and diff4and3 >3 and diff3and2 >3 and diff2and1<=3#(lf)union all#(lf)select personid, [4] from #createdpivot#(lf)where [4] is not null and [5] is not null  and diff5and4 >3 and diff4and3 >3 and diff3and2 >3 and diff2and1<=3#(lf)union all#(lf)select personid, [3] from #createdpivot#(lf)where [4] is not null and [5] is not null and diff5and4 >3 and diff4and3 >3 and diff3and2 >3 and diff2and1<=3#(lf)union all#(lf)select personid, [2] from #createdpivot#(lf)where [4] is not null and [5] is not null  and diff5and4 >3 and diff4and3 >3 and diff3and2 >3 and diff2and1<=3#(lf)--====#(lf)union all#(lf)select personid, [5] from #createdpivot#(lf)where [4] is not null and [5] is not null  and diff5and4 >3 and diff4and3 >3 and diff3and2 <=3 and diff2and1<=3#(lf)union all#(lf)select personid, [4] from #createdpivot#(lf)where [4] is not null and [5] is not null  and diff5and4 >3 and diff4and3 >3 and diff3and2 <=3 and diff2and1<=3#(lf)union all#(lf)select personid, [3] from #createdpivot#(lf)where [4] is not null and [5] is not null and diff5and4 >3 and diff4and3 >3 and diff3and2 <=3 and diff2and1<=3#(lf)--======#(lf)union all#(lf)select personid, [5] from #createdpivot#(lf)where [4] is not null and [5] is not null  and diff5and4 >3 and diff4and3 <=3 and diff3and2 <=3 and diff2and1<=3#(lf)union all#(lf)select personid, [4] from #createdpivot#(lf)where [4] is not null and [5] is not null  and diff5and4 >3 and diff4and3 <=3 and diff3and2 <=3 and diff2and1<=3#(lf)--=====#(lf)union all#(lf)select personid, [5] from #createdpivot#(lf)where [5] is not null and [5] is not null  and diff5and4 <=3 and diff4and3 <=3 and diff3and2 <=3 and diff2and1<=3#(lf)order by 1,2 desc#(lf)--======#(lf)#(lf)SELECT #(lf)#(tab)factreferral.ID as referralid#(lf)#(tab),receiveddate as referralstatusstartdate#(lf)#(tab),'' as referralstatustypecode#(lf)#(tab), '' as referralstatustypegroup#(lf)#(tab), '' as referralstatustypestatusorder#(lf)#(tab),factreferral.personid#(lf)#(tab), ReceivedDate#(lf)#(tab), team2.TeamID#(lf)#(tab), team2.teamname #(lf)#(tab), personfirstname#(lf)#(tab), personlastname #(lf)#(tab), PersonDateOfBirth#(lf)#(tab), EthnicityText#(lf)#(tab), EthnicityParentId#(lf)#(tab), ReferrerDescription#(lf)#(tab), ReferrerName#(lf)#(tab), 'Outbound Referral' as ReferralStatusTypeReasonDescription#(lf)#(tab),datediff(day,persondateofbirth, receiveddate)/365.0 as age_start#(lf)into #outbound#(lf)  FROM legacy.factreferral#(lf)  inner join dl.DimPerson on factreferral.PersonID = dimperson.personid#(lf)  left join dl.dimteam on factreferral.teamid = dimteam.teamid#(lf)  left join  dl.factreferral as ref2 on factreferral.sourcereferralid = ref2.referralid#(lf)  left join dl.dimteam as team2 on ref2.teamid = team2.teamid#(lf)  inner join dl.dimethnicity on dimperson.ethnicity1id = dimethnicity.EthnicityID#(lf)  left join dl.DimReferrer on factreferral.SourceReferrerID = dimreferrer.ReferrerID#(lf)  where team2.teamname like 'ease%' and factreferral.teamid is null and year(receiveddate) > 2018#(lf)  order by ReferralStatusStartDate#(lf)#(lf)SELECT #(lf)'Seen this Month' as datatype,#(lf)case when  createddate is not null then 1#(lf)else 0#(lf)end as seen_count,#(lf)0 as discharged_count,#(lf)0 as outbound_count,#(lf)#(lf)#accepts2.*,#(lf)case when createddate is null then 'Seen in the last 3 months'#(lf)else 'Accept not Seen last 3 months'#(lf)end as seenstatus #(lf)into #lastdata#(lf)from #accepts2#(lf)left join #testy2 on #accepts2.personid = #testy2.personid and #accepts2.ReferralStatusStartDate = #testy2.createddate#(lf)#(lf)union all#(lf)#(lf)select#(lf)--top 4 #(lf)'Discharged this month', #(lf)0 as seen_count,#(lf)1 as discharged_count,#(lf)0 as outbound_count,#(lf)'' as referralno,#(lf)*, #(lf)floor(age_start) as ageatreferralstart,#(lf)'' as seenstatus from #test#(lf)where ReferralStatusTypeCode = 'Discharged'#(lf)#(lf)union all#(lf)select#(lf)--top 4 #(lf)'Declined this month', #(lf)0 as seen_count,#(lf)1 as discharged_count,#(lf)0 as outbound_count,#(lf)'' as referralno,#(lf)*, #(lf)floor(age_start) as ageatreferralstart,#(lf)'' as seenstatus #(lf)#(lf)from #test#(lf) #(lf)where ReferralStatusTypeCode = 'declined'#(lf)--and ReferralStatusStartDate between '2022-04-01' and '2022-04-30'#(lf)#(lf)union all#(lf)select#(lf)'OutBound Referral', #(lf)0 as seen_count,#(lf)0 as discharged_count,#(lf)1 as outbound_count,#(lf)'' as referralno,#(lf)*, #(lf)floor(age_start) as ageatreferralstart,#(lf)'' as seenstatus #(lf)from #outbound#(lf)#(lf)order by teamname#(lf)#(lf)#(lf)select distinct Ethnicityid, ethnicitytext , ETHNICITYVALUE#(lf)into #ethnicity#(lf)from dl.dimethnicity #(lf)#(lf)#(lf)#(lf)select#(lf)datatype#(lf),seen_count#(lf),discharged_count#(lf),outbound_count#(lf),referralno#(lf),ReferralID#(lf),referralstatusstartdate#(lf),referralstatustypecode#(lf),referralstatustypegroup#(lf),referralstatustypestatusorder#(lf),personid#(lf),ReferralReceivedDate#(lf),teamid#(lf),teamname#(lf),personfirstname#(lf),personlastname#(lf),PersonDateOfBirth#(lf),ReferralStatusTypeReasonDescription#(lf),age_start#(lf),ageatreferralstart#(lf),seenstatus#(lf), ReferrerDescription#(lf), ReferrerName#(lf)#(lf),case when teamname like '%adhb%' then 'Auckland'#(lf)when teamname like '%Wdhb%' then 'Waitemata'#(lf)when teamname like '%waikato%' then 'Waikato'#(lf)else 'Other Region'#(lf)end as TeamRegion#(lf)#(lf),cast (referralstatusstartdate as date) as referraldatepure#(lf),case when datatype = 'Seen this Month' then 'Accepted'#(lf)when datatype = 'Declined this month' then 'Declined'#(lf)else 'Discharged'#(lf)end as referraltype,#(lf)#(lf)case when #ethnicity.ethnicitytext is null then #lastdata.EthnicityTExt#(lf)when #lastdata.EthnicityText = 'Don''t know' then #Ethnicity.EthnicityText#(lf)else #lastdata.EthnicityText#(lf)end as EthnicityText,#(lf)#ETHNICITY.EthnicityValue,#(lf)case when datatype = 'seen this month' and datediff(day,referralreceiveddate, referralstatusstartdate) >7 then 'More than 7 Days Waiting'#(lf)else 'Waiting 7 Days or Less'#(lf)end as dayswaiting#(lf)INTO #ALMOSTFINAL#(lf)from #lastdata#(lf)left join #ethnicity on #lastdata.EthnicityParentId = #ethnicity.EthnicityID#(lf)#(lf) #(lf) SELECT #(lf)*#(lf) ,#(tab) CASE WHEN EthnicityText is null #(lf)or ethnicityvalue in (21) THEN 'Maori'#(lf)when ethnicitytext in ('Refused to Answer') THEN 'Other (inc Not Stated, Unknown)'#(lf)#(tab)#(tab)   WHEN EthnicityText LIKE '%European%' OR EthnicityText LIKE 'British%' OR EthnicityText LIKE 'German%'#(lf)#(tab)#(tab)#(tab)#(tab)OR EthnicityText LIKE 'Australia%' OR EthnicityText LIKE 'Dutch%' OR EthnicityText LIKE 'Polish%'#(lf)#(tab)#(tab)#(tab)#(tab)OR EthnicityText LIKE 'Italian%' OR EthnicityText LIKE 'Greek%' OR EthnicityText LIKE '%slav%'#(lf)#(tab)#(tab)   THEN 'European'#(lf)#(tab)#(tab)   WHEN EthnicityText LIKE 'Japan%' OR EthnicityText LIKE 'Filipino%' OR EthnicityText LIKE 'KORea%'#(lf)#(tab)#(tab)#(tab)#(tab)OR EthnicityText LIKE 'Khmer%' OR EthnicityText LIKE '%asian%' OR EthnicityText LIKE 'India%' #(lf)#(tab)#(tab)#(tab)#(tab)OR EthnicityText LIKE 'Sri Lanka%' OR EthnicityText LIKE 'Viet%Nam%' OR EthnicityText LIKE 'Chinese%'#(lf)#(tab)#(tab)   THEN 'Asian'#(lf)#(tab)#(tab)   WHEN EthnicityText = 'Maori' #(lf)#(tab)#(tab)   THEN 'Maori'#(lf)#(tab)#(tab)   WHEN EthnicityText = 'African' OR EthnicityText LIKE 'Latin America%'  OR EthnicityText LIKE 'Middle Eastern%'#(lf)#(tab)#(tab)   THEN 'Middle Eastern, Latin American, African (MELAA)'#(lf)#(lf)#(tab)#(tab)   WHEN EthnicityText LIKE '%Pacific People%' OR EthnicityText LIKE 'Cook Island%' OR EthnicityText LIKE 'Fijian%'#(lf)#(tab)#(tab)#(tab)#(tab)OR EthnicityText LIKE 'Samoan%' OR EthnicityText LIKE 'Tongan%' OR EthnicityText LIKE 'Niuean%'#(lf)#(tab)#(tab)#(tab)#(tab)OR EthnicityText LIKE 'Tokelau%'#(lf)#(tab)#(tab)   THEN 'Pacific Peoples'#(lf)#(tab)#(tab)   WHEN EthnicityText in ('Other','Not Stated', 'Response Outside Scope','Don''t Know','Response Unidentifiable') THEN 'Other (inc Not Stated, Unknown)'#(lf)#(lf)#(tab)ELSE 'Not on List'#(lf)#(tab)END AS EthnicityGroup#(lf) into #final#(lf) FROM #ALMOSTFINAL#(lf)#(lf) #(lf) #(lf) select #(lf) row_number () over (partition by entityid, referralid order by entityid, referralid, ActivityStartDate) as rowcounts,#(lf) entityid, factactivityparticipant.referralid, factactivityparticipant.activityid#(lf) ,FactActivity.GroupActivityID, ActivityStartDate, ActivityEndDate#(lf) into #seenwithgroup #(lf) from dl.FactActivityParticipant#(lf) inner join dl.factactivity on FactActivityParticipant.activityid = FactActivity.ActivityID#(lf) where referralid in (select referralid from #almostfinal where datatype = 'seen this month')#(lf) #(lf) select entityid, referralid, max(rowcounts)as maxrows #(lf) into #maxseen#(lf) from #seenwithgroup #(lf) group by entityid, referralid #(lf)#(lf) select * #(lf) into #grouponly0 #(lf) from #seenwithgroup #(lf) where referralid in (select referralid from #maxseen where maxrows = 1)#(lf) and groupactivityid is not null#(lf)#(lf) select * #(lf) into #grouponly1#(lf) from#(lf) (#(lf) select groupactivityid, count(*) as count_participants from #grouponly0#(lf) group by groupactivityid#(lf) ) as datagrouping where count_participants >14#(lf)#(lf) select #grouponly0.*, count_participants, case when #grouponly1.GroupActivityID is not null then 1 else 0 end as includestatus  --===this is a double negative should be exclude#(lf) into #grouponly#(lf) from #grouponly0#(lf) left join #grouponly1 on #grouponly0.groupActivityID = #grouponly1.GroupActivityID#(lf) #(lf)#(lf) #(lf) select #final.* , #grouponly.count_participants, #grouponly.includestatus,#(lf) case when datatype = 'seen this month'#(lf) and includestatus = 1 then 'Referral for Group > 15 Only'#(lf) else seenstatus#(lf) end as seenstatus2#(lf) ,#(lf) case when datatype = 'seen this month'#(lf) and includestatus = 1 #(lf) then 0#(lf) else seen_count#(lf) end as seen_count2#(lf) into #finalfinal#(lf) from #final#(lf) left join #grouponly on #final.referralid = #grouponly.referralid#(lf)#(lf)#(lf)#(lf)#(lf) select#(lf)#(lf)#(tab)datatype#(lf),#(tab)seen_count2 as seen_count#(lf)#(lf),#(tab)--case when includestatus = 1 then 0 else discharged_count#(lf)#(tab)--end as discharged_count#(lf)#(tab)discharged_count#(lf)#(lf),#(tab)outbound_count#(lf),#(tab)referralno#(lf),#(tab)ReferralID#(lf),#(tab)referralstatusstartdate#(lf),#(tab)referralstatustypecode#(lf),#(tab)referralstatustypegroup#(lf),#(tab)referralstatustypestatusorder#(lf),#(tab)personid#(lf),#(tab)ReferralReceivedDate#(lf),#(tab)teamid#(lf),#(tab)teamname#(lf),#(tab)personfirstname#(lf),#(tab)personlastname#(lf),#(tab)PersonDateOfBirth#(lf),#(tab)ReferralStatusTypeReasonDescription#(lf),#(tab)age_start#(lf),#(tab)ageatreferralstart#(lf)--====changing seen status so it has a drop down, not technically not 'seen status'#(lf),#(tab)case when datatype like 'discharge%' and includestatus = 1 then 'Discharged from Group > 15'#(lf)#(tab)when datatype like 'discharge%' then 'Discharged'#(lf)#(tab)else seenstatus2 #(lf)#(tab)end as seenstatus#(lf),#(tab)ReferrerDescription#(lf),#(tab)ReferrerName#(lf),#(tab)TeamRegion#(lf),#(tab)referraldatepure#(lf),#(tab)referraltype#(lf)-- I'm changing this because the model over writes it so allthe hard work is gone.  Making Not Stated and ethnicity Group = Maori = Maori#(lf),#(tab)case when ethnicitytext = 'Not Stated' and EthnicityGroup = 'Maori' then ethnicityGroup #(lf)#(tab)else EthnicityText #(lf)#(tab)end as EthnicityText#(lf),#(tab)EthnicityValue#(lf),#(tab)dayswaiting#(lf),#(tab)EthnicityGroup#(lf),   includestatus #(lf)from #finalfinal#(lf)--where #finalfinal.personid = 121924#(lf)#(lf)order by ethnicitygroup #(lf), EthnicityText#(lf)#(lf)#(lf)#(lf)--select  * from #final where personid = 121924#(lf)--select * from #finalfinal where personid = 121924"]),
+				    #"Changed Type1" = Table.TransformColumnTypes(Source,{{"referraldatepure", type date}, {"ageatreferralstart", type text}}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Changed Type1",{{"referraldatepure", type date}}),
+				    
+				#"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"discharged_count", "Exit (Discharged)"}, {"referraltype", "Referral Type"}, {"personid", "Person Id"}}),
+				    #"Inserted Merged Column" = Table.AddColumn(#"Renamed Columns", "Person Name", each Text.Combine({[personfirstname], [personlastname]}, " "), type text),
+				    #"Renamed Columns1" = Table.RenameColumns(#"Inserted Merged Column",{{"seenstatus", "Seen Status"}, {"datatype", "Data Type"}, {"ReferralID", "Referral ID"}, {"dayswaiting", "Days Waiting"}, {"ReferrerDescription", "Referrer Description"}, {"ReferralReceivedDate", "Referral Received Date"}, {"referralstatusstartdate", "Referral Status Start Date"}, {"ReferralStatusTypeReasonDescription", "Referral Status Type Reason Description"}})
+				in
+				    #"Renamed Columns1"
+				```
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

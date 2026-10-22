@@ -1,0 +1,146 @@
+/// Client (Tangata Whaiora) dimension: one row per current client, sourced from edw.vw_dim_client and filtered to current active records (DWHIsCurrent = 1, DWHDMLOperation <> 'D', company_id = 1). Joins to Tenancy and Transitional Housing Referrals on Tangata Whaiora ID (the source client_id). Holds core demographics: name, date of birth, age, gender, and primary/secondary/tertiary ethnicity plus Maori and Pasifika flags. Contains PII, and some raw demographic values (dates of birth, ages, ethnicity labels) are not range-checked or standardised at source, so treat outliers and label variants with care.
+table Client
+	lineageTag: 8f3c1a2b-4d5e-6f7a-8b9c-0d1e2f3a4b5c
+
+	/// Surrogate/business key for the client (Tangata Whaiora), sourced from edw.vw_dim_client.client_id. Hidden. Sits on the one side of the relationships from Tenancy and Transitional Housing Referrals. One row per client; values are unique across the table with no blanks.
+	column 'Tangata Whaiora ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora ID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Client's full display name (Tangata Whaiora). PII. Used for detail/tooltip display, not aggregation. No blanks in the current population.
+	column 'Tangata Whaiora Display Name'
+		dataType: string
+		lineageTag: 2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Display Name
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Client's first name (Tangata Whaiora). PII. Display attribute.
+	column 'Tangata Whaiora First Name'
+		dataType: string
+		lineageTag: 3c4d5e6f-7a8b-9c0d-1e2f-3a4b5c6d7e8f
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora First Name
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Client's last name (Tangata Whaiora). PII. Display attribute.
+	column 'Tangata Whaiora Last Name'
+		dataType: string
+		lineageTag: 4d5e6f7a-8b9c-0d1e-2f3a-4b5c6d7e8f9a
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Last Name
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Client's preferred name (Tangata Whaiora) where recorded. PII. Display attribute; may be blank.
+	column 'Tangata Whaiora Preferred Name'
+		dataType: string
+		lineageTag: 5e6f7a8b-9c0d-1e2f-3a4b-5c6d7e8f9a0b
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Preferred Name
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Client's date of birth (Tangata Whaiora); source cast to DATE. PII. Caveat: raw source values are not cleansed - 5 rows fall before 1900 (min 1/01/1091) and 1 is a future date (4/08/2028).
+	column 'Tangata Whaiora Date Of Birth'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 6f7a8b9c-0d1e-2f3a-4b5c-6d7e8f9a0b1c
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Date Of Birth
+
+		variation Variation
+			isDefault
+			relationship: 04297f79-77cd-4c26-9026-bc357cea5f93
+			defaultHierarchy: LocalDateTable_ee0a28fd-5350-46a9-a8c4-b3a07f99b8cd.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Client's age in whole years as supplied by the source (edw.vw_dim_client.client_age_years). Caveat: raw source is not range-checked - includes 1 negative age and 1,214 values over 120 (max 935); treat outliers with caution / cleanse upstream.
+	column 'Tangata Whaiora Age Years'
+		dataType: double
+		formatString: 0
+		lineageTag: 7a8b9c0d-1e2f-3a4b-5c6d-7e8f9a0b1c2d
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Age Years
+
+		annotation SummarizationSetBy = User
+
+	/// Client's gender (Tangata Whaiora). Categorical slicer attribute; every client has a value (no blanks). Domain (te reo values carry macrons): Female / Wāhine, Male / Tāne, Unspecified or Unknown, Another Gender / He ira kē anō, Indeterminate.
+	column 'Tangata Whaiora Gender'
+		dataType: string
+		lineageTag: 8b9c0d1e-2f3a-4b5c-6d7e-8f9a0b1c2d3e
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Gender
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Client's self-identified primary ethnicity, one value per client, used as a categorical slicer/grouping attribute. Roughly a quarter of clients have no primary ethnicity recorded (stored blank). Caveat: the source labels are not standardised: a plain 'Maori' and a macronised 'Māori' are held as two separate categories (so grouping or counting on this column can split like values), and the New Zealand European value is stored as 'New Zealand European/Päkehä' with a non-standard umlaut.
+	column 'Tangata Whaiora Primary Ethnicity'
+		dataType: string
+		lineageTag: 9c0d1e2f-3a4b-5c6d-7e8f-9a0b1c2d3e4f
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Primary Ethnicity
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Client's secondary ethnicity where recorded (sparsely populated). Categorical slicer attribute.
+	column 'Tangata Whaiora Secondary Ethnicity'
+		dataType: string
+		lineageTag: 0d1e2f3a-4b5c-6d7e-8f9a-0b1c2d3e4f5a
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Secondary Ethnicity
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Client's tertiary ethnicity where recorded (sparsely populated). Categorical slicer attribute.
+	column 'Tangata Whaiora Tertiary Ethnicity'
+		dataType: string
+		lineageTag: 1e2f3a4b-5c6d-7e8f-9a0b-1c2d3e4f5a6b
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Tertiary Ethnicity
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicator that the client identifies as Maori: 1 = yes, 0 = no, blank = unknown/not captured. Around a quarter of clients are blank (not captured). This is a filter/grouping attribute rather than an additive value; count flagged clients with a measure rather than summing the column.
+	column 'Tangata Whaiora Maori Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: 3a4b5c6d-7e8f-9a0b-1c2d-3e4f5a6b7c8d
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Maori Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicator that the client identifies as Pasifika: 1 = yes, 0 = no, blank = unknown/not captured. Around a quarter of clients are blank (not captured), and only a small minority are flagged 1. This is a filter/grouping attribute rather than an additive value; count flagged clients with a measure rather than summing the column.
+	column 'Tangata Whaiora Pasifika Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: 4b5c6d7e-8f9a-0b1c-2d3e-4f5a6b7c8d9e
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Pasifika Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Client = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)    client_id,#(lf)    client_display_name,#(lf)    client_first_name,#(lf)    client_last_name,#(lf)    client_preferred_name,#(lf)    CAST(client_date_of_birth AS DATE) AS client_date_of_birth,#(lf)    client_age_years,#(lf)    client_gender,#(lf)    client_primary_ethnicity,#(lf)    client_secondary_ethnicity,#(lf)    client_tertiary_ethnicity,#(lf)    client_maori_flag,#(lf)    client_pasifika_flag#(lf)FROM edw.vw_dim_client#(lf)WHERE DWHIsCurrent = 1#(lf)  AND DWHDMLOperation <> 'D'#(lf)  AND company_id = 1"]),
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, fnApplyNamingConventions)
+				in
+				    #"Transformed Column Names"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,31 @@
+table dim_inspection
+	lineageTag: 0185ac51-a682-412b-9c65-a1fb5b61057d
+
+	column zav_inspectionid
+		dataType: string
+		isHidden
+		lineageTag: 267fd95f-cde8-4ef9-99ae-a816aff15947
+		summarizeBy: none
+		sourceColumn: zav_inspectionid
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_name
+		dataType: string
+		lineageTag: c34ac03b-9805-4f8b-9108-9faceaa797bb
+		summarizeBy: none
+		sourceColumn: zav_name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_inspection = m
+		mode: import
+		queryGroup: dimensions
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="WITH RecentInspections AS (#(lf)    SELECT#(lf)        zav_inspectionid,#(lf)        zav_name,#(lf)        SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (PARTITION BY zav_inspectionid ORDER BY SinkModifiedOn DESC) AS rn#(lf)    FROM#(lf)        [Zavanti].[vw_zav_inspection]#(lf)    WHERE #(lf)        zav_inspectioncategory IS NOT NULL#(lf))#(lf)SELECT DISTINCT#(lf)    ri.zav_inspectionid,#(lf)    ri.zav_name#(lf)FROM#(lf)    RecentInspections ri#(lf)WHERE#(lf)    ri.rn = 1"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+

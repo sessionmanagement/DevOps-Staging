@@ -1,0 +1,144 @@
+table Groups
+	lineageTag: 91b63ba7-489e-4d66-a16c-6ccf4c623975
+
+	column Region
+		dataType: string
+		lineageTag: aba23c78-0d87-4c0e-aff1-3d002a3e5b64
+		summarizeBy: none
+		sourceColumn: Region
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Group Status'
+		dataType: string
+		lineageTag: 32f158cf-2446-4b40-9460-6f6e0747203f
+		summarizeBy: none
+		sourceColumn: Group Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column activitystartdatepure
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: d098215f-407d-483a-8797-c1833cee70ae
+		summarizeBy: none
+		sourceColumn: activitystartdatepure
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column sum_sessions
+		dataType: int64
+		formatString: 0
+		lineageTag: 930ab9ac-7dd6-4505-97c3-d9fa4b85208e
+		summarizeBy: sum
+		sourceColumn: sum_sessions
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Group Inclusion'
+		dataType: string
+		lineageTag: 9542c011-f35e-4da3-8ced-219a133f3090
+		summarizeBy: none
+		sourceColumn: Group Inclusion
+
+		annotation SummarizationSetBy = Automatic
+
+	column ActivityID
+		dataType: int64
+		formatString: 0
+		lineageTag: 4efaf95c-fb0a-4b5f-8938-60f85624b21c
+		summarizeBy: count
+		sourceColumn: ActivityID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Person ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 0f9f9b13-7b32-472e-80a4-99fbdc7ba912
+		summarizeBy: count
+		sourceColumn: Person ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Activity Start Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 6dc2f03c-4ba4-4429-a608-9de7f6d15546
+		summarizeBy: none
+		sourceColumn: Activity Start Date
+
+		variation Variation
+			isDefault
+			relationship: b54a5d72-2c79-4455-a51d-b63edcee0458
+			defaultHierarchy: LocalDateTable_19f229e7-653b-428f-ad7a-c59ba2fcd894.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Activity End Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 36ad7aaf-2770-4ddb-baeb-6d1f99231ec9
+		summarizeBy: none
+		sourceColumn: Activity End Date
+
+		variation Variation
+			isDefault
+			relationship: 3d7a944c-b154-49fd-8921-520a75bd9b1b
+			defaultHierarchy: LocalDateTable_8fa18f53-fefe-4a00-8da7-df4611f4f665.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column ActivitySubject
+		dataType: string
+		lineageTag: 00913962-2c3c-46e2-a46c-3f015a583f56
+		summarizeBy: none
+		sourceColumn: ActivitySubject
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Team Name'
+		dataType: string
+		lineageTag: 496f7a9f-2bda-41b4-923c-ebf4c5e995db
+		summarizeBy: none
+		sourceColumn: Team Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'User Created Initial'
+		dataType: string
+		lineageTag: 95f3a976-f29a-4421-95d9-60b2c9af858c
+		summarizeBy: none
+		sourceColumn: User Created Initial
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'User Reports To Initial'
+		dataType: string
+		lineageTag: 71d89df7-4ed9-4d13-a384-62bbb9f1bb4a
+		summarizeBy: none
+		sourceColumn: User Reports To Initial
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Groups-2815d49c-5b46-4f0b-9da5-f488f1006790 = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="WITH numbers AS (#(lf)    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1 AS n#(lf)    FROM RBEAL.dlDimEthnicity a#(lf)    CROSS JOIN RBEAL.dlDimEthnicity b#(lf)),#(lf)date_sequence AS (#(lf)    SELECT DATEADD(DAY, n, CAST('2016-07-01' AS DATE)) AS createddate#(lf)    FROM numbers#(lf)    WHERE DATEADD(DAY, n, CAST('2016-07-01' AS DATE)) <= CAST(GETDATE() AT TIME ZONE 'New Zealand Standard Time' AS DATE)#(lf)),#(lf)groups_base AS (#(lf)    SELECT #(lf)        fa.ActivityID,#(lf)        fa.ActivityStartDate,#(lf)        fa.ActivityEndDate,#(lf)        fa.ActivityCreatedDate,#(lf)        fa.ActivitySubject,#(lf)        fga.GroupActivityCreatedDate,#(lf)        dt.TeamName,#(lf)        dp.PersonID,#(lf)        CASE #(lf)            WHEN dt.TeamName LIKE '%wdhb%' THEN 'Waitemata'#(lf)            WHEN dt.TeamName LIKE '%adhb%' THEN 'Auckland'#(lf)            WHEN dt.TeamName LIKE '%waikato%' THEN 'Waikato'#(lf)            ELSE 'Undefined'#(lf)        END AS region,#(lf)        du.UserFirstName,#(lf)        du.UserLastName,#(lf)        u2.UserFirstName AS reportstofirstname,#(lf)        u2.UserLastName AS reportstosurname,#(lf)        fa.GroupActivityID#(lf)    FROM RBEAL.dlFactActivity fa#(lf)    INNER JOIN RBEAL.dlDimTeam dt ON fa.TeamID = dt.TeamID#(lf)    INNER JOIN RBEAL.dlFactGroupActivity fga ON fa.GroupActivityID = fga.GroupActivityID#(lf)    INNER JOIN RBEAL.dlFactActivityParticipant fap ON fa.ActivityID = fap.ActivityID#(lf)    INNER JOIN RBEAL.dlDimPerson dp ON fap.EntityID = dp.PersonID#(lf)    INNER JOIN RBEAL.dlDimUser du ON fa.ActivityCreatedUserID = du.UserID#(lf)    INNER JOIN RBEAL.dlDimUser u2 ON du.ReportsToUserID = u2.UserID#(lf)    WHERE dt.TeamName LIKE '%ease%'#(lf)),#(lf)groups_grouped AS (#(lf)    SELECT #(lf)        ActivityStartDate,#(lf)        GroupActivityID,#(lf)        COUNT(PersonID) AS number_attendees#(lf)    FROM groups_base#(lf)    GROUP BY ActivityStartDate, GroupActivityID#(lf)),#(lf)finaldata AS (#(lf)    SELECT #(lf)        ROW_NUMBER() OVER (PARTITION BY g.ActivityStartDate, g.region ORDER BY g.ActivityStartDate, g.region) AS countrows,#(lf)        g.ActivityID,#(lf)        g.GroupActivityID,#(lf)        g.PersonID,#(lf)        CAST(g.ActivityStartDate AS DATE) AS activitystartdatepure,#(lf)        g.ActivityStartDate,#(lf)        g.ActivityEndDate,#(lf)        g.ActivitySubject,#(lf)        g.TeamName,#(lf)        g.region,#(lf)        g.UserFirstName,#(lf)        g.UserLastName,#(lf)        g.reportstofirstname,#(lf)        g.reportstosurname,#(lf)        CASE #(lf)            WHEN gg.number_attendees = 1 THEN 'Only 1 attendee'#(lf)            WHEN gg.number_attendees BETWEEN 2 AND 14 THEN '2-14 Attendees'#(lf)            WHEN gg.number_attendees > 14 THEN '15 or More'#(lf)            ELSE 'Unknown'#(lf)        END AS group_status,#(lf)        CASE #(lf)            WHEN gg.number_attendees = 1 THEN 'Exclude'#(lf)            ELSE 'Include'#(lf)        END AS group_inclusion,#(lf)        1 AS group_count#(lf)    FROM groups_base g#(lf)    LEFT JOIN groups_grouped gg ON g.GroupActivityID = gg.GroupActivityID#(lf)),#(lf)finaldata2 AS (#(lf)    SELECT #(lf)        CASE WHEN countrows = 1 THEN 1 ELSE 0 END AS sum_sessions,#(lf)        ActivityID,#(lf)        GroupActivityID,#(lf)        PersonID,#(lf)        activitystartdatepure,#(lf)        ActivityStartDate,#(lf)        ActivityEndDate,#(lf)        ActivitySubject,#(lf)        TeamName,#(lf)        region,#(lf)        group_inclusion,#(lf)        group_status,#(lf)        UserFirstName AS usercreatedfirstname,#(lf)        UserLastName AS usercreatedlastname,#(lf)        reportstofirstname,#(lf)        reportstosurname AS reportstolastname#(lf)    FROM finaldata#(lf))#(lf)SELECT #(lf)    ds.createddate AS activitystartdatepure,#(lf)    ISNULL(f.sum_sessions, 0) AS sum_sessions,#(lf)    f.ActivityID,#(lf)    f.PersonID,#(lf)    f.ActivityStartDate,#(lf)    f.ActivityEndDate,#(lf)    f.ActivitySubject,#(lf)    f.TeamName,#(lf)    f.region,#(lf)    f.group_inclusion,#(lf)    f.group_status,#(lf)    concat(left(f.usercreatedfirstname,1),' ',left( f.usercreatedlastname,1)) as [User Created Initial],#(lf)    concat(left(f.reportstofirstname,1),' ',left(f.reportstolastname,1)) as [User Reports To Initial]#(lf)FROM date_sequence ds#(lf)LEFT JOIN finaldata2 f ON ds.createddate = f.activitystartdatepure"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"activitystartdatepure", type date}}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"group_inclusion", "Group Inclusion"}, {"group_status", "Group Status"}, {"region", "Region"}, {"TeamName", "Team Name"}, {"ActivityStartDate", "Activity Start Date"}, {"ActivityEndDate", "Activity End Date"}}),
+				    #"Renamed Columns1" = Table.RenameColumns(#"Renamed Columns",{{"PersonID", "Person ID"}})
+				in
+				    #"Renamed Columns1"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

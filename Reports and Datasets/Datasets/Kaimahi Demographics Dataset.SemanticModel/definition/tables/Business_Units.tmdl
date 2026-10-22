@@ -1,0 +1,172 @@
+table Business_Units
+	lineageTag: 89d719c9-7827-4ec4-8b74-643f203c3e4b
+
+	column id
+		dataType: string
+		lineageTag: 136082bd-7fe5-4f54-8552-1ea7e9cc3662
+		summarizeBy: none
+		sourceColumn: id
+
+		annotation SummarizationSetBy = Automatic
+
+	column name
+		dataType: string
+		lineageTag: 3da1ff86-cfe4-449e-a626-d775a6ea59a7
+		summarizeBy: none
+		sourceColumn: name
+
+		annotation SummarizationSetBy = Automatic
+
+	column parentId
+		dataType: string
+		lineageTag: fc0b84a3-ec95-4e04-8501-2af915b5e092
+		summarizeBy: none
+		sourceColumn: parentId
+
+		annotation SummarizationSetBy = Automatic
+
+	column Hierarchy = PATH('Business_Units'[id], 'Business_Units'[parentId])
+		lineageTag: 3eed901c-b343-43d8-ac35-bdc1e60caccb
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column HierarchyLength = PATHLENGTH(Business_Units[Hierarchy])
+		lineageTag: bc34eb20-1551-455c-aabb-bec9aa38eb81
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column FirstLevel = PATHITEM(Business_Units[Hierarchy], 1, TEXT)
+		lineageTag: e4f98724-264a-4276-bef5-f266035052f7
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'FirstLevel Name' = LOOKUPVALUE(Business_Units[name],Business_Units[id],PATHITEM(Business_Units[Hierarchy], 1, TEXT))
+		lineageTag: 220456aa-1acd-418d-8c3f-79b57f0659e3
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 2ndLevel = PATHITEM(Business_Units[Hierarchy], 2, TEXT)
+		lineageTag: 6756d714-32b5-4535-8a89-eca1c0e03892
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column '2ndLevel Name' = LOOKUPVALUE(Business_Units[name],Business_Units[id],PATHITEM(Business_Units[Hierarchy], 2, TEXT))
+		lineageTag: 84f81740-64ef-4b71-ab39-dd8705f25444
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 3rdLevel = PATHITEM(Business_Units[Hierarchy], 3, TEXT)
+		lineageTag: e18ede34-e02a-424d-82f8-895ea845363b
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column '3rdLevel Name' = LOOKUPVALUE(Business_Units[name],Business_Units[id],PATHITEM(Business_Units[Hierarchy], 3, TEXT))
+		lineageTag: d480a281-7bac-495c-8201-a93d1c0901cb
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 4thLevel = PATHITEM(Business_Units[Hierarchy], 4, TEXT)
+		lineageTag: 80df043c-b9f1-4d1c-8360-3f0918c5d517
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column '4thLevel Name' = LOOKUPVALUE(Business_Units[name],Business_Units[id],PATHITEM(Business_Units[Hierarchy], 4, TEXT))
+		lineageTag: b7c1801d-fc6e-4187-9b65-7a6dd7805467
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 5thLevel = PATHITEM(Business_Units[Hierarchy], 5, TEXT)
+		lineageTag: 7127f46f-23b1-4823-9107-0acfaddaa0cc
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column '5thLevel Name' = LOOKUPVALUE(Business_Units[name],Business_Units[id],PATHITEM(Business_Units[Hierarchy], 5, TEXT))
+		lineageTag: f70dcdd3-0347-44d3-a93f-c3179d823338
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 6thLevel = PATHITEM(Business_Units[Hierarchy], 6, TEXT)
+		lineageTag: 525f56e6-faf9-4972-9776-4813b9fa252e
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column '6thLevel Name' = LOOKUPVALUE(Business_Units[name],Business_Units[id],PATHITEM(Business_Units[Hierarchy], 6, TEXT))
+		lineageTag: 988cf79a-496c-4daa-95ed-7baa6170668e
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Region = ```
+			
+			SWITCH (
+			    TRUE(),
+			    ISBLANK(Business_Units[4thLevel Name]), 
+			        IF(
+			            SEARCH("Tenancy", Business_Units[3rdLevel Name], 1, 0) > 0, 
+			            "Tenancy",
+			            "Shared Services"
+			        ),
+			    TRUE(), Business_Units[4thLevel Name]
+			)
+			```
+		lineageTag: 42a4c6d7-a5f1-410f-bd72-9f9787c55c61
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'Business Unit Hierarchy'
+		lineageTag: 1fa14338-52b1-4c6f-ab28-31185bbd39da
+
+		level 'FirstLevel Name'
+			lineageTag: 472dd03e-2b44-4639-82ae-f74d1d6ea04a
+			column: 'FirstLevel Name'
+
+		level '2ndLevel Name'
+			lineageTag: 336f758c-381e-4f3c-9281-1d4d0d35a9ad
+			column: '2ndLevel Name'
+
+		level '3rdLevel Name'
+			lineageTag: a5c63a41-d6f5-4689-b0f8-d8ea705b35df
+			column: '3rdLevel Name'
+
+		level '4thLevel Name'
+			lineageTag: 7b125f50-a73c-41be-a18a-d6add5a37354
+			column: '4thLevel Name'
+
+		level '5thLevel Name'
+			lineageTag: 7fe200f0-bc5f-4bb3-bd0b-1803a7d7a6df
+			column: '5thLevel Name'
+
+		level '6thLevel Name'
+			lineageTag: 22d695b7-fe88-4be3-80d0-1805368a762f
+			column: '6thLevel Name'
+
+	partition Business_Units-63d525f4-6ff9-489e-95ae-4d235ad4401d = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT#(lf)    [business_unit_id],#(lf)    [name],#(lf)    [parentId]#(lf)FROM [IntelliHR].[business_unit]#(lf)WHERE ([ODSIsCurrent] = 1) AND ([isEnabled] = 1);"]),
+				    #"Sorted Rows" = Table.Sort(Source,{{"name", Order.Ascending}}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Sorted Rows",{{"business_unit_id", "id"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

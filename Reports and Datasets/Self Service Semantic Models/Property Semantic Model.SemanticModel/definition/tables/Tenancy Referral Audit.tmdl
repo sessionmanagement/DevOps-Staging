@@ -1,0 +1,456 @@
+/// Audit table for reviewing tenancy-to-referral matching quality. Uses chain-aware date-overlap matching (same logic as Tenancy Referral Bridge) to pair tenancies with referrals. Excludes Waitlisted referrals. Matching uses chain-level date windows (Chain Start Date to Chain End Date) with individual tenancy overlap constraints and a 3-day tolerance.
+/// 
+/// Match Quality categories:
+/// - Verified Match: Individual tenancy dates align with referral dates within 3 days.
+/// - Verified Match (Chain): Individual gaps exceed 3 days but chain-level dates (start and end of the entire tenancy chain) align within 3 days. One referral spans the whole chain.
+/// - Verified Match (Cross-Chain): Legitimate match within the chain window but neither individual nor chain-level dates fully align. Occurs when multiple referrals each cover different segments of a tenancy chain.
+/// - Pre-existing Referral (Not Matched): Referral predates the tenancy and was not matched by chain-aware logic.
+/// - No Overlapping Referral: Client has referrals but none overlap this tenancy within the chain date window.
+/// - No Matching Referral: Client has no referrals in the system.
+/// - Missing Client ID: Tenancy has no Tangata Whaiora ID so matching cannot be attempted.
+/// 
+/// Use for data quality review and referral coverage analysis. Not for operational reporting — use the Tenancy Referral Bridge for that.
+table 'Tenancy Referral Audit'
+	lineageTag: cbeb923f-4f1e-4d9a-b10f-ebbd9bceaa1d
+
+	/// Unique identifier for the tenancy record. Use to link back to the Tenancy table if needed for further investigation.
+	column 'Property Tenancy ID'
+		isHidden
+		lineageTag: d6adfbfa-f76c-4345-90dd-2d2883b0dfad
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Property Tenancy ID]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unique identifier for the property. Used internally to look up property details such as City, Program, and Sub Program.
+	column 'Property ID'
+		isHidden
+		lineageTag: 66e3ddfc-3eca-4b86-bf6d-71a8d201d127
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Property ID]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Name of the tenancy including tenant name and property address. Primary identifier for reviewing audit records. Format: 'Tenant Name - Property Address'.
+	column 'Tenancy Name'
+		lineageTag: 7061b3b1-261d-4b0f-a4fc-d36b77ca8702
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tenancy Name]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Client ID from the tenancy record. Used to match tenancies with referrals by client identity. Date-overlap logic then narrows to the correct referral for each tenancy period.
+	column 'Tenancy Tangata Whaiora ID'
+		lineageTag: 635693b8-38fa-4a1b-ad10-2cd00e7185d6
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tenancy Tangata Whaiora ID]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the tenancy officially started. Compared with Referral Accepted Date to assess alignment. The date-overlap matching requires Referral Accepted Date >= Tenancy Start Date - 3 days.
+	column 'Tenancy Start Date'
+		formatString: d/mm/yyyy
+		lineageTag: 3ba0304e-4cb1-4ca4-984f-1811cfed1b3a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tenancy Start Date]
+
+		variation Variation
+			isDefault
+			relationship: 33ef7215-0220-45a0-955b-150691d1fb6c
+			defaultHierarchy: LocalDateTable_3e513739-9936-4d14-bd80-9d0d36c28a27.'Date Hierarchy'
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the tenant vacated the property. Compared with Referral Discharge Date to assess alignment. Blank if tenancy is still active. For active tenancies, any referral accepted after the start date will match.
+	column 'Tenancy Vacated Date'
+		formatString: d/mm/yyyy
+		lineageTag: 71a86bab-ce95-4f48-ac8d-5add40742468
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tenancy Vacated Date]
+
+		variation Variation
+			isDefault
+			relationship: 93871916-a915-4201-94cb-8bff2a6d2687
+			defaultHierarchy: LocalDateTable_33f638c7-5533-4c6e-9563-cf243558e9df.'Date Hierarchy'
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Person responsible for managing the tenancy. Use to identify who to contact for follow-up on data discrepancies.
+	column 'Tenancy Manager'
+		lineageTag: 45546bdf-b3b9-4fa2-a26b-eef6f86f70a2
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tenancy Manager]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Client ID from the referral record. Matches Tenancy Tangata Whaiora ID. Blank for unmatched and missing-ID records.
+	column 'Referral Tangata Whaiora ID'
+		isHidden
+		lineageTag: 36dec6f9-1d25-495f-be4e-f565a13ace8f
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Referral Tangata Whaiora ID]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Organisation or source that referred the client to transitional housing (e.g., 'MSD via THVMT', 'WINZ Riccarton'). Use to verify the referral matches the expected source for the tenancy. Blank for unmatched records.
+	column 'Referrer Name'
+		lineageTag: ef79a438-acf9-4970-9390-9bae1d81f9f8
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Referrer Name]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the referral was accepted into the service. Must be >= Tenancy Start Date - 3 days for a date-overlap match. Compare with Tenancy Start Date to assess alignment.
+	column 'Referral Accepted Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 98364ce1-1d12-4a29-a0b9-11f5e6161a0e
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Referral Accepted Date]
+
+		variation Variation
+			isDefault
+			relationship: 86857124-8aa9-4373-9217-93b33012c508
+			defaultHierarchy: LocalDateTable_1167ec45-4409-45e9-adca-9d3538309297.'Date Hierarchy'
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the referral was discharged from the service. Must be <= Tenancy Vacated Date + 3 days for a date-overlap match (unless tenancy is still active). Compare with Tenancy Vacated Date to assess alignment.
+	column 'Referral Discharge Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 12c878b8-e8be-4648-82e3-1c13d954b1db
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Referral Discharge Date]
+
+		variation Variation
+			isDefault
+			relationship: de19b186-3d9c-41f5-adbb-e227e231ce39
+			defaultHierarchy: LocalDateTable_74c4319d-bae0-4f19-8215-362b5892c247.'Date Hierarchy'
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Current status of the referral (e.g., 'Discharged', 'Accepted'). Use to understand if the referral is still open or has been closed. Blank for unmatched records.
+	column 'Referral Status'
+		lineageTag: 724ffff8-444c-4071-a556-a9de21f4e867
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Referral Status]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Internal marker distinguishing unmatched record types. Values: 'No Overlapping Referral' (client has referrals but none overlap by date), 'No Matching Referral' (client has no referrals at all), 'Missing Client ID' (tenancy has no client ID). Blank for matched records. Used by Match Quality logic.
+	column 'Unmatched Reason'
+		isHidden
+		lineageTag: 73f9efe8-c368-4a39-abda-0b79daacaa8a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Unmatched Reason]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// City where the property is located, looked up from the Property table. Use to filter audit records by geographic area.
+	column City
+		lineageTag: 9c1dc345-0d67-4c30-aa4c-830133b5e5ed
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [City]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Primary housing program the property is allocated to (e.g., IRRS, Transitional Housing), looked up from the Property table. Use to filter audit records by program type.
+	column Program
+		lineageTag: 7251d0a4-0216-482f-b641-5ffbd22f8977
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Program]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Sub-classification within the main housing program (e.g., Motels, Transitional Housing), looked up from the Property table. Use for more granular filtering of audit records.
+	column 'Sub Program'
+		lineageTag: 2bab1e6c-5978-4f81-8eef-31d0a9b54c1b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Sub Program]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Days between Tenancy Start Date and Referral Accepted Date. Calculated as: Referral Accepted - Tenancy Start. Positive = referral accepted after tenancy started. Negative = referral accepted before tenancy started. Values within -3 to +3 are considered normal. Blank for unmatched records.
+	column 'Start Gap Days'
+		lineageTag: a910399e-193c-45fa-a017-139082e370d0
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Start Gap Days]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Days between Tenancy Vacated Date and Referral Discharge Date. Calculated as: Referral Discharge - Tenancy Vacated. Positive = discharged after vacated (common due to admin lag). Negative = discharged before vacated (unusual). Values within -3 to +3 are considered normal. Blank for active tenancies or unmatched records.
+	column 'End Gap Days'
+		lineageTag: bfe0932b-7132-4cac-b8e0-7073e69e7011
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [End Gap Days]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Classification of the tenancy-to-referral match quality.
+	/// 
+	/// Categories:
+	/// - 'Verified Match': Individual tenancy dates align with referral dates within 3 days at both start and end.
+	/// - 'Verified Match (Chain)': Individual tenancy gaps exceed 3 days, but the chain-level dates (Chain Start/Chain End) align with the referral within 3 days at both ends. This means one referral spans the entire chain of tenancies.
+	/// - 'Verified Match (Cross-Chain)': The row is a legitimate match (passed chain-aware matching) but neither individual nor chain-level dates fully align within 3 days. This occurs when multiple referrals each cover different segments of a tenancy chain, creating valid cross-pairings where a referral covers a different part of the chain than this particular tenancy.
+	/// - 'Pre-existing Referral (Not Matched)': The referral predates the tenancy and was not matched by the primary chain-aware matching logic.
+	/// - 'No Overlapping Referral': The client has referrals but none overlap this tenancy within the chain date window.
+	/// - 'No Matching Referral': The client has no referrals at all in the system.
+	/// - 'Missing Client ID': The tenancy record has no Tangata Whaiora ID so matching cannot be attempted.
+	column 'Match Quality'
+		lineageTag: 61271633-2e65-4f0c-b542-1a01d0397359
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Match Quality]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Copy of Tenancy Vacated Date with NULL values replaced by 2999-12-31 for easier date filtering. Active tenancies (no vacated date) appear in the future so they are always included in date range filters.
+	column 'Vacated Audit Filter' = IF(ISBLANK('Tenancy Referral Audit'[Tenancy Vacated Date]), DATE(2999, 12, 31), 'Tenancy Referral Audit'[Tenancy Vacated Date])
+		dataType: dateTime
+		isHidden
+		formatString: d/mm/yyyy
+		lineageTag: 86ef626b-3c43-4afa-a7ed-643467cc955c
+		summarizeBy: none
+
+		variation Variation
+			isDefault
+			relationship: 848dfe0e-9fc1-47c8-a69d-e209a31e2973
+			defaultHierarchy: LocalDateTable_f8d14d16-cdf4-4700-9ec7-30456dc63cd2.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Earliest tenancy start date across the client's whole tenancy chain (a chain links consecutive tenancies with gaps of 3 days or less), sourced from Tenancy[Chain Start Date]. Drives the chain-aware referral window: a referral matches only if Referral Accepted Date >= Chain Start Date - 3 days. Blank for Missing Client ID records.
+	column 'Chain Start Date'
+		formatString: d/mm/yyyy
+		lineageTag: 66fc9344-4d32-401c-b61f-c8203bbe796f
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Chain Start Date]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Latest vacated date across the client's whole tenancy chain, or blank if any tenancy in the chain is still open (active). Upper bound of the chain-aware referral window: a referral matches only if Referral Discharge Date <= Chain End Date + 3 days (or the chain is still open). Blank for open chains and Missing Client ID records.
+	column 'Chain End Date'
+		formatString: d/mm/yyyy
+		lineageTag: 10b77819-3668-44fe-a7f9-471c93d16cd3
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Chain End Date]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Days between Chain Start Date and Referral Accepted Date (DATEDIFF Chain Start -> Referral Accepted). Chain-level counterpart of Start Gap Days; used by Match Quality to award 'Verified Match (Chain)' when individual gaps exceed 3 days but the chain-level gap is within 3. Blank for unmatched records.
+	column 'Chain Start Gap Days'
+		lineageTag: 7c788ab7-ae34-4f7f-b104-874a111a1c1f
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Chain Start Gap Days]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Days between Chain End Date and Referral Discharge Date (DATEDIFF Chain End -> Referral Discharge). Chain-level counterpart of End Gap Days; used by Match Quality for the 'Verified Match (Chain)' test. Blank for open chains or unmatched records.
+	column 'Chain End Gap Days'
+		lineageTag: 2c0045f1-6acb-4d8d-8b65-3f46e2cebbd4
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Chain End Gap Days]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Tenancy Referral Audit' = calculated
+		mode: import
+		source = ```
+				VAR TenancyBase = 
+				    FILTER(Tenancy, NOT ISBLANK(Tenancy[Tangata Whaiora ID]))
+				VAR TenancyWithID =
+				    ADDCOLUMNS(
+				        SELECTCOLUMNS(
+				            TenancyBase,
+				            "Property Tenancy ID", Tenancy[Property Tenancy ID],
+				            "Property ID", Tenancy[Property ID],
+				            "Tenancy Name", Tenancy[Tenancy Name],
+				            "Tenancy Tangata Whaiora ID", Tenancy[Tangata Whaiora ID],
+				            "Tenancy Start Date", Tenancy[Tenancy Start Date],
+				            "Tenancy Vacated Date", Tenancy[Vacated Date],
+				            "Tenancy Manager", Tenancy[Tenancy Manager],
+				            "Chain Start Date", Tenancy[Chain Start Date]
+				        ),
+				        "Chain End Date",
+				        VAR _ClientID = [Tenancy Tangata Whaiora ID]
+				        VAR _ChainStart = [Chain Start Date]
+				        VAR _ChainTenancies = 
+				            FILTER(
+				                TenancyBase,
+				                Tenancy[Tangata Whaiora ID] = _ClientID && 
+				                Tenancy[Chain Start Date] = _ChainStart
+				            )
+				        VAR _HasOpenTenancy = 
+				            COUNTROWS(
+				                FILTER(_ChainTenancies, ISBLANK(Tenancy[Vacated Date]))
+				            ) > 0
+				        RETURN 
+				            IF(
+				                _HasOpenTenancy, 
+				                BLANK(), 
+				                MAXX(_ChainTenancies, Tenancy[Vacated Date])
+				            )
+				    )
+				VAR TenancyBlankID =
+				    SELECTCOLUMNS(
+				        FILTER(Tenancy, ISBLANK(Tenancy[Tangata Whaiora ID])),
+				        "Property Tenancy ID", Tenancy[Property Tenancy ID],
+				        "Property ID", Tenancy[Property ID],
+				        "Tenancy Name", Tenancy[Tenancy Name],
+				        "Tenancy Tangata Whaiora ID", Tenancy[Tangata Whaiora ID],
+				        "Tenancy Start Date", Tenancy[Tenancy Start Date],
+				        "Tenancy Vacated Date", Tenancy[Vacated Date],
+				        "Tenancy Manager", Tenancy[Tenancy Manager],
+				        "Chain Start Date", BLANK(),
+				        "Chain End Date", BLANK()
+				    )
+				VAR ReferralData =
+				    SELECTCOLUMNS(
+				        FILTER(
+				            'Transitional Housing Referrals',
+				            'Transitional Housing Referrals'[Tangata Whaiora Referral Status] <> "Waitlisted"
+				        ),
+				        "Referral Tangata Whaiora ID", 'Transitional Housing Referrals'[Tangata Whaiora ID],
+				        "Referrer Name", 'Transitional Housing Referrals'[Tangata Whaiora Referrer Name],
+				        "Referral Accepted Date", 'Transitional Housing Referrals'[Tangata Whaiora Referral Accepted Date],
+				        "Referral Discharge Date", 'Transitional Housing Referrals'[Tangata Whaiora Referral Discharge Date],
+				        "Referral Status", 'Transitional Housing Referrals'[Tangata Whaiora Referral Status]
+				    )
+				VAR ReferralIDs = DISTINCT(SELECTCOLUMNS(ReferralData, "ID", [Referral Tangata Whaiora ID]))
+				VAR MatchedJoin =
+				    FILTER(
+				        CROSSJOIN(TenancyWithID, ReferralData),
+				        [Tenancy Tangata Whaiora ID] = [Referral Tangata Whaiora ID]
+				            && [Referral Accepted Date] >= [Chain Start Date] - 3
+				            && ([Referral Discharge Date] <= [Chain End Date] + 3 || ISBLANK([Chain End Date]))
+				            && ([Referral Discharge Date] >= [Tenancy Start Date] || ISBLANK([Referral Discharge Date]))
+				            && ([Referral Accepted Date] <= [Tenancy Vacated Date] + 3 || ISBLANK([Tenancy Vacated Date]))
+				    )
+				VAR MatchedTenancyIDs = DISTINCT(SELECTCOLUMNS(MatchedJoin, "ID", [Property Tenancy ID]))
+				VAR PreExistingJoin =
+				    FILTER(
+				        CROSSJOIN(
+				            FILTER(TenancyWithID, NOT([Property Tenancy ID] IN MatchedTenancyIDs)),
+				            ReferralData
+				        ),
+				        [Tenancy Tangata Whaiora ID] = [Referral Tangata Whaiora ID]
+				            && (ISBLANK([Referral Discharge Date]) || [Tenancy Start Date] < [Referral Discharge Date])
+				            && (ISBLANK([Tenancy Vacated Date]) || [Referral Accepted Date] < [Tenancy Vacated Date])
+				    )
+				VAR PreExistingTenancyIDs = DISTINCT(SELECTCOLUMNS(PreExistingJoin, "ID", [Property Tenancy ID]))
+				VAR AllMatchedIDs = DISTINCT(UNION(MatchedTenancyIDs, PreExistingTenancyIDs))
+				VAR NoOverlapTenancies =
+				    FILTER(TenancyWithID, NOT([Property Tenancy ID] IN AllMatchedIDs) && [Tenancy Tangata Whaiora ID] IN ReferralIDs)
+				VAR NoReferralTenancies =
+				    FILTER(TenancyWithID, NOT([Property Tenancy ID] IN AllMatchedIDs) && NOT([Tenancy Tangata Whaiora ID] IN ReferralIDs))
+				VAR PreExistingWithReason =
+				    ADDCOLUMNS(PreExistingJoin, "Unmatched Reason", "Pre-existing Referral")
+				VAR UnmatchedNoOverlap =
+				    ADDCOLUMNS(
+				        NoOverlapTenancies,
+				        "Referral Tangata Whaiora ID", BLANK(),
+				        "Referrer Name", BLANK(),
+				        "Referral Accepted Date", BLANK(),
+				        "Referral Discharge Date", BLANK(),
+				        "Referral Status", BLANK(),
+				        "Unmatched Reason", "No Overlapping Referral"
+				    )
+				VAR UnmatchedNoReferral =
+				    ADDCOLUMNS(
+				        NoReferralTenancies,
+				        "Referral Tangata Whaiora ID", BLANK(),
+				        "Referrer Name", BLANK(),
+				        "Referral Accepted Date", BLANK(),
+				        "Referral Discharge Date", BLANK(),
+				        "Referral Status", BLANK(),
+				        "Unmatched Reason", "No Matching Referral"
+				    )
+				VAR MatchedWithReason =
+				    ADDCOLUMNS(MatchedJoin, "Unmatched Reason", BLANK())
+				VAR BlankIDRecords =
+				    ADDCOLUMNS(
+				        TenancyBlankID,
+				        "Referral Tangata Whaiora ID", BLANK(),
+				        "Referrer Name", BLANK(),
+				        "Referral Accepted Date", BLANK(),
+				        "Referral Discharge Date", BLANK(),
+				        "Referral Status", BLANK(),
+				        "Unmatched Reason", "Missing Client ID"
+				    )
+				VAR Combined = UNION(MatchedWithReason, PreExistingWithReason, UnmatchedNoOverlap, UnmatchedNoReferral, BlankIDRecords)
+				VAR WithPropertyLookup =
+				    ADDCOLUMNS(
+				        Combined,
+				        "City", LOOKUPVALUE('Property'[City], 'Property'[Property ID], [Property ID]),
+				        "Program", LOOKUPVALUE('Property'[Program], 'Property'[Property ID], [Property ID]),
+				        "Sub Program", LOOKUPVALUE('Property'[Sub Program], 'Property'[Property ID], [Property ID])
+				    )
+				VAR WithGaps =
+				    ADDCOLUMNS(
+				        WithPropertyLookup,
+				        "Start Gap Days", DATEDIFF([Tenancy Start Date], [Referral Accepted Date], DAY),
+				        "End Gap Days", DATEDIFF([Tenancy Vacated Date], [Referral Discharge Date], DAY),
+				        "Chain Start Gap Days", DATEDIFF([Chain Start Date], [Referral Accepted Date], DAY),
+				        "Chain End Gap Days", DATEDIFF([Chain End Date], [Referral Discharge Date], DAY)
+				    )
+				RETURN
+				    ADDCOLUMNS(
+				        WithGaps,
+				        "Match Quality",
+				            VAR HasTenancyID = NOT ISBLANK([Tenancy Tangata Whaiora ID])
+				            VAR HasReferralMatch = NOT ISBLANK([Referral Tangata Whaiora ID])
+				            VAR StartGap = ABS([Start Gap Days])
+				            VAR EndGap = ABS([End Gap Days])
+				            VAR ChainStartGap = ABS([Chain Start Gap Days])
+				            VAR ChainEndGap = ABS([Chain End Gap Days])
+				            VAR VacatedIsBlank = ISBLANK([Tenancy Vacated Date])
+				            VAR ChainEndIsBlank = ISBLANK([Chain End Date])
+				            VAR UnmatchedType = [Unmatched Reason]
+				            RETURN
+				                SWITCH(
+				                    TRUE(),
+				                    NOT HasTenancyID, "Missing Client ID",
+				                    UnmatchedType = "Pre-existing Referral", "Pre-existing Referral (Not Matched)",
+				                    NOT HasReferralMatch && UnmatchedType = "No Overlapping Referral", "No Overlapping Referral",
+				                    NOT HasReferralMatch, "No Matching Referral",
+				                    StartGap <= 3 && (VacatedIsBlank || EndGap <= 3), "Verified Match",
+				                    ChainStartGap <= 3 && (ChainEndIsBlank || ChainEndGap <= 3), "Verified Match (Chain)",
+				                    ISBLANK(UnmatchedType) && HasReferralMatch, "Verified Match (Cross-Chain)",
+				                    StartGap <= 7 && (VacatedIsBlank || EndGap <= 7), "Review Required (4-7 days)",
+				                    StartGap <= 30 && (VacatedIsBlank || EndGap <= 30), "Review Required (8-30 days)",
+				                    "Likely Unrelated (>30 days)"
+				                )
+				    )
+				```
+

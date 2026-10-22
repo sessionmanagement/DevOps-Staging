@@ -1,0 +1,69 @@
+/// Azure DevOps teams within projects, representing groups of people working together. Source: OData Teams entity.
+table Teams
+	lineageTag: 1d92d559-7369-4145-99dd-4ea455bb05f9
+
+	/// Surrogate key uniquely identifying the team
+	column TeamSK
+		dataType: string
+		isHidden
+		lineageTag: 91fa9048-43d4-4e7e-9912-39bd6bef7d3c
+		summarizeBy: none
+		sourceColumn: TeamSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to the Projects dimension table
+	column ProjectSK
+		dataType: string
+		isHidden
+		lineageTag: be734514-729e-4fe9-94b2-e49de9d2183c
+		summarizeBy: none
+		sourceColumn: ProjectSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unique identifier (GUID) for the team
+	column TeamId
+		dataType: string
+		lineageTag: 82859f39-1704-416f-98e0-afde24c115e0
+		summarizeBy: none
+		sourceColumn: TeamId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Display name of the team
+	column TeamName
+		dataType: string
+		lineageTag: 23227be1-7dc6-493d-ba21-b98933502a72
+		summarizeBy: none
+		sourceColumn: TeamName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date and time when this record was last updated in Azure DevOps Analytics
+	column AnalyticsUpdatedDate
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: ff9c21a1-8a94-4713-9275-6718318aaa2a
+		summarizeBy: none
+		sourceColumn: AnalyticsUpdatedDate
+
+		variation Variation
+			isDefault
+			relationship: 84c3f211-f8bc-48a2-b6a0-db79281704f6
+			defaultHierarchy: LocalDateTable_2aaf889b-fb90-4c2c-85d1-be6c0c4c0c09.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Teams = m
+		mode: import
+		queryGroup: 'DevOps Tables'
+		source =
+				let
+				    Source = OData.Feed("https://analytics.dev.azure.com/EmergeAotearoa/Data%20and%20Analytics/_odata/v3.0-preview/", null, [Implementation="2.0",OmitValues = ODataOmitValues.Nulls,ODataVersion = 4, Headers=[Authorization=fnGetToken()]]),
+				    Teams_table = Source{[Name="Teams",Signature="table"]}[Data]
+				in
+				    Teams_table
+
+	annotation PBI_ResultType = Table
+

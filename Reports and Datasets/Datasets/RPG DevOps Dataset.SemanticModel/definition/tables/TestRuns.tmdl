@@ -1,0 +1,394 @@
+/// Test run execution containers grouping related test results with timing and pipeline context. Source: OData TestRuns entity.
+table TestRuns
+	lineageTag: e068dc97-8408-4d43-a88c-3ed43833a3fd
+
+	/// Date and time when this record was last updated in Azure DevOps Analytics
+	column AnalyticsUpdatedDate
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 2823ae45-29b9-4f2b-b371-95245b375320
+		summarizeBy: none
+		sourceColumn: AnalyticsUpdatedDate
+
+		variation Variation
+			isDefault
+			relationship: bcfe0f03-b5fd-46ae-a290-a86d78d48d68
+			defaultHierarchy: LocalDateTable_1ecceb83-e9ff-416e-be90-f6c965212bbb.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to the Projects dimension table
+	column ProjectSK
+		dataType: string
+		isHidden
+		lineageTag: 48c5db85-22d4-4c60-af23-1c063e1a36c4
+		summarizeBy: none
+		sourceColumn: ProjectSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key uniquely identifying the test run
+	column TestRunSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 7f20273a-fd2a-4d7f-a197-9d9299b95ec4
+		summarizeBy: none
+		sourceColumn: TestRunSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unique numeric identifier for the test run
+	column TestRunId
+		dataType: int64
+		formatString: 0
+		lineageTag: 4982542e-cce0-4dca-af84-8488ab3cca3e
+		summarizeBy: count
+		sourceColumn: TestRunId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Title or name of the test run
+	column Title
+		dataType: string
+		lineageTag: 9ce1e22e-5b28-4245-86fa-dc8baba770a3
+		summarizeBy: none
+		sourceColumn: Title
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates whether the test run was executed automatically
+	column IsAutomated
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: af195abe-8502-47ed-8a50-7fece604cd64
+		summarizeBy: none
+		sourceColumn: IsAutomated
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Type of test run (e.g., Manual, Automated)
+	column TestRunType
+		dataType: string
+		lineageTag: 7cc1c923-aa47-4450-8ef0-2cd47c11b59d
+		summarizeBy: none
+		sourceColumn: TestRunType
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Workflow context for the test run (e.g., Build, Release)
+	column Workflow
+		dataType: string
+		lineageTag: 02d5e6bb-4548-440f-9a71-8fd8c0807ae2
+		summarizeBy: none
+		sourceColumn: Workflow
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to the pipeline run that triggered this test run
+	column PipelineRunSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: c3e52900-e534-46a6-b083-6ddfe02893a8
+		summarizeBy: none
+		sourceColumn: PipelineRunSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to the Pipelines dimension table
+	column PipelineSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: c0593e9a-cbbe-4ed8-90e6-18fd3d70515a
+		summarizeBy: none
+		sourceColumn: PipelineSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to the Branches dimension table
+	column BranchSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 490cbe9e-2711-4879-a4f3-def6d4e34a8b
+		summarizeBy: none
+		sourceColumn: BranchSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key for the completed date, linking to the Dates dimension
+	column CompletedDateSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: cfd5ac14-ad13-42ea-bbf4-0e3f3bae5d8b
+		summarizeBy: none
+		sourceColumn: CompletedDateSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date and time when the test run completed
+	column CompletedDate
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 3f18eb04-de92-4926-987f-e23fb58c9211
+		summarizeBy: none
+		sourceColumn: CompletedDate
+
+		variation Variation
+			isDefault
+			relationship: 0fe8f287-f62d-4c1c-abe1-819a55340604
+			defaultHierarchy: LocalDateTable_f639dd4d-42d7-4be5-9be2-101b103d5bf0.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key for the started date, linking to the Dates dimension
+	column StartedDateSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: a4be5c5d-471d-4a3d-ba5a-e7c0e348fce4
+		summarizeBy: none
+		sourceColumn: StartedDateSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date and time when the test run started
+	column StartedDate
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 5e7bcf54-5ed0-45a0-ab88-3ed810e719a1
+		summarizeBy: none
+		sourceColumn: StartedDate
+
+		variation Variation
+			isDefault
+			relationship: 5d13b4c1-5835-4d38-81a2-f2ef2323036c
+			defaultHierarchy: LocalDateTable_0db8c0a8-aafb-409a-a21a-0db400e0ca1f.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Total wall-clock duration of the test run in seconds
+	column RunDurationSeconds
+		dataType: double
+		lineageTag: bf55609d-30c6-40e8-8bd2-91c6e30cf397
+		summarizeBy: sum
+		sourceColumn: RunDurationSeconds
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Sum of individual test result durations in seconds
+	column ResultDurationSeconds
+		dataType: double
+		lineageTag: 6332ef94-3657-41c8-a113-12210522df9a
+		summarizeBy: sum
+		sourceColumn: ResultDurationSeconds
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Total number of test results in this test run
+	column ResultCount
+		dataType: int64
+		formatString: 0
+		lineageTag: 00751006-e381-4712-b0f5-80f31dabe248
+		summarizeBy: sum
+		sourceColumn: ResultCount
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Number of test results with Passed outcome
+	column ResultPassCount
+		dataType: int64
+		formatString: 0
+		lineageTag: 8bca42af-dad6-40ab-a66e-43d66c7a9fd4
+		summarizeBy: sum
+		sourceColumn: ResultPassCount
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Number of test results with Failed outcome
+	column ResultFailCount
+		dataType: int64
+		formatString: 0
+		lineageTag: 57a9b56c-2570-4abf-bce9-09c78cdf927d
+		summarizeBy: sum
+		sourceColumn: ResultFailCount
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Number of test results with None outcome
+	column ResultNoneCount
+		dataType: int64
+		formatString: 0
+		lineageTag: dc8d33f7-37ef-4f2e-8e9e-195ea3fb68ad
+		summarizeBy: sum
+		sourceColumn: ResultNoneCount
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Number of test results with Inconclusive outcome
+	column ResultInconclusiveCount
+		dataType: int64
+		formatString: 0
+		lineageTag: f105619b-95c2-4e77-b66b-7207ca86333f
+		summarizeBy: sum
+		sourceColumn: ResultInconclusiveCount
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Number of test results that timed out
+	column ResultTimeoutCount
+		dataType: int64
+		formatString: 0
+		lineageTag: 94dd4a3b-90a9-414b-bcb4-21300c2693e4
+		summarizeBy: sum
+		sourceColumn: ResultTimeoutCount
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Number of test results that were aborted
+	column ResultAbortedCount
+		dataType: int64
+		formatString: 0
+		lineageTag: d461ae3a-ec34-4673-9ae9-1a2c6035b5b9
+		summarizeBy: sum
+		sourceColumn: ResultAbortedCount
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Number of test results that were blocked
+	column ResultBlockedCount
+		dataType: int64
+		formatString: 0
+		lineageTag: a834c277-417a-4b9e-90ba-87cec18ff80a
+		summarizeBy: sum
+		sourceColumn: ResultBlockedCount
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Number of test results not executed
+	column ResultNotExecutedCount
+		dataType: int64
+		formatString: 0
+		lineageTag: 96dd15e6-c9dc-4aed-a839-f2831d873279
+		summarizeBy: sum
+		sourceColumn: ResultNotExecutedCount
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Number of test results with Warning outcome
+	column ResultWarningCount
+		dataType: int64
+		formatString: 0
+		lineageTag: a2bc9fce-766f-44f9-ae33-4a0034b9b17b
+		summarizeBy: sum
+		sourceColumn: ResultWarningCount
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Number of test results with Error outcome
+	column ResultErrorCount
+		dataType: int64
+		formatString: 0
+		lineageTag: c350ed8f-8e5c-4e8f-ad12-8be015a25de6
+		summarizeBy: sum
+		sourceColumn: ResultErrorCount
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Number of test results marked as Not Applicable
+	column ResultNotApplicableCount
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b345902-baac-468d-9434-e4e024c1d803
+		summarizeBy: sum
+		sourceColumn: ResultNotApplicableCount
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Number of test results marked as Not Impacted
+	column ResultNotImpactedCount
+		dataType: int64
+		formatString: 0
+		lineageTag: 520d0347-3d03-43d4-ab9e-67ea08b154c6
+		summarizeBy: sum
+		sourceColumn: ResultNotImpactedCount
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates whether detailed test result information is available
+	column HasDetail
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 718e2047-ed69-477e-ad3b-f7719455b02b
+		summarizeBy: none
+		sourceColumn: HasDetail
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unique identifier of the release associated with this test run
+	column ReleaseId
+		dataType: int64
+		formatString: 0
+		lineageTag: 845cb4a1-8e6c-436c-881f-ee8a0a9d98f8
+		summarizeBy: count
+		sourceColumn: ReleaseId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unique identifier of the release environment
+	column ReleaseEnvironmentId
+		dataType: int64
+		formatString: 0
+		lineageTag: af54cb56-eba0-44f4-95a5-c089e0be8350
+		summarizeBy: count
+		sourceColumn: ReleaseEnvironmentId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unique identifier of the release pipeline
+	column ReleasePipelineId
+		dataType: int64
+		formatString: 0
+		lineageTag: 127e2f1b-8cae-4c18-a211-35a3a083f2d2
+		summarizeBy: count
+		sourceColumn: ReleasePipelineId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unique identifier of the release stage
+	column ReleaseStageId
+		dataType: int64
+		formatString: 0
+		lineageTag: 773abb1f-6d96-4574-b8bf-e8f340bb7359
+		summarizeBy: count
+		sourceColumn: ReleaseStageId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Number of test results marked as flaky (intermittently failing)
+	column ResultFlakyCount
+		dataType: int64
+		formatString: 0
+		lineageTag: 69949bb8-2bb3-42a4-afa6-837c5c8507be
+		summarizeBy: sum
+		sourceColumn: ResultFlakyCount
+
+		annotation SummarizationSetBy = Automatic
+
+	partition TestRuns = m
+		mode: import
+		queryGroup: 'DevOps Tables'
+		source =
+				let
+				    Source = OData.Feed("https://analytics.dev.azure.com/EmergeAotearoa/Data%20and%20Analytics/_odata/v3.0-preview/", null, [Implementation="2.0",OmitValues = ODataOmitValues.Nulls,ODataVersion = 4, Headers=[Authorization=fnGetToken()]]),
+				    TestRuns_table = Source{[Name="TestRuns",Signature="table"]}[Data]
+				in
+				    TestRuns_table
+

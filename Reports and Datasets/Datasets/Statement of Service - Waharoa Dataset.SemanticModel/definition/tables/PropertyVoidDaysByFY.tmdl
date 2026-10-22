@@ -1,0 +1,46 @@
+table PropertyVoidDaysByFY
+	isHidden
+	lineageTag: f6b898aa-0393-483a-bbb6-5b8c6fc97f40
+
+	column NumberOfVoidDays
+		isHidden
+		formatString: 0
+		lineageTag: 359a380e-dd25-4038-9e0e-a7d71ac69251
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [NumberOfVoidDays]
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_year_num
+		isHidden
+		formatString: 0
+		lineageTag: 7fe69ec9-d93b-4e2b-acc1-8cdd01031953
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: work_dim_date[financial_year_num]
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_property
+		isHidden
+		lineageTag: 1bd6d564-90a4-41e2-a276-a53dc3cff7a9
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: UniquePropertyVoidDates[zav_property]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition PropertyVoidDaysByFY = calculated
+		mode: import
+		source = ```
+				
+				SUMMARIZECOLUMNS(
+				    UniquePropertyVoidDates[zav_property],
+				    work_dim_date[financial_year_num], 
+				    "NumberOfVoidDays", COUNTROWS(UniquePropertyVoidDates)
+				)
+				```
+
+	annotation PBI_Id = 80bc6cdcd21642d6b2fc1a27d695dcaf
+

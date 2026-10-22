@@ -1,0 +1,102 @@
+table DIM_ServiceGrouping
+	lineageTag: 2461cc1e-aea4-4b12-a690-0c8fd66ed9bc
+
+	column kpi_id
+		dataType: int64
+		formatString: 0
+		lineageTag: e24b3252-2744-4b4b-bfa1-b208dc2bdb77
+		summarizeBy: sum
+		sourceColumn: kpi_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_kpi_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 917b275d-da1a-43e4-b06c-e4b0c3aa3614
+		summarizeBy: sum
+		sourceColumn: dim_kpi_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column service_type_grouping
+		dataType: string
+		lineageTag: ce5b1268-9532-435c-bb8a-344aab204a7e
+		summarizeBy: none
+		sourceColumn: service_type_grouping
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_service_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 6ef50052-ff55-4597-94c6-16fbfc5909fa
+		summarizeBy: sum
+		sourceColumn: dim_service_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column service_id
+		dataType: int64
+		formatString: 0
+		lineageTag: b86fb2c5-89fc-47ed-b8eb-314b61a5b37c
+		summarizeBy: sum
+		sourceColumn: service_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_company_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 286f385c-b23c-461a-b68d-4532dccbe508
+		summarizeBy: sum
+		sourceColumn: dim_company_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column relevant_bu
+		dataType: string
+		lineageTag: cea09961-d313-4767-ab96-5011dc422861
+		summarizeBy: none
+		sourceColumn: relevant_bu
+
+		annotation SummarizationSetBy = Automatic
+
+	column entity_type
+		dataType: string
+		lineageTag: 5c20615d-ac48-47c8-a337-ae6ec447312a
+		summarizeBy: none
+		sourceColumn: entity_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column KPI_BU_KEY
+		dataType: string
+		lineageTag: 131cdc34-3eae-4179-9bb1-12d5dd46fce7
+		summarizeBy: none
+		sourceColumn: KPI_BU_KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column Grouping_KEY
+		dataType: string
+		lineageTag: f4a02f4d-40d7-4d44-9f2d-4176af687000
+		summarizeBy: none
+		sourceColumn: Grouping_KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DIM_ServiceGrouping = m
+		mode: import
+		queryGroup: RLS
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="-- ============================================================#(lf)-- Model:  KPI Dataset#(lf)-- Table:  DIM_ServiceGrouping#(lf)-- Source: native query (complex CTE/window) - emitted in full#(lf)-- Used columns: 1 (mapped 1, unmapped 0)  [full query, not trimmed]#(lf)-- Auto-generated from pbi_complete_dump.csv + model M + EDW/ODS schema.#(lf)-- Review before use; verify joins/filters against the model.#(lf)-- ============================================================#(lf)-- USED model columns: relevant_bu#(lf)#(lf)-- Create a lookup table based on service type grouping to identify which service IDs are relevant for each KPI#(lf)WITH Fact_KPI AS (#(lf)SELECT DISTINCT #(lf)kpi_id,#(lf)CASE#(lf)    WHEN LEFT([Entity_KEY], 3) = '555' THEN 'Service'#(lf)    WHEN LEFT([Entity_KEY], 3) = '666' THEN 'Kaimahi'#(lf)    WHEN LEFT([Entity_KEY], 3) = '777' THEN 'Property'#(lf)    WHEN LEFT([Entity_KEY], 3) = '888' THEN 'Tenancy'#(lf)    WHEN LEFT([Entity_KEY], 3) = '999' THEN 'Referral'#(lf)    ELSE ''#(lf)END AS [Entity_Type]#(lf)FROM kpi.fact_kpi_current ),#(lf)#(lf)#(lf)HD AS (#(lf)#(tab)SELECT #(lf)#(tab)DISTINCT dim_kpi.kpi_id#(lf)#(tab)#(tab),dim_kpi.dim_kpi_key#(lf)#(tab)#(tab),dim_kpi_service_type_grouping.service_type_grouping#(lf)#(tab)#(tab),'Health & Disability' AS relevant_bu#(lf)#(tab)#(tab), dim_service_key#(lf)#(tab)#(tab),service_id#(lf)#(tab)#(tab),dim_company_key#(lf)#(tab)#(tab),CONCAT(dim_company_key,service_id,kpi_id) AS Grouping_KEY#(lf)#(tab)#(tab), CAST(kpi_id AS VARCHAR(50)) + '_' + 'Health & Disability' AS KPI_BU_KEY#(lf)#(lf)#(tab)FROM edw.dim_kpi#(lf)#(tab)LEFT JOIN edw.bridge_kpi_measure_to_service_type_group ON dim_kpi.dim_kpi_key = bridge_kpi_measure_to_service_type_group.dim_kpi_key#(lf)#(tab)LEFT JOIN edw.dim_kpi_service_type_grouping ON bridge_kpi_measure_to_service_type_group.service_type_grouping_id = dim_kpi_service_type_grouping.dim_kpi_service_type_grouping_key#(lf)#(tab)#(tab)AND dim_kpi_service_type_grouping.dwhiscurrent = 1#(lf)#(tab)LEFT JOIN edw.bridge_kpi_service_type_to_grouping ON bridge_kpi_measure_to_service_type_group.dim_kpi_service_type_grouping_key = bridge_kpi_service_type_to_grouping.dim_kpi_service_type_grouping_key#(lf)#(tab)LEFT JOIN edw.dim_kpi_service_type ON bridge_kpi_service_type_to_grouping.dim_kpi_service_type_key = dim_kpi_service_type.dim_kpi_service_type_key#(lf)#(tab)LEFT JOIN edw.dim_service ON dim_kpi_service_type.service_type = dim_service.service_type_name#(lf)#(tab)#(tab)AND dim_service.dwhiscurrent = 1#(lf)#(tab)#(tab)AND dim_service.dwhdmloperation <> 'd'#(lf)#(tab)#(lf)#(tab)WHERE dim_kpi.dwhiscurrent = 1#(lf)#(tab)#(tab)AND service_id is not null #(lf)#(tab)#(tab)AND dim_kpi_service_type_grouping.service_type_grouping ='H&D'),#(lf)#(lf)HOUSING AS (#(lf)#(tab)SELECT #(lf)#(tab)DISTINCT dim_kpi.kpi_id#(lf)#(tab)#(tab),dim_kpi.dim_kpi_key#(lf)#(tab)#(tab),dim_kpi_service_type_grouping.service_type_grouping#(lf)#(tab)#(tab),'Housing' AS relevant_bu#(lf)#(tab)#(tab), dim_service_key#(lf)#(tab)#(tab),service_id#(lf)#(tab)#(tab),dim_company_key#(lf)#(tab)#(tab),CONCAT(dim_company_key,service_id,kpi_id) AS Grouping_KEY#(lf)#(tab)#(tab), CAST(kpi_id AS VARCHAR(50)) + '_' + 'Housing' AS KPI_BU_KEY#(lf)#(lf)#(tab)FROM edw.dim_kpi#(lf)#(tab)LEFT JOIN edw.bridge_kpi_measure_to_service_type_group ON dim_kpi.dim_kpi_key = bridge_kpi_measure_to_service_type_group.dim_kpi_key#(lf)#(tab)LEFT JOIN edw.dim_kpi_service_type_grouping ON bridge_kpi_measure_to_service_type_group.service_type_grouping_id = dim_kpi_service_type_grouping.dim_kpi_service_type_grouping_key#(lf)#(tab)#(tab)AND dim_kpi_service_type_grouping.dwhiscurrent = 1#(lf)#(tab)LEFT JOIN edw.bridge_kpi_service_type_to_grouping ON bridge_kpi_measure_to_service_type_group.dim_kpi_service_type_grouping_key = bridge_kpi_service_type_to_grouping.dim_kpi_service_type_grouping_key#(lf)#(tab)LEFT JOIN edw.dim_kpi_service_type ON bridge_kpi_service_type_to_grouping.dim_kpi_service_type_key = dim_kpi_service_type.dim_kpi_service_type_key#(lf)#(tab)LEFT JOIN edw.dim_service ON dim_kpi_service_type.service_type = dim_service.service_type_name#(lf)#(tab)#(tab)AND dim_service.dwhiscurrent = 1#(lf)#(tab)#(tab)AND dim_service.dwhdmloperation <> 'd'#(lf)#(tab)WHERE dim_kpi.dwhiscurrent = 1#(lf)#(tab)#(tab)AND service_id is not null #(lf)#(tab)#(tab)AND dim_kpi_service_type_grouping.service_type_grouping ='Housing'),#(lf)#(lf)TENANCY AS(#(lf)#(tab)SELECT #(lf)#(tab)DISTINCT dim_kpi.kpi_id#(lf)#(tab)#(tab),dim_kpi.dim_kpi_key#(lf)#(tab)#(tab),dim_kpi_service_type_grouping.service_type_grouping#(lf)#(tab)#(tab),'Tenancy' AS relevant_bu#(lf)#(tab)#(tab), dim_service_key#(lf)#(tab)#(tab),service_id#(lf)#(tab)#(tab),dim_company_key#(lf)#(tab)#(tab),CONCAT(dim_company_key,service_id,kpi_id) AS Grouping_KEY#(lf)#(tab)#(tab), CAST(kpi_id AS VARCHAR(50)) + '_' + 'Tenancy' AS KPI_BU_KEY#(lf)#(lf)#(tab)FROM edw.dim_kpi#(lf)#(tab)LEFT JOIN edw.bridge_kpi_measure_to_service_type_group ON dim_kpi.dim_kpi_key = bridge_kpi_measure_to_service_type_group.dim_kpi_key#(lf)#(tab)LEFT JOIN edw.dim_kpi_service_type_grouping ON bridge_kpi_measure_to_service_type_group.service_type_grouping_id = dim_kpi_service_type_grouping.dim_kpi_service_type_grouping_key#(lf)#(tab)#(tab)AND dim_kpi_service_type_grouping.dwhiscurrent = 1#(lf)#(tab)LEFT JOIN edw.bridge_kpi_service_type_to_grouping ON bridge_kpi_measure_to_service_type_group.dim_kpi_service_type_grouping_key = bridge_kpi_service_type_to_grouping.dim_kpi_service_type_grouping_key#(lf)#(tab)LEFT JOIN edw.dim_kpi_service_type ON bridge_kpi_service_type_to_grouping.dim_kpi_service_type_key = dim_kpi_service_type.dim_kpi_service_type_key#(lf)#(tab)LEFT JOIN edw.dim_service ON dim_kpi_service_type.service_type = dim_service.service_type_name#(lf)#(tab)#(tab)AND dim_service.dwhiscurrent = 1#(lf)#(tab)#(tab)AND dim_service.dwhdmloperation <> 'd'#(lf)#(tab)WHERE dim_kpi.dwhiscurrent = 1#(lf)#(tab)#(tab)AND service_id is not null#(lf)#(tab)#(tab)AND dim_kpi_service_type_grouping.service_type_grouping IN ('Housing', 'Tenancy')),#(lf)Look_up_KPI_BU AS (#(lf)SELECT#(lf)    kpi_id,#(lf)    dim_kpi_key,#(lf)    relevant_bu,#(lf)#(tab)service_type_grouping,#(lf)    dim_service_key,#(lf)    service_id,#(lf)    dim_company_key,#(lf)    Grouping_KEY,#(lf)#(tab)KPI_BU_KEY#(lf)FROM HD#(lf)#(lf)UNION#(lf)SELECT#(lf)    kpi_id,#(lf)    dim_kpi_key,#(lf)    relevant_bu,#(lf)#(tab)service_type_grouping,#(lf)    dim_service_key,#(lf)    service_id,#(lf)    dim_company_key,#(lf)    Grouping_KEY,#(lf)#(tab)KPI_BU_KEY#(lf)FROM HOUSING#(lf)#(lf)UNION#(lf)SELECT#(lf)    kpi_id,#(lf)    dim_kpi_key,#(lf)    relevant_bu,#(lf)#(tab)service_type_grouping,#(lf)    dim_service_key,#(lf)    service_id,#(lf)    dim_company_key,#(lf)    Grouping_KEY,#(lf)#(tab)KPI_BU_KEY#(lf)FROM TENANCY#(lf)#(lf)),#(lf)#(tab)#(tab)#(lf)#(lf)#(lf)-- Create a table based on dim kpi to get the relevant BUs for each KPI#(lf)#(lf) RemovedColumns AS (#(lf)    SELECT #(lf)        dim_kpi_key,#(lf)        kpi_id,#(lf)        relevant_bu#(lf)    FROM kpi.dim_kpi_master#(lf)),#(lf)-- Split the comma-separated list into rows#(lf)SplitToList AS (#(lf)    SELECT#(lf)        rc.dim_kpi_key,#(lf)        rc.kpi_id,#(lf)        LTRIM(RTRIM(value)) AS relevant_bu   -- trims whitespace#(lf)    FROM RemovedColumns rc#(lf)    CROSS APPLY STRING_SPLIT(rc.relevant_bu, ',')#(lf)),#(lf)-- Create merged column#(lf)Final AS (#(lf)    SELECT#(lf)         dim_kpi_key,#(lf)        kpi_id,#(lf)        relevant_bu,#(lf)        CAST(kpi_id AS VARCHAR(50)) + '_' + relevant_bu AS KPI_BU_KEY#(lf)    FROM SplitToList#(lf))#(lf)#(lf)SELECT #(lf)DK.dim_kpi_key,#(lf)DK.kpi_id,#(lf)Fact_KPI.entity_type,#(lf)DK.relevant_bu,#(lf)DK.KPI_BU_KEY,#(lf)STG.service_type_grouping,#(lf)STG.dim_service_key,#(lf)STG.service_id,#(lf)STG.dim_company_key,#(lf)STG.Grouping_KEY#(lf)#(lf)#(lf)FROM Final DK#(lf)INNER JOIN Look_up_KPI_BU STG ON STG.KPI_BU_KEY = DK.KPI_BU_KEY#(lf)LEFT JOIN Fact_KPI ON Fact_KPI.kpi_id = DK. kpi_id#(lf)--WHERE Entity_type IN ('Service', 'Referral','Kaimahi');#(lf)"]),
+				    #"Removed Duplicates" = Table.Distinct(Source, {"Grouping_KEY"})
+				in
+				    #"Removed Duplicates"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

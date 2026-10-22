@@ -1,0 +1,40 @@
+table 'Dim Business Unit'
+	lineageTag: 413b6b6f-d464-4056-9c79-80272ec7451a
+
+	column dim_business_unit_hierarchy_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 269863aa-3d42-4bd9-9f11-170555d5dd0a
+		summarizeBy: none
+		sourceColumn: dim_business_unit_hierarchy_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_unit_id
+		dataType: string
+		lineageTag: 4d7b4163-d939-4f2d-a6b4-ab84aecec7e2
+		summarizeBy: none
+		sourceColumn: business_unit_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_unit_name
+		dataType: string
+		lineageTag: 15e78ab0-8f67-450c-b156-123f8a1ad357
+		summarizeBy: none
+		sourceColumn: business_unit_name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Business Unit' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT  [dim_business_unit_hierarchy_key]#(lf)      ,[business_unit_id]#(lf)      ,[business_unit_name]#(lf)  FROM [edw].[vw_dim_business_unit_hierarchy]"])
+				in
+				    Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

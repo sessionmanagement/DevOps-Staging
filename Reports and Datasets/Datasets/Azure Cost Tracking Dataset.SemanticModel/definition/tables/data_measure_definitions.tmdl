@@ -1,0 +1,105 @@
+table data_measure_definitions
+	isHidden
+	lineageTag: 165ffd89-034a-4cc6-9f27-bc44b018edb4
+
+	column 'Field name'
+		dataType: string
+		isHidden
+		lineageTag: 24e1cc54-3310-4580-a0d8-5fef59cf2dd8
+		summarizeBy: none
+		sourceColumn: Field name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		isHidden
+		lineageTag: c273d0e2-2431-4b04-9869-afad2df30e69
+		summarizeBy: none
+		sourceColumn: Description
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Business Approver'
+		dataType: string
+		isHidden
+		lineageTag: fad26c45-9ec0-499f-9c20-939f161ac8fe
+		summarizeBy: none
+		sourceColumn: Business Approver
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Business Approval'
+		dataType: string
+		isHidden
+		lineageTag: 63ee6d36-f3fa-4108-b8f3-6341f2649a9e
+		summarizeBy: none
+		sourceColumn: Business Approval
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Approved Date'
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: d753c5f8-c256-4b53-b8a5-b8952bcc7bef
+		summarizeBy: none
+		sourceColumn: Approved Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Comments
+		dataType: string
+		isHidden
+		lineageTag: afb26453-8459-4d24-bf8a-ada90aa54d6b
+		summarizeBy: none
+		sourceColumn: Comments
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sensitivity Rating'
+		dataType: string
+		isHidden
+		lineageTag: 59341b43-3eb5-4688-a0a7-09ac92334cf4
+		summarizeBy: none
+		sourceColumn: Sensitivity Rating
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition data_measure_definitions = m
+		mode: import
+		source =
+				let
+				    Source = SharePoint.Tables("https://emergeaotearoaltd.sharepoint.com/sites/ITS2/", [Implementation="2.0", ViewMode="All"]),
+				    #"4c7bcf33-881e-47e1-ac62-ad0c8cdf2806" = Source{[Id="4c7bcf33-881e-47e1-ac62-ad0c8cdf2806"]}[Items],
+				    #"Filtered Rows" = Table.SelectRows(#"4c7bcf33-881e-47e1-ac62-ad0c8cdf2806", each [Dataset] = "Azure Cost Tracking Dataset"),
+				    #"Removed Other Columns" = Table.SelectColumns(#"Filtered Rows",{"Field name", "Description", "Business Approver", "Business Approval", "Approved Date", "Comments", "Sensitivity Rating"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Removed Other Columns",{{"Approved Date", type date}}),
+				    #"Expanded Business Approver" = Table.ExpandListColumn(#"Changed Type", "Business Approver"),
+				    #"Expanded Business Approver1" = Table.ExpandRecordColumn(#"Expanded Business Approver", "Business Approver", {"title"}, {"Business Approver.title"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Expanded Business Approver1",{{"Business Approver.title", "Business Approver"}})
+				in
+				    #"Renamed Columns"
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

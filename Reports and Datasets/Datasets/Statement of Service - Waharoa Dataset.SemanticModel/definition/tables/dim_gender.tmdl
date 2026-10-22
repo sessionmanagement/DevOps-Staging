@@ -1,0 +1,33 @@
+table dim_gender
+	lineageTag: da1f1d3b-ee48-443e-8c69-dddc077530ea
+
+	column zav_gender
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: ad816246-5e13-4386-91dc-39d38ed8ea37
+		summarizeBy: none
+		sourceColumn: zav_gender
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_gendername
+		dataType: string
+		lineageTag: 56f6338e-9570-4fe0-a7d3-7c54d699bd06
+		summarizeBy: none
+		sourceColumn: zav_gendername
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_gender = m
+		mode: import
+		queryGroup: dimensions
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="-- ============================================================#(lf)-- Model:  Statement of Service - Waharoa Dataset#(lf)-- Table:  dim_gender#(lf)-- Source: native query (complex CTE/window) - emitted in full#(lf)-- Used columns: 2 (mapped 2, unmapped 0)  [full query, not trimmed]#(lf)-- Auto-generated from pbi_complete_dump.csv + model M + EDW/ODS schema.#(lf)-- Review before use; verify joins/filters against the model.#(lf)-- ============================================================#(lf)-- USED model columns: zav_gender; zav_gendername#(lf)#(lf)WITH optionHashTable AS #(lf)(#(lf)    SELECT#(lf)        [OptionSetName],#(lf)        [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', [OptionSetName] + CAST([Option] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_GlobalOptionsetMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        [OptionSetName],#(lf)        [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', [OptionSetName] + CAST([Option] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_OptionsetMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        'statuscodename' AS [OptionSetName],#(lf)        [status] AS [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', 'statuscodename' + CAST([status] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_StatusMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        'statecodename' AS [OptionSetName],#(lf)        [state] AS [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', 'statecodename' + CAST([state] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_StateMetadata]#(lf))#(lf)SELECT DISTINCT#(lf)zav_gender,#(lf)t1.LocalizedLabel AS zav_gendername#(lf)FROM [Zavanti].[vw_contact]#(lf)LEFT OUTER JOIN optionHashTable t1 ON t1.optionHash = HASHBYTES('MD5','zav_gender'+CAST(zav_gender AS nvarchar(100))+'contact')#(lf)WHERE zav_gender IS NOT NULL;#(lf)"]),
+				    #"Sorted Rows" = Table.Sort(Source,{{"zav_gender", Order.Ascending}})
+				in
+				    #"Sorted Rows"
+
+	annotation PBI_ResultType = Table
+

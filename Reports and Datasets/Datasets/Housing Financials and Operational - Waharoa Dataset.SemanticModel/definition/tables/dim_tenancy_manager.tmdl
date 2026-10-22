@@ -1,0 +1,37 @@
+table dim_tenancy_manager
+	lineageTag: 16dcc17a-8932-4701-9ee7-5329db05b452
+
+	column tenancymanagerid
+		dataType: string
+		lineageTag: 4226395c-261c-4471-b295-28a777ae3335
+		summarizeBy: none
+		sourceColumn: tenancymanagerid
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column fullname
+		dataType: string
+		lineageTag: 080e97e9-e0ba-4e93-a2a3-c3a3f795c59a
+		summarizeBy: none
+		sourceColumn: fullname
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_tenancy_manager-1fcce6f9-9257-49f4-abc6-2720ef41d6a9 = m
+		mode: import
+		queryGroup: dimensions
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="WITH RecentSystemUsers AS (#(lf)    SELECT#(lf)        dpt.property_tenancy_manager_email AS systemuserid,#(lf)        COALESCE(dpt.property_tenancy_manager_name, dp.property_property_manager) AS fullname,#(lf)        ROW_NUMBER() OVER (#(lf)            PARTITION BY dpt.property_tenancy_manager_email#(lf)            ORDER BY COALESCE(#(lf)                dpt.property_tenancy_modified_datetime,#(lf)                CAST(dpt.property_tenancy_created_datetime AS DATETIME2(7)),#(lf)                dp.synapse_link_sink_modified_on,#(lf)                dpt.DWHEffectiveFrom#(lf)            ) DESC#(lf)        ) AS rn#(lf)    FROM edw.dim_property_tenancy dpt#(lf)    LEFT JOIN edw.dim_property dp#(lf)        ON dp.property_id = dpt.property_id#(lf)       AND dp.DWHIsCurrent = 1#(lf)       AND dp.DWHDMLOperation <> 'D'#(lf)    WHERE dpt.property_tenancy_manager_email IS NOT NULL#(lf)      AND dpt.DWHIsCurrent = 1#(lf)      AND dpt.DWHDMLOperation <> 'D'#(lf))#(lf)SELECT#(lf)    systemuserid,#(lf)    fullname#(lf)FROM RecentSystemUsers#(lf)WHERE rn = 1;"]),
+				    #"Renamed Columns" = Table.RenameColumns(Source,{{"systemuserid", "tenancymanagerid"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

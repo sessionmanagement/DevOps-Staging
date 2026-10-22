@@ -1,0 +1,149 @@
+/// Version history and change log for this semantic model. Documents changes with version numbers, dates, authors, and linked Azure DevOps work item IDs. Update the M query to add new changelog entries. The 'Latest Version' measure displays the current version number.
+table Changelog
+	isHidden
+	lineageTag: dd7d704e-afce-4c37-a8ff-f57b26cad25a
+
+	/// Returns the current version number from the Changelog table. Display this on reports to show which model version is deployed.
+	measure 'Latest Version' =
+			
+			VAR LatestChangeID =
+			    MAX ( 'Changelog'[Change ID] ) -- Get the highest Change ID
+			VAR LatestRow =
+			    CALCULATETABLE ( 'Changelog', 'Changelog'[Change ID] = LatestChangeID ) -- Get the row with the highest Change ID
+			VAR LatestVersion =
+			    MAXX ( LatestRow, 'Changelog'[Version] ) -- Extract the latest version
+			VAR LatestDatasetName =
+			    MAXX ( LatestRow, 'Changelog'[Dataset Name] ) -- Extract the latest Dataset Name
+			RETURN
+			    LatestDatasetName & " Semantic Model - v" & LatestVersion
+			-- Return the latest dataset name and version
+		isHidden
+		lineageTag: ad961283-3df3-4e5a-924e-ad2ef7384233
+
+		changedProperty = IsHidden
+
+	column 'Change ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: a3b28ccb-3958-44c8-85ce-1542858d93fe
+		summarizeBy: count
+		sourceColumn: Change ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Version
+		dataType: string
+		isHidden
+		lineageTag: 33189ea3-66fe-4474-adc1-eb6b6cc1771d
+		summarizeBy: none
+		sourceColumn: Version
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Change Date'
+		dataType: string
+		isHidden
+		lineageTag: 97b74fa7-8867-4e57-9510-0ba301981df6
+		summarizeBy: none
+		sourceColumn: Change Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Changed By'
+		dataType: string
+		isHidden
+		lineageTag: d589c588-84df-4bf9-9545-6f04da6000f1
+		summarizeBy: none
+		sourceColumn: Changed By
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Feature ID'
+		dataType: string
+		isHidden
+		lineageTag: 65d1b56c-45d7-4aea-a1b2-f9fa1fb26b1c
+		summarizeBy: none
+		sourceColumn: Feature ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		isHidden
+		lineageTag: 87bcb7a2-6f4e-4ac6-a8ea-b9812cc00d34
+		summarizeBy: none
+		sourceColumn: Description
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dataset Name'
+		dataType: string
+		isHidden
+		lineageTag: 85997e8b-916c-4a13-856f-e6898143dbf2
+		summarizeBy: none
+		sourceColumn: Dataset Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Changelog = m
+		mode: import
+		queryGroup: Changelog
+		source =
+				let
+				    // Define the table schema without the ChangeID column
+				    InitialTable = #table(
+				        {"Version", "Change Date", "Changed By", "Feature ID", "Description"},
+				        {
+				            // Add new entries at the top here
+				            {
+				                "0.0.1", /* Version */
+				                #date(2026, 1, 12),  /* Date */
+				                "Template",  /* Changed By */
+				                "",  /* Feature ID */
+				                "Update this line with your second change log entry."  /* Description */
+				            },
+				            {
+				                "0.0.0", /* Version */
+				                #date(2026, 1, 12),  /* Date */
+				                "Template",  /* Changed By */
+				                "",  /* Feature ID */
+				                "Initial template creation. Update this line with your first change log entry."  /* Description */
+				            }
+				        }
+				    ),
+				
+				    // Reverse the order of the rows so new entries are at the top
+				    ReversedTable = Table.ReverseRows(InitialTable),
+				
+				    // Add an Index column to generate incremental numbers
+				    TableWithIndex = Table.AddIndexColumn(ReversedTable, "Change ID", 1, 1, Int64.Type),
+				
+				    // Add a new column for the parameter "Dataset Name"
+				    TableWithParameter = Table.AddColumn(TableWithIndex, "Dataset Name", each #"Semantic Model"),
+				
+				    // Reorder the columns to place ChangeID first
+				    ReorderedColumns = Table.ReorderColumns(TableWithParameter, {"Change ID", "Version", "Change Date", "Changed By", "Feature ID", "Description", "Dataset Name"})
+				in
+				    ReorderedColumns
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

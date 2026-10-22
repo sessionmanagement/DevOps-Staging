@@ -1,0 +1,118 @@
+table 'Dim TW Referral Created Date'
+	excludeFromModelRefresh
+	lineageTag: f06164c9-671e-49f1-b371-1b11147de3d4
+
+	column 'Referral Created Dim Date KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b137ca8b-795b-4194-a61d-649c340d0955
+		summarizeBy: none
+		sourceColumn: Referral Created Dim Date KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Created Calendar Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 11874df9-4de1-4241-931b-1acad0d6321b
+		summarizeBy: none
+		sourceColumn: Referral Created Calendar Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Referral Created Calendar Day Name Full'
+		dataType: string
+		lineageTag: 17672da4-0744-4a23-9b94-133721955807
+		summarizeBy: none
+		sourceColumn: Referral Created Calendar Day Name Full
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Created Calendar Day Name Tereo'
+		dataType: string
+		lineageTag: 7c1f92ac-59e8-4255-822c-c0f373655f4b
+		summarizeBy: none
+		sourceColumn: Referral Created Calendar Day Name Tereo
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Created Calendar Month Name Long'
+		dataType: string
+		lineageTag: 9f0ccff3-c4be-4f29-91f2-aaf28b7890c9
+		summarizeBy: none
+		sourceColumn: Referral Created Calendar Month Name Long
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Created Calendar Month Name Tereo'
+		dataType: string
+		lineageTag: 0c93532b-6db5-46ac-911a-44138e40a5fc
+		summarizeBy: none
+		sourceColumn: Referral Created Calendar Month Name Tereo
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Created Calendar Day Num'
+		dataType: int64
+		formatString: 0
+		lineageTag: ad150cd3-0949-4855-96e0-1eb1bafcaa5d
+		summarizeBy: none
+		sourceColumn: Referral Created Calendar Day Num
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Created Calendar Month Num'
+		dataType: int64
+		formatString: 0
+		lineageTag: beb87c7d-57ba-4885-b729-9ffb21ce831a
+		summarizeBy: none
+		sourceColumn: Referral Created Calendar Month Num
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Created Calendar Year Month'
+		dataType: string
+		lineageTag: e7dffb9d-a80a-4d63-9445-7c545722a234
+		summarizeBy: none
+		sourceColumn: Referral Created Calendar Year Month
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Created Financial Year Num'
+		dataType: int64
+		formatString: 0
+		lineageTag: eefd3ab1-f7ff-4f7c-bf1b-8a2a021bc822
+		summarizeBy: none
+		sourceColumn: Referral Created Financial Year Num
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim TW Referral Created Date' = m
+		mode: import
+		queryGroup: 'Role Playing Date Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database),
+				    edw_dim_client_referral_created_date = Source{[Schema="edw",Item="dim_client_referral_created_date"]}[Data],
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            capitaliseWords = Text.Proper(replaceUnderscore),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY")
+				        in
+				            capitaliseKEY,
+				    #"Transformed Column Names" = Table.TransformColumnNames(edw_dim_client_referral_created_date, each ApplyNamingConventions(_)),
+				    #"Removed Other Columns" = Table.SelectColumns(#"Transformed Column Names",{"Referral Created Dim Date KEY", "Referral Created Calendar Date", "Referral Created Calendar Day Num", "Referral Created Calendar Day Name Full", "Referral Created Calendar Day Name Tereo", "Referral Created Calendar Month Num", "Referral Created Calendar Month Name Long", "Referral Created Calendar Month Name Tereo", "Referral Created Calendar Year Month", "Referral Created Financial Year Num"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Removed Other Columns",{{"Referral Created Financial Year Num", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

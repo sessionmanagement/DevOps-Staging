@@ -1,0 +1,68 @@
+table 'Dim Team'
+	lineageTag: 1b3ea75d-2530-41a3-af9f-c3e2668687db
+
+	column 'Dim Tangata Whaiora Team KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: d243de5e-2006-459b-9fd7-236fcf16bf4a
+		summarizeBy: none
+		sourceColumn: Dim Tangata Whaiora Team KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team Name'
+		dataType: string
+		lineageTag: 3ce78671-b312-447c-abab-02029a9f4913
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Team Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team Function'
+		dataType: string
+		lineageTag: c517b991-fa82-4e95-aea0-9e7821f8bff8
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Team Function
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Exclude From Reporting'
+		dataType: string
+		lineageTag: 5419f167-b5e0-44a3-a053-0f3db6855c62
+		summarizeBy: none
+		sourceColumn: Exclude From Reporting
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Team' = m
+		mode: import
+		queryGroup: Dims
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT #(lf)    dim_client_team_key,#(lf)    client_team_name,#(lf)    client_team_function,#(lf)    CASE#(lf)        WHEN #(lf)            client_team_function IN ('CPP Follow Up', 'TH Follow Up')#(lf)            OR TRIM(client_team_name) IN (#(lf)                'Auckland Adult Mobile - Clinical',#(lf)                'Jansen House - Clinical',#(lf)                'Mapusaga Clinical',#(lf)                'Nga Taumahatanga - Clinical',#(lf)                'Phoenix - Clinical',#(lf)                'Phoenix Clinical',#(lf)                'WDHB Mainstream - Clinical',#(lf)                'Whariki Day Prog',#(lf)                'Auckland Adult Mobile- Clinical',#(lf)                'Jansen House: Clinical',#(lf)                'Nga Taumahatanga Clinical',#(lf)                'WDHB Pacific - Clinical',#(lf)                --Added by Nathan B 19/08/2026#(lf)                'Ola Lei - Clinical'#(lf)                --'PTO Res Clinical' Removed with Approval by Nathan B 13/11/2025#(lf)            )#(lf)        THEN 'Yes'#(lf)        ELSE 'No'#(lf)    END AS exclude_from_reporting#(lf)FROM #(lf)    [edw].[vw_dim_client_team]#(lf)WHERE dim_client_team_key > 0"]),
+				  ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(#"Source", each ApplyNamingConventions(_))
+				in
+				    #"Transformed Column Names"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,25 @@
+expression LocationsSP =
+		let
+		    Source = SharePoint.Files("https://emergeaotearoaltd.sharepoint.com/sites/OPS_ITServices", [ApiVersion = 15]),
+		    #"Filtered Rows" = Table.SelectRows(Source, each [Name] = "Locations.xlsx"),
+		    #"Locations xlsx_https://emergeaotearoaltd sharepoint com/sites/ITServices37/Business Intelligence/Reports/Kaimahi Turnover Report/Raw Data/" = #"Filtered Rows"{[Name="Locations.xlsx",#"Folder Path"="https://emergeaotearoaltd.sharepoint.com/sites/OPS_ITServices/Shared Documents/Data and Analytics/Reports/Kaimahi Turnover Report/Raw Data/"]}[Content],
+		    #"Imported Excel Workbook1" = Excel.Workbook(#"Locations xlsx_https://emergeaotearoaltd sharepoint com/sites/ITServices37/Business Intelligence/Reports/Kaimahi Turnover Report/Raw Data/"),
+		    Sheet1_Sheet = #"Imported Excel Workbook1"{[Item="Sheet1",Kind="Sheet"]}[Data],
+		    #"Promoted Headers" = Table.PromoteHeaders(Sheet1_Sheet, [PromoteAllScalars=true]),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"id", type text}, {"parentId", type text}, {"name", type text}, {"address", type text}, {"isEnabled", type logical}, {"Latitude", type number}, {"Longitude", type number}, {"Region", type text}})
+		in
+		    #"Changed Type"
+	lineageTag: 9567ce45-ee83-46d7-99de-5bac7f7aa321
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression MinimumKaimahiCountParameter = 3 meta [IsParameterQuery=true, Type="Number", IsParameterQueryRequired=true]
+	lineageTag: 5137894d-348d-4f97-b2ff-2e22c8553e63
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Number
+

@@ -1,0 +1,49 @@
+table dim_user_originator
+	lineageTag: 6ede2e35-b1a0-47d5-b22c-07b2635ee6f7
+
+	column PersonAndTypeKey
+		dataType: int64
+		formatString: 0
+		lineageTag: cac5e358-2643-4b50-a959-e0ac855bf7e5
+		summarizeBy: none
+		sourceColumn: PersonAndTypeKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonFirstName
+		dataType: string
+		lineageTag: 9b442a5d-efe9-47b3-9e1f-846262a1e999
+		summarizeBy: none
+		sourceColumn: PersonFirstName
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonLastName
+		dataType: string
+		lineageTag: e00af0c9-e4d6-4b9a-9fde-00dcf3f6b551
+		summarizeBy: none
+		sourceColumn: PersonLastName
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonFullName
+		dataType: string
+		lineageTag: 0cecf5d0-baac-4d8f-8506-55770b6e2825
+		summarizeBy: none
+		sourceColumn: PersonFullName
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_user_originator = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Source = dim_user_investigator
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

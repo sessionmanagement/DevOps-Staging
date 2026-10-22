@@ -1,0 +1,1238 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/2.1.0/schema.json",
+  "displayName": "24 Hour Shifts Show",
+  "name": "Bookmark99381110070400601819",
+  "options": {
+    "targetVisualNames": [],
+    "suppressData": true
+  },
+  "explorationState": {
+    "version": "1.3",
+    "activeSection": "ReportSectionc0ec23f0b037e9951c67",
+    "filters": {
+      "byExpr": [
+        {
+          "name": "Filter8d9dccfef528af7d94e4",
+          "type": "Categorical",
+          "filter": {
+            "Version": 2,
+            "From": [
+              {
+                "Name": "d",
+                "Entity": "dim_people",
+                "Type": 0
+              }
+            ],
+            "Where": [
+              {
+                "Condition": {
+                  "In": {
+                    "Expressions": [
+                      {
+                        "Column": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Source": "d"
+                            }
+                          },
+                          "Property": "jobStatus"
+                        }
+                      }
+                    ],
+                    "Values": [
+                      [
+                        {
+                          "Literal": {
+                            "Value": "'Current Job'"
+                          }
+                        }
+                      ],
+                      [
+                        {
+                          "Literal": {
+                            "Value": "'Ending Job'"
+                          }
+                        }
+                      ]
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          "expression": {
+            "Column": {
+              "Expression": {
+                "SourceRef": {
+                  "Entity": "dim_people"
+                }
+              },
+              "Property": "jobStatus"
+            }
+          },
+          "howCreated": 1
+        },
+        {
+          "name": "Filtered84cf8d2e7c02980421",
+          "type": "RelativeDate",
+          "filter": {
+            "Version": 2,
+            "From": [
+              {
+                "Name": "d",
+                "Entity": "dim_date",
+                "Type": 0
+              }
+            ],
+            "Where": [
+              {
+                "Condition": {
+                  "Between": {
+                    "Expression": {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "d"
+                          }
+                        },
+                        "Property": "calendar_date"
+                      }
+                    },
+                    "LowerBound": {
+                      "DateSpan": {
+                        "Expression": {
+                          "DateAdd": {
+                            "Expression": {
+                              "DateAdd": {
+                                "Expression": {
+                                  "Now": {}
+                                },
+                                "Amount": 1,
+                                "TimeUnit": 0
+                              }
+                            },
+                            "Amount": -365,
+                            "TimeUnit": 0
+                          }
+                        },
+                        "TimeUnit": 0
+                      }
+                    },
+                    "UpperBound": {
+                      "DateSpan": {
+                        "Expression": {
+                          "Now": {}
+                        },
+                        "TimeUnit": 0
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "expression": {
+            "Column": {
+              "Expression": {
+                "SourceRef": {
+                  "Entity": "dim_date"
+                }
+              },
+              "Property": "calendar_date"
+            }
+          },
+          "howCreated": 1
+        },
+        {
+          "name": "Filtera1217a6f4ce2959e4dc0",
+          "type": "Categorical",
+          "filter": {
+            "Version": 2,
+            "From": [
+              {
+                "Name": "d",
+                "Entity": "DimBusinessUnits",
+                "Type": 0
+              }
+            ],
+            "Where": [
+              {
+                "Condition": {
+                  "In": {
+                    "Expressions": [
+                      {
+                        "Column": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Source": "d"
+                            }
+                          },
+                          "Property": "FirstLevel Name"
+                        }
+                      }
+                    ],
+                    "Values": [
+                      [
+                        {
+                          "Literal": {
+                            "Value": "'Group Chief Executive'"
+                          }
+                        }
+                      ]
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          "expression": {
+            "HierarchyLevel": {
+              "Expression": {
+                "Hierarchy": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DimBusinessUnits"
+                    }
+                  },
+                  "Hierarchy": "Business Unit Hierarchy"
+                }
+              },
+              "Level": "FirstLevel Name"
+            }
+          },
+          "howCreated": 1,
+          "cachedDisplayNames": [
+            {
+              "id": {
+                "scopeId": {
+                  "Comparison": {
+                    "ComparisonKind": 0,
+                    "Left": {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Entity": "DimBusinessUnits"
+                          }
+                        },
+                        "Property": "FirstLevel Name"
+                      }
+                    },
+                    "Right": {
+                      "Literal": {
+                        "Value": "'Group Chief Executive'"
+                      }
+                    }
+                  }
+                }
+              },
+              "displayName": "Group Chief Executive"
+            }
+          ]
+        }
+      ]
+    },
+    "sections": {
+      "ReportSectionc0ec23f0b037e9951c67": {
+        "visualContainers": {
+          "68bac160813740030113": {
+            "singleVisual": {
+              "visualType": "textbox",
+              "objects": {}
+            }
+          },
+          "203788e1817043d9a5c5": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "105c3b99bb4b5073baee",
+                  "type": "TopN",
+                  "filter": {
+                    "Version": 2,
+                    "From": [
+                      {
+                        "Name": "d",
+                        "Entity": "dim_date",
+                        "Type": 0
+                      }
+                    ],
+                    "Where": [
+                      {
+                        "Condition": {
+                          "And": {
+                            "Left": {
+                              "Comparison": {
+                                "ComparisonKind": 4,
+                                "Left": {
+                                  "Column": {
+                                    "Expression": {
+                                      "SourceRef": {
+                                        "Source": "d"
+                                      }
+                                    },
+                                    "Property": "calendar_year"
+                                  }
+                                },
+                                "Right": {
+                                  "Literal": {
+                                    "Value": "2024L"
+                                  }
+                                }
+                              }
+                            },
+                            "Right": {
+                              "Comparison": {
+                                "ComparisonKind": 1,
+                                "Left": {
+                                  "Column": {
+                                    "Expression": {
+                                      "SourceRef": {
+                                        "Source": "d"
+                                      }
+                                    },
+                                    "Property": "calendar_year"
+                                  }
+                                },
+                                "Right": {
+                                  "Literal": {
+                                    "Value": "2022L"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dim_date"
+                        }
+                      },
+                      "Property": "calendar_year"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "Filter7d40aedc9c6237a50bc8",
+                  "type": "RelativeDate",
+                  "filter": {
+                    "Version": 2,
+                    "From": [
+                      {
+                        "Name": "d",
+                        "Entity": "dim_date",
+                        "Type": 0
+                      }
+                    ],
+                    "Where": [
+                      {
+                        "Condition": {
+                          "Between": {
+                            "Expression": {
+                              "Column": {
+                                "Expression": {
+                                  "SourceRef": {
+                                    "Source": "d"
+                                  }
+                                },
+                                "Property": "calendar_date"
+                              }
+                            },
+                            "LowerBound": {
+                              "DateSpan": {
+                                "Expression": {
+                                  "DateAdd": {
+                                    "Expression": {
+                                      "DateAdd": {
+                                        "Expression": {
+                                          "Now": {}
+                                        },
+                                        "Amount": 1,
+                                        "TimeUnit": 0
+                                      }
+                                    },
+                                    "Amount": -365,
+                                    "TimeUnit": 0
+                                  }
+                                },
+                                "TimeUnit": 0
+                              }
+                            },
+                            "UpperBound": {
+                              "DateSpan": {
+                                "Expression": {
+                                  "Now": {}
+                                },
+                                "TimeUnit": 0
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dim_date"
+                        }
+                      },
+                      "Property": "calendar_date"
+                    }
+                  },
+                  "howCreated": 1
+                },
+                {
+                  "name": "99bda9a68bad799514a5",
+                  "type": "Categorical",
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dim_date"
+                        }
+                      },
+                      "Property": "calendar_year_month"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "slicer",
+              "objects": {
+                "merge": {
+                  "data": [
+                    {
+                      "properties": {
+                        "mode": {
+                          "expr": {
+                            "Literal": {
+                              "Value": "'Dropdown'"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "activeProjections": {
+                "Values": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dim_date"
+                        }
+                      },
+                      "Property": "calendar_year"
+                    }
+                  }
+                ]
+              },
+              "expansionStates": [
+                {
+                  "roles": [
+                    "Values"
+                  ],
+                  "levels": [
+                    {
+                      "queryRefs": [
+                        "dim_date.calendar_year"
+                      ],
+                      "isCollapsed": true,
+                      "identityKeys": [
+                        {
+                          "Column": {
+                            "Expression": {
+                              "SourceRef": {
+                                "Entity": "dim_date"
+                              }
+                            },
+                            "Property": "calendar_year"
+                          }
+                        }
+                      ],
+                      "isPinned": true
+                    },
+                    {
+                      "queryRefs": [
+                        "dim_date.calendar_year_month"
+                      ],
+                      "isCollapsed": true,
+                      "isPinned": true
+                    }
+                  ],
+                  "root": {
+                    "identityValues": null
+                  }
+                }
+              ]
+            }
+          },
+          "feb9366084925378189c": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "b1f1707e71266911a550",
+                  "type": "Categorical",
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dim_people"
+                        }
+                      },
+                      "Property": "Supervisor"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "slicer",
+              "objects": {
+                "merge": {
+                  "data": [
+                    {
+                      "properties": {
+                        "mode": {
+                          "expr": {
+                            "Literal": {
+                              "Value": "'Dropdown'"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "activeProjections": {
+                "Values": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dim_people"
+                        }
+                      },
+                      "Property": "Supervisor"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "3c47beb2c034e06d820e": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "daeb7f94874d11e6bd85",
+                  "type": "Categorical",
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dim_people"
+                        }
+                      },
+                      "Property": "Kaimahi"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "slicer",
+              "objects": {
+                "merge": {
+                  "data": [
+                    {
+                      "properties": {
+                        "mode": {
+                          "expr": {
+                            "Literal": {
+                              "Value": "'Dropdown'"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "activeProjections": {
+                "Values": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dim_people"
+                        }
+                      },
+                      "Property": "Kaimahi"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "3d687172cd793096c462": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "fd1e9d0e478da55d1cc2",
+                  "type": "Categorical",
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "fact_pay_slips"
+                        }
+                      },
+                      "Property": "pay_period_start_date"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "slicer",
+              "objects": {
+                "merge": {
+                  "data": [
+                    {
+                      "properties": {
+                        "mode": {
+                          "expr": {
+                            "Literal": {
+                              "Value": "'Dropdown'"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "orderBy": [
+                {
+                  "Direction": 1,
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "fact_pay_slips"
+                        }
+                      },
+                      "Property": "pay_period_start_date"
+                    }
+                  }
+                }
+              ],
+              "activeProjections": {
+                "Values": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "fact_pay_slips"
+                        }
+                      },
+                      "Property": "pay_period_start_date"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "cbabce54345e0748003c": {
+            "singleVisual": {
+              "visualType": "actionButton",
+              "objects": {}
+            }
+          },
+          "7518e0a82d407c56d0cb": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "Filtera1e068c06770d24408f8",
+                  "type": "Categorical",
+                  "expression": {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Entity": "DimBusinessUnits"
+                            }
+                          },
+                          "Hierarchy": "Business Unit Hierarchy"
+                        }
+                      },
+                      "Level": "Business Unit"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "Filterfbfad4ec98b0649667eb",
+                  "type": "Categorical",
+                  "expression": {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Entity": "DimBusinessUnits"
+                            }
+                          },
+                          "Hierarchy": "Business Unit Hierarchy"
+                        }
+                      },
+                      "Level": "Department"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "Filter763952c394596f38d145",
+                  "type": "Categorical",
+                  "filter": {
+                    "Version": 2,
+                    "From": [
+                      {
+                        "Name": "d",
+                        "Entity": "DimBusinessUnits",
+                        "Type": 0
+                      }
+                    ],
+                    "Where": [
+                      {
+                        "Condition": {
+                          "In": {
+                            "Expressions": [
+                              {
+                                "Column": {
+                                  "Expression": {
+                                    "SourceRef": {
+                                      "Source": "d"
+                                    }
+                                  },
+                                  "Property": "FirstLevel Name"
+                                }
+                              }
+                            ],
+                            "Values": [
+                              [
+                                {
+                                  "Literal": {
+                                    "Value": "'Group Chief Executive'"
+                                  }
+                                }
+                              ]
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "expression": {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Entity": "DimBusinessUnits"
+                            }
+                          },
+                          "Hierarchy": "Business Unit Hierarchy"
+                        }
+                      },
+                      "Level": "FirstLevel Name"
+                    }
+                  },
+                  "howCreated": 0,
+                  "cachedDisplayNames": [
+                    {
+                      "id": {
+                        "scopeId": {
+                          "Comparison": {
+                            "ComparisonKind": 0,
+                            "Left": {
+                              "Column": {
+                                "Expression": {
+                                  "SourceRef": {
+                                    "Entity": "DimBusinessUnits"
+                                  }
+                                },
+                                "Property": "FirstLevel Name"
+                              }
+                            },
+                            "Right": {
+                              "Literal": {
+                                "Value": "'Group Chief Executive'"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "displayName": "Group Chief Executive"
+                    }
+                  ]
+                },
+                {
+                  "name": "Filter20fba1a9729a2dadc399",
+                  "type": "Categorical",
+                  "expression": {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Entity": "DimBusinessUnits"
+                            }
+                          },
+                          "Hierarchy": "Business Unit Hierarchy"
+                        }
+                      },
+                      "Level": "FirstLevel Name"
+                    }
+                  },
+                  "howCreated": 1
+                },
+                {
+                  "name": "Filter8f2346962d02f55a108f",
+                  "type": "Categorical",
+                  "expression": {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Entity": "DimBusinessUnits"
+                            }
+                          },
+                          "Hierarchy": "Business Unit Hierarchy"
+                        }
+                      },
+                      "Level": "Group"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "Filter167d8b6e666c11b98c4f",
+                  "type": "Categorical",
+                  "expression": {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Entity": "DimBusinessUnits"
+                            }
+                          },
+                          "Hierarchy": "Business Unit Hierarchy"
+                        }
+                      },
+                      "Level": "Team"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "Filter20f39460bc5e266dea3f",
+                  "type": "Categorical",
+                  "expression": {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Entity": "DimBusinessUnits"
+                            }
+                          },
+                          "Hierarchy": "Business Unit Hierarchy"
+                        }
+                      },
+                      "Level": "Unit"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "slicer",
+              "objects": {
+                "merge": {
+                  "data": [
+                    {
+                      "properties": {
+                        "mode": {
+                          "expr": {
+                            "Literal": {
+                              "Value": "'Dropdown'"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "activeProjections": {
+                "Values": [
+                  {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Entity": "DimBusinessUnits"
+                            }
+                          },
+                          "Hierarchy": "Business Unit Hierarchy"
+                        }
+                      },
+                      "Level": "FirstLevel Name"
+                    }
+                  },
+                  {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Entity": "DimBusinessUnits"
+                            }
+                          },
+                          "Hierarchy": "Business Unit Hierarchy"
+                        }
+                      },
+                      "Level": "Business Unit"
+                    }
+                  }
+                ]
+              },
+              "expansionStates": [
+                {
+                  "roles": [
+                    "Values"
+                  ],
+                  "levels": [
+                    {
+                      "queryRefs": [
+                        "DimBusinessUnits.Business Unit Hierarchy.FirstLevel Name"
+                      ],
+                      "isCollapsed": true,
+                      "identityKeys": [
+                        {
+                          "Column": {
+                            "Expression": {
+                              "SourceRef": {
+                                "Entity": "DimBusinessUnits"
+                              }
+                            },
+                            "Property": "FirstLevel Name"
+                          }
+                        }
+                      ],
+                      "isPinned": true
+                    },
+                    {
+                      "queryRefs": [
+                        "DimBusinessUnits.Business Unit Hierarchy.Business Unit"
+                      ],
+                      "isCollapsed": true,
+                      "isPinned": true
+                    },
+                    {
+                      "queryRefs": [
+                        "DimBusinessUnits.Business Unit Hierarchy.Group"
+                      ],
+                      "isCollapsed": true
+                    },
+                    {
+                      "queryRefs": [
+                        "DimBusinessUnits.Business Unit Hierarchy.Unit"
+                      ],
+                      "isCollapsed": true
+                    },
+                    {
+                      "queryRefs": [
+                        "DimBusinessUnits.Business Unit Hierarchy.Department"
+                      ],
+                      "isCollapsed": true
+                    },
+                    {
+                      "queryRefs": [
+                        "DimBusinessUnits.Business Unit Hierarchy.Team"
+                      ],
+                      "isCollapsed": true
+                    }
+                  ],
+                  "root": {
+                    "identityValues": null,
+                    "children": [
+                      {
+                        "identityValues": [
+                          {
+                            "Literal": {
+                              "Value": "'Group Chief Executive'"
+                            }
+                          }
+                        ],
+                        "isToggled": true
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "ca149ba0e508a340bd51": {
+            "singleVisual": {
+              "visualType": "basicShape",
+              "objects": {}
+            }
+          },
+          "61f325c2bb5c9060a9e1": {
+            "singleVisual": {
+              "visualType": "shape",
+              "objects": {}
+            }
+          },
+          "5a434a73e7c56db7bf2c": {
+            "singleVisual": {
+              "visualType": "textbox",
+              "objects": {}
+            }
+          },
+          "5c2ee1d80d2a392c147b": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "98513f8559d007b3dcda",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Measures"
+                        }
+                      },
+                      "Property": "Target"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "4cd807afc46a99041de4",
+                  "type": "Categorical",
+                  "expression": {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Entity": "DimBusinessUnits"
+                            }
+                          },
+                          "Hierarchy": "Business Unit Hierarchy"
+                        }
+                      },
+                      "Level": "FirstLevel Name"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "47aefb3ae3bcb8627d2a",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Measures"
+                        }
+                      },
+                      "Property": "Percentage Kaimahi worked 24+ hour shifts"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "kpi",
+              "objects": {}
+            }
+          },
+          "fc768f4c173279ebd7b1": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "b1592cc3020c9e290cbc",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Measures"
+                        }
+                      },
+                      "Property": "Total Kaimahi"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "4fadbcd1c6e08949168b",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Measures"
+                        }
+                      },
+                      "Property": "Number of 24+ hour shifts"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "e8b868f10bd00ee86c21",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Measures"
+                        }
+                      },
+                      "Property": "Number of Kaimahi with 24+ hour shifts"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "cardVisual",
+              "objects": {},
+              "orderBy": [
+                {
+                  "Direction": 2,
+                  "Expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Measures"
+                        }
+                      },
+                      "Property": "Total Kaimahi"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "a9f5344da4ceafdb72dd": {
+            "singleVisual": {
+              "visualType": "actionButton",
+              "objects": {}
+            }
+          },
+          "e25c61fcf678798d6085": {
+            "singleVisual": {
+              "visualType": "actionButton",
+              "objects": {}
+            }
+          },
+          "9e5437f13c96a41cca27": {
+            "singleVisual": {
+              "visualType": "actionButton",
+              "objects": {}
+            }
+          },
+          "a61e1c15a0cad72e9240": {
+            "singleVisual": {
+              "visualType": "actionButton",
+              "objects": {}
+            }
+          },
+          "b5baab8abea7fddeca46": {
+            "singleVisual": {
+              "visualType": "textbox",
+              "objects": {}
+            }
+          },
+          "f71276dd7652b1b99ae7": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "7eec6be18e7502837907",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "LastRefreshed"
+                        }
+                      },
+                      "Property": "RefreshedAt_forDisplay"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "card",
+              "objects": {}
+            }
+          }
+        },
+        "visualContainerGroups": {
+          "9d7a510485c46c0ca190": {
+            "isHidden": false
+          },
+          "eb44045b0a84ae1a492f": {
+            "isHidden": false
+          }
+        }
+      }
+    },
+    "objects": {
+      "merge": {
+        "outspacePane": [
+          {
+            "properties": {
+              "expanded": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

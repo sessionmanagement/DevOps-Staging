@@ -1,0 +1,225 @@
+expression merged_dim_program =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT DISTINCT property_program_id AS zav_programid, property_program_name AS zav_name FROM [edw].[dim_property_program] WHERE [DWHIsCurrent] = 1 AND [DWHDMLOperation] <> 'D' AND property_program_id IS NOT NULL"])
+		in
+		    Source
+	lineageTag: a2438e0d-2936-4ab2-9c48-1c688bcda74b
+	queryGroup: unloaded
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression merged_household =
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="WITH optionHashTable AS #(lf)(#(lf)    SELECT#(lf)        [OptionSetName],#(lf)        [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', [OptionSetName] + CAST([Option] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_GlobalOptionsetMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        [OptionSetName],#(lf)        [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', [OptionSetName] + CAST([Option] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_OptionsetMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        'statuscodename' AS [OptionSetName],#(lf)        [status] AS [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', 'statuscodename' + CAST([status] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_StatusMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        'statecodename' AS [OptionSetName],#(lf)        [state] AS [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', 'statecodename' + CAST([state] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_StateMetadata]#(lf)),#(lf)RecentHouseholds AS (#(lf)    SELECT#(lf)        zav_dateofamendment,#(lf)        zav_hhid,#(lf)        zav_householdstatus,#(lf)        zav_numberofhouseholdmembers,#(lf)        zav_revision,#(lf)        zav_tenancy,#(lf)        statuscode,#(lf)        SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (PARTITION BY zav_hhid ORDER BY SinkModifiedOn DESC) AS rn#(lf)    FROM#(lf)        [Zavanti].[vw_zav_household]#(lf))#(lf)SELECT#(lf)    t1.LocalizedLabel AS statuscodename,#(lf)    rh.zav_dateofamendment,#(lf)    rh.zav_hhid,#(lf)    t2.LocalizedLabel AS zav_householdstatusname,#(lf)    rh.zav_numberofhouseholdmembers,#(lf)    rh.zav_revision,#(lf)    rh.zav_tenancy#(lf)FROM #(lf)    RecentHouseholds rh#(lf)LEFT OUTER JOIN #(lf)    optionHashTable t1 ON t1.optionHash = HASHBYTES('MD5', 'statuscodename' + CAST(rh.statuscode AS nvarchar(100)) + 'zav_household')#(lf)LEFT OUTER JOIN #(lf)    optionHashTable t2 ON t2.optionHash = HASHBYTES('MD5', 'zav_householdstatus' + CAST(rh.zav_householdstatus AS nvarchar(100)) + 'zav_household')#(lf)WHERE#(lf)    rh.rn = 1"]),
+		    #"Filtered Rows" = Table.SelectRows(Source, each ([zav_householdstatusname] <> "Draft"))
+		in
+		    #"Filtered Rows"
+	lineageTag: 1eec40e1-45df-4e77-95cb-4af709a80639
+	queryGroup: unloaded
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression pre_work_number_household_members_dates =
+		let
+		    Source = Table.NestedJoin(Table.TransformColumns(merged_household, {{"zav_tenancy", Text.Upper}}), {"zav_tenancy"}, Table.TransformColumns(fact_tenancy, {{"opportunityid", Text.Upper}}), {"opportunityid"}, "fact_tenancy", JoinKind.LeftOuter),
+		    #"Expanded fact_tenancy" = Table.ExpandTableColumn(Source, "fact_tenancy", {"zav_tenancystartdate", "zav_vacateddate"}, {"fact_tenancy.zav_tenancystartdate", "fact_tenancy.zav_vacateddate"}),
+		    #"Reordered Columns" = Table.ReorderColumns(#"Expanded fact_tenancy",{"statuscodename", "zav_householdstatusname", "zav_revision", "zav_tenancy", "zav_hhid", "zav_numberofhouseholdmembers", "fact_tenancy.zav_tenancystartdate", "zav_dateofamendment", "fact_tenancy.zav_vacateddate"}),
+		    #"Added Custom" = Table.AddColumn(#"Reordered Columns", "rowexpirydate", each if [zav_dateofamendment] <> null then ([zav_dateofamendment]) else if [fact_tenancy.zav_vacateddate] <> null then ([fact_tenancy.zav_vacateddate]) else (DateTime.LocalNow())),
+		    #"Added Custom1" = Table.AddColumn(#"Added Custom", "hhid_revision_concat", each [zav_hhid] & "-" & Text.From([zav_revision]))
+		in
+		    #"Added Custom1"
+	lineageTag: 30bdf960-6782-41ce-8036-7d6651f8b494
+	queryGroup: unloaded
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression pre_work_number_household_members_dates_for_prev_revision =
+		let
+		    Source = Table.NestedJoin(Table.TransformColumns(merged_household, {{"zav_tenancy", Text.Upper}}), {"zav_tenancy"}, Table.TransformColumns(fact_tenancy, {{"opportunityid", Text.Upper}}), {"opportunityid"}, "fact_tenancy", JoinKind.LeftOuter),
+		    #"Expanded fact_tenancy" = Table.ExpandTableColumn(Source, "fact_tenancy", {"zav_tenancystartdate", "zav_vacateddate"}, {"fact_tenancy.zav_tenancystartdate", "fact_tenancy.zav_vacateddate"}),
+		    #"Reordered Columns" = Table.ReorderColumns(#"Expanded fact_tenancy",{"statuscodename", "zav_householdstatusname", "zav_revision", "zav_tenancy", "zav_hhid", "zav_numberofhouseholdmembers", "fact_tenancy.zav_tenancystartdate", "zav_dateofamendment", "fact_tenancy.zav_vacateddate"}),
+		    #"Added Custom" = Table.AddColumn(#"Reordered Columns", "rowexpirydate", each if [zav_dateofamendment] <> null then ([zav_dateofamendment]) else if [fact_tenancy.zav_vacateddate] <> null then ([fact_tenancy.zav_vacateddate]) else (DateTime.LocalNow())),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Added Custom",{{"rowexpirydate", Int64.Type}, {"fact_tenancy.zav_tenancystartdate", Int64.Type}}),
+		    #"Reordered Columns1" = Table.ReorderColumns(#"Changed Type",{"statuscodename", "zav_householdstatusname", "zav_tenancy", "zav_hhid", "zav_numberofhouseholdmembers", "fact_tenancy.zav_tenancystartdate", "zav_dateofamendment", "fact_tenancy.zav_vacateddate", "rowexpirydate", "zav_revision"}),
+		    #"Added Custom1" = Table.AddColumn(#"Reordered Columns1", "composite_hh_revision_minus_one", each [zav_hhid] & "-" & Text.From([zav_revision]-1))
+		in
+		    #"Added Custom1"
+	lineageTag: 28ac549c-3b32-48bb-8436-d5fcaaf788ed
+	queryGroup: unloaded
+
+	annotation PBI_ResultType = Table
+
+expression work_first_tenancy_by_property =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT DISTINCT t.property_id AS zav_property, CAST(1 AS bigint) AS include_in_reporting FROM [edw].[dim_property_tenancy] t WHERE t.[DWHIsCurrent] = 1 AND t.[DWHDMLOperation] <> 'D' AND t.property_id IS NOT NULL AND ISNULL(t.property_tenant_opportunity_status,'') <> 'Cancelled'"])
+		in
+		    Source
+	lineageTag: 5d12d793-e03c-4c45-93fd-6d84cca5e626
+	queryGroup: unloaded
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression merged_earliest_lease_from_date =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="WITH r AS (SELECT property_id, property_lease_status, property_lease_details_from_date, ROW_NUMBER() OVER (PARTITION BY property_id ORDER BY synapse_link_sink_modified_on DESC) AS rn FROM [edw].[dim_property_lease] WHERE [DWHIsCurrent] = 1 AND [DWHDMLOperation] <> 'D' AND property_id IS NOT NULL) SELECT UPPER(property_id) AS zav_property, CONVERT(date, property_lease_details_from_date) AS zav_fromdate FROM r WHERE rn = 1 AND property_lease_status IN ('Current','Superseded')"]),
+		    #"Changed Type" = Table.TransformColumnTypes(Source,{{"zav_fromdate", type date}})
+		in
+		    #"Changed Type"
+	lineageTag: 535da7de-3f24-49d6-8487-b976ee1dd1a5
+	queryGroup: unloaded
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression merged_latest_lease_to_date =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="WITH r AS (SELECT property_id, property_lease_status, property_lease_details_to_date, ROW_NUMBER() OVER (PARTITION BY property_id ORDER BY synapse_link_sink_modified_on DESC) AS rn FROM [edw].[dim_property_lease] WHERE [DWHIsCurrent] = 1 AND [DWHDMLOperation] <> 'D' AND property_id IS NOT NULL) SELECT UPPER(property_id) AS zav_property, CONVERT(date, property_lease_details_to_date) AS zav_todate FROM r WHERE rn = 1 AND property_lease_status IN ('Current','Superseded') AND property_lease_details_to_date IS NOT NULL"]),
+		    #"Changed Type" = Table.TransformColumnTypes(Source,{{"zav_todate", type date}})
+		in
+		    #"Changed Type"
+	lineageTag: 195caba7-12b2-4698-8c8c-bf914d7d408f
+	queryGroup: unloaded
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression work_voids_vacated_properties_inactive =
+		// Per conversation between Mike Ryan and Briar Wilson - logic for data in this table is as follows:
+		// return records that have a date for keys returned (zav_datekeyreceivedfromtenant) AND date property was ready for a new tenant (zav_datekeystotenancytimetoallocate) AND status (statecodename) is Inactive.
+		// Records are marked inactive when the void is complete.
+		
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="WITH hashOptionTable AS #(lf)(#(lf)    SELECT#(lf)        [OptionSetName],#(lf)        [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', [OptionSetName] + CAST([Option] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_GlobalOptionsetMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        [OptionSetName],#(lf)        [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', [OptionSetName] + CAST([Option] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_OptionsetMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        'statuscodename' AS [OptionSetName],#(lf)        [status] AS [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', 'statuscodename' + CAST([status] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_StatusMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        'statecodename' AS [OptionSetName],#(lf)        [state] AS [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', 'statecodename' + CAST([state] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_StateMetadata]#(lf)),#(lf)RecentVoidChecklist AS (#(lf)    SELECT#(lf)        createdon,#(lf)        zav_datekeyreceivedfromtenant,#(lf)        zav_datekeystotenancyteamtoallocate,#(lf)        zav_property,#(lf)        zav_voidcheckliststatus,#(lf)        zav_voidchecklistid,#(lf)        statecode,#(lf)        SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (PARTITION BY zav_voidchecklistid ORDER BY SinkModifiedOn DESC) AS rn#(lf)    FROM #(lf)        [Zavanti].[vw_zav_voidchecklist]#(lf)    WHERE #(lf)        zav_voidchecklistid IS NOT NULL#(lf))#(lf)SELECT#(lf)    rvc.createdon,#(lf)    t1.LocalizedLabel AS statecodename,#(lf)    rvc.zav_datekeyreceivedfromtenant,#(lf)    rvc.zav_datekeystotenancyteamtoallocate,#(lf)    rvc.zav_property,#(lf)    t2.LocalizedLabel AS zav_voidcheckliststatusname,#(lf)    rvc.zav_voidchecklistid#(lf)FROM #(lf)    RecentVoidChecklist rvc#(lf)LEFT OUTER JOIN #(lf)    hashOptionTable t1 ON t1.optionHash = HASHBYTES('MD5', 'statecodename' + CAST(rvc.statecode AS nvarchar(100)) + 'zav_voidchecklist')#(lf)LEFT OUTER JOIN #(lf)    hashOptionTable t2 ON t2.optionHash = HASHBYTES('MD5', 'zav_voidcheckliststatus' + CAST(rvc.zav_voidcheckliststatus AS nvarchar(100)) + 'zav_voidchecklist')#(lf)WHERE#(lf)    rvc.rn = 1"]),
+		    #"Filtered Rows" = Table.SelectRows(Source, each ([zav_datekeyreceivedfromtenant] <> null)),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Filtered Rows",{{"zav_datekeyreceivedfromtenant", type date}, {"zav_datekeystotenancyteamtoallocate", type date}}),
+		    #"Filtered Rows1" = Table.SelectRows(#"Changed Type", each ([statecodename] = "Inactive")),
+		    #"Added Custom" = Table.AddColumn(#"Filtered Rows1", "today", each DateTime.LocalNow()),
+		    #"Changed Type1" = Table.TransformColumnTypes(#"Added Custom",{{"today", type date}}),
+		    #"Filtered Rows2" = Table.SelectRows(#"Changed Type1", each ([zav_datekeystotenancyteamtoallocate] <> null)),
+		    #"Merged Queries" = Table.NestedJoin(Table.TransformColumns(#"Filtered Rows2", {{"zav_property", Text.Upper}}), {"zav_property"}, Table.TransformColumns(dim_property, {{"zav_propertyid", Text.Upper}}), {"zav_propertyid"}, "dim_property", JoinKind.LeftOuter),
+		    #"Expanded dim_property" = Table.ExpandTableColumn(#"Merged Queries", "dim_property", {"zav_fulladdress"}, {"zav_fulladdress"}),
+		    #"Added Custom1" = Table.AddColumn(#"Expanded dim_property", "origin", each "voids_vacated_properties_inactive"),
+		    #"Renamed Columns" = Table.RenameColumns(#"Added Custom1",{{"zav_datekeyreceivedfromtenant", "void_start_date"}, {"zav_datekeystotenancyteamtoallocate", "void_end_date"}})
+		in
+		    #"Renamed Columns"
+	lineageTag: 17eb4054-44b1-4c79-92a9-7ceca5bb0e2d
+	queryGroup: unloaded
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression merged_first_last_tenancy_by_property =
+		let
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT t.property_id AS zav_property, t.property_tenancy_tenancy_start_date AS zav_tenancystartdate, t.property_tenancy_vacated_date AS zav_vacateddate FROM [edw].[dim_property_tenancy] t WHERE t.[DWHIsCurrent] = 1 AND t.[DWHDMLOperation] <> 'D' AND ISNULL(t.property_tenant_opportunity_status,'') <> 'Cancelled'"]),
+		    #"Changed Type" = Table.TransformColumnTypes(Source,{{"zav_tenancystartdate", type date}, {"zav_vacateddate", type date}}),
+		    #"Filtered Rows" = Table.SelectRows(#"Changed Type", each [zav_tenancystartdate] <> null and [zav_tenancystartdate] <> ""),
+		    #"Added Custom" = Table.AddColumn(#"Filtered Rows", "tenancy_end_date_or_today", each if [zav_vacateddate] <> null then ([zav_vacateddate]) else (DateTime.LocalNow())),
+		    #"Changed Type1" = Table.TransformColumnTypes(#"Added Custom",{{"tenancy_end_date_or_today", type date}}),
+		    #"Grouped Rows" = Table.Group(#"Changed Type1", {"zav_property"}, {{"earliest_tenancy_start_date", each List.Min([zav_tenancystartdate]), type nullable date}, {"latest_tenancy_end_date_or_today", each List.Max([tenancy_end_date_or_today]), type nullable date}})
+		in
+		    #"Grouped Rows"
+	lineageTag: 51196114-6ac5-4faf-bd1a-302a27a6adea
+	queryGroup: unloaded
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression work_voids_currently_active =
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="WITH hashOptionTable AS #(lf)(#(lf)    SELECT#(lf)        [OptionSetName],#(lf)        [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', [OptionSetName] + CAST([Option] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_GlobalOptionsetMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        [OptionSetName],#(lf)        [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', [OptionSetName] + CAST([Option] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_OptionsetMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        'statuscodename' AS [OptionSetName],#(lf)        [status] AS [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', 'statuscodename' + CAST([status] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_StatusMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        'statecodename' AS [OptionSetName],#(lf)        [state] AS [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', 'statecodename' + CAST([state] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_StateMetadata]#(lf)),#(lf)RecentVoidChecklist AS (#(lf)    SELECT#(lf)        createdon,#(lf)        zav_datekeyreceivedfromtenant,#(lf)        zav_datekeystotenancyteamtoallocate,#(lf)        zav_property,#(lf)        zav_voidcheckliststatus,#(lf)        zav_voidchecklistid,#(lf)        statecode,#(lf)        SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (PARTITION BY zav_voidchecklistid ORDER BY SinkModifiedOn DESC) AS rn#(lf)    FROM #(lf)        [Zavanti].[vw_zav_voidchecklist]#(lf)    WHERE #(lf)        zav_voidchecklistid IS NOT NULL#(lf))#(lf)SELECT#(lf)    rvc.createdon,#(lf)    t1.LocalizedLabel AS statecodename,#(lf)    rvc.zav_datekeyreceivedfromtenant,#(lf)    rvc.zav_datekeystotenancyteamtoallocate,#(lf)    rvc.zav_property,#(lf)    t2.LocalizedLabel AS zav_voidcheckliststatusname,#(lf)    rvc.zav_voidchecklistid#(lf)FROM #(lf)    RecentVoidChecklist rvc#(lf)LEFT OUTER JOIN #(lf)    hashOptionTable t1 ON t1.optionHash = HASHBYTES('MD5', 'statecodename' + CAST(rvc.statecode AS nvarchar(100)) + 'zav_voidchecklist')#(lf)LEFT OUTER JOIN #(lf)    hashOptionTable t2 ON t2.optionHash = HASHBYTES('MD5', 'zav_voidcheckliststatus' + CAST(rvc.zav_voidcheckliststatus AS nvarchar(100)) + 'zav_voidchecklist')#(lf)WHERE#(lf)    rvc.rn = 1"]),
+		    #"Filtered Rows" = Table.SelectRows(Source, each ([zav_datekeyreceivedfromtenant] <> null)),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Filtered Rows",{{"zav_datekeyreceivedfromtenant", type date}, {"zav_datekeystotenancyteamtoallocate", type date}}),
+		    #"Added Conditional Column" = Table.AddColumn(#"Changed Type", "Custom", each if [statecodename] = "Inactive" then [zav_datekeystotenancyteamtoallocate] else null),
+		    #"Filtered Rows1" = Table.SelectRows(#"Added Conditional Column", each ([statecodename] = "Active")),
+		    #"Added Custom" = Table.AddColumn(#"Filtered Rows1", "today", each DateTime.LocalNow()),
+		    #"Changed Type1" = Table.TransformColumnTypes(#"Added Custom",{{"today", type date}}),
+		    #"Added Conditional Column1" = Table.AddColumn(#"Changed Type1", "new_void_end_date_or_today", each if [zav_datekeystotenancyteamtoallocate] = null then [today] else [zav_datekeystotenancyteamtoallocate]),
+		    #"Changed Type2" = Table.TransformColumnTypes(#"Added Conditional Column1",{{"new_void_end_date_or_today", type date}}),
+		    #"Removed Columns" = Table.RemoveColumns(#"Changed Type2",{"Custom", "today"}),
+		    #"Reordered Columns" = Table.ReorderColumns(#"Removed Columns",{"createdon", "statecodename", "zav_datekeyreceivedfromtenant", "zav_datekeystotenancyteamtoallocate", "new_void_end_date_or_today", "zav_property", "zav_voidcheckliststatusname"}),
+		    #"Merged Queries" = Table.NestedJoin(Table.TransformColumns(#"Reordered Columns", {{"zav_property", Text.Upper}}), {"zav_property"}, Table.TransformColumns(dim_property, {{"zav_propertyid", Text.Upper}}), {"zav_propertyid"}, "dim_property", JoinKind.LeftOuter),
+		    #"Expanded dim_property" = Table.ExpandTableColumn(#"Merged Queries", "dim_property", {"zav_fulladdress"}, {"zav_fulladdress"}),
+		    #"Added Custom1" = Table.AddColumn(#"Expanded dim_property", "origin", each "voids_currently_active"),
+		    #"Renamed Columns" = Table.RenameColumns(#"Added Custom1",{{"zav_datekeyreceivedfromtenant", "void_start_date"}, {"new_void_end_date_or_today", "void_end_date"}})
+		in
+		    #"Renamed Columns"
+	lineageTag: 74555dd8-9b2d-464d-b13e-71d4eb5a5f42
+	queryGroup: unloaded
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression work_voids_newly_acquired_properties =
+		// voids with only a date in zav_datekeystotenancyteamtoallocate mean that was the date the property became available to tenant and has not previously been tenanted (i.e. a newly acquired property).
+		
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="WITH hashOptionTable AS #(lf)(#(lf)    SELECT#(lf)        [OptionSetName],#(lf)        [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', [OptionSetName] + CAST([Option] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_GlobalOptionsetMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        [OptionSetName],#(lf)        [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', [OptionSetName] + CAST([Option] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_OptionsetMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        'statuscodename' AS [OptionSetName],#(lf)        [status] AS [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', 'statuscodename' + CAST([status] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_StatusMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        'statecodename' AS [OptionSetName],#(lf)        [state] AS [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', 'statecodename' + CAST([state] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_StateMetadata]#(lf)),#(lf)RecentVoidChecklist AS (#(lf)    SELECT#(lf)        createdon,#(lf)        zav_datekeyreceivedfromtenant,#(lf)        zav_datekeystotenancyteamtoallocate,#(lf)        zav_property,#(lf)        zav_voidcheckliststatus,#(lf)        zav_voidchecklistid,#(lf)        statecode,#(lf)        SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (PARTITION BY zav_voidchecklistid ORDER BY SinkModifiedOn DESC) AS rn#(lf)    FROM #(lf)        [Zavanti].[vw_zav_voidchecklist]#(lf)    WHERE #(lf)        zav_voidchecklistid IS NOT NULL#(lf))#(lf)SELECT#(lf)    rvc.createdon,#(lf)    t1.LocalizedLabel AS statecodename,#(lf)    rvc.zav_datekeyreceivedfromtenant,#(lf)    rvc.zav_datekeystotenancyteamtoallocate,#(lf)    rvc.zav_property,#(lf)    t2.LocalizedLabel AS zav_voidcheckliststatusname,#(lf)    rvc.zav_voidchecklistid#(lf)FROM #(lf)    RecentVoidChecklist rvc#(lf)LEFT OUTER JOIN #(lf)    hashOptionTable t1 ON t1.optionHash = HASHBYTES('MD5', 'statecodename' + CAST(rvc.statecode AS nvarchar(100)) + 'zav_voidchecklist')#(lf)LEFT OUTER JOIN #(lf)    hashOptionTable t2 ON t2.optionHash = HASHBYTES('MD5', 'zav_voidcheckliststatus' + CAST(rvc.zav_voidcheckliststatus AS nvarchar(100)) + 'zav_voidchecklist')#(lf)WHERE#(lf)    rvc.rn = 1"]),
+		    #"Changed Type" = Table.TransformColumnTypes(Source,{{"zav_datekeyreceivedfromtenant", type date}, {"zav_datekeystotenancyteamtoallocate", type date}}),
+		    #"Added Conditional Column" = Table.AddColumn(#"Changed Type", "Custom", each if [statecodename] = "Inactive" then [zav_datekeystotenancyteamtoallocate] else null),
+		    #"Added Custom" = Table.AddColumn(#"Added Conditional Column", "today", each DateTime.LocalNow()),
+		    #"Changed Type1" = Table.TransformColumnTypes(#"Added Custom",{{"today", type date}}),
+		    #"Removed Columns" = Table.RemoveColumns(#"Changed Type1",{"Custom", "today"}),
+		    #"Filtered Rows" = Table.SelectRows(#"Removed Columns", each ([zav_datekeyreceivedfromtenant] = null) and ([zav_datekeystotenancyteamtoallocate] <> null) and ([zav_property] <> null)),
+		    #"Filtered Rows1" = Table.SelectRows(#"Filtered Rows", each [zav_datekeystotenancyteamtoallocate] <> null and [zav_datekeystotenancyteamtoallocate] <> ""),
+		    #"Merged Queries" = Table.NestedJoin(Table.TransformColumns(#"Filtered Rows1", {{"zav_property", Text.Upper}}), {"zav_property"}, Table.TransformColumns(dim_property, {{"zav_propertyid", Text.Upper}}), {"zav_propertyid"}, "dim_property", JoinKind.LeftOuter),
+		    #"Expanded dim_property" = Table.ExpandTableColumn(#"Merged Queries", "dim_property", {"zav_fulladdress", "zav_acquireddate"}, {"zav_fulladdress", "zav_acquireddate"}),
+		    #"Reordered Columns" = Table.ReorderColumns(#"Expanded dim_property",{"createdon", "zav_fulladdress", "statecodename", "zav_datekeyreceivedfromtenant", "zav_acquireddate", "zav_datekeystotenancyteamtoallocate", "zav_property", "zav_voidcheckliststatusname"}),
+		    #"Added Custom1" = Table.AddColumn(#"Reordered Columns", "origin", each "voids_newly_acquired_properties"),
+		    #"Renamed Columns" = Table.RenameColumns(#"Added Custom1",{{"zav_acquireddate", "void_start_date"}, {"zav_datekeystotenancyteamtoallocate", "void_end_date"}})
+		in
+		    #"Renamed Columns"
+	lineageTag: b15f3738-1f53-49d8-a18b-626e24a6a8fc
+	queryGroup: unloaded
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression merged_primary_contact =
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="WITH RecentContacts AS (#(lf)    SELECT#(lf)        contactid,#(lf)        fullname,#(lf)        new_dateofbirth,#(lf)        zav_ethnicity,#(lf)        zav_primarytenant,#(lf)        zav_gender,#(lf)        SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (PARTITION BY contactid ORDER BY SinkModifiedOn DESC) AS rn#(lf)    FROM#(lf)        [Zavanti].[vw_contact]#(lf))#(lf)SELECT#(lf)    contactid,#(lf)    fullname,#(lf)    new_dateofbirth,#(lf)    zav_ethnicity,#(lf)    zav_primarytenant,#(lf)    zav_gender#(lf)FROM#(lf)    RecentContacts#(lf)WHERE#(lf)    rn = 1"]),
+		    #"Changed Type" = Table.TransformColumnTypes(Source,{{"new_dateofbirth", type date}}),
+		    #"Filtered Rows" = Table.SelectRows(#"Changed Type", each ([zav_primarytenant] = "True")),
+		    #"Replaced Value" = Table.ReplaceValue(#"Filtered Rows",null,100000001,Replacer.ReplaceValue,{"zav_gender"}),
+		    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value",null,"0",Replacer.ReplaceValue,{"zav_ethnicity"}),
+		    #"Removed Columns" = Table.RemoveColumns(#"Replaced Value1",{"zav_primarytenant"})
+		in
+		    #"Removed Columns"
+	lineageTag: b4ef4a5d-ee41-4b4c-84ba-0fb887c4e46d
+	queryGroup: unloaded
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression appended_unknown_ethnicity =
+		let
+		    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WMlDSUQrNy87LL8/TD80rLkhNzkzLTE3BIRobCwA=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [zav_ethnicityid = _t, zav_name = _t, ethnicity_new = _t]),
+		    #"Changed Type" = Table.TransformColumnTypes(Source,{{"zav_ethnicityid", Int64.Type}, {"zav_name", type text}, {"ethnicity_new", type text}})
+		in
+		    #"Changed Type"
+	lineageTag: 6843b633-01f9-4c45-9a97-a4573826432b
+	queryGroup: unloaded
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'Reporting Months Ago' = 2 meta [IsParameterQuery=true, List={0, 1, 2, 3}, DefaultValue=2, Type="Number", IsParameterQueryRequired=true]
+	lineageTag: 445331f6-4c35-44fb-9dae-9d48ac833e28
+
+	annotation PBI_ResultType = Number
+

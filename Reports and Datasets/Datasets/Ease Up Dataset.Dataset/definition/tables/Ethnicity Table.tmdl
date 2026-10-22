@@ -1,0 +1,44 @@
+table 'Ethnicity Table'
+	lineageTag: 5b45913f-24bc-42d2-be40-e937a33b14c7
+
+	column Ethnicity
+		dataType: string
+		lineageTag: 5969157c-7c43-4def-ae59-f575fd1ba453
+		summarizeBy: none
+		sourceColumn: Ethnicity
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ethnicity Group'
+		dataType: string
+		lineageTag: 5c6cf21c-e72e-40ff-9af7-90abe1e59148
+		summarizeBy: none
+		sourceColumn: Ethnicity Group
+		sortByColumn: ethnicitysortvalue
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column ethnicitysortvalue
+		dataType: int64
+		formatString: 0
+		lineageTag: 6110209e-ebfa-415d-8348-692be4ca5eb5
+		summarizeBy: sum
+		sourceColumn: ethnicitysortvalue
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Ethnicity Table-9baba0ea-bc98-4d38-932e-f10d359fddd4' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("eal-sql01.database.windows.net", "RecordBase_EmergeAotearoa_Elite", [Query="#(lf)#(lf)select #(lf)distinct EthnicityText,#(lf)case #(lf)when ethnicitytext in ('don''t know','Refused to answer','response outside scope','response unidentifiable'#(lf),'not stated'#(lf)) then 'Unknown/Not Specified'#(lf)#(lf)when ethnicityparentid = 11183  or ethnicitytext = 'Maori' or ethnicityvalue = 21 then 'Maori'#(lf)when ethnicityvalue in (10,11,12) or ethnicitytext in ('australian','british and irish','dutch'#(lf),'German','Italian','Greek (including Greek Cypriot)','Other European NFD','Polish','South Slav (formerly Yugoslav)'#(lf))then 'European'#(lf)when ethnicityvalue between 30 and 37 then 'Pacific Peoples'#(lf)when ethnicityvalue between 40 and 49 or #(lf)ethnicitytext in ('sri lankan','vietnamese','filipino','japanese','korean','Khmer/Kampuchean/Cambodian','Other Southeast Asian'#(lf)) or ethnicitytext like '% asian %'#(lf)then 'Asian'#(lf)when ethnicityvalue between 50 and --53 --then 'Middle Eastern, Latin American, African (MELAA)'#(lf)--====in this case MELAA is Other#(lf)--Then 'Other'#(lf)--when ethnicityvalue = -#(lf)54 then 'Other'#(lf)#(lf)end as ethnicitygroup #(lf),#(lf)#(lf)case #(lf)when ethnicitytext in ('don''t know','Refused to answer','response outside scope','response unidentifiable'#(lf),'not stated'#(lf)) then 99#(lf)#(lf)when ethnicityparentid = 11183  or ethnicitytext = 'Maori' or ethnicityvalue = 21 then 1#(lf)when ethnicityvalue in (10,11,12) or ethnicitytext in ('australian','british and irish','dutch'#(lf),'German','Italian','Greek (including Greek Cypriot)','Other European NFD','Polish','South Slav (formerly Yugoslav)'#(lf))then 3#(lf)when ethnicityvalue between 30 and 37 then 2#(lf)when ethnicityvalue between 40 and 49 or #(lf)ethnicitytext in ('sri lankan','vietnamese','filipino','japanese','korean','Khmer/Kampuchean/Cambodian','Other Southeast Asian'#(lf)) or ethnicitytext like '% asian %'#(lf)then 4#(lf)when ethnicityvalue between 50 and 54 then 5#(lf)#(lf)end as  #(lf)ethnicitysortvalue #(lf)#(lf)#(lf)from dl.dimethnicity#(lf)#(lf)order by ethnicitysortvalue#(lf)"]),
+				    #"Renamed Columns" = Table.RenameColumns(Source,{{"ethnicitygroup", "Ethnicity Group"}, {"EthnicityText", "Ethnicity"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

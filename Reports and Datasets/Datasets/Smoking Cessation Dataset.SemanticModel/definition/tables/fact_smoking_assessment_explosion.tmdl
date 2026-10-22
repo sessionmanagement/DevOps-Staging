@@ -1,0 +1,377 @@
+table fact_smoking_assessment_explosion
+	lineageTag: 16f51d92-fbd8-42d4-970c-e6e501c9430d
+
+	column PersonSmokingHistoryID
+		dataType: string
+		lineageTag: 9a39f2eb-b5e2-431d-b76f-eb744e11b582
+		summarizeBy: none
+		sourceColumn: PersonSmokingHistoryID
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonID
+		dataType: string
+		lineageTag: 4094cb84-4a27-4619-815a-24197d09660d
+		summarizeBy: none
+		sourceColumn: PersonID
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamKey
+		dataType: string
+		lineageTag: 6a1b206c-afeb-4cfb-acc8-d12fc4e3b0f1
+		summarizeBy: none
+		sourceColumn: TeamKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonSmokingHistoryAssessmentDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: a8ccdeff-9441-46c0-8ec6-bf82e1437d63
+		summarizeBy: none
+		sourceColumn: PersonSmokingHistoryAssessmentDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Company
+		dataType: string
+		lineageTag: 2a9ad288-463b-4694-9129-f428d2b17142
+		summarizeBy: none
+		sourceColumn: Company
+
+		annotation SummarizationSetBy = Automatic
+
+	column BriefAdviceGiven
+		dataType: string
+		lineageTag: c5d9c89e-8219-48ed-ad64-0d38ab0b0c9f
+		summarizeBy: none
+		sourceColumn: BriefAdviceGiven
+
+		annotation SummarizationSetBy = Automatic
+
+	column DimSmokingStatusKey
+		dataType: string
+		lineageTag: 265c1a3a-fa6f-4823-928b-e697f8287077
+		summarizeBy: none
+		sourceColumn: DimSmokingStatusKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ImprovementOnPrevAssessmentStatus =
+			
+			IF(
+			    ISBLANK(fact_smoking_assessment_explosion[PreviousAssessmentRank]),"No prior assessment",
+			    IF(fact_smoking_assessment_explosion[AssessmentRank] < fact_smoking_assessment_explosion[PreviousAssessmentRank], "Improvement",
+			    IF(fact_smoking_assessment_explosion[AssessmentRank] = fact_smoking_assessment_explosion[PreviousAssessmentRank], "No change",
+			    IF(fact_smoking_assessment_explosion[AssessmentRank] > fact_smoking_assessment_explosion[PreviousAssessmentRank], "Regression"
+			    )))
+			)
+		lineageTag: 89a6b632-05cb-40bf-909e-d4f9389efaa0
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column SmokerOrNonSmoker =
+			
+			IF(fact_smoking_assessment_explosion[AssessmentRank] < 4, "Non-smoker", "Smoker")
+		lineageTag: 5016ccdc-e3f3-451b-b7a4-19daf3aa83ac
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column SupportServicesOfferedYN
+		dataType: string
+		lineageTag: a95e40f7-15b4-4397-94dd-6c1e4fd01550
+		summarizeBy: none
+		sourceColumn: SupportServicesOfferedYN
+
+		annotation SummarizationSetBy = Automatic
+
+	column AssessmentRank
+		dataType: int64
+		formatString: 0
+		lineageTag: 9977b912-6740-4e98-9f4d-b6f3d9620bd0
+		summarizeBy: sum
+		sourceColumn: AssessmentRank
+
+		annotation SummarizationSetBy = Automatic
+
+	column PreviousAssessmentRank
+		dataType: int64
+		formatString: 0
+		lineageTag: 79e346d7-942e-4225-9d11-a592991284c6
+		summarizeBy: sum
+		sourceColumn: PreviousAssessmentRank
+
+		annotation SummarizationSetBy = Automatic
+
+	column PreviousAssessmentSmokingStatusKey
+		dataType: string
+		lineageTag: 42878f84-dc2f-4713-b9ba-5e977b3bde66
+		summarizeBy: none
+		sourceColumn: PreviousAssessmentSmokingStatusKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column SmokingStatusValue
+		dataType: string
+		lineageTag: fd3bcf8a-f574-4a46-96b1-938d035bcabe
+		summarizeBy: none
+		sourceColumn: SmokingStatusValue
+
+		annotation SummarizationSetBy = Automatic
+
+	column FirstNonBlankEthnicityID
+		dataType: string
+		lineageTag: d4dff126-0867-4f6e-a2fd-db2113209c0b
+		summarizeBy: none
+		sourceColumn: FirstNonBlankEthnicityID
+
+		annotation SummarizationSetBy = Automatic
+
+	column GenderID
+		dataType: string
+		lineageTag: 17f16d2d-f54c-4c39-8f34-82819bde240e
+		summarizeBy: none
+		sourceColumn: GenderID
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonAgeAtAssessmentDate
+		dataType: int64
+		formatString: 0
+		lineageTag: 6a282606-867e-4abe-8dd1-43f043ad2690
+		summarizeBy: none
+		sourceColumn: PersonAgeAtAssessmentDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonAgeNow
+		dataType: int64
+		formatString: 0
+		lineageTag: de5e76a1-c8c2-41b0-bd24-673c960cb60a
+		summarizeBy: sum
+		sourceColumn: PersonAgeNow
+
+		annotation SummarizationSetBy = Automatic
+
+	column ActiveReferralAtTimeOfAssessmentExists
+		dataType: string
+		lineageTag: 07000e88-ec78-449a-8e1c-078310245682
+		summarizeBy: none
+		sourceColumn: ActiveReferralAtTimeOfAssessmentExists
+
+		annotation SummarizationSetBy = Automatic
+
+	column AcceptedDate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: cd7efcc5-722e-4e7f-83e8-13fcae8520a1
+		summarizeBy: none
+		sourceColumn: AcceptedDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column DischargeDate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 66f17b4f-8ab8-48d2-aee8-c1cc5835e4c8
+		summarizeBy: none
+		sourceColumn: DischargeDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column RowNumberAscPerson
+		dataType: int64
+		formatString: 0
+		lineageTag: 6333416b-aded-4696-bc8d-d61e734011cc
+		summarizeBy: sum
+		sourceColumn: RowNumberAscPerson
+
+		annotation SummarizationSetBy = Automatic
+
+	column EthnicityBucket = RELATED(dim_ethnicity[EthnicityBucket])
+		lineageTag: 066e171c-814f-44f9-8b6c-88eb41bf8279
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Gender = RELATED(dim_gender[GenderText])
+		lineageTag: 2459eba5-d8af-46b9-a831-532cd1778ed1
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column DaysBetweenAssessmentPerson
+		dataType: int64
+		formatString: 0
+		lineageTag: b0603140-627b-4c05-9472-9bc6f9c904ec
+		summarizeBy: sum
+		sourceColumn: DaysBetweenAssessmentPerson
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReferredToExternalCessationSupportServiceYN
+		dataType: string
+		lineageTag: 1934ab29-e2bc-45b6-8173-61cbed778407
+		summarizeBy: none
+		sourceColumn: ReferredToExternalCessationSupportServiceYN
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReferralID
+		dataType: string
+		lineageTag: e8889a4a-2403-4739-a05d-e5b844a038c1
+		summarizeBy: none
+		sourceColumn: ReferralID
+
+		annotation SummarizationSetBy = Automatic
+
+	column AgeAtAssessmentDate
+		dataType: int64
+		formatString: 0
+		lineageTag: 7850173f-bcf5-4c3b-99e5-f219e16a1c04
+		summarizeBy: sum
+		sourceColumn: AgeAtAssessmentDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column DaysBetweenAssessmentPersonTeam
+		dataType: int64
+		formatString: 0
+		lineageTag: 48d01ab5-ba39-4738-9519-5952ab062e26
+		summarizeBy: sum
+		sourceColumn: DaysBetweenAssessmentPersonTeam
+
+		annotation SummarizationSetBy = Automatic
+
+	column PreviousAssessmentDatePerson
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: a659483c-7037-460d-b9d2-fe056be01d9d
+		summarizeBy: none
+		sourceColumn: PreviousAssessmentDatePerson
+
+		annotation SummarizationSetBy = Automatic
+
+	column PreviousAssessmentDatePersonTeam
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 55db9c2a-962e-4ee3-87c9-90a209626a60
+		summarizeBy: none
+		sourceColumn: PreviousAssessmentDatePersonTeam
+
+		annotation SummarizationSetBy = Automatic
+
+	column AssessmentValidTo
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 51cefc39-c825-45f1-9e48-f2004c478701
+		summarizeBy: none
+		sourceColumn: AssessmentValidTo
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column AssessmentValidToReason
+		dataType: string
+		lineageTag: 4265415b-6d0a-4d9f-bbcc-2f9e6bf3c4c3
+		summarizeBy: none
+		sourceColumn: AssessmentValidToReason
+
+		annotation SummarizationSetBy = Automatic
+
+	column RowNumberDescPerson
+		dataType: int64
+		formatString: 0
+		lineageTag: 3f67ba2c-31db-4db9-9f71-33d7271f8aff
+		summarizeBy: sum
+		sourceColumn: RowNumberDescPerson
+
+		annotation SummarizationSetBy = Automatic
+
+	column RowNumberAscPersonTeam
+		dataType: int64
+		formatString: 0
+		lineageTag: bfe4ffdc-2ddc-472b-baa6-7affb94011e1
+		summarizeBy: sum
+		sourceColumn: RowNumberAscPersonTeam
+
+		annotation SummarizationSetBy = Automatic
+
+	column RowNumberDescPersonTeam
+		dataType: int64
+		formatString: 0
+		lineageTag: e87550ef-c729-4126-8f44-b89281afbf24
+		summarizeBy: sum
+		sourceColumn: RowNumberDescPersonTeam
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsFirstAssessmentForPerson
+		dataType: string
+		lineageTag: d02c73e2-2947-46e5-856b-368fa25e83f4
+		summarizeBy: none
+		sourceColumn: IsFirstAssessmentForPerson
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsLatestAssessmentForPerson
+		dataType: string
+		lineageTag: 28d9b4a5-f379-4dd1-afb4-c60060cff9f8
+		summarizeBy: none
+		sourceColumn: IsLatestAssessmentForPerson
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsFirstAssessmentForPersonTeam
+		dataType: string
+		lineageTag: e5f216b7-62cf-4346-a77d-6743bb076242
+		summarizeBy: none
+		sourceColumn: IsFirstAssessmentForPersonTeam
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsLatestAssessmentForPersonTeam
+		dataType: string
+		lineageTag: 5c231880-3495-4c6e-9ca6-f0df414fc222
+		summarizeBy: none
+		sourceColumn: IsLatestAssessmentForPersonTeam
+
+		annotation SummarizationSetBy = Automatic
+
+	column AssessmentExplosion
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 38f9334e-81ad-48e6-a6f8-764c9ed255ac
+		summarizeBy: none
+		sourceColumn: AssessmentExplosion
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition fact_smoking_assessment_explosion-b7e96547-9aaf-46cb-a548-6f9270d22be1 = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="-- ============================================================#(lf)-- Model:  Smoking Cessation Dataset#(lf)-- Table:  fact_smoking_assessment_explosion#(lf)-- Source: native query (complex CTE/window) - emitted in full#(lf)-- Used columns: 22 (mapped 22, unmapped 0)  [full query, not trimmed]#(lf)-- Auto-generated from pbi_complete_dump.csv + model M + EDW/ODS schema.#(lf)-- Review before use; verify joins/filters against the model.#(lf)-- ============================================================#(lf)-- USED model columns: ActiveReferralAtTimeOfAssessmentExists; AssessmentRank; BriefAdviceGiven; Company; DaysBetweenAssessmentPerson; DimSmokingStatusKey; EthnicityBucket; FirstNonBlankEthnicityID; Gender; GenderID; ImprovementOnPrevAssessmentStatus; PersonAgeAtAssessmentDate; PersonAgeNow; PersonID; PersonSmokingHistoryAssessmentDate; PersonSmokingHistoryID; PreviousAssessmentRank; PreviousAssessmentSmokingStatusKey; ReferredToExternalCessationSupportServiceYN; SmokerOrNonSmoker; SupportServicesOfferedYN; TeamKey#(lf)#(lf)with CTEDimSmokingStatus as#(lf)(#(lf)SELECT#(lf)'EAL' AS Company,#(lf)SmokingStatusID,#(lf)CONCAT('E',SmokingStatusID) AS DimSmokingStatusKey,#(lf)SmokingStatusValue,#(lf)SmokingStatusText,#(lf)CASE #(lf)WHEN SmokingStatusID = 12308 THEN 0#(lf)WHEN SmokingStatusID = 12522 THEN 1#(lf)WHEN SmokingStatusID = 12307 THEN 2#(lf)WHEN SmokingStatusID = 12306 THEN 3#(lf)WHEN SmokingStatusID = 11555 THEN 4#(lf)WHEN SmokingStatusID = 11556 THEN 5#(lf)WHEN SmokingStatusID = 11557 THEN 6#(lf)WHEN SmokingStatusID = 11558 THEN 7#(lf)WHEN SmokingStatusID = 11559 THEN 8#(lf)ELSE NULL END AS Rank#(lf)FROM RBEAL.dlDimSmokingStatus#(lf)WHERE SmokingStatusIsActive = 1#(lf)#(lf)UNION #(lf)#(lf)SELECT#(lf)'MNB' AS Company,#(lf)SmokingStatusID,#(lf)CONCAT('M',SmokingStatusID) AS DimSmokingStatusKey,#(lf)SmokingStatusValue,#(lf)SmokingStatusText,#(lf)CASE #(lf)WHEN SmokingStatusID = 12308 THEN 0#(lf)WHEN SmokingStatusID = 12307 THEN 1#(lf)WHEN SmokingStatusID = 12525 THEN 2#(lf)WHEN SmokingStatusID = 12306 THEN 3#(lf)WHEN SmokingStatusID = 11555 THEN 4#(lf)WHEN SmokingStatusID = 11556 THEN 5#(lf)WHEN SmokingStatusID = 11557 THEN 6#(lf)WHEN SmokingStatusID = 11558 THEN 7#(lf)WHEN SmokingStatusID = 11559 THEN 8#(lf)ELSE NULL END AS Rank#(lf)FROM RBMNB.dlDimSmokingStatus#(lf)WHERE SmokingStatusIsActive = 1#(lf))#(lf), LegacyFactReferral AS #(lf)(#(lf)SELECT #(lf)CASE WHEN fr.TeamID IS NOT NULL THEN CONCAT('M',fr.TeamID) ELSE NULL END AS TeamID,#(lf)CASE WHEN fr.ID IS NOT NULL THEN CONCAT('M',fr.ID) ELSE NULL END AS ReferralID,#(lf)CASE WHEN fr.PersonID IS NOT NULL THEN CONCAT('M',fr.PersonID) ELSE NULL END AS PersonID,#(lf)fr.AcceptedDate,#(lf)fr.DischargeDate#(lf)FROM RBMNB.LegacyFactReferral fr#(lf)#(lf)UNION #(lf)#(lf)SELECT #(lf)CASE WHEN fr.TeamID IS NOT NULL THEN CONCAT('E',fr.TeamID) ELSE NULL END AS TeamID,#(lf)CASE WHEN fr.ID IS NOT NULL THEN CONCAT('E',fr.ID) ELSE NULL END AS ReferralID,#(lf)CASE WHEN fr.PersonID IS NOT NULL THEN CONCAT('E',fr.PersonID) ELSE NULL END AS PersonID,#(lf)fr.AcceptedDate,#(lf)fr.DischargeDate#(lf)FROM RBEAL.LegacyFactReferral fr#(lf))#(lf), Smoking_History AS #(lf)(#(lf)SELECT#(lf)CASE WHEN sh.PersonSmokingHistoryID IS NOT NULL THEN CONCAT('M',sh.PersonSmokingHistoryID) ELSE NULL END AS PersonSmokingHistoryID,#(lf)CASE WHEN sh.PersonID IS NOT NULL THEN CONCAT('M',sh.PersonID) ELSE NULL END AS PersonID,#(lf)COALESCE(#(lf)CASE WHEN dp.Ethnicity1ID IS NOT NULL THEN CONCAT('M',dp.Ethnicity1ID) ELSE NULL END,#(lf)CASE WHEN dp.Ethnicity3ID IS NOT NULL THEN CONCAT('M',dp.Ethnicity3ID) ELSE NULL END,#(lf)CASE WHEN dp.Ethnicity4ID IS NOT NULL THEN CONCAT('M',dp.Ethnicity4ID) ELSE NULL END,#(lf)CASE WHEN dp.Ethnicity5ID IS NOT NULL THEN CONCAT('M',dp.Ethnicity5ID) ELSE NULL END,#(lf)CASE WHEN dp.Ethnicity2ID IS NOT NULL THEN CONCAT('M',dp.Ethnicity2ID) ELSE NULL END#(lf)) AS FirstNonBlankEthnicityID,#(lf)CASE WHEN dp.GenderID IS NOT NULL THEN CONCAT('M',dp.GenderID) ELSE NULL END AS GenderID,#(lf)--dp.PersonDateOfBirth,#(lf)CASE WHEN sh.SmokingStatusId IS NOT NULL THEN CONCAT('M',sh.SmokingStatusId) ELSE NULL END AS DimSmokingStatusKey,#(lf)sh.PersonSmokingHistoryAssessmentDate,#(lf)FLOOR(DATEDIFF(DAY, dp.PersonDateofBirth, sh.PersonSmokingHistoryAssessmentDate)/365) AS AgeAtAssessmentDate,#(lf)'MNB' AS Company,#(lf)CASE WHEN sh.PersonSmokingHistoryBriefAdviceGiven = 1 THEN 'Yes' ELSE 'No' END AS BriefAdviceGiven,#(lf)dss.Rank AS AssessmentRank,#(lf)LAG(dss.Rank) OVER (PARTITION BY sh.PersonID ORDER BY sh.PersonSmokingHistoryAssessmentDate) AS PreviousAssessmentRank,#(lf)'M' + CAST(LAG(sh.SmokingStatusId) OVER (PARTITION BY sh.PersonID ORDER BY sh.PersonSmokingHistoryAssessmentDate) AS varchar(10)) AS PreviousAssessmentSmokingStatusKey,#(lf)--CASE WHEN sh.PersonSmokingHistorySupportServicesOffered IS NOT NULL AND PersonSmokingHistorySupportServicesOffered <> '' THEN 'Yes' ELSE 'No' END AS SupportServicesOfferedYN,#(lf)CASE WHEN sh.PersonSmokingHistorySupportServicesOffered LIKE '%12228%' -- Given nicotine replacement products, quit card, or other stop smoking medication#(lf)OR sh.PersonSmokingHistorySupportServicesOffered LIKE '%12229%' -- Referred to an external stop smoking cessation service#(lf)OR sh.PersonSmokingHistorySupportServicesOffered LIKE '%12230%' -- Gave support, education and/or resources to help stop smoking#(lf)OR sh.PersonSmokingHistorySupportServicesOffered LIKE '%12231%' -- Client refused smoking cessation support#(lf)--OR sh.PersonSmokingHistorySupportServicesOffered LIKE '%12232%' -- Client not asked#(lf)THEN 'Yes' ELSE 'No' END AS SupportServicesOfferedYN,#(lf)CASE WHEN sh.PersonSmokingHistorySupportServicesOffered LIKE '%12229%' THEN 'Yes' ELSE 'No' END AS ReferredToExternalCessationSupportServiceYN,#(lf)dss.SmokingStatusValue,#(lf)FLOOR(DATEDIFF(DAY,dp.PersonDateOfBirth,sh.PersonSmokingHistoryAssessmentDate)/365) AS PersonAgeAtAssessmentDate,#(lf)FLOOR(DATEDIFF(DAY,dp.PersonDateOfBirth,GETDATE())/365) AS PersonAgeNow#(lf)FROM RBMNB.dlFactPersonSmokingHistory sh #(lf)INNER JOIN CTEDimSmokingStatus dss ON sh.SmokingStatusID = dss.SmokingStatusID AND Company = 'MNB'#(lf)LEFT OUTER JOIN RBMNB.dlDimPerson dp ON sh.PersonID = dp.PersonID#(lf)#(lf)#(lf)UNION#(lf)#(lf)SELECT#(lf)CASE WHEN sh.PersonSmokingHistoryID IS NOT NULL THEN CONCAT('E',sh.PersonSmokingHistoryID) ELSE NULL END AS PersonSmokingHistoryID,#(lf)CASE WHEN sh.PersonID IS NOT NULL THEN CONCAT('E',sh.PersonID) ELSE NULL END AS PersonID,#(lf)COALESCE(#(lf)CASE WHEN dp.Ethnicity1ID IS NOT NULL THEN CONCAT('E',dp.Ethnicity1ID) ELSE NULL END,#(lf)CASE WHEN dp.Ethnicity3ID IS NOT NULL THEN CONCAT('E',dp.Ethnicity3ID) ELSE NULL END,#(lf)CASE WHEN dp.Ethnicity4ID IS NOT NULL THEN CONCAT('E',dp.Ethnicity4ID) ELSE NULL END,#(lf)CASE WHEN dp.Ethnicity5ID IS NOT NULL THEN CONCAT('E',dp.Ethnicity5ID) ELSE NULL END,#(lf)CASE WHEN dp.Ethnicity2ID IS NOT NULL THEN CONCAT('E',dp.Ethnicity2ID) ELSE NULL END#(lf)) AS FirstNonBlankEthnicityID,#(lf)CASE WHEN dp.GenderID IS NOT NULL THEN CONCAT('E',dp.GenderID) ELSE NULL END AS GenderID,#(lf)--dp.PersonDateOfBirth,#(lf)CASE WHEN sh.SmokingStatusId IS NOT NULL THEN CONCAT('E',sh.SmokingStatusId) ELSE NULL END AS DimSmokingStatusKey,#(lf)sh.PersonSmokingHistoryAssessmentDate,#(lf)FLOOR(DATEDIFF(DAY, dp.PersonDateofBirth, sh.PersonSmokingHistoryAssessmentDate)/365) AS AgeAtAssessmentDate,#(lf)'EAL' AS Company,#(lf)CASE WHEN sh.PersonSmokingHistoryBriefAdviceGiven = 1 THEN 'Yes' ELSE 'No' END AS BriefAdviceGiven,#(lf)dss.Rank AS AssessmentRank,#(lf)LAG(dss.Rank) OVER (PARTITION BY sh.PersonID ORDER BY sh.PersonSmokingHistoryAssessmentDate) AS PreviousAssessmentRank,#(lf)'E' + CAST(LAG(sh.SmokingStatusId) OVER (PARTITION BY sh.PersonID ORDER BY sh.PersonSmokingHistoryAssessmentDate) AS varchar(10)) AS PreviousAssessmentSmokingStatusKey,#(lf)--CASE WHEN sh.PersonSmokingHistorySupportServicesOffered IS NOT NULL AND PersonSmokingHistorySupportServicesOffered <> '' THEN 'Yes' ELSE 'No' END AS SupportServicesOfferedYN,#(lf)CASE WHEN sh.PersonSmokingHistorySupportServicesOffered LIKE '%12228%' -- Given nicotine replacement products, quit card, or other stop smoking medication#(lf)OR sh.PersonSmokingHistorySupportServicesOffered LIKE '%12229%' -- Referred to an external stop smoking cessation service#(lf)OR sh.PersonSmokingHistorySupportServicesOffered LIKE '%12230%' -- Gave support, education and/or resources to help stop smoking#(lf)OR sh.PersonSmokingHistorySupportServicesOffered LIKE '%12231%' -- Client refused smoking cessation support#(lf)--OR sh.PersonSmokingHistorySupportServicesOffered LIKE '%12232%' -- Client not asked#(lf)THEN 'Yes' ELSE 'No' END AS SupportServicesOfferedYN,#(lf)CASE WHEN sh.PersonSmokingHistorySupportServicesOffered LIKE '%12229%' THEN 'Yes' ELSE 'No' END AS ReferredToExternalCessationSupportServiceYN,#(lf)dss.SmokingStatusValue,#(lf)FLOOR(DATEDIFF(DAY,dp.PersonDateOfBirth,sh.PersonSmokingHistoryAssessmentDate)/365) AS PersonAgeAtAssessmentDate,#(lf)FLOOR(DATEDIFF(DAY,dp.PersonDateOfBirth,GETDATE())/365) AS PersonAgeNow#(lf)FROM RBEAL.dlFactPersonSmokingHistory sh #(lf)INNER JOIN CTEDimSmokingStatus dss ON sh.SmokingStatusID = dss.SmokingStatusID AND Company = 'EAL'#(lf)LEFT OUTER JOIN RBEAL.dlDimPerson dp ON sh.PersonID = dp.PersonID#(lf)#(lf))#(lf)#(lf)SELECT *,#(lf)       CASE WHEN RowNumberAscPerson = 1 THEN 'Yes' ELSE 'No' END AS IsFirstAssessmentForPerson,#(lf)       CASE WHEN RowNumberDescPerson = 1 THEN 'Yes' ELSE 'No' END AS IsLatestAssessmentForPerson,#(lf)#(tab)   CASE WHEN RowNumberAscPersonTeam = 1 THEN 'Yes' ELSE 'No' END AS IsFirstAssessmentForPersonTeam,#(lf)       CASE WHEN RowNumberDescPersonTeam = 1 THEN 'Yes' ELSE 'No' END AS IsLatestAssessmentForPersonTeam,#(lf)#(tab)   CASE WHEN ReferralID IS NULL THEN 'No' ELSE 'Yes' END AS ActiveReferralAtTimeOfAssessmentExists#(lf)FROM (#(lf)    SELECT fr.TeamID, fr.ReferralID, fr.AcceptedDate, fr.DischargeDate, sh.*,#(lf)#(tab)CASE WHEN #(lf)#(tab)LAG(sh.PersonSmokingHistoryAssessmentDate) OVER (PARTITION BY sh.PersonID,fr.TeamID ORDER BY sh.PersonSmokingHistoryAssessmentDate) IS NOT NULL THEN#(lf)#(tab)DATEDIFF(DAY,LAG(sh.PersonSmokingHistoryAssessmentDate) OVER (PARTITION BY sh.PersonID,fr.TeamID ORDER BY sh.PersonSmokingHistoryAssessmentDate),sh.PersonSmokingHistoryAssessmentDate) ELSE NULL END AS DaysBetweenAssessmentPersonTeam,#(lf)#(tab)CASE WHEN #(lf)#(tab)LAG(sh.PersonSmokingHistoryAssessmentDate) OVER (PARTITION BY sh.PersonID ORDER BY sh.PersonSmokingHistoryAssessmentDate) IS NOT NULL THEN#(lf)#(tab)DATEDIFF(DAY,LAG(sh.PersonSmokingHistoryAssessmentDate) OVER (PARTITION BY sh.PersonID ORDER BY sh.PersonSmokingHistoryAssessmentDate),sh.PersonSmokingHistoryAssessmentDate) ELSE NULL END AS DaysBetweenAssessmentPerson,#(lf)#(tab)LAG(sh.PersonSmokingHistoryAssessmentDate) OVER (PARTITION BY sh.PersonID ORDER BY sh.PersonSmokingHistoryAssessmentDate) AS PreviousAssessmentDatePerson,#(lf)#(tab)LAG(sh.PersonSmokingHistoryAssessmentDate) OVER (PARTITION BY sh.PersonID, fr.TeamID ORDER BY sh.PersonSmokingHistoryAssessmentDate) AS PreviousAssessmentDatePersonTeam,#(lf)#(tab)COALESCE(LEAD(DATEADD(DAY, -1, sh.PersonSmokingHistoryAssessmentDate)) OVER (PARTITION BY sh.PersonID ORDER BY sh.PersonSmokingHistoryAssessmentDate),CAST(fr.DischargeDate AS date),CAST(GETDATE() AS date)) AS AssessmentValidTo,#(lf)#(tab)CASE#(lf)#(tab)WHEN (LEAD(sh.PersonSmokingHistoryAssessmentDate) OVER (PARTITION BY sh.PersonID,fr.TeamID ORDER BY sh.PersonSmokingHistoryAssessmentDate)) IS NOT NULL#(lf)#(tab)THEN 'DayBeforeNewerAssessment'#(lf)#(tab)WHEN fr.DischargeDate IS NOT NULL THEN 'ReferralDischargeDate'#(lf)#(tab)ELSE 'ValidToToday' END AS AssessmentValidToReason,#(lf)#(tab)ROW_NUMBER() OVER (PARTITION BY sh.PersonID ORDER BY sh.PersonSmokingHistoryAssessmentDate ASC) AS RowNumberAscPerson,#(lf)#(tab)ROW_NUMBER() OVER (PARTITION BY sh.PersonID ORDER BY sh.PersonSmokingHistoryAssessmentDate DESC) AS RowNumberDescPerson,#(lf)#(tab)ROW_NUMBER() OVER (PARTITION BY sh.PersonID, fr.ReferralID ORDER BY sh.PersonSmokingHistoryAssessmentDate ASC) AS RowNumberAscPersonTeam,#(lf)#(tab)ROW_NUMBER() OVER (PARTITION BY sh.PersonID, fr.ReferralID ORDER BY sh.PersonSmokingHistoryAssessmentDate DESC) AS RowNumberDescPersonTeam#(lf)    FROM Smoking_History sh#(lf)#(tab)LEFT OUTER JOIN LegacyFactReferral fr ON fr.PersonID = sh.PersonID AND sh.PersonSmokingHistoryAssessmentDate BETWEEN fr.AcceptedDate AND COALESCE(fr.DischargeDate,getdate())#(lf)) AS DerivedTable;#(lf)#(lf)-- NOTE: after the query above, the model also applies these in-memory#(lf)-- Power Query row filters (add to the WHERE for an exact row match):#(lf)--   each ([PersonSmokingHistoryAssessmentDate] <> #date(1900, 1, 1))#(lf)"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"PersonSmokingHistoryAssessmentDate", type date}, {"AssessmentValidTo", type date}}),
+				    #"Filtered Rows" = Table.SelectRows(#"Changed Type", each ([PersonSmokingHistoryAssessmentDate] <> #date(1900, 1, 1))),
+				    #"Replaced Value" = Table.ReplaceValue(#"Filtered Rows",null,"0",Replacer.ReplaceValue,{"TeamID"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Replaced Value",{{"TeamID", "TeamKey"}}),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Renamed Columns",{{"PersonSmokingHistoryAssessmentDate", Int64.Type}, {"AssessmentValidTo", Int64.Type}}),
+				    #"Added Custom" = Table.AddColumn(#"Changed Type1", "AssessmentExplosion", each {[PersonSmokingHistoryAssessmentDate]..[AssessmentValidTo]}),
+				    #"Expanded AssessmentExplosion" = Table.ExpandListColumn(#"Added Custom", "AssessmentExplosion"),
+				    #"Changed Type2" = Table.TransformColumnTypes(#"Expanded AssessmentExplosion",{{"AssessmentExplosion", type date}, {"AssessmentValidTo", type date}, {"PersonSmokingHistoryAssessmentDate", type date}})
+				in
+				    #"Changed Type2"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

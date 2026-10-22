@@ -1,0 +1,278 @@
+table fact_vehicle_utilisation_summary
+	lineageTag: 9bf4514d-c101-4b7a-89ce-ccf2804bb952
+
+	measure 'Fleet Average (Total Meters)' =
+			
+			AVERAGEX(
+			    SUMMARIZE(
+			        fact_vehicle_utilisation_summary,
+			        fact_vehicle_utilisation_summary[dim_asset_key]
+			    ),
+			    [Sum of Meters]
+			)
+		lineageTag: df7183f4-f28b-4daa-938d-c487a1bd7f54
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Fleet Average (Total Hours)' =
+			
+			AVERAGEX(
+			    SUMMARIZE(
+			        fact_vehicle_utilisation_summary,
+			        fact_vehicle_utilisation_summary[dim_asset_key]
+			    ),
+			    [Sum of Hours]
+			)
+		lineageTag: 5b48a384-ff63-4962-a12f-ec59d1f76cbf
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Fleet Average (Total Trips)' =
+			
+			AVERAGEX(
+			    SUMMARIZE(
+			        fact_vehicle_utilisation_summary,
+			        fact_vehicle_utilisation_summary[dim_asset_key]
+			    ),
+			    [Distinct Count of Trips]
+			)
+		lineageTag: 213e1e1e-3ff4-49cc-8db8-1b5e996cd33a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column dim_asset_key
+		formatString: 0
+		lineageTag: 2c4231ad-a76b-456e-a5ea-72013780c282
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: dim_team_asset[dim_asset_key]
+
+		annotation SummarizationSetBy = Automatic
+
+	column asset_name
+		lineageTag: 7fa8123e-edc3-472b-a25c-d0238bc37493
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: dim_team_asset[asset_name]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Total Number of Trips'
+		formatString: #,0
+		lineageTag: d50fb0d4-08a6-4f37-b84a-7dd9ff2a34db
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Total Number of Trips]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Average Trip Length (Seconds)'
+		lineageTag: cb9be995-212c-421a-97d4-aec659c8f8e0
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Average Trip Length (Seconds)]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Days Used'
+		formatString: #,0
+		lineageTag: 70b7bce6-8b3c-4d9b-9b7f-d9065f7e470c
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Days Used]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Total Possible Days'
+		formatString: #,0
+		lineageTag: d3f92bf5-8fae-4917-95c0-f252ab624f47
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Total Possible Days]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Utilisation Rate' = DIVIDE([Days Used], [Total Possible Days], 0)
+		lineageTag: 171a4ab6-1de6-4cc6-acc1-491f06ddd4e4
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Average Trips per Day' = DIVIDE([Total Number of Trips], [Total Possible Days], 0)
+		lineageTag: 07560ec8-98df-4614-8420-e37d8e8bd199
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Average Distance per Day (m)' = DIVIDE([Total Distance Traveled (Meters)], [Total Possible Days], 0)
+		formatString: #,0.00
+		lineageTag: 8e506f11-a3ee-434a-8719-a134fbc98d37
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Underutilized Flag' =
+			
+			VAR TripThreshold = 0.7 * CALCULATE([Fleet Average (Total Trips)], ALLEXCEPT(fact_vehicle_utilisation_summary, fact_vehicle_utilisation_summary[Total Number of Trips]))
+			VAR DistanceThreshold = 0.7 * CALCULATE([Fleet Average (Total Meters)], ALLEXCEPT(fact_vehicle_utilisation_summary, fact_vehicle_utilisation_summary[Total Distance Traveled (Meters)]))
+			VAR UsageThreshold = 0.7 * CALCULATE([Fleet Average (Total Hours)], ALLEXCEPT(fact_vehicle_utilisation_summary, fact_vehicle_utilisation_summary[Total Usage Time (Seconds)]))
+			VAR UtilizationRateThreshold = 0.7 * CALCULATE(AVERAGE(fact_vehicle_utilisation_summary[Utilisation Rate]), ALL(fact_vehicle_utilisation_summary))
+			RETURN
+			IF(
+			    [Total Number of Trips] / [Total Possible Days] < TripThreshold / [Total Possible Days] &&
+			    [Total Distance Traveled (Meters)] / [Total Possible Days] < DistanceThreshold / [Total Possible Days] &&
+			    [Total Usage Time (Seconds)] / [Total Possible Days] < UsageThreshold / [Total Possible Days] &&
+			    [Utilisation Rate] < UtilizationRateThreshold,
+			    "Underutilised",
+			    "Normal"
+			)
+		lineageTag: cd4f91b3-9275-4db5-80d1-ad89bc3c48c4
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column '% of Avg Trips' =
+			
+			DIVIDE(
+			    [Total Number of Trips],
+			    CALCULATE(AVERAGE(fact_vehicle_utilisation_summary[Total Number of Trips]), ALL(fact_vehicle_utilisation_summary)
+			))
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: cf6fad7e-09e6-426f-bc1a-8fee69d22c47
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column '% of Avg Distance' =
+			
+			DIVIDE(
+			    fact_vehicle_utilisation_summary[Total Distance Traveled (Meters)],
+			    CALCULATE(AVERAGE(fact_vehicle_utilisation_summary[Total Distance Traveled (Meters)]), ALL(fact_vehicle_utilisation_summary)
+			))
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: c7c89c8c-e201-49e3-93c0-2d3cc6d3397e
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column '% of Avg Usage Time' =
+			
+			DIVIDE(
+			    [Total Usage Time (Seconds)],
+			    CALCULATE(AVERAGE(fact_vehicle_utilisation_summary[Total Usage Time (Seconds)]), ALL(fact_vehicle_utilisation_summary)
+			))
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: b8074316-211a-4abe-b36b-eff26f16ae76
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Usage Trend' =
+			
+			VAR CurrentPeriodUsage = [Total Usage Time (Seconds)]
+			VAR PreviousPeriodUsage = CALCULATE([Sum of Seconds], DATEADD(fact_trip_summary[start_date], -1, MONTH))
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    CurrentPeriodUsage > 1.1 * PreviousPeriodUsage, "Increasing",
+			    CurrentPeriodUsage < 0.9 * PreviousPeriodUsage, "Decreasing",
+			    "Stable"
+			)
+		lineageTag: bfe20499-4258-4383-ac00-14ff1a6b03d6
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Total Distance Traveled (Meters)'
+		lineageTag: 52a2d41a-cb14-4ec7-8edd-99f026033759
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Total Distance Traveled (Meters)]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Total Usage Time (Seconds)'
+		formatString: 0
+		lineageTag: 7f88cf17-4dc5-4b91-97b8-0b6f9e6ccd7f
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Total Usage Time (Seconds)]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Utilisation Score' = ```
+			
+			VAR AvgDailyTrips = DIVIDE([Total Number of Trips], [Total Possible Days])
+			VAR AvgDailyDistance = DIVIDE([Total Distance Traveled (Meters)], [Total Possible Days])
+			VAR AvgDailyUsageTime = DIVIDE([Total Usage Time (Seconds)], [Total Possible Days])
+			
+			VAR FleetAvgDailyTrips = 
+			    AVERAGEX(
+			        ALL(fact_vehicle_utilisation_summary),
+			        DIVIDE([Total Number of Trips], [Total Possible Days])
+			    )
+			VAR FleetAvgDailyDistance = 
+			    AVERAGEX(
+			        ALL(fact_vehicle_utilisation_summary),
+			        DIVIDE([Total Distance Traveled (Meters)], [Total Possible Days])
+			    )
+			VAR FleetAvgDailyUsageTime = 
+			    AVERAGEX(
+			        ALL(fact_vehicle_utilisation_summary),
+			        DIVIDE([Total Usage Time (Seconds)], [Total Possible Days])
+			    )
+			
+			RETURN
+			    0.4 * DIVIDE(AvgDailyTrips, FleetAvgDailyTrips) +
+			    0.3 * DIVIDE(AvgDailyDistance, FleetAvgDailyDistance) +
+			    0.3 * DIVIDE(AvgDailyUsageTime, FleetAvgDailyUsageTime)
+			```
+		formatString: 0.00
+		lineageTag: 424a1b57-5c94-4fb2-8816-3c766d1a1bdc
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Average Distance per Day (Km)' = DIVIDE([Total Distance Traveled (Meters)], [Total Possible Days], 0)/1000
+		formatString: #,0.00
+		lineageTag: 5d471676-e624-48a6-9618-803b50605511
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_vehicle_utilisation_summary = calculated
+		mode: import
+		source = ```
+				
+				SUMMARIZE(
+				    dim_team_asset,
+				    dim_team_asset[dim_asset_key],
+				    dim_team_asset[asset_name],
+				    "Total Number of Trips", COUNT(fact_trip_summary[id]),
+				    "Average Trip Length (Seconds)", AVERAGE(fact_trip_summary[trip_length_seconds]),
+				    "Total Distance Traveled (Meters)", SUM(fact_trip_summary[distance_meters]),
+				    "Total Usage Time (Seconds)", SUM(fact_trip_summary[trip_length_seconds]),
+				    "Days Used", DISTINCTCOUNT(fact_trip_summary[start_date]),
+				        "Total Possible Days", 
+				        VAR StartDate = MIN(fact_trip_summary[start_date])
+				        VAR EndDate = TODAY()//MAX(fact_trip_summary[end_date])
+				        RETURN
+				        CALCULATE(
+				            COUNTROWS(dim_date),
+				            dim_date[Date] >= StartDate && dim_date[Date] <= EndDate
+				            //,NOT(dim_date[DayName] IN {"Saturday", "Sunday"}) // add back in to exclude weekends
+				        )
+				    //,"Total Possible Days Incl. Weekends", CALCULATE(DATEDIFF(MIN(fact_trip_summary[start_date]), TODAY(), DAY)
+				)
+				```
+
+	annotation PBI_Id = f53a67bbeb3e4434b6023fbb6af15fa7
+

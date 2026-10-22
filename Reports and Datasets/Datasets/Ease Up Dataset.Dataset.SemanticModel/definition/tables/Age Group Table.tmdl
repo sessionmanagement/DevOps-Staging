@@ -1,0 +1,34 @@
+table 'Age Group Table'
+	lineageTag: 16484ca3-2332-40ae-91e9-4dcd0eefd1b9
+
+	column Age
+		dataType: string
+		lineageTag: 793557f4-864f-4777-b75b-af5302f99dcd
+		summarizeBy: none
+		sourceColumn: Age
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Age Group'
+		dataType: string
+		lineageTag: 82cbe3b4-0b53-4416-a2a3-1df66bf1e8fe
+		summarizeBy: none
+		sourceColumn: Age Group
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Age Group Table-bd5f40c3-673d-4098-a7cb-31cfd3664331' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="WITH numbers AS (#(lf)    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 100 AS age#(lf)    FROM RBEAL.dlDimEthnicity a#(lf)    CROSS JOIN RBEAL.dlDimEthnicity b#(lf))#(lf)SELECT #(lf)    age,#(lf)    CASE #(lf)        WHEN age < 0 THEN 'Unknown'#(lf)        WHEN age < 12 THEN '0-11'#(lf)        WHEN age < 18 THEN '12-17'#(lf)        WHEN age < 25 THEN '18-24'#(lf)        WHEN age < 65 THEN '25-64'#(lf)        WHEN age < 110 THEN '65 and Over'#(lf)        ELSE 'Unknown'#(lf)    END AS age_group#(lf)FROM numbers#(lf)WHERE age BETWEEN -99 AND 129#(lf)ORDER BY age"]),
+				    #"Renamed Columns" = Table.RenameColumns(Source,{{"age_group", "Age Group"}, {"age", "Age"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

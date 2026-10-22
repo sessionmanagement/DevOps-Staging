@@ -1,0 +1,33 @@
+table MappingLeaveType
+	lineageTag: 7b90c999-0bc7-452e-99f2-97b5243ed8f8
+
+	column 'Leave Name'
+		dataType: string
+		lineageTag: 5c9371a6-b79a-4b73-a19c-df6444c7d90c
+		summarizeBy: none
+		sourceColumn: Leave Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column MappingLeaveType
+		dataType: string
+		lineageTag: 2e39c87e-e1c8-472d-8aa5-feb8a1359c55
+		summarizeBy: none
+		sourceColumn: MappingLeaveType
+
+		annotation SummarizationSetBy = Automatic
+
+	partition MappingLeaveType-eade01c4-b98f-43fa-a33e-2fc3c266e498 = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT DISTINCT #(lf)      [name] AS ""Leave Name""#(lf)  FROM [Datapay].[leave_types]#(lf)  WHERE ODSIsCurrent = 1"]),
+				    #"Added Conditional Column" = Table.AddColumn(Source, "MappingLeaveType", each if [Leave Name] = "Sick Leave" then "SICK" else if [Leave Name] = "Long Service Leave" then "LONGSERV" else if [Leave Name] = "Alternative Holidays" then "ALTERNATE" else if [Leave Name] = "Well Being Leave" then "WELLBEING" else if [Leave Name] = "Annual Leave" then "ANNUAL" else [Leave Name])
+				in
+				    #"Added Conditional Column"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

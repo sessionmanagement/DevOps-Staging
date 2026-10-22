@@ -1,0 +1,676 @@
+/// One row per property recording its NZ Healthy Homes Standards compliance assessment (insulation, heating, ventilation, moisture/drainage, draught-stopping and exemptions). Grain: one row per property (3,746 rows; 1:1 with Property via Property ID). Many attribute fields are sparsely populated (blank where not yet assessed).
+table 'Healthy Homes'
+	lineageTag: 4f0e9738-64e7-4ce1-bb6c-e3ef25668499
+
+	column 'Property ID'
+		dataType: string
+		isHidden
+		lineageTag: 6e37844a-7253-491c-9345-9c3448e57043
+		summarizeBy: none
+		sourceColumn: Property ID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Documented reason if property does not comply with one or more Healthy Homes Standards.
+	column 'General Non-Compliance Reason'
+		dataType: string
+		lineageTag: 671a43ff-1aaf-4610-bace-3de6f11a2532
+		summarizeBy: none
+		sourceColumn: If Not, What Is The Reason
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Documented reason a property is exempt from the Healthy Homes kitchen ventilation standard (free text).
+	column 'Kitchen Exemption Reason'
+		dataType: string
+		lineageTag: ed0a231a-e7be-49af-9b66-bb2206ee7b96
+		summarizeBy: none
+		sourceColumn: Reason For Kitchen Exemption
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates whether the property's exterior walls are insulated. Values: Yes / No / Unknown (blank where not assessed).
+	column 'Exterior Walls Insulated'
+		dataType: string
+		lineageTag: d8f840c5-3198-48ff-bc21-f1bb269b9818
+		summarizeBy: none
+		sourceColumn: Are Exterior Walls Insulated
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates if bathroom has a functioning extractor fan for ventilation.
+	column 'Has Bathroom Extractor Fan'
+		dataType: string
+		lineageTag: 917247aa-3da1-4ec5-88d1-696bbdaac263
+		summarizeBy: none
+		sourceColumn: Bathroom Has Extraction Fan Venting Outside
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates if kitchen has a functioning extractor fan or rangehood.
+	column 'Has Kitchen Extractor Fan'
+		dataType: string
+		lineageTag: 52841c1d-8ea7-44c8-a7f0-82437c552872
+		summarizeBy: none
+		sourceColumn: Kitchen Has Extraction Fan Venting Outside
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Extent of underfloor insulation coverage. Values: 'Entire premises' / 'Some areas' (blank where not assessed).
+	column 'Underfloor Insulation Coverage'
+		dataType: string
+		lineageTag: e11f8cde-2ba7-41d3-8137-e5a93fb6638e
+		summarizeBy: none
+		sourceColumn: Extent Of Underfloor Insulation
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates if unused open fireplaces have been blocked to prevent draughts and heat loss.
+	column 'Are Open Fireplaces Blocked'
+		dataType: string
+		lineageTag: dab8b45c-8d36-41d3-96a6-dd78a2cb81ff
+		summarizeBy: none
+		sourceColumn: All Open Fireplaces Blocked
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The landlord's statement of compliance with NZ Healthy Homes Standards, required to be provided to tenants.
+	column 'Compliance Statement'
+		dataType: string
+		lineageTag: b4257b45-de87-48ea-a473-6706309afb79
+		summarizeBy: none
+		sourceColumn: Hh Compliance Statement
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Documented reason a ground moisture barrier is not in place in the enclosed subfloor (free text).
+	column 'Moisture Barrier Absence Reason'
+		dataType: string
+		lineageTag: 1d3e6e96-4fa9-4af3-a851-155cfe78f20c
+		summarizeBy: none
+		sourceColumn: Reason Moisture Barrier Not In Place
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Reason for exemption from ceiling insulation requirements (e.g., skillion roof, heritage building).
+	column 'Ceiling Insulation Exemption Reason'
+		dataType: string
+		lineageTag: 047048c8-d219-40f6-a6b1-774b3174e3d2
+		summarizeBy: none
+		sourceColumn: Ceiling Insulation Hh Exemption Reason
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Reason for exemption from underfloor insulation requirements (e.g., concrete slab floor).
+	column 'Underfloor Insulation Exemption Reason'
+		dataType: string
+		lineageTag: 3ece772d-ea02-46a6-9a58-19654fd03099
+		summarizeBy: none
+		sourceColumn: Underfloor Insulation Hh Exemption Reason
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Documented reason a property is exempt from the Healthy Homes subfloor ground moisture barrier requirement (free text). Despite the 'Is Exempt' name it is not a Yes/No flag: where populated it records the exemption reason (values seen include 'No sub-floor at the property' and 'The sub-floor is inaccessible'), and it is blank for most properties, where no exemption reason has been recorded. Grain: one row per property (1:1 with Property).
+	column 'Is Exempt From Moisture Barrier'
+		dataType: string
+		lineageTag: 53eb7118-7541-4255-9d76-21e4aa64e103
+		summarizeBy: none
+		sourceColumn: Property Exempt From Moisture Barrier
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Documented reason the bathroom ventilation does not comply with the Healthy Homes Standard (free text).
+	column 'Bathroom Vent Non-Compliance Reason'
+		dataType: string
+		lineageTag: 4a3dd1af-c606-4167-a2db-099a2defad6d
+		summarizeBy: none
+		sourceColumn: Reason For Bathroom Vent Non-Compliance
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Exempt From Kitchen Standard'
+		dataType: string
+		isHidden
+		lineageTag: 23145a7b-9a89-41c8-a84b-c68486f0cd41
+		summarizeBy: none
+		sourceColumn: Property Exempt From Hh Kitchen Standard
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Documented reason if heating capacity is below requirement.
+	column 'Heating Insufficiency Reason'
+		dataType: string
+		lineageTag: 01520646-3328-4983-85ab-996bb369e5cc
+		summarizeBy: none
+		sourceColumn: Reason Heating Not Sufficient
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Current condition of ceiling insulation (e.g., Good, Fair, Poor, Damaged).
+	column 'Ceiling Insulation Condition'
+		dataType: string
+		lineageTag: 168c1861-d8c7-43a8-a1eb-ede4cc9a62b2
+		summarizeBy: none
+		sourceColumn: Ceiling Insulation Condition
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates whether the property has ceiling insulation installed.
+	column 'Has Ceiling Insulation'
+		dataType: string
+		lineageTag: b070adb1-b212-400b-977e-e573e61f8d56
+		summarizeBy: none
+		sourceColumn: Ceiling Insulation Status
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Type of ceiling insulation material (e.g., Fibreglass Batts, Polyester, Blown-in).
+	column 'Ceiling Insulation Type'
+		dataType: string
+		lineageTag: 6ff07481-b1e6-47ca-98bc-2471941e6230
+		summarizeBy: none
+		sourceColumn: Ceiling Insulation Type
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates whether the property has wall cavity insulation.
+	column 'Has Wall Insulation'
+		dataType: string
+		lineageTag: d60adedf-6aa0-4074-b7c2-56463c5a93e3
+		summarizeBy: none
+		sourceColumn: Wall Insulation Status
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates whether the property has underfloor insulation installed.
+	column 'Has Underfloor Insulation'
+		dataType: string
+		lineageTag: 05de9262-77f7-4929-b2ee-2497ad43940a
+		summarizeBy: none
+		sourceColumn: Underfloor Insulation Status
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates if a ground moisture barrier is installed in the subfloor area.
+	column 'Has Subfloor Moisture Barrier'
+		dataType: string
+		lineageTag: 963ddf45-c36b-481b-baf1-7e03559b68d2
+		summarizeBy: none
+		sourceColumn: Moisture Barrier In Enclosed Subfloor
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates if bathroom ventilation meets Healthy Homes Standards.
+	column 'Is Bathroom Ventilation Compliant'
+		dataType: string
+		lineageTag: 7e05bfbd-e36a-4d0c-a909-69d0ab591df8
+		summarizeBy: none
+		sourceColumn: Bathroom Ventilation Hh Compliant
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates if property has adequate guttering and downpipes for drainage.
+	column 'Has Adequate Guttering'
+		dataType: string
+		lineageTag: 2fdbd05b-cffe-4ac1-abab-61dd3f421ad0
+		summarizeBy: none
+		sourceColumn: Guttering And Downpipes Sufficient
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates if the property meets draught-stopping requirements (no unnecessary gaps).
+	column 'Is Property Draught-Free'
+		dataType: string
+		lineageTag: f91531a0-33db-4b49-97c0-9ff9c25d2240
+		summarizeBy: none
+		sourceColumn: Property Free Of Unreasonable Gaps
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates if kitchen ventilation meets Healthy Homes Standards.
+	column 'Is Kitchen Ventilation Compliant'
+		dataType: string
+		lineageTag: 356cd367-2722-4013-9ee6-02ed919067a3
+		summarizeBy: none
+		sourceColumn: Kitchen Ventilation Hh Compliant
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Primary heating device type (e.g., Heat Pump, Wood Burner, Electric Heater, Gas Heater).
+	column 'Main Heat Source'
+		dataType: string
+		lineageTag: 9ba078f4-e622-4532-a503-4f20c3ba3c55
+		summarizeBy: none
+		sourceColumn: Main Heat Source
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Free-text detail on the reason for exemption from the ceiling insulation requirement (complements 'Ceiling Insulation Exemption Reason', which is sourced from a different upstream field).
+	column 'Ceiling Insulation Exemption Details'
+		dataType: string
+		lineageTag: 887d2bd4-5b58-45eb-822b-e0dcd7d64b23
+		summarizeBy: none
+		sourceColumn: Reason For Ceiling Insulation Exemption
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Documented reason a property is exempt from the Healthy Homes kitchen ventilation requirement (free text).
+	column 'Kitchen Vent Exemption Reason'
+		dataType: string
+		lineageTag: 24ec8ada-e5f9-4843-860b-2c08d43ea491
+		summarizeBy: none
+		sourceColumn: Reason For Kitchen Vent Exemption
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Documented reason a property is exempt from the Healthy Homes bathroom ventilation requirement (free text).
+	column 'Bathroom Vent Exemption Reason'
+		dataType: string
+		lineageTag: 1f489476-4cd1-4680-8929-6322c7aaecfe
+		summarizeBy: none
+		sourceColumn: Reason For Bathroom Vent Exemption
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Additional heating device if present.
+	column 'Secondary Heat Source'
+		dataType: string
+		lineageTag: 644b500c-10a5-49e7-b7c8-a2fb10ca87bd
+		summarizeBy: none
+		sourceColumn: Secondary Heat Source
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Type of underfloor insulation material.
+	column 'Underfloor Insulation Type'
+		dataType: string
+		lineageTag: e521d73f-7734-4aac-9601-dd296c33b3f5
+		summarizeBy: none
+		sourceColumn: Underfloor Insulation Type
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Type of wall insulation material.
+	column 'Wall Insulation Type'
+		dataType: string
+		lineageTag: ce38d7a0-ac29-4aa8-a96f-18d3b05b9824
+		summarizeBy: none
+		sourceColumn: Wall Insulation Type
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Current condition of underfloor insulation.
+	column 'Underfloor Insulation Condition'
+		dataType: string
+		lineageTag: eb3cbd21-a605-40b5-a4be-b159042817ec
+		summarizeBy: none
+		sourceColumn: Underfloor Insulation Condition
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Bathroom Fan Install Date'
+		dataType: string
+		lineageTag: d60fde65-4c56-4902-be50-1b62e5aa35f0
+		summarizeBy: none
+		sourceColumn: Extraction Fan Install Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Kitchen Fan Install Date'
+		dataType: string
+		lineageTag: 21dfddb6-7c8a-45b9-bbf7-02738a6750e0
+		summarizeBy: none
+		sourceColumn: Kitchen Extraction Fan Install Date
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Identifies habitable rooms that have no openable door or window for ventilation (free text / list of rooms).
+	column 'Habitable Rooms Without Door Or Window'
+		dataType: string
+		lineageTag: 7ffd080a-3e4d-40f7-af9c-d8e3b331edea
+		summarizeBy: none
+		sourceColumn: Habitable Rooms Without Door Or Window
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Documented reason a habitable room is exempt from the Healthy Homes ventilation standard (free text).
+	column 'Habitable Room Exemption Reason'
+		dataType: string
+		lineageTag: 32248744-71c5-4d21-85fa-a24228bdbbb5
+		summarizeBy: none
+		sourceColumn: Why Room Exempt From Hh Standard
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ceiling Insulation Year Installed'
+		dataType: string
+		lineageTag: f94e1279-1c42-418f-817a-a8bf3acceee3
+		summarizeBy: none
+		sourceColumn: Year Insulation Installed (If Known)
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Underfloor Insulation Year Installed'
+		dataType: string
+		lineageTag: 9cd0ded4-fb92-4cc6-a689-28fd460c427a
+		summarizeBy: none
+		sourceColumn: Year Underfloor Insulation Installed (If Known)
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Wall Insulation Year Installed'
+		dataType: string
+		lineageTag: e9f6dbda-0774-4fe0-8047-93fc78c8cac2
+		summarizeBy: none
+		sourceColumn: Year Wall Insulation Installed (If Known)
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Flag indicating if the property has a general exemption from Healthy Homes Standards.
+	column 'Is Generally Exempt'
+		dataType: int64
+		formatString: 0
+		lineageTag: e438f99a-4357-4a13-85f5-d536a87dbf57
+		summarizeBy: none
+		sourceColumn: General Exemption Applies Flag
+
+		annotation SummarizationSetBy = User
+
+	/// Flag indicating if ceiling insulation meets the required Healthy Homes Standard for the property's climate zone.
+	column 'Ceiling Insulation Meets Standard'
+		dataType: int64
+		formatString: 0
+		lineageTag: 6d6f143b-60da-4fa8-97e4-1223e48f2186
+		summarizeBy: none
+		sourceColumn: Ceiling Insulation Meets Standard Flag
+
+		annotation SummarizationSetBy = User
+
+	column 'Kitchen Standard Exemption Type'
+		dataType: string
+		isHidden
+		lineageTag: fa473682-b7ac-4bd7-b1ae-ae4bb137628c
+		summarizeBy: none
+		sourceColumn: Kitchen The Property Is Exampt From The Hh
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Extraction capacity of bathroom fan in litres per second. Minimum requirement depends on room size.
+	column 'Bathroom Fan Capacity (L/s)'
+		dataType: double
+		lineageTag: 1281b9bb-a760-4bcc-b60b-686e1afa9c44
+		summarizeBy: none
+		sourceColumn: If Installed After 1/7/19, Exhaust Capacity Of Bat
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Extraction capacity of kitchen fan/rangehood in litres per second.
+	column 'Kitchen Fan Capacity (L/s)'
+		dataType: double
+		lineageTag: a6286aaf-0a74-4cff-bd10-2e9276475127
+		summarizeBy: none
+		sourceColumn: If Installed After 1/7/19, Exhaust Capacity Of Kit
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Ceiling Insulation Last Inspected'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 09d27561-4b6d-4b6f-94b1-d9453d6d5620
+		summarizeBy: none
+		sourceColumn: Date Insulation Was Last Inspected
+
+		variation Variation
+			isDefault
+			relationship: 3c8e36dd-0d2f-48f1-95a8-4d673275f9ae
+			defaultHierarchy: LocalDateTable_973a8407-9c51-4efe-87fc-10bba1bc4928.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Underfloor Insulation Last Inspected'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: b3008441-1380-44c0-a94a-48c95596d5a7
+		summarizeBy: none
+		sourceColumn: Date The Underfloor Insulation Was Last Inspected
+
+		variation Variation
+			isDefault
+			relationship: de6a1557-7b2a-413b-8e49-8e05400d4945
+			defaultHierarchy: LocalDateTable_dcb8587d-53f5-45b1-8070-7dc3d3236e68.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the property was certified as compliant with Healthy Homes Standards.
+	column 'Healthy Homes Compliance Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: bc7bf757-0388-4d77-b8e0-3fa3c28829e9
+		summarizeBy: none
+		sourceColumn: Healthy Homes Compliance Date
+
+		variation Variation
+			isDefault
+			relationship: 45d7a3c9-6441-4752-a2b0-1c001d763a7e
+			defaultHierarchy: LocalDateTable_15fb95c2-77ad-4df2-980c-a95800a59cd3.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date the Healthy Homes compliance statement was issued to tenants.
+	column 'Healthy Homes Statement Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: ae99ed80-b357-47df-9cb1-22a9d55f4289
+		summarizeBy: none
+		sourceColumn: Healthy Homes Statement Date
+
+		variation Variation
+			isDefault
+			relationship: 28d4a0a4-9054-47e1-a720-d73841496787
+			defaultHierarchy: LocalDateTable_da4a3e4f-9e03-496c-89fb-2ef07a2d7a80.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Bathroom Ventilation Comments'
+		dataType: string
+		lineageTag: 89818845-2716-4b4d-af3d-7d230d6ab8c4
+		summarizeBy: none
+		sourceColumn: Hh Bathroom Vent Compliance Comments
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ceiling Insulation Comments'
+		dataType: string
+		lineageTag: e1249b68-127a-45be-aee3-d9999ae3b7cd
+		summarizeBy: none
+		sourceColumn: Hh Ceiling Compliance Comments
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Draught Stopping Comments'
+		dataType: string
+		lineageTag: 00f1541a-a193-462c-8ab2-a9b831426e09
+		summarizeBy: none
+		sourceColumn: Hh Draught Compliance Comments
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Exterior Wall Comments'
+		dataType: string
+		lineageTag: 68229a0a-8f92-41c4-87ae-9c858d9b991c
+		summarizeBy: none
+		sourceColumn: Hh Ext Wall Compliance Comments
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Habitable Rooms Comments'
+		dataType: string
+		lineageTag: 4e867290-fe6a-404c-ac84-31dadb673938
+		summarizeBy: none
+		sourceColumn: Hh Hab Rooms Compliance Comments
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Heating Compliance Comments'
+		dataType: string
+		lineageTag: 8d00f6e6-7345-4a69-a25f-4317222319da
+		summarizeBy: none
+		sourceColumn: Hh Heating Compliance Comments
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Kitchen Ventilation Comments'
+		dataType: string
+		lineageTag: 60b485cb-239c-4412-b4ff-be89c4678af8
+		summarizeBy: none
+		sourceColumn: Hh Kitchen Vent Compliance Comments
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Moisture & Drainage Comments'
+		dataType: string
+		lineageTag: aa790b70-f062-4365-b80a-a2089b1667ec
+		summarizeBy: none
+		sourceColumn: Hh Moist Drain Compliance Comments
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Underfloor Insulation Comments'
+		dataType: string
+		lineageTag: 510b8d9e-dbcd-4530-93f5-0427df3539f3
+		summarizeBy: none
+		sourceColumn: Hh Underfloor Compliance Comments
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Diameter of the kitchen extractor fan ducting in millimetres.
+	column 'Kitchen Fan Duct Diameter (mm)'
+		dataType: double
+		lineageTag: f05a2cd7-1ce8-49b3-9857-9be8f94c8d92
+		summarizeBy: none
+		sourceColumn: If Installed After July 2019: Diameter Of The Extr
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Heating capacity of the main heat source in kilowatts. Must be sufficient to heat the main living area to 18°C.
+	column 'Main Heat Source Capacity (kW)'
+		dataType: double
+		lineageTag: cdb9d249-72b3-4287-8210-98c52950ada9
+		summarizeBy: none
+		sourceColumn: Main Heat Source Capacity (Kw)
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Calculated minimum heating capacity required for the main living area based on size and climate zone.
+	column 'Required Living Area Heating (kW)'
+		dataType: double
+		lineageTag: a39ffae6-a8a8-4a72-9b75-f8f5d02b5c6f
+		summarizeBy: none
+		sourceColumn: Required Heating Capacity For Living Area (Kw)
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// R-Value rating of ceiling insulation. Higher values indicate better thermal resistance. NZ minimum requirement varies by climate zone.
+	column 'Ceiling Insulation R-Value'
+		dataType: double
+		lineageTag: 3b42cf7e-828a-4552-9635-7c66be7846ee
+		summarizeBy: none
+		sourceColumn: R-Value Of Insulation (If Known)
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// R-Value rating of underfloor insulation. Higher values indicate better thermal resistance.
+	column 'Underfloor Insulation R-Value'
+		dataType: double
+		lineageTag: 81b856d1-3877-4ba3-88f0-83aa48b57535
+		summarizeBy: none
+		sourceColumn: R-Value Of  Underfloor Insulation (If Known)
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// R-Value rating of wall insulation (if applicable).
+	column 'Wall Insulation R-Value'
+		dataType: double
+		lineageTag: dfe8014f-0dd1-4f81-9922-9b8c22fc3762
+		summarizeBy: none
+		sourceColumn: R-Value Of  Wall Insulation (If Known)
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Heating capacity of the secondary heat source in kilowatts.
+	column 'Secondary Heat Source Capacity (kW)'
+		dataType: double
+		lineageTag: dc615c47-1c13-416c-b053-dd0004c4196f
+		summarizeBy: none
+		sourceColumn: Secondary Heat Source Capacity (Kw)
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Physical thickness of ceiling insulation in millimetres.
+	column 'Ceiling Insulation Thickness (mm)'
+		dataType: double
+		lineageTag: 51456b59-437c-4ac9-9b1f-bcbccfc442ec
+		summarizeBy: none
+		sourceColumn: Thickness Of Insulation (If Known)
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Diameter of the bathroom extractor fan ducting in millimetres.
+	column 'Bathroom Fan Duct Diameter (mm)'
+		dataType: double
+		lineageTag: 4a29b676-059c-4a9f-ae6a-3727abcfed9b
+		summarizeBy: none
+		sourceColumn: If Installed After July 2019: Dia Of Bathroom Extr
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Indicates if all habitable rooms have doors or windows that can be opened for ventilation.
+	column 'Do All Habitable Rooms Have a Door'
+		dataType: string
+		lineageTag: f1a6c446-9d45-49c4-ab5c-fc67de46c105
+		summarizeBy: none
+		sourceColumn: Do All Habitable Rooms Have a Door
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Healthy Homes' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query=" SELECT [property_healthy_homes_id] AS [property_id]#(lf)        ,[property_healthy_homes_if_not_what_is_the_reason] AS [If Not, What Is The Reason]#(lf)        ,[property_healthy_homes_reason_for_kitchen_exemption] AS [Reason for Kitchen Exemption]#(lf)        ,[property_healthy_homes_are_the_exterior_walls_insulated] AS [Are Exterior Walls Insulated]#(lf)        ,[property_healthy_homes_do_all_habitable_rooms_of_the_property_have_a_door] AS [Do All Habitable Rooms Havea Door]#(lf)        ,[property_healthy_homes_does_the_bathrooms_have_an_extraction_fan_which_vents_outside] AS [Bathroom Has Extraction Fan Venting Outside]#(lf)        ,[property_healthy_homes_does_the_kitchen_have_an_extraction_fan_which_vents_outside] AS [Kitchen Has Extraction Fan Venting Outside]#(lf)        ,[property_healthy_homes_extent_of_underfloor_insulation] AS [Extent of Underfloor Insulation]#(lf)        ,[property_healthy_homes_have_all_open_fireplaces_been_blocked] AS [All Open Fireplaces Blocked]#(lf)        ,[property_healthy_homes_healthy_homes_compliance_statement] AS [HH Compliance Statement]#(lf)        ,[property_healthy_homes_if_a_moisture_barrier_is_not_in_place_what_is_the_reason] AS [Reason Moisture Barrier Not in Place]#(lf)        ,[property_healthy_homes_if_the_ceiling_insulation_is_exempt_from_the_healthy_homes] AS [Ceiling Insulation HH Exemption Reason]#(lf)        ,[property_healthy_homes_if_the_ceiling_insulation_is_exempt_underfloor] AS [Underfloor Insulation HH Exemption Reason]#(lf)        ,[property_healthy_homes_if_the_property_is_exempt_from_requiring_a_moisture_barrier] AS [Property Exempt from Moisture Barrier]#(lf)        ,[property_healthy_homes_reason_for_non_compliance_of_bathroom_ventilation] AS [Reason for Bathroom Vent Non-Compliance]#(lf)        ,[property_healthy_homes_if_the_property_is_exempt_from_the_healthy_homes_kitchen] AS [Property Exempt from HH Kitchen Standard]#(lf)        ,[property_healthy_homes_if_there_is_not_enough_heating_what_is_the_reason] AS [Reason Heating Not Sufficient]#(lf)        ,[property_healthy_homes_insulation_ceiling_condition] AS [Ceiling Insulation Condition]#(lf)        ,[property_healthy_homes_insulation_ceiling_status] AS [Ceiling Insulation Status]#(lf)        ,[property_healthy_homes_insulation_ceiling_type] AS [Ceiling Insulation Type]#(lf)        ,[property_healthy_homes_insulation_in_wall_status] AS [Wall Insulation Status]#(lf)        ,[property_healthy_homes_insulation_under_floor_status] AS [Underfloor Insulation Status]#(lf)        ,[property_healthy_homes_is_an_appropriate_moisture_barrier_in_place_in_the_enclosed_subfloor] AS [Moisture Barrier in Enclosed Subfloor]#(lf)        ,[property_healthy_homes_is_the_bathroom_ventilation_compliant_with_the_healthy_homes] AS [Bathroom Ventilation HH Compliant]#(lf)        ,[property_healthy_homes_is_the_guttering_and_downpiping_sufficient_for_drainage] AS [Guttering and Downpipes Sufficient]#(lf)        ,[property_healthy_homes_is_the_property_free_of_unintentional_or_unreasonable_gaps] AS [Property Free of Unreasonable Gaps]#(lf)        ,[property_healthy_homes_kitchen_is_the_bathroom_ventilation_compliant] AS [Kitchen Ventilation HH Compliant]#(lf)        ,[property_healthy_homes_main_heatsource] AS [Main Heat Source]#(lf)        ,[property_healthy_homes_reason_for_ceiling_insulation_exemption] AS [Reason for Ceiling Insulation Exemption]#(lf)        ,[property_healthy_homes_reason_for_exemption_kitchen_ventilation] AS [Reason for Kitchen Vent Exemption]#(lf)        ,[property_healthy_homes_reason_for_exemption_bathroom_ventilation] AS [Reason for Bathroom Vent Exemption]#(lf)        ,[property_healthy_homes_secondary_heat_source] AS [Secondary Heat Source]#(lf)        ,[property_healthy_homes_type_of_insulation_underfloor] AS [Underfloor Insulation Type]#(lf)        ,[property_healthy_homes_type_of_insulation_wall] AS [Wall Insulation Type]#(lf)        ,[property_healthy_homes_underfloor_insulation_condition] AS [Underfloor Insulation Condition]#(lf)        ,[property_healthy_homes_when_was_the_extraction_fan_installed] AS [Extraction Fan Install Date]#(lf)        ,[property_healthy_homes_when_was_the_extraction_fan_installed_kitchen_ventilation] AS [Kitchen Extraction Fan Install Date]#(lf)        ,[property_healthy_homes_which_habitable_rooms_have_no_door_or_window] AS [Habitable Rooms Without Door or Window]#(lf)        ,[property_healthy_homes_why_is_this_room_exempt_from_the_healthy_homes_standard] AS [Why Room Exempt from HH Standard]#(lf)        ,[property_healthy_homes_year_insulation_was_installed_if_known] AS [Year Insulation Installed (if known)]#(lf)        ,[property_healthy_homes_year_insulation_was_installed_if_known_underfloor] AS [Year Underfloor Insulation Installed (if known)]#(lf)        ,[property_healthy_homes_year_insulation_was_installed_if_known_wall] AS [Year Wall Insulation Installed (if known)]#(lf)        ,[property_healthy_homes_a_general_exemption_applies_to_this_property_flag] AS [General Exemption Applies Flag]#(lf)        ,[property_healthy_homes_ceiling_insulation_meets_standard_flag] AS [Ceiling Insulation Meets Standard Flag]#(lf)        ,[property_healthy_homes_kitchen_the_property_is_exempt_from_the_healthy_home] AS [KitChen the property is exampt from the HH]#(lf)        ,[property_healthy_homes_what_is_exhaust_capacity_of_the_extraction_unit] AS [If installed after 1/7/19, exhaust capacity of bat]#(lf)        ,[property_healthy_homes_what_is_exhaust_capacity_of_unit] AS [If installed after 1/7/19, exhaust capacity of kit]#(lf)        ,CAST([property_healthy_homes_date_insulation_was_last_inspected] AS DATE) AS [Date insulation was last inspected]#(lf)        ,CAST([property_healthy_homes_date_the_underfloor_insulation_was_last_inspected] AS DATE) AS [Date the underfloor insulation was last inspected]#(lf)        ,CAST([property_healthy_homes_compliance_date] AS DATE) AS [Healthy Homes Compliance Date]#(lf)        ,CAST([property_healthy_homes_statement_date] AS DATE) AS [Healthy Homes Statement Date]#(lf)        ,[property_healthy_homes_bathroom_vent_compliance_comments] AS [HH Bathroom Vent Compliance Comments]#(lf)        ,[property_healthy_homes_ceiling_compliance_comments] AS [HH Ceiling Compliance Comments]#(lf)        ,[property_healthy_homes_draught_compliance_comments] AS [HH Draught Compliance Comments]#(lf)        ,[property_healthy_homes_external_wall_compliance_comments] AS [HH Ext Wall Compliance Comments]#(lf)        ,[property_healthy_homes_habitable_rooms_compliance_comments] AS [HH Hab Rooms Compliance Comments]#(lf)        ,[property_healthy_homes_heating_compliance_comments] AS [HH Heating Compliance Comments]#(lf)        ,[property_healthy_homes_kitchen_vent_compliance_comments] AS [HH Kitchen Vent Compliance Comments]#(lf)        ,[property_healthy_homes_moist_drain_compliance_comments] AS [HH Moist Drain Compliance Comments]#(lf)        ,[property_healthy_homes_underfloor_compliance_comments] AS [HH Underfloor Compliance Comments]#(lf)        ,[property_healthy_homes_kitchen_extraction_unit_diameter] AS [If installed after July 2019: diameter of the extr]#(lf)        ,[property_healthy_homes_main_heat_source_capacity_kw] AS [Main Heat Source Capacity (kW)]#(lf)        ,[property_healthy_homes_required_heating_capacity_for_living_area_kw] AS [Required Heating Capacity for Living Area (kW)]#(lf)        ,[property_healthy_homes_r_value_of_insulation] AS [R-Value of Insulation (if known)]#(lf)        ,[property_healthy_homes_r_value_of_insulation_underfloor] AS [R-Value of  Underfloor Insulation (if known)]#(lf)        ,[property_healthy_homes_r_value_of_insulation_wall] AS [R-Value of  Wall Insulation (if known)]#(lf)        ,[property_healthy_homes_secondaryheatsourcecapacitykw] AS [Secondary Heat Source Capacity (kW)]#(lf)        ,[property_healthy_homes_thickness_of_insulation] AS [Thickness of Insulation (if known)]#(lf)        ,[property_healthy_homes_extraction_unit_diameter] AS [If installed after July 2019: dia of bathroom extr]#(lf)    FROM [edw].[dim_property_healthy_homes]#(lf)    WHERE [DWHDMLOperation] <> 'D'#(lf)    AND [DWHIsCurrent] = 1#(lf)    AND [property_healthy_homes_id] IS NOT NULL#(lf)    AND [property_healthy_homes_is_delete_flag] IS NULL"]),
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, fnApplyNamingConventions),
+				    #"Renamed Columns" = Table.RenameColumns(#"Transformed Column Names",{{"Do All Habitable Rooms Havea Door", "Do All Habitable Rooms Have a Door"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

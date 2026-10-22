@@ -1,0 +1,103 @@
+table fact_vehicle_utilisation_summary_by_day
+	lineageTag: a28e9a23-60c7-44be-8efb-d2646f6bf89f
+
+	column start_date
+		formatString: Short Date
+		lineageTag: aea3d52b-2838-449e-a405-9d6f476beade
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: fact_trip_summary[start_date]
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_asset_key
+		formatString: 0
+		lineageTag: 654eded1-4e30-48f9-a45e-eeba58f3ffab
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: fact_trip_summary[dim_asset_key]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Asset Name'
+		lineageTag: 13531acb-8fa7-46e7-b557-7aabe422a2ae
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Asset Name]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Total Number of Trips'
+		formatString: 0
+		lineageTag: 960cec5c-3510-4db3-9627-1098557e9c04
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Total Number of Trips]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Average Trip Length (Seconds)'
+		formatString: 0.00
+		lineageTag: 449c3955-94bf-4a35-a60e-4082fad2456c
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Average Trip Length (Seconds)]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Total Distance Traveled (Meters)'
+		lineageTag: 3871c225-1a4a-4bfd-890d-f2baece4f677
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Total Distance Traveled (Meters)]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Total Usage Time (Seconds)'
+		formatString: 0
+		lineageTag: 7417b38f-7790-4b36-bca3-45226688570e
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Total Usage Time (Seconds)]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Weekday'
+		formatString: 0
+		lineageTag: edf227ed-11a0-492c-b188-74ee44fcf1c2
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Is Weekday]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Average Trip Distance (Meters)'
+		formatString: 0.00
+		lineageTag: 791a1abc-9cbd-40af-887a-401511f7ce55
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Average Trip Distance (Meters)]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_vehicle_utilisation_summary_by_day = calculated
+		mode: import
+		source =
+				
+				SUMMARIZE(
+				    fact_trip_summary,
+				    fact_trip_summary[start_date],
+				    fact_trip_summary[dim_asset_key],
+				    "Asset Name", LASTNONBLANK(dim_team_asset[asset_name],0),
+				    "Total Number of Trips", COUNTROWS(fact_trip_summary),
+				    "Average Trip Length (Seconds)", AVERAGE(fact_trip_summary[trip_length_seconds]),
+				    "Average Trip Distance (Meters)", AVERAGE(fact_trip_summary[distance_meters]),
+				    "Total Distance Traveled (Meters)", SUM(fact_trip_summary[distance_meters]),
+				    "Total Usage Time (Seconds)", SUM(fact_trip_summary[trip_length_seconds]),
+				    "Is Weekday", IF(NOT(WEEKDAY(fact_trip_summary[start_date], 2) IN {6, 7}), 1, 0)
+				)
+
+	annotation PBI_Id = bbf7b625f7ca4358bd3c869f66fa7841
+

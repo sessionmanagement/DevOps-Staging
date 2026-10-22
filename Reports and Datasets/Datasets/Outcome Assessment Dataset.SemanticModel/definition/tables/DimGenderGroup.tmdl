@@ -1,0 +1,40 @@
+table DimGenderGroup
+	lineageTag: 041bda6d-505e-4c33-81fe-cd84e0a0b071
+
+	column Gender
+		dataType: string
+		lineageTag: db8d8460-4140-4a73-809f-218bf45914a1
+		summarizeBy: none
+		sourceColumn: Gender
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Gender Sort'
+		dataType: int64
+		formatString: 0
+		lineageTag: 2bbd366b-09e7-4f54-a975-083800d4736e
+		summarizeBy: sum
+		sourceColumn: Gender Sort
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Gender Description'
+		dataType: string
+		lineageTag: 279712b3-f08a-46ce-acb2-0d80f5e562a3
+		summarizeBy: none
+		sourceColumn: Gender Description
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimGenderGroup-52cd4bb7-dbe0-4b2a-b92d-0d9a5d96eece = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WckvNTcxJVdJRMgRiKCdWJ1rJFyJqBMS+MDHPvJTUktSi3My8xBKQpAkQo4qBVPmXZKQWKbinAiWKgAqMgRhFCKQmNK+4IDU5My0zNUUhv0ghNC87L788D6jSFIhhPIhCmIwZmoxjXj6SqQr6Ch6pCplFiQrZRyYrJOYd7QUqt8RmNcSPQPXhRxozMvNA/jDH9DpQPuRII1jWAh4EsQA=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Gender = _t, #"Gender Sort" = _t, #"Gender Description" = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Gender", type text}, {"Gender Sort", Int64.Type}, {"Gender Description", type text}}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Changed Type","Other Gender","Gender Diverse",Replacer.ReplaceText,{"Gender Description"})
+				in
+				    #"Replaced Value"
+
+	annotation PBI_ResultType = Table
+

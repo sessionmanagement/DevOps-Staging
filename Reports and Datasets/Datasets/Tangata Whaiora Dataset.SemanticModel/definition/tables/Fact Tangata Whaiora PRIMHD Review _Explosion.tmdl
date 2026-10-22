@@ -1,0 +1,303 @@
+table 'Fact Tangata Whaiora PRIMHD Review _Explosion'
+	lineageTag: 75dc81ce-9af5-4cc6-a965-ab9097d59544
+
+	column PrimhdServiceReviewId
+		dataType: int64
+		formatString: 0
+		lineageTag: 6466be7f-9ca5-4609-849f-219dd2948bf2
+		summarizeBy: count
+		sourceColumn: PrimhdServiceReviewId
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Tangata Whaiora Unique KEY'
+		dataType: string
+		lineageTag: 070df205-f3d9-44b4-9f2f-64f01de0171e
+		summarizeBy: none
+		sourceColumn: Dim Tangata Whaiora Unique KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column PrimhdServiceReviewReviewDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: a03fb361-1fc4-496b-9d3d-63b233fca0d7
+		summarizeBy: none
+		sourceColumn: PrimhdServiceReviewReviewDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column ReferralEndDateOrToday
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 973a0664-011f-4209-bad4-0c30cc8dd2ed
+		summarizeBy: none
+		sourceColumn: ReferralEndDateOrToday
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Dim Tangata Whaiora Referral Unique KEY'
+		dataType: string
+		lineageTag: 90669d80-e3a9-4b8a-bf21-9e25977109e3
+		summarizeBy: none
+		sourceColumn: Dim Tangata Whaiora Referral Unique KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim PRIMHD Review Accommodation Status Unique KEY'
+		dataType: string
+		lineageTag: e0812905-b4c4-4785-a272-7ad3586f5828
+		summarizeBy: none
+		sourceColumn: Dim PRIMHD Review Accommodation Status Unique KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim PRIMHD Review Employment Status Unique KEY'
+		dataType: string
+		lineageTag: 5a82288d-9369-439f-b2c8-245831b8d7cf
+		summarizeBy: none
+		sourceColumn: Dim PRIMHD Review Employment Status Unique KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim PRIMHD Review Education Status Unique KEY'
+		dataType: string
+		lineageTag: 3df67942-b5da-4ab5-ab55-90d5b541a002
+		summarizeBy: none
+		sourceColumn: Dim PRIMHD Review Education Status Unique KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim PRIMHD Review Wellness Plan Status Unique KEY'
+		dataType: string
+		lineageTag: 3e588593-4814-4846-abf8-4188a8144ed1
+		summarizeBy: none
+		sourceColumn: Dim PRIMHD Review Wellness Plan Status Unique KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column PrimhdServiceReviewCreatedDate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: a6d13529-77fc-4b51-838a-ca8b65c62ae6
+		summarizeBy: none
+		sourceColumn: PrimhdServiceReviewCreatedDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column NextEnteredPrimhdReviewDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: e1c7302f-29f6-41fb-aeb3-8687deba34a9
+		summarizeBy: none
+		sourceColumn: NextEnteredPrimhdReviewDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column PrimhdServiceReviewValidToDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: fead23db-a2c3-48ee-a3c6-53054f207bbc
+		summarizeBy: none
+		sourceColumn: PrimhdServiceReviewValidToDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column explosion
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: b9ddb704-6aeb-4e6b-83cb-092a6a48c059
+		summarizeBy: none
+		sourceColumn: explosion
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column AcceptedDate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 9ad4da46-f92d-41ac-8240-a62ccd9e4598
+		summarizeBy: none
+		sourceColumn: AcceptedDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column AcceptedDateAsDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: ddc14ea8-53c4-44d2-8ec5-6a0771fc1daa
+		summarizeBy: none
+		sourceColumn: AcceptedDateAsDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column HoursBetweenReferralStartAndPRIMHDReview
+		dataType: int64
+		formatString: 0
+		lineageTag: f34411a0-21d7-4115-a4a8-53d3b1954969
+		summarizeBy: sum
+		sourceColumn: HoursBetweenReferralStartAndPRIMHDReview
+
+		annotation SummarizationSetBy = Automatic
+
+	column PRIMHDReviewNumber
+		dataType: int64
+		formatString: 0
+		lineageTag: 4e2013de-529b-4db7-8bb0-bac74521991e
+		summarizeBy: sum
+		sourceColumn: PRIMHDReviewNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column PRIMHDReviewCompletedWithin48HoursOfReferralAcceptance =
+			
+			IF(
+			    'Fact Tangata Whaiora PRIMHD Review _Explosion'[PRIMHDReviewNumber] > 1 || ISBLANK('Fact Tangata Whaiora PRIMHD Review _Explosion'[HoursBetweenReferralStartAndPRIMHDReview]),
+			    "N/A",
+			    IF(
+			        'Fact Tangata Whaiora PRIMHD Review _Explosion'[PRIMHDReviewNumber] = 1 && 'Fact Tangata Whaiora PRIMHD Review _Explosion'[HoursBetweenReferralStartAndPRIMHDReview] <= 48 && 'Fact Tangata Whaiora PRIMHD Review _Explosion'[HoursBetweenReferralStartAndPRIMHDReview] >= -48,
+			        "Yes",
+			        "No"
+			    )
+			)
+		lineageTag: b9d7ab9a-6137-45b8-aa7a-5d5eef55720e
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column PreviousEnteredPrimhdReviewDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 25eab9fe-aeea-4bdb-b0d2-86d603af7c62
+		summarizeBy: none
+		sourceColumn: PreviousEnteredPrimhdReviewDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column DaysSincePreviousPRIMHDReview =
+			
+			IF(
+			    ISBLANK(
+			        'Fact Tangata Whaiora PRIMHD Review _Explosion'[PreviousEnteredPrimhdReviewDate]),
+			        BLANK(),
+			        DATEDIFF(
+			            'Fact Tangata Whaiora PRIMHD Review _Explosion'[PreviousEnteredPrimhdReviewDate],
+			            'Fact Tangata Whaiora PRIMHD Review _Explosion'[PrimhdServiceReviewCreatedDate],
+			            DAY
+			        )
+			)
+		formatString: 0
+		lineageTag: 27f86a09-0e5b-4998-a472-b8e05001cf82
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column DaysUntilNextPRIMHDReview =
+			
+			IF(
+			    ISBLANK(
+			        'Fact Tangata Whaiora PRIMHD Review _Explosion'[NextEnteredPrimhdReviewDate]),
+			        BLANK(),
+			        DATEDIFF(
+			            'Fact Tangata Whaiora PRIMHD Review _Explosion'[PrimhdServiceReviewCreatedDate],
+			            'Fact Tangata Whaiora PRIMHD Review _Explosion'[NextEnteredPrimhdReviewDate],
+			            DAY
+			        )
+			)
+		formatString: 0
+		lineageTag: b2300e25-0eb4-4bb3-95ad-3748973b24cf
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsLastReview
+		dataType: string
+		lineageTag: 6f74e11e-8220-448f-83ff-249ffe580bd0
+		summarizeBy: none
+		sourceColumn: IsLastReview
+
+		annotation SummarizationSetBy = Automatic
+
+	column DischargeDate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 766e6af2-b0a9-4722-9cfb-a3757800e391
+		summarizeBy: none
+		sourceColumn: DischargeDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column HoursBetweenReferralDischargeAndPRIMHDReview
+		dataType: int64
+		formatString: 0
+		lineageTag: fa94151e-e29a-4674-a9c8-cf899aead463
+		summarizeBy: sum
+		sourceColumn: HoursBetweenReferralDischargeAndPRIMHDReview
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReferralIsDischarged
+		dataType: string
+		lineageTag: ac67e717-a0ba-4793-967b-c5e366e23988
+		summarizeBy: none
+		sourceColumn: ReferralIsDischarged
+
+		annotation SummarizationSetBy = Automatic
+
+	column PrimhdServiceReviewCreatedDateASDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 8cb85f0d-c7eb-459c-ba28-de6c27c79989
+		summarizeBy: none
+		sourceColumn: PrimhdServiceReviewCreatedDateASDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column PreviousPRIMHDReviewWithin90Days =
+			
+			IF(
+			    ISBLANK(
+			        'Fact Tangata Whaiora PRIMHD Review _Explosion'[DaysSincePreviousPRIMHDReview]
+			    ),
+			    "N/A",
+			    IF(
+			        'Fact Tangata Whaiora PRIMHD Review _Explosion'[DaysSincePreviousPRIMHDReview] <= 90,
+			        "Yes",
+			        "No"
+			    )
+			)
+		lineageTag: a9dc45f8-843f-4568-a33a-ba5cd54d1bb6
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Fact Tangata Whaiora PRIMHD Review _Explosion' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Table.Buffer(#"Fact Tangata Whaiora PRIMHD Review"),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"PrimhdServiceReviewReviewDate", Int64.Type}, {"PrimhdServiceReviewValidToDate", Int64.Type}}),
+				    #"Added Custom" = Table.AddColumn(#"Changed Type", "explosion", each {[PrimhdServiceReviewReviewDate]..[PrimhdServiceReviewValidToDate]}),
+				    #"Expanded explosion" = Table.ExpandListColumn(#"Added Custom", "explosion"),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Expanded explosion",{{"explosion", type date}, {"PrimhdServiceReviewValidToDate", type date}, {"PrimhdServiceReviewReviewDate", type date}})
+				in
+				    #"Changed Type1"
+
+	annotation PBI_ResultType = Table
+

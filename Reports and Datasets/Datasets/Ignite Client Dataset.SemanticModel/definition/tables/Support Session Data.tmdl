@@ -1,0 +1,130 @@
+table 'Support Session Data'
+	lineageTag: 8d7211dd-c4d6-40fe-b1c1-692ae2a14588
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 514c59f0-c2e4-4f8c-b983-7e8fe87409da
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Mode - Provider'
+		dataType: string
+		lineageTag: 28894c6a-fbb6-4656-ab4b-b142ecfd2911
+		summarizeBy: none
+		sourceColumn: Mode - Provider
+		sortByColumn: 'Table Display Order'
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Type
+		dataType: string
+		lineageTag: 71e6577b-3484-4499-8be7-e30538f70e36
+		summarizeBy: none
+		sourceColumn: Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Session Booked Count'
+		dataType: int64
+		formatString: 0
+		lineageTag: 8fdc525f-b4a2-46a2-a3ab-c3d32086149c
+		summarizeBy: sum
+		sourceColumn: Session Booked Count
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Table Display Order'
+		dataType: double
+		lineageTag: c0c5dd6a-6495-4cc3-b20d-d3ed0b8ff50b
+		summarizeBy: sum
+		sourceColumn: Table Display Order
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Dim_Organisation_Key
+		dataType: int64
+		formatString: 0
+		lineageTag: 448d7969-f8be-4f36-8eb8-221a1e4b33b6
+		summarizeBy: none
+		sourceColumn: Dim_Organisation_Key
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Support Session Data-ca373daa-22b5-44b7-9670-a34ac5096220' = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source = ```
+				let
+				// 2023-06-01 CJN : Rebuilt onto the new Import Data file     Source = #"Import Data - POC",
+				    Source = #"Import Data",
+				    #"Removed Other Columns" = Table.SelectColumns(Source,{"Medium Video",
+				"Medium In Person",
+				"Medium Phone",
+				"Providertype Addiction Practitioner",
+				"Providertype Coach",
+				"Providertype Counsellor",
+				"Providertype Financial Advisor",
+				"Providertype Financial Mentor",
+				"Providertype Human Resources Consultant",
+				"Providertype Mentor",
+				"Providertype Nlp Practitioner Mentor",
+				"Providertype Occupational Therapist",
+				"Providertype Psychologist",
+				"Providertype Registered Nurse",
+				"Providertype Social Worker",
+				"Providertype Supervisor",
+				"Providertype Wellbeing Practitioner Rn",
+				"Providertype Yoga Teacher",
+				"Providertype Dietitian",
+				"Providertype Creative Arts Therapist",
+				"Providertype Eft Tapping",
+				"Providertype Rongoa Practitioner",
+				"Providertype Meditation Teacher",
+				"Providertype Tai Chi Qigong",
+				"Providertype Holistic Counsellor",
+				"Providertype Hypnotherapist",
+				"Providertype Wellbeing Practitioner",
+				"Providertype Health Coach Mentor",
+				"Providertype Peer Specialist",
+				"Providertype Counselling Psychologist",
+				"Providertype Clinical Psychologist",
+				"Date",
+				"Dim_Organisation_Key"}),
+				    #"Unpivoted Columns" = Table.UnpivotOtherColumns(#"Removed Other Columns", {"Dim_Organisation_Key", "Date"}, "Attribute", "Value"),
+				    //#"Split Column by Delimiter" = Table.SplitColumn(#"Unpivoted Columns", "Attribute", Splitter.SplitTextByDelimiter("-", QuoteStyle.Csv), {"Attribute.1", "Attribute.2"}),
+				     #"Split Column" =
+				         Table.SplitColumn(
+				             #"Unpivoted Columns",
+				             "Attribute",
+				             Splitter.SplitTextByEachDelimiter({" "}, QuoteStyle.Csv, false),
+				             {"Attribute.1", "Attribute.2"}
+				        ),
+				    
+				    #"Renamed Columns1" = Table.RenameColumns(#"Split Column",{{"Attribute.1", "Mode - Provider"}, {"Attribute.2", "Type"}, {"Value", "Session Booked Count"}}),
+				    #"Appended Query" = Table.Combine({#"Renamed Columns1", #"Support Session Summary"}),
+				    
+				    // 2026-01-08 MG: Add macrons to Māori words (INC-99370)
+				    #"Fixed Macrons" = Table.ReplaceValue(#"Appended Query","Rongoa Practitioner","Rongoā Practitioner",Replacer.ReplaceText,{"Type"}),
+				    
+				    #"Replaced Value" = Table.ReplaceValue(#"Fixed Macrons","Medium","Mode of Session:",Replacer.ReplaceText,{"Mode - Provider"}),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value","Providertype","Provider Type:",Replacer.ReplaceText,{"Mode - Provider"}),
+				    #"Replaced Value2" = Table.ReplaceValue(#"Replaced Value1","total","Number of Sessions Booked:",Replacer.ReplaceText,{"Mode - Provider"}),
+				    #"Added Conditional Column" = Table.AddColumn(#"Replaced Value2", "Table Display Order", each if [#"Mode - Provider"] = "Mode of Session:" then 2 else if [#"Mode - Provider"] = "Provider Type:" then 3 else if [#"Mode - Provider"] = "Number of Sessions Booked:" then 1 else null, type number),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Added Conditional Column",{{"Session Booked Count", Int64.Type}})
+				in
+				    #"Changed Type"
+				```
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

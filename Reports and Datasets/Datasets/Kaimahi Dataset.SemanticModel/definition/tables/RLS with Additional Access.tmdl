@@ -1,0 +1,83 @@
+table 'RLS with Additional Access'
+	lineageTag: ac917290-0a74-40ad-b043-52256aa2aadc
+
+	column 'Employee ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 1274df14-ad86-40a6-bef4-88415109870d
+		summarizeBy: none
+		sourceColumn: Employee ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'User Principal Name'
+		dataType: string
+		lineageTag: 08a4d8c8-e79e-424e-bb80-fa3eca01b096
+		summarizeBy: none
+		sourceColumn: User Principal Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Manager ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 2f49dd45-dc3a-4dd3-b56e-23e792874e04
+		summarizeBy: count
+		sourceColumn: Manager ID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'RLS with Additional Access' = m
+		mode: import
+		queryGroup: 'Row Level Security'
+		source =
+				let
+				    // Load both tables. Emails are lowercased and trimmed on both sides because Table.Join is case-sensitive
+				    RowLevelSecurity = Table.TransformColumns(@#"RLS - New Intelli Structure", {{"User Principal Name", each Text.Trim(Text.Lower(_)), type text}}),
+				    AdditionalAccess = Table.TransformColumns(#"Additional Access", {{"Requester Email", each Text.Trim(Text.Lower(_)), type text}, {"Person to Impersonate Email", each Text.Trim(Text.Lower(_)), type text}}),
+				
+				    // Join tables
+				    JoinedTable = Table.Join(
+				        AdditionalAccess, "Person to Impersonate Email", RowLevelSecurity, "User Principal Name", JoinKind.RightOuter
+				    ),
+				
+				    #"Added Conditional Column" = Table.AddColumn(
+				        JoinedTable, "Custom", each if [Requester Email] = null then [User Principal Name] else [Requester Email]
+				    ),
+				
+				    #"Removed Columns" = Table.RemoveColumns(
+				        #"Added Conditional Column",
+				        {
+				            "Report",
+				            "Requester Email",
+				            "Person to Impersonate Email",
+				            "Expiry Date",
+				            "Access Reason",
+				            "Approved By Email",
+				            "Approved Date",
+				            "Modified",
+				            "Created",
+				            "Created By Email",
+				            "Modified By Email",
+				            "Version",
+				            "User Principal Name"
+				        }
+				    ),
+				
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns", {{"Custom", "User Principal Name"}}),
+				
+				    #"Reordered Columns" = Table.ReorderColumns(
+				        #"Renamed Columns", {"User Principal Name"}
+				    ),
+				
+				    #"Changed Type" = Table.TransformColumnTypes(#"Reordered Columns", {{"User Principal Name", type text}}),
+				    // Append the model's own RLS rows so an impersonated person keeps their own access
+				    #"Appended Query" = Table.Combine({#"Changed Type", RowLevelSecurity}),
+				    #"Removed Duplicates" = Table.Distinct(#"Appended Query")
+				in
+				    #"Removed Duplicates"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Exception
+

@@ -1,0 +1,129 @@
+table 'Date Table'
+	lineageTag: a5af412a-e7df-4513-8a7d-3eac5ded37b1
+	dataCategory: Time
+
+	column 'Created Date'
+		dataType: dateTime
+		isKey
+		formatString: dd/mm/yyyy
+		lineageTag: ebb84f69-403e-4600-9703-66e2ac58c6e3
+		summarizeBy: none
+		sourceColumn: Created Date
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column calendar_year_createddate
+		dataType: int64
+		formatString: 0
+		lineageTag: 7174386c-ed58-4d7c-9451-12ed2f0b5c92
+		summarizeBy: sum
+		sourceColumn: calendar_year_createddate
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_createddate
+		dataType: int64
+		formatString: 0
+		lineageTag: b9dcf12c-6084-4297-88fd-04f61a0e9c90
+		summarizeBy: sum
+		sourceColumn: month_createddate
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_month
+		dataType: int64
+		formatString: 0
+		lineageTag: 11563394-6184-4e71-b17a-e1db9f8bfbfa
+		summarizeBy: sum
+		sourceColumn: financial_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Financial Year'
+		dataType: int64
+		formatString: 0
+		lineageTag: d27b5db7-198d-4dfc-a277-4ecbf5924a04
+		summarizeBy: sum
+		sourceColumn: Financial Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_number
+		dataType: int64
+		formatString: 0
+		lineageTag: 62cb7fbe-9965-4433-85e1-0bb1adbaebe5
+		summarizeBy: sum
+		sourceColumn: date_number
+
+		annotation SummarizationSetBy = Automatic
+
+	column Cal_month
+		dataType: string
+		lineageTag: 203782c9-3199-4d52-bd9d-72ac66e7753b
+		summarizeBy: none
+		sourceColumn: Cal_month
+		sortByColumn: financial_month
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Date Table-1df56008-0077-4401-8e04-296df1ecbc72' = m
+		mode: import
+		source = ```
+				let
+				    Source = Sql.Database(#"Server", #"Database", [Query="WITH numbers AS (
+				    SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1 AS n
+				    FROM RBEAL.dlDimEthnicity a
+				    CROSS JOIN RBEAL.dlDimEthnicity b
+				),
+				dates AS (
+				    SELECT DATEADD(DAY, n, CAST('2016-07-01' AS DATE)) AS createddate
+				    FROM numbers
+				    WHERE DATEADD(DAY, n, CAST('2016-07-01' AS DATE)) <= CAST(GETDATE() AT TIME ZONE 'New Zealand Standard Time' AS DATE)
+				)
+				SELECT 
+				    createddate,
+				    YEAR(createddate) AS calendar_year_createddate,
+				    MONTH(createddate) AS month_createddate,
+				    CASE 
+				        WHEN MONTH(createddate) <= 6 THEN MONTH(createddate) + 6
+				        ELSE MONTH(createddate) - 6
+				    END AS financial_month,
+				    CASE 
+				        WHEN MONTH(createddate) <= 6 THEN YEAR(createddate)
+				        ELSE YEAR(createddate) + 1
+				    END AS Financial_Year_no,
+				    ROW_NUMBER() OVER (ORDER BY createddate DESC) AS date_number,
+				    CASE 
+				        WHEN MONTH(createddate) = 1 THEN 'Jan'
+				        WHEN MONTH(createddate) = 2 THEN 'Feb'
+				        WHEN MONTH(createddate) = 3 THEN 'Mar'
+				        WHEN MONTH(createddate) = 4 THEN 'Apr'
+				        WHEN MONTH(createddate) = 5 THEN 'May'
+				        WHEN MONTH(createddate) = 6 THEN 'Jun'
+				        WHEN MONTH(createddate) = 7 THEN 'Jul'
+				        WHEN MONTH(createddate) = 8 THEN 'Aug'
+				        WHEN MONTH(createddate) = 9 THEN 'Sep'
+				        WHEN MONTH(createddate) = 10 THEN 'Oct'
+				        WHEN MONTH(createddate) = 11 THEN 'Nov'
+				        WHEN MONTH(createddate) = 12 THEN 'Dec'
+				    END AS Cal_month
+				FROM dates
+				ORDER BY createddate"]),
+				    #"Extracted Date" = Table.TransformColumns(Source,{{"createddate", DateTime.Date, type date}}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Extracted Date",{{"Financial_Year_no", "Financial Year"}, {"createddate", "Created Date"}})
+				in
+				    #"Renamed Columns"
+				```
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

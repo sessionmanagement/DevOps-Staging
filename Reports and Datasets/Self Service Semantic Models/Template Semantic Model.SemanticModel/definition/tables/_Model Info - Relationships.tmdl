@@ -1,0 +1,81 @@
+/// Model documentation table showing how tables are connected in this semantic model. Shows relationship direction, cardinality, and filter behavior. Use this to understand the data model structure. This is metadata only - not for reporting data.
+table '_Model Info - Relationships'
+	isHidden
+	lineageTag: 635dbc46-4e6b-4fca-8cb0-b2a111454943
+
+	column Relationship
+		isHidden
+		lineageTag: f9e876e4-0214-4aa1-91dc-ab197f895118
+		isNameInferred
+		sourceColumn: [Relationship]
+
+	column 'From Table'
+		isHidden
+		lineageTag: 2c075333-4c19-486a-9ca0-88714579e987
+		isNameInferred
+		sourceColumn: [From Table]
+
+	column 'From Column'
+		isHidden
+		lineageTag: 91aa283f-d235-4c83-b93c-b02d338ad3ab
+		isNameInferred
+		sourceColumn: [From Column]
+
+	column 'From Cardinality'
+		isHidden
+		lineageTag: efd48ae9-0817-4885-8c80-a24878600948
+		isNameInferred
+		sourceColumn: [From Cardinality]
+
+	column 'To Table'
+		isHidden
+		lineageTag: eb7ca8d2-5da2-4741-9d03-db01aefbea03
+		isNameInferred
+		sourceColumn: [To Table]
+
+	column 'To Column'
+		isHidden
+		lineageTag: 322fdc2c-aecb-463e-b786-44bd1b10a8c9
+		isNameInferred
+		sourceColumn: [To Column]
+
+	column 'To Cardinality'
+		isHidden
+		lineageTag: bdc4d71b-57c4-4528-88d4-4844122d45d3
+		isNameInferred
+		sourceColumn: [To Cardinality]
+
+	column 'Is Active'
+		isHidden
+		lineageTag: 50bd5ce7-9572-41f6-bf53-5b3a76a1557f
+		isNameInferred
+		sourceColumn: [Is Active]
+
+	column 'Cross Filter Direction'
+		isHidden
+		lineageTag: 7b5e5171-3278-438f-8f41-c3f81fb79ca5
+		isNameInferred
+		sourceColumn: [Cross Filter Direction]
+
+	partition '_Model Info - Relationships' = calculated
+		mode: import
+		source =
+				SELECTCOLUMNS(
+				    FILTER(
+				        INFO.VIEW.RELATIONSHIPS(),
+				        NOT(CONTAINSSTRING([FromTable], "LocalDateTable_")) &&
+				        NOT(CONTAINSSTRING([ToTable], "LocalDateTable_")) &&
+				        NOT(CONTAINSSTRING([FromTable], "DateTableTemplate_")) &&
+				        NOT(CONTAINSSTRING([ToTable], "DateTableTemplate_"))
+				    ),
+				    "Relationship", [Relationship],
+				    "From Table", [FromTable],
+				    "From Column", [FromColumn],
+				    "From Cardinality", [FromCardinality],
+				    "To Table", [ToTable],
+				    "To Column", [ToColumn],
+				    "To Cardinality", [ToCardinality],
+				    "Is Active", [IsActive],
+				    "Cross Filter Direction", [CrossFilteringBehavior]
+				)
+

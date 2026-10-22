@@ -1,0 +1,252 @@
+table _Measures
+	lineageTag: 7397332a-41bc-4bbb-b228-01d8dde65f50
+
+	measure Leavers =
+			
+			CALCULATE (
+			    COUNT ( FactJobs[person_id] ),
+			    FILTER (FactJobs,
+			        FactJobs[LeftOnThisDay] = 1
+			        && FactJobs[ExcludeAsLeaver] <> 1
+			        && FactJobs[Turnover Type] <> "Involuntary"
+			    )
+			)
+		formatString: 0
+		displayFolder: Turnover Calculation
+		lineageTag: defbf7dd-c260-4891-a5aa-2b2a0d7b6169
+
+	measure ActiveStaffSOM = ```
+			
+			VAR Currentdate = MIN(DimDate[calendar_date])
+			RETURN
+			    CALCULATE(
+			        COUNTROWS(
+			            FILTER(
+			                'FactJobs',
+			                FactJobs[Company Start Date] <= Currentdate
+			                    && (FactJobs[Company End Date] > Currentdate
+			                        || ISBLANK(FactJobs[Company End Date]))
+			            )
+			        ),
+			        DimDate[calendar_date] = Currentdate
+			    )
+			
+			```
+		formatString: 0
+		displayFolder: Turnover Calculation
+		lineageTag: e42fcfe5-8f41-47af-aae3-b513d4d5c936
+
+	measure ActiveStaffEOM = ```
+			
+			VAR Currentdate = MAX(DimDate[calendar_date])
+			RETURN
+			    CALCULATE(
+			        COUNTROWS(
+			            FILTER(
+			                'FactJobs',
+			                FactJobs[Company Start Date] <= Currentdate
+			                    && (FactJobs[Company End Date] > Currentdate
+			                        || ISBLANK(FactJobs[Company End Date]))
+			            )
+			        ),
+			        DimDate[calendar_date] = Currentdate
+			    )
+			
+			```
+		formatString: 0
+		displayFolder: Turnover Calculation
+		lineageTag: 553c8314-3d08-413c-8c1e-459fdaca1bb6
+
+	measure 'Average Number of Staff' =
+			
+			DIVIDE([ActiveStaffSOM]+[ActiveStaffEOM],2)
+		displayFolder: Turnover Calculation
+		lineageTag: 1a2f05b7-dbbd-48ab-8dde-496cee73c2d4
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure MonthlyAttritionPercentage =
+			
+			DIVIDE(
+			    CALCULATE(
+			        [Leavers]
+			    ),
+			    [Average Number of Staff],
+			    0
+			)
+		displayFolder: Turnover Calculation
+		lineageTag: 27072469-c0e1-490e-9075-b173aee3526d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Annual Turnover Rate' = ```
+			
+			VAR sd = LASTDATE(DATEADD(DimDate[calendar_date], -1, YEAR))
+			VAR maxDate = MAX(DimDate[calendar_date])
+			RETURN
+			    CALCULATE(
+			        SUMX(
+			            SUMMARIZE(
+			                'FactJobs',
+			                DimDate[calendar_year], 
+			                DimDate[calendar_month_num],
+			                "AnnualAttrition", [MonthlyAttritionPercentage]
+			            ),
+			            [MonthlyAttritionPercentage]
+			        ),
+			        DimDate[calendar_date] > sd && DimDate[calendar_date] <= maxDate
+			    )
+			
+			```
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Turnover Calculation
+		lineageTag: 9f500bbc-9fee-466f-b806-9fb80dde4d58
+
+	measure 'Total Job Title' =
+			
+			CALCULATE(
+			    COUNTROWS(
+			        SUMMARIZE(
+			            FILTER(
+			                FactJobs,
+			                FactJobs[Company End Date] >= MIN(DimDate[calendar_date])
+			                    || ISBLANK(FactJobs[Company End Date])
+			            ),
+			            FactJobs[person_id],
+			            FactJobs[Job Title]
+			        )
+			    )
+			)
+		formatString: 0
+		lineageTag: ab1c5f47-0579-4c03-9a11-492880fca9d0
+
+	measure 'Total FTE' =
+			
+			CALCULATE(
+			    SUM( FactJobs[FTE] ),
+			    'FactJobs'[Company Start Date] < TODAY ()
+			         && FactJobs[Job Status] = "Current Job"
+			         || FactJobs[Job Status] = "Ending Job"
+			)
+		lineageTag: e6429097-58db-4c3d-8d5e-cc7f2e2143db
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Average Tenure Years' =
+			
+			CALCULATE(
+			    AVERAGE(FactJobs[TenureDays])/365.25
+			)
+		lineageTag: ba06ffaa-0a5f-4ca8-acfe-2ec5ea7720e1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Average Age' = ```
+			
+			CALCULATE (
+			    AVERAGE ( FactJobs[Age] ),
+			    ALLCROSSFILTERED ( DimDate )
+			)
+			
+			```
+		lineageTag: 35ed939c-9259-4e20-ab2f-8e22910e7a49
+
+	measure 'Head Count' =
+			
+			CALCULATE (
+			    DISTINCTCOUNT ( FactJobs[person_id] ),
+			        FILTER(FactJobs, FactJobs[Expanded Date] = MAX(DimDate[calendar_date]) && FactJobs[isPrimaryJob] = 1 )
+			    )
+		formatString: 0
+		lineageTag: 4e1938f5-9a47-4661-8acd-ab2f793058b6
+
+	measure 'Total Turnover Reason Percentages' = DIVIDE([Leavers], CALCULATE([Leavers], ALLNOBLANKROW(FactJobs[Turnover Reason])))
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 8b14b553-f36c-45c3-a699-7890a03c8cec
+
+	measure _CurrentStaff =
+			
+			VAR Currentdate =
+			    MAX( DimDate[calendar_date] )
+			VAR MinDate =
+			    MIN( DimDate[calendar_date] )
+			RETURN
+			    CALCULATE(
+			        DISTINCTCOUNT(FactJobs[person_id]),
+			            FILTER(FactJobs,
+			                'FactJobs'[Company Start Date] <= Currentdate
+			                    && OR(
+			                        FactJobs[Company End Date] >= Currentdate,
+			                        ISBLANK( FactJobs[Company End Date] )
+			                    )
+			            )
+			        )
+		formatString: 0
+		lineageTag: 475ce2df-75f7-47e3-b2ed-b150e9dff6dc
+
+	measure Hires =
+			
+			CALCULATE (
+			    COUNT ( FactJobs[person_id] ),
+			    FILTER (FactJobs,
+			        FactJobs[HiredToday] = 1
+			        && FactJobs[Job Status] <> "Ending Job"
+			    )
+			)
+		formatString: 0
+		lineageTag: df798f8d-cd26-49de-bce9-f492f73204a2
+
+	measure TurnoverNote = "All numbers include only voluntary turnover for permanent staff and are based around the timeframe set for Company Start Dates and End Dates on the front page ( " & [SelectedDate] & " )"
+		displayFolder: Filter Notes
+		lineageTag: 00f986ab-6840-4c3b-9557-b93a023cc5d4
+
+	measure SelectedDate = FORMAT(FIRSTDATE('DimDate'[calendar_date]), "dd/MM/YYYY") & " - " & FORMAT(LASTDATE(DimDate[calendar_date]), "dd/MM/YYYY")
+		displayFolder: Filter Notes
+		lineageTag: c49b9546-255f-4035-922d-e889ddfc87db
+
+	measure StartedOrLeftinTimeframe = [Hires]+[Leavers]
+		formatString: 0
+		lineageTag: 5356c355-9dad-4bc8-a862-551bed8fd522
+
+	measure 'Max Tenure' = ```
+			
+			VAR MaxDays = MAXX(FactJobs, FactJobs[TenureDays])
+			RETURN
+			    LOOKUPVALUE(DimTenureBucket[TenureBin], DimTenureBucket[Days], MaxDays)
+			
+			```
+		lineageTag: 97c66f89-4e3b-4342-84d3-e0a699c53cdb
+
+	measure FactRowCount = COUNTROWS(FactJobs)
+		formatString: 0
+		lineageTag: 474a1836-67e0-4414-aa44-b41a1764679e
+
+	measure 'Turnover Target' = .17
+		formatString: 0%;-0%;0%
+		lineageTag: c3cf5892-9530-48b7-a70e-65f9fd3e38eb
+
+	measure 'Head Count OLD' =
+			
+			VAR sd = MIN(DimDate[calendar_date])
+			RETURN
+			CALCULATE (
+			    DISTINCTCOUNT ( FactJobs[person_id] ),
+			    FILTER ( FactJobs, FactJobs[Company Start Date] < sd )
+			)
+		formatString: 0
+		lineageTag: 43a4d17c-97dd-4247-b7c9-5696fe3a6392
+
+	partition _Measures-301b688a-c1ef-430e-a2b7-531925f44240 = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Measures = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Measures", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Measures"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,708 @@
+createOrReplace
+
+	/// Master dimension containing all properties managed by Emerge Aotearoa's housing services. Includes transitional housing, community housing, and supported accommodation. Each record represents a unique property with its current state (filtered to DWHIsCurrent = 1). Contains property details, ownership, location, rental information, and service assignments.
+	table Property
+		lineageTag: de3cf47d-d705-4f21-a3de-7ae6ca0f6621
+
+		column 'Dim Property KEY'
+			dataType: int64
+			isHidden
+			formatString: 0
+			lineageTag: a48f6e16-7090-4b83-991f-ed6c405811e4
+			summarizeBy: sum
+			sourceColumn: Dim Property KEY
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Property ID'
+			dataType: string
+			isHidden
+			lineageTag: 68e42ba8-7ace-4271-a703-f4c098a06f91
+			summarizeBy: none
+			sourceColumn: Property ID
+
+			changedProperty = IsHidden
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Acquired Date'
+			dataType: dateTime
+			formatString: Short Date
+			lineageTag: b7fac14c-7fbb-4f39-bcfb-93511bf302c4
+			summarizeBy: none
+			sourceColumn: Acquired Date
+
+			variation Variation
+				isDefault
+				relationship: decc3fde-8724-4ee7-a610-c0b0896ae25c
+				defaultHierarchy: LocalDateTable_d94f6444-6455-460e-8d67-742b7e800bbd.'Date Hierarchy'
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Internal service classification code used to categorise the property by housing program type.
+		column 'Property Service Code'
+			dataType: string
+			lineageTag: 731c2729-b416-4ab5-848c-a00b0d01d93f
+			summarizeBy: none
+			sourceColumn: Property Service Code
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Descriptive name of the housing service/program this property belongs to (e.g., Transitional Housing, Community Housing).
+		column 'Property Service Name'
+			dataType: string
+			lineageTag: 97ea6dff-7c89-4b16-9112-41749bb3ad42
+			summarizeBy: none
+			sourceColumn: Property Service Name
+
+			annotation SummarizationSetBy = Automatic
+
+		column Suburb
+			dataType: string
+			lineageTag: 9eb4993d-a143-49e7-9663-30b1b2ae5d44
+			summarizeBy: none
+			sourceColumn: Suburb
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Confirmed Disposal Date'
+			dataType: dateTime
+			formatString: Short Date
+			lineageTag: a334c66c-147c-44e6-800c-60a3fd86664e
+			summarizeBy: none
+			sourceColumn: Confirmed Disposal Date
+
+			variation Variation
+				isDefault
+				relationship: fd28a736-c5ef-4ec3-96cc-2851190f4832
+				defaultHierarchy: LocalDateTable_731fa49a-8e3e-445b-88c3-7ea6d296a621.'Date Hierarchy'
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Service name as configured in Microsoft Business Central for financial integration.
+		column 'Business Central Service Name'
+			dataType: string
+			lineageTag: f484b7af-197a-4f98-a57a-135500e3255e
+			summarizeBy: none
+			sourceColumn: Business Central Service Name
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Service code used in Microsoft Business Central (accounting system) for financial reporting and cost allocation.
+		column 'Business Central Service Code'
+			dataType: string
+			lineageTag: bc157789-7f50-478e-8514-82ccbe3b4e1a
+			summarizeBy: none
+			sourceColumn: Business Central Service Code
+
+			annotation SummarizationSetBy = Automatic
+
+		/// The current weekly rent amount charged for this property. This is the actual rent payable by the tenant (may be subsidised via IRRS).
+		column 'Current Rent'
+			dataType: double
+			lineageTag: 7b985015-21d8-47f3-9597-9fa32c268a85
+			summarizeBy: sum
+			sourceColumn: Current Rent
+
+			annotation SummarizationSetBy = Automatic
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		/// Base currency amount for current rent before any adjustments.
+		column 'Current Rent (Base)'
+			dataType: double
+			isHidden
+			lineageTag: 221bfb96-e8f8-4189-a91c-c89f0f15cbe1
+			summarizeBy: sum
+			sourceColumn: Current Rent (Base)
+
+			changedProperty = IsHidden
+
+			annotation SummarizationSetBy = Automatic
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		column 'Tenant Name'
+			dataType: string
+			isHidden
+			lineageTag: 8c3c5ccc-512f-4bb8-a431-455655a7cc3e
+			summarizeBy: none
+			sourceColumn: Tenant Name
+
+			changedProperty = IsHidden
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Date Constructed'
+			dataType: dateTime
+			formatString: Short Date
+			lineageTag: 8672bbc0-3427-4082-a166-2961c64a6506
+			summarizeBy: none
+			sourceColumn: Date Constructed
+
+			variation Variation
+				isDefault
+				relationship: 428b4856-c397-499e-a5c5-149a82dfcabb
+				defaultHierarchy: LocalDateTable_e91ae313-0650-48c5-8670-3962da43a62d.'Date Hierarchy'
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Number of days the property has been available for letting (ready to rent but unoccupied). Used to measure vacancy periods and letting efficiency.
+		column 'Days Available To Let'
+			dataType: int64
+			formatString: 0
+			lineageTag: 999cdb8c-f52e-4a87-a4ea-003d9f93a34c
+			summarizeBy: sum
+			sourceColumn: Days Available To Let
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Disposal Date'
+			dataType: dateTime
+			formatString: Short Date
+			lineageTag: ead77fe5-ba07-4318-8395-34178850ef4c
+			summarizeBy: none
+			sourceColumn: Disposal Date
+
+			variation Variation
+				isDefault
+				relationship: a8bbd19a-5e9d-4e19-8e67-2c90bd4176fc
+				defaultHierarchy: LocalDateTable_ab660130-6481-4ad3-a710-23e83fc64f36.'Date Hierarchy'
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Operational district for service delivery. Part of the geographic hierarchy: Region > District > Territory.
+		column 'Service District'
+			dataType: string
+			lineageTag: f29f21c8-98a1-4f9f-b6cf-966afcf3ce58
+			summarizeBy: none
+			sourceColumn: Service District
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Full Address'
+			dataType: string
+			lineageTag: b84f1bd3-cf92-44fa-9d61-c712e0431563
+			summarizeBy: none
+			sourceColumn: Full Address
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Gifted Name'
+			dataType: string
+			lineageTag: 0d654478-d4ee-4f89-9e9d-d62230aea3e4
+			summarizeBy: none
+			sourceColumn: Gifted Name
+
+			annotation SummarizationSetBy = Automatic
+
+		column Latitude
+			dataType: double
+			lineageTag: 3bff4927-aa75-47b9-85e2-554cd3a655e0
+			summarizeBy: none
+			sourceColumn: Latitude
+
+			annotation SummarizationSetBy = User
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		column Longitude
+			dataType: double
+			lineageTag: 0a9742a1-6a78-4037-81f0-cd44d1f1fc88
+			summarizeBy: none
+			sourceColumn: Longitude
+
+			annotation SummarizationSetBy = User
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		column 'Property Name'
+			dataType: string
+			lineageTag: 0e142e4c-1bfd-47c3-ae89-6b3a17c031bd
+			summarizeBy: none
+			sourceColumn: Property Name
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Maximum occupancy limit for the property based on size, bedrooms, and health/safety regulations.
+		column 'Maximum People Allowed To Reside'
+			dataType: int64
+			formatString: 0
+			lineageTag: 0cd506d6-2d62-4c69-a5c0-60149efd31c3
+			summarizeBy: sum
+			sourceColumn: Maximum People Allowed To Reside
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Room Number'
+			dataType: string
+			isHidden
+			lineageTag: 8feacb54-73e9-4780-ade4-232ab9300fe1
+			summarizeBy: none
+			sourceColumn: Room Number
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Owner Account Name'
+			dataType: string
+			lineageTag: 4de01190-9bd3-4cc0-bc13-a4623da0aa00
+			summarizeBy: none
+			sourceColumn: Owner Account Name
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Owner Full Name'
+			dataType: string
+			lineageTag: 359a1593-d51d-4ec1-8f72-a796b7d4c1b4
+			summarizeBy: none
+			sourceColumn: Owner Full Name
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Owner Email'
+			dataType: string
+			lineageTag: badfd08c-1437-4a47-8b2b-60b8552f1d9e
+			summarizeBy: none
+			sourceColumn: Owner Email
+
+			annotation SummarizationSetBy = Automatic
+
+		/// High-level geographic region for service delivery (e.g., Northern, Central, Southern). Top of the geographic hierarchy.
+		column 'Service Region'
+			dataType: string
+			lineageTag: e40a0afd-091c-4b7b-b785-e2f1487f91dd
+			summarizeBy: none
+			sourceColumn: Service Region
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Postal Code'
+			dataType: string
+			isHidden
+			lineageTag: 6c57509a-e34a-4c4a-9b8a-7ecb37513e0d
+			summarizeBy: none
+			sourceColumn: Postal Code
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Primary housing program the property is allocated to (e.g., Transitional Housing, Supported Accommodation, Community Housing).
+		column Program
+			dataType: string
+			lineageTag: cac67d4b-831b-469e-a05e-d7a544d68294
+			summarizeBy: none
+			sourceColumn: Program
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Property Manager Email'
+			dataType: string
+			lineageTag: f986a5ce-5978-4048-b412-d0e2d464035a
+			summarizeBy: none
+			sourceColumn: Property Manager Email
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Property Manager Mobile'
+			dataType: string
+			lineageTag: 7217dcc4-5cff-4b64-a40d-2e7f72cc420e
+			summarizeBy: none
+			sourceColumn: Property Manager Mobile
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Type of property ownership arrangement (e.g., Owned, Leased, Head-leased, Managed).
+		column 'Ownership Type'
+			dataType: string
+			lineageTag: bb3c54f3-8246-40cb-81df-0e312f5e5ec1
+			summarizeBy: none
+			sourceColumn: Ownership Type
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Property Type'
+			dataType: string
+			lineageTag: 268443ce-c659-4468-a884-5e506b7c0872
+			summarizeBy: none
+			sourceColumn: Property Type
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Contract or agreement number with the funding provider (e.g., MSD, Kāinga Ora) for this property.
+		column 'Provider Agreement Number'
+			dataType: string
+			lineageTag: ba319f4d-f7ff-4be3-b592-af264b7a24d3
+			summarizeBy: none
+			sourceColumn: Provider Agreement Number
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Reason For Disposal'
+			dataType: string
+			lineageTag: 94b87e17-5a37-4218-8419-606fe970c776
+			summarizeBy: none
+			sourceColumn: Reason For Disposal
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Property Ref'
+			dataType: string
+			lineageTag: b504af3d-a34a-4e03-ad6f-f85a2d14b9f5
+			summarizeBy: none
+			sourceColumn: Property Ref
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Relettable Date'
+			dataType: dateTime
+			formatString: Short Date
+			lineageTag: de0f5c52-b9cb-4be4-bb1e-3c9bbc0f9c8c
+			summarizeBy: none
+			sourceColumn: Relettable Date
+
+			variation Variation
+				isDefault
+				relationship: 81c41938-d0eb-4351-ad0c-286b9a8181a6
+				defaultHierarchy: LocalDateTable_2283195d-c34c-44ac-8748-5d27b04fbbc4.'Date Hierarchy'
+
+			annotation SummarizationSetBy = Automatic
+
+		column State
+			dataType: string
+			lineageTag: dcbf4dee-585b-4316-8052-8ff476b431de
+			summarizeBy: none
+			sourceColumn: State
+
+			annotation SummarizationSetBy = Automatic
+
+		column Status
+			dataType: string
+			lineageTag: 825882b9-ad8f-404f-bbc9-4d80b554fe83
+			summarizeBy: none
+			sourceColumn: Status
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Status Code'
+			dataType: string
+			lineageTag: 94b704af-c3c4-4145-a7e6-fb24c0aeb19c
+			summarizeBy: none
+			sourceColumn: Status Code
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Street Name'
+			dataType: string
+			isHidden
+			lineageTag: db4c2a6e-6f1b-4a2b-acf2-c3f773df8dd2
+			summarizeBy: none
+			sourceColumn: Street Name
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Street Number'
+			dataType: string
+			isHidden
+			lineageTag: 74330725-fdb9-4f78-853d-8215370d9cd1
+			summarizeBy: none
+			sourceColumn: Street Number
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Sub-classification within the main housing program for more specific categorisation.
+		column 'Sub Program'
+			dataType: string
+			lineageTag: 95d6a183-1426-4dc4-833a-f894b4edfdc8
+			summarizeBy: none
+			sourceColumn: Sub Program
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Property Sub Type'
+			dataType: string
+			lineageTag: 5a4c1f9e-24de-4f45-b505-b7e0ce22385b
+			summarizeBy: none
+			sourceColumn: Property Sub Type
+
+			annotation SummarizationSetBy = Automatic
+
+		column City
+			dataType: string
+			lineageTag: f4c845c9-108a-44c2-b27e-74e0db8c12c6
+			summarizeBy: none
+			sourceColumn: City
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Target demographic or client group this property serves (e.g., Youth, Families, Singles, Mental Health).
+		column 'Housing Group'
+			dataType: string
+			lineageTag: 6f8324d5-c2d2-4d1d-befa-3412df3744c4
+			summarizeBy: none
+			sourceColumn: Housing Group
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Territorial authority or district name where the property is located.
+		column 'District Name'
+			dataType: string
+			lineageTag: 0856d2ea-6849-4cf1-b1f3-1f8320d81abf
+			summarizeBy: none
+			sourceColumn: District Name
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Combined heating capacity in kilowatts of all heat sources in the property. Used for Healthy Homes Standards compliance assessment.
+		column 'Total Heat Source Capacity (Kw)'
+			dataType: double
+			lineageTag: e68436a1-d5c0-458c-9c82-05dce3ba3a2e
+			summarizeBy: sum
+			sourceColumn: Total Heat Source Capacity (Kw)
+
+			annotation SummarizationSetBy = Automatic
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		/// Base currency amount for transitional housing market rent.
+		column 'Transitional Housing Market Rent (Base)'
+			dataType: double
+			isHidden
+			lineageTag: f8a81766-03ce-4108-8f84-3382e90d5519
+			summarizeBy: sum
+			sourceColumn: Transitional Housing Market Rent (Base)
+
+			changedProperty = IsHidden
+
+			annotation SummarizationSetBy = Automatic
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		column Unit
+			dataType: string
+			isHidden
+			lineageTag: de894bad-182a-4b9c-96c0-58c5b0173931
+			summarizeBy: none
+			sourceColumn: Unit
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Built Year'
+			dataType: string
+			lineageTag: dbb4d35f-65ec-4b8f-9fef-84e43655d1db
+			summarizeBy: none
+			sourceColumn: Built Year
+
+			annotation SummarizationSetBy = Automatic
+
+		/// The market rent rate for transitional housing properties. Used for ZAV (Zero Asset Value) transitional housing where rent is set at market rates but subsidised for tenants.
+		column 'Transitional Housing Market Rent'
+			dataType: double
+			lineageTag: f46c8696-a8c8-4a81-bdf4-aa1bad5ba233
+			summarizeBy: sum
+			sourceColumn: Transitional Housing Market Rent
+
+			annotation SummarizationSetBy = Automatic
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		column 'DWH Is Current'
+			dataType: boolean
+			isHidden
+			formatString: """TRUE"";""TRUE"";""FALSE"""
+			lineageTag: 074e772a-1bff-4c5b-9500-4934278ffb9b
+			summarizeBy: none
+			sourceColumn: DWH Is Current
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Number of days the property is unavailable due to maintenance work. Property is not lettable during this period.
+		column 'Days Under Maintenance'
+			dataType: int64
+			formatString: 0
+			lineageTag: 6554bb82-4fdc-4912-90e9-81d48feb70a8
+			summarizeBy: sum
+			sourceColumn: Days Under Maintenance
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Reference number for Building Operational Support (BOS) or Housing Urban Development (HUD) contracts. Used for government-funded transitional housing agreements with MSD/Kāinga Ora.
+		column 'BOS/HUD Ref'
+			dataType: string
+			lineageTag: 79c0563d-05b9-4b64-b131-2ee374d12153
+			summarizeBy: none
+			sourceColumn: BOS/HUD Ref
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Legal Owner Account'
+			dataType: string
+			lineageTag: 198e2753-04fe-42bb-849f-29038c0bf2dc
+			summarizeBy: none
+			sourceColumn: Legal Owner Account
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Parent Property Name'
+			dataType: string
+			lineageTag: 038e1f2d-c835-4a41-8238-ca0c5f72468a
+			summarizeBy: none
+			sourceColumn: Parent Property Name
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'Property Manager Name'
+			dataType: string
+			lineageTag: 6bd8fa06-16fd-465f-af43-218964ded4bc
+			summarizeBy: none
+			sourceColumn: Property Manager Name
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Total cumulative days the property has been vacant (unoccupied). Includes both available-to-let and under-maintenance periods.
+		column 'Total Days Vacant'
+			dataType: int64
+			formatString: 0
+			lineageTag: ece34cc5-ec13-4538-9955-fb18166a9fcf
+			summarizeBy: sum
+			sourceColumn: Total Days Vacant
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Total Income Related Rent Subsidy amount. IRRS is a NZ government subsidy that reduces rent for eligible tenants based on their income. This is the current subsidy amount applied to the property's tenancy.
+		column 'Total IRRS'
+			dataType: double
+			lineageTag: a20d2bb5-351c-4224-aa9d-b356b50c975e
+			summarizeBy: sum
+			sourceColumn: Total IRRS
+
+			annotation SummarizationSetBy = Automatic
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		/// Base currency amount for Income Related Rent Subsidy before any adjustments or conversions.
+		column 'Total IRRS (Base)'
+			dataType: double
+			isHidden
+			lineageTag: e0724600-b0fb-413d-b495-f7260c4203e6
+			summarizeBy: sum
+			sourceColumn: Total IRRS (Base)
+
+			changedProperty = IsHidden
+
+			annotation SummarizationSetBy = Automatic
+
+			annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+		/// Date when the Income Related Rent Subsidy amount was last recalculated or updated.
+		column 'Total IRRS (Last Updated On)'
+			dataType: dateTime
+			formatString: Short Date
+			lineageTag: 4de930ae-a4a3-4b4b-a0b8-998e43c30744
+			summarizeBy: none
+			sourceColumn: Total IRRS (Last Updated On)
+
+			variation Variation
+				isDefault
+				relationship: 0f0fa614-cc8e-48da-915c-5727311bd8b8
+				defaultHierarchy: LocalDateTable_361e2cf6-60a2-476c-a343-71fa369639f1.'Date Hierarchy'
+
+			annotation SummarizationSetBy = Automatic
+
+		/// Status code indicating the state of the IRRS calculation or approval process.
+		column 'Total IRRS (State)'
+			dataType: int64
+			isHidden
+			formatString: 0
+			lineageTag: 283a1e70-6692-4e78-8c11-8449fdab89c6
+			summarizeBy: sum
+			sourceColumn: Total IRRS (State)
+
+			annotation SummarizationSetBy = Automatic
+
+		column 'DWH DML Operation'
+			dataType: string
+			isHidden
+			lineageTag: f200f876-b598-4566-a5ad-b215adbc0425
+			summarizeBy: none
+			sourceColumn: DWH DML Operation
+
+			annotation SummarizationSetBy = Automatic
+
+		partition Property = m
+			mode: import
+			queryGroup: 'Dim Tables'
+			source =
+					let
+					    Source = Sql.Database(Server, Database, [Query="SELECT  [dim_property_key],
+					property_id,
+					CAST(property_acquired_date AS DATE) AS [Acquired Date],
+					property_bc_service_code AS [Property Service Code],
+					property_bc_service_name AS [Property Service Name],
+					property_city_name AS [Suburb],
+					CAST(property_confirmed_disposal_date AS DATE) AS [Confirmed Disposal Date],
+					property_contract_bc_service AS [Business Central Service Name],
+					property_contract_bc_service_code AS [Business Central Service Code],
+					property_current_rent AS [Current Rent],
+					property_current_rent_base AS [Current Rent (Base)],
+					property_current_tenancy AS [Tenant Name],
+					CAST(property_date_constructed AS DATE) AS [Date Constructed],
+					property_days_available_to_let AS [Days Available To Let],
+					property_days_under_maintenence AS [Days Under Maintenance],
+					CAST(property_disposal_date AS DATE) AS [Disposal Date],
+					property_district AS [Service District],
+					property_full_address AS [Full Address],
+					property_gifted_name AS [Gifted Name],
+					property_hud_msd_reference_number AS [BOS/HUD Ref],
+					property_latitude AS [Latitude],
+					property_legal_owner AS [Legal Owner Account],
+					property_longitude AS [Longitude],
+					property_name AS [Property Name],
+					property_no_of_people_allowed_to_reside AS [Maximum People Allowed To Reside],
+					property_no_of_rooms AS [Room Number],
+					property_owner_account AS [Owner Account Name],
+					property_owner_contact AS [Owner Full Name],
+					property_owner_organisation_contact_email AS [Owner Email],
+					property_parent_hierarchy AS [Parent Property Name],
+					property_postal_region AS [Service Region],
+					property_postcode AS [Postal Code],
+					property_program AS [Program],
+					property_property_manager AS [Property Manager Name],
+					property_property_manager_email AS [Property Manager Email],
+					property_property_manager_mobile_number AS [Property Manager Mobile],
+					property_property_ownership AS [Ownership Type],
+					property_property_type AS [Property Type],
+					property_provider_agreement_number AS [Provider Agreement Number],
+					property_reason_for_disposal AS [Reason For Disposal],
+					property_reference_id AS [Property Ref],
+					CAST(property_relettable_date AS DATE) AS [Relettable Date],
+					property_statecode AS [State],
+					property_status AS [Status],
+					property_statuscode AS [Status Code],
+					property_street_name AS [Street Name],
+					property_street_number AS [Street Number],
+					property_sub_program AS [Sub Program],
+					property_sub_property_type AS [Property Sub Type],
+					property_suburb AS [City],
+					property_target_group AS [Housing Group],
+					property_territory AS [District Name],
+					property_total_days_vacant AS [Total Days Vacant],
+					property_total_heat_source_capacity_kw AS [Total Heat Source Capacity (kW)],
+					property_total_irrs AS [Total IRRS],
+					property_total_irrs_base AS [Total IRRS (Base)],
+					CAST(property_total_irrs_date AS DATE) AS [Total IRRS (Last Updated On)],
+					property_total_irrs_state AS [Total IRRS (State)],
+					property_transitional_housing_market_rent_base AS [Transitional Housing Market Rent (Base)],
+					property_unit AS [Unit],
+					property_year_built AS [Built Year],
+					property_zav_transitional_housing_market_rent AS [Transitional Housing Market Rent],
+					[DWHDMLOperation] AS [DWH DML Operation],
+					[DWHIsCurrent] AS [DWH Is Current]
+					  FROM [edw].[dim_property]
+					  WHERE [DWHIsCurrent] = 1 AND [DWHDMLOperation] <> 'D' AND [property_id] IS NOT NULL"]),
+					    #"Transformed Column Names" = Table.TransformColumnNames(Source, fnApplyNamingConventions)
+					in
+					    #"Transformed Column Names"
+
+		annotation PBI_NavigationStepName = Navigation
+
+		annotation PBI_ResultType = Table
+

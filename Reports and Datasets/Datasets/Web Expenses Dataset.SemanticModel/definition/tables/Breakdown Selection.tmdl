@@ -1,0 +1,52 @@
+table 'Breakdown Selection'
+	lineageTag: c9dee003-725a-4c65-9b93-93612433a4ea
+
+	column 'Breakdown Selection'
+		lineageTag: 42b0e1e0-eb2d-4add-8c93-de9e8ee8630a
+		summarizeBy: none
+		sourceColumn: [Value1]
+		sortByColumn: 'Breakdown Selection Order'
+
+		relatedColumnDetails
+			groupByColumn: 'Breakdown Selection Fields'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Breakdown Selection Fields'
+		isHidden
+		lineageTag: 7f2cedb3-e5f9-4f58-a7e2-4ab4a61f5676
+		summarizeBy: none
+		sourceColumn: [Value2]
+		sortByColumn: 'Breakdown Selection Order'
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 3,
+				  "kind": 2
+				}
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Breakdown Selection Order'
+		isHidden
+		formatString: 0
+		lineageTag: b1f84794-e799-4aad-8534-0f01fb600ba2
+		summarizeBy: sum
+		sourceColumn: [Value3]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Breakdown Selection' = calculated
+		mode: import
+		source =
+				{
+				    ("Claimant Region Name", NAMEOF('Web Expenses Data'[Claimant Region Name]), 0),
+				    ("Approver Region Name", NAMEOF('Web Expenses Data'[Approver Region Name]), 1),
+				    ("Category", NAMEOF('Web Expenses Data'[Category]), 2),
+				    ("Currency Code", NAMEOF('Web Expenses Data'[Currency Code]), 3),
+				    ("Expense Status", NAMEOF('Web Expenses Data'[Expense Status]), 4),
+				    ("Receipt Available Flag", NAMEOF('Web Expenses Data'[Receipt Available Flag]), 5)
+				}
+
+	annotation PBI_Id = d51c0f6fd5a3421a887655619cbd8542
+

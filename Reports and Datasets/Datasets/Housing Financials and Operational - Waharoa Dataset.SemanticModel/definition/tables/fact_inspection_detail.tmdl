@@ -1,0 +1,129 @@
+table fact_inspection_detail
+	lineageTag: f99d81af-4be4-48c3-a108-d658b1ac479b
+
+	column zav_inspectiondetailid
+		dataType: string
+		lineageTag: ea371817-306b-4b5e-b04c-def8e642da64
+		summarizeBy: none
+		sourceColumn: zav_inspectiondetailid
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_assetcondition
+		dataType: int64
+		formatString: 0
+		lineageTag: e62e744b-0ea9-4b50-9fb4-56ff29e07598
+		summarizeBy: sum
+		sourceColumn: zav_assetcondition
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_assetconditionname
+		dataType: string
+		lineageTag: 238c6347-d372-4644-8fa1-a1db8e738815
+		summarizeBy: none
+		sourceColumn: zav_assetconditionname
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_cleanname
+		dataType: string
+		lineageTag: 57f3a59d-f2cb-4c36-bdba-318fd4783ec4
+		summarizeBy: none
+		sourceColumn: zav_cleanname
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_inspectionid
+		dataType: string
+		lineageTag: 190ac0c3-c0a7-447d-ad46-8abbaf4528f3
+		summarizeBy: none
+		sourceColumn: zav_inspectionid
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_undamagedname
+		dataType: string
+		lineageTag: 6c865bc8-0412-41de-8150-f5fb2c329a3d
+		summarizeBy: none
+		sourceColumn: zav_undamagedname
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_workingname
+		dataType: string
+		lineageTag: a5749c55-d7d9-4aff-b712-cb17fb6fd9d7
+		summarizeBy: none
+		sourceColumn: zav_workingname
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_assetsname
+		dataType: string
+		lineageTag: 24866c1e-6af7-4677-98ca-2397cafacabe
+		summarizeBy: none
+		sourceColumn: zav_assetsname
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_areaname
+		dataType: string
+		lineageTag: d2b3ca7f-7326-4684-8eb3-1d82d64d38ee
+		summarizeBy: none
+		sourceColumn: zav_areaname
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_propertyassetsname
+		dataType: string
+		lineageTag: 63528236-c1ba-4da9-a6ec-f1666b0b81b4
+		summarizeBy: none
+		sourceColumn: zav_propertyassetsname
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_comments
+		dataType: string
+		lineageTag: 9e90df35-400d-436b-b16f-198034acf2f9
+		summarizeBy: none
+		sourceColumn: zav_comments
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_inspection_detail = m
+		mode: import
+		queryGroup: facts
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="-- ============================================================#(lf)-- Model:  Housing Financials and Operational - Waharoa Dataset#(lf)-- Table:  fact_inspection_detail#(lf)-- Source: native query (complex CTE/window) - emitted in full#(lf)-- Used columns: 8 (mapped 8, unmapped 0)  [full query, not trimmed]#(lf)-- Auto-generated from pbi_complete_dump.csv + model M + EDW/ODS schema.#(lf)-- Review before use; verify joins/filters against the model.#(lf)-- ============================================================#(lf)-- USED model columns: zav_areaname; zav_assetconditionname; zav_assetsname; zav_cleanname; zav_comments; zav_inspectionid; zav_undamagedname; zav_workingname#(lf)#(lf)WITH optionHashTable AS #(lf)(#(lf)    SELECT#(lf)        [OptionSetName],#(lf)        [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', [OptionSetName] + CAST([Option] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_GlobalOptionsetMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        [OptionSetName],#(lf)        [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', [OptionSetName] + CAST([Option] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_OptionsetMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        'statuscodename' AS [OptionSetName],#(lf)        [status] AS [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', 'statuscodename' + CAST([status] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_StatusMetadata]#(lf)#(lf)    UNION#(lf)#(lf)    SELECT#(lf)        'statecodename' AS [OptionSetName],#(lf)        [state] AS [Option],#(lf)        [EntityName],#(lf)        HASHBYTES('MD5', 'statecodename' + CAST([state] AS nvarchar(100)) + [EntityName]) AS optionHash,#(lf)        [LocalizedLabel]#(lf)    FROM #(lf)        [Zavanti].[vw_StateMetadata]#(lf)),#(lf)RecentInspectionDetails AS (#(lf)    SELECT#(lf)        zav_inspectiondetailid,#(lf)        zav_assetcondition,#(lf)        zav_clean,#(lf)        zav_undamaged,#(lf)        zav_working,#(lf)        zav_comments,#(lf)        zav_inspectionid,#(lf)        zav_assetsname,#(lf)        zav_areaname,#(lf)        zav_propertyassetsname,#(lf)        SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (PARTITION BY zav_inspectiondetailid ORDER BY SinkModifiedOn DESC) AS rn#(lf)    FROM #(lf)        [Zavanti].[vw_zav_inspectiondetail]#(lf)#(tab)WHERE#(lf)#(tab)#(tab)zav_inspectiondetailid IS NOT NULL#(lf))#(lf)SELECT#(lf)    rid.zav_inspectiondetailid,#(lf)    rid.zav_assetcondition,#(lf)    t1.LocalizedLabel AS zav_assetconditionname,#(lf)    t2.LocalizedLabel AS zav_cleanname,#(lf)    rid.zav_comments,#(lf)    rid.zav_inspectionid,#(lf)    t3.LocalizedLabel AS zav_undamagedname,#(lf)    t4.LocalizedLabel AS zav_workingname,#(lf)    rid.zav_assetsname,#(lf)    rid.zav_areaname,#(lf)    rid.zav_propertyassetsname#(lf)FROM #(lf)    RecentInspectionDetails rid#(lf)LEFT OUTER JOIN #(lf)    optionHashTable t1 ON t1.optionHash = HASHBYTES('MD5', 'zav_assetcondition' + CAST(rid.zav_assetcondition AS nvarchar(100)) + 'zav_inspectiondetail')#(lf)LEFT OUTER JOIN #(lf)    optionHashTable t2 ON t2.optionHash = HASHBYTES('MD5', 'zav_clean' + CAST(rid.zav_clean AS nvarchar(100)) + 'zav_inspectiondetail')#(lf)LEFT OUTER JOIN #(lf)    optionHashTable t3 ON t3.optionHash = HASHBYTES('MD5', 'zav_undamaged' + CAST(rid.zav_undamaged AS nvarchar(100)) + 'zav_inspectiondetail')#(lf)LEFT OUTER JOIN #(lf)    optionHashTable t4 ON t4.optionHash = HASHBYTES('MD5', 'zav_working' + CAST(rid.zav_working AS nvarchar(100)) + 'zav_inspectiondetail')#(lf)WHERE#(lf)    rid.rn = 1;#(lf)"])
+				in
+				    Source
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

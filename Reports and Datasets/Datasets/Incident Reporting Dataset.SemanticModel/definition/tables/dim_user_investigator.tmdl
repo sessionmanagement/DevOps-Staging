@@ -1,0 +1,49 @@
+table dim_user_investigator
+	lineageTag: 5d55cd8a-5524-4bd6-8222-bac2de13d6a6
+
+	column PersonAndTypeKey
+		dataType: int64
+		formatString: 0
+		lineageTag: f340e42e-e968-44b4-8fc7-8e100eec46ce
+		summarizeBy: none
+		sourceColumn: PersonAndTypeKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonFirstName
+		dataType: string
+		lineageTag: ab3f5023-2bff-4e04-abb3-4e7df47756f1
+		summarizeBy: none
+		sourceColumn: PersonFirstName
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonLastName
+		dataType: string
+		lineageTag: 64066d1e-21c1-49ee-8505-4cfe3866f94e
+		summarizeBy: none
+		sourceColumn: PersonLastName
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonFullName
+		dataType: string
+		lineageTag: 48c321dd-84e6-494f-a597-42cab54934e5
+		summarizeBy: none
+		sourceColumn: PersonFullName
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_user_investigator-6561e783-2d5d-44a1-a8c2-54c5e66bd06f = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="Select#(tab)#(tab)de.dim_employee_key As PersonAndTypeKey,#(lf)#(tab)#(tab)#(tab)de.employee_first_name As PersonFirstName,#(lf)#(tab)#(tab)#(tab)de.employee_last_name As PersonLastName,#(lf)#(tab)#(tab)#(tab)de.employee_name As PersonFullName#(lf)From#(tab)#(tab)edw.vw_dim_employee de#(lf)"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

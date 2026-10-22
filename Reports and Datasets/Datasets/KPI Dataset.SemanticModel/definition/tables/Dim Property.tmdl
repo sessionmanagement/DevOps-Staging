@@ -1,0 +1,170 @@
+table 'Dim Property'
+	lineageTag: cfdaf7f7-91da-4922-812d-d1bff583897f
+
+	column 'Dim Property KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: c2b9b4dd-68cd-4706-bafd-3807b8ce49ce
+		summarizeBy: none
+		sourceColumn: Dim Property KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property ID'
+		dataType: string
+		lineageTag: 4780d6dc-f3ee-4d79-be88-cd40ba406210
+		summarizeBy: none
+		sourceColumn: Property ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Assigned Tenancy Manager'
+		dataType: string
+		lineageTag: b6a9a504-b295-43fd-aa17-d95dc5ed4c5b
+		summarizeBy: none
+		sourceColumn: Property Assigned Tenancy Manager
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Bc Service Name'
+		dataType: string
+		lineageTag: d8eac8cd-f7e9-4c7e-8cc8-aec5902567c0
+		summarizeBy: none
+		sourceColumn: Property Bc Service Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Bc Service Code'
+		dataType: string
+		lineageTag: 5ddad1a1-0b11-43a0-8021-fb2dd761c23c
+		summarizeBy: none
+		sourceColumn: Property Bc Service Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property City Name'
+		dataType: string
+		lineageTag: 5ca57d7b-88ef-413b-9167-044c883d1113
+		summarizeBy: none
+		sourceColumn: Property City Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property District'
+		dataType: string
+		lineageTag: ac669cd0-0d43-4e8a-898e-d6aaded978de
+		summarizeBy: none
+		sourceColumn: Property District
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Name'
+		dataType: string
+		lineageTag: d93ac843-5d4e-47fd-8411-955479b6d642
+		summarizeBy: none
+		sourceColumn: Property Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Postal Region'
+		dataType: string
+		lineageTag: a86e11ab-50aa-48e6-8ab0-02fe57178952
+		summarizeBy: none
+		sourceColumn: Property Postal Region
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Property Manager'
+		dataType: string
+		lineageTag: f5163bc1-ea1b-4852-a295-27f170987af1
+		summarizeBy: none
+		sourceColumn: Property Property Manager
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Property Manager Email'
+		dataType: string
+		lineageTag: ddf60f16-8f86-4996-8759-3046f5090a7c
+		summarizeBy: none
+		sourceColumn: Property Property Manager Email
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Property Type'
+		dataType: string
+		lineageTag: 6537514c-6b4d-4ae9-832e-ac76ba34579f
+		summarizeBy: none
+		sourceColumn: Property Property Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Status'
+		dataType: string
+		lineageTag: b00b36ef-d8bd-4c74-9428-bb96d5b432f2
+		summarizeBy: none
+		sourceColumn: Property Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Sub Program'
+		dataType: string
+		lineageTag: 94bf5962-e5ac-4129-b1a1-43951aa54404
+		summarizeBy: none
+		sourceColumn: Property Sub Program
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Waharoa Link'
+		dataType: string
+		lineageTag: c9418c0e-8743-48ac-830a-3ade34f34650
+		dataCategory: WebUrl
+		summarizeBy: none
+		sourceColumn: Waharoa Link
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Property' = m
+		mode: import
+		queryGroup: 'EDW Dim Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT [dim_property_key]#(lf)      ,[property_id]#(lf)     , property_name#(lf)      ,[property_bc_service_name]#(lf)      ,[property_bc_service_code]#(lf)      #(lf)      ,[property_city_name]#(lf)      #(lf)      ,[property_postal_region]#(lf)     ,property_district#(lf)      ,[property_property_manager]#(lf)      ,[property_property_manager_email]#(lf)     #(lf)     -- ,[property_property_service_name]#(lf)      --,[property_property_service_code]#(lf)      ,[property_property_type]#(lf)      #(lf)      ,[property_status]#(lf)      #(lf)      ,[property_sub_program]#(lf)     , property_assigned_tenancy_manager#(lf)      #(lf)  FROM [edw].[vw_dim_property]#(lf)  WHERE DWHDMLOperation <> 'd'"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceKaimahi = Text.Replace(columnName, "employee_", "Kaimahi_"),
+				            replaceClient = Text.Replace(replaceKaimahi, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				    //---------------------------------------------------
+				    // Add Dynamics 365 Link column
+				    //---------------------------------------------------
+				    #"Added Dynamics 365 Link" = Table.AddColumn(
+				        #"Transformed Column Names",
+				        "Waharoa Link",
+				        each
+				            "https://emergeaotearoa.crm6.dynamics.com/main.aspx?appid=cf3d4408-7345-453c-8775-1e5538c40ddf"
+				            & "&forceUCI=1&pagetype=entityrecord&etn=zav_property&id="
+				            & Text.From([Property ID]),
+				        type text
+				    )
+				in
+				    #"Added Dynamics 365 Link"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

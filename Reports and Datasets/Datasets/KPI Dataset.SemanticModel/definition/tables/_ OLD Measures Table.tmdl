@@ -1,0 +1,55 @@
+table '_ OLD Measures Table'
+	excludeFromModelRefresh
+	lineageTag: a63b2fbe-dcde-425f-9125-6eda0f452045
+
+	measure 'Max Call to Action' =
+			
+			MAX(
+			    'Dim KPI'[Call to action]
+			)
+		lineageTag: 63d34984-3e57-4e31-ae71-37530492fe56
+
+	measure 'Related Outcome Title' =
+			
+			MAX(
+			    'Dim KPI'[Related Outcome]
+			)
+		lineageTag: 0eae6de3-97ca-4900-927d-c742fbbb4b4a
+
+	measure 'KPI Value (HASONEVALUE)' = ```
+			
+			IF(
+			    HASONEVALUE('Dim KPI'[What Is Measured]),
+			    MAX('Fact KPI'[KPI Value]),
+			    ""
+			)
+			
+			```
+		lineageTag: 91372d07-087c-449c-bcdd-b29a2e803f5b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Colour Formatting (Display Measure - HASONEVALUE)' =
+			
+			IF(
+			    HASONEVALUE('Dim KPI'[What Is Measured]),
+			    [Colour Formatting (Display Measure)],
+			    BLANK()
+			)
+		formatString: 0
+		lineageTag: b3132c30-ec83-4dfd-85ee-e7be6d63786f
+
+	partition '_ OLD Measures Table' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

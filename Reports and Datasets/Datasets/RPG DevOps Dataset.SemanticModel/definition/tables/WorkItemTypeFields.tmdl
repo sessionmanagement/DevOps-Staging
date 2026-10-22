@@ -1,0 +1,64 @@
+/// Metadata defining which fields are available for each work item type. Source: OData WorkItemTypeFields entity.
+table WorkItemTypeFields
+	lineageTag: 63d8f38d-feb1-4768-a0bf-e952f5d1212b
+
+	/// Surrogate key linking to the Projects dimension table
+	column ProjectSK
+		dataType: string
+		isHidden
+		lineageTag: 7f723ad4-a6f0-4eae-8d2d-8fc77c9567fb
+		summarizeBy: none
+		sourceColumn: ProjectSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Display name of the work item field
+	column FieldName
+		dataType: string
+		lineageTag: ce120038-2916-4d96-a1a0-74baba39ff72
+		summarizeBy: none
+		sourceColumn: FieldName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// System reference name of the field (e.g., System.Title, Custom.RPGMoSCoW)
+	column FieldReferenceName
+		dataType: string
+		lineageTag: 2c0ddef2-fc1d-4c6e-92ff-4c2b380f626a
+		summarizeBy: none
+		sourceColumn: FieldReferenceName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Data type of the field (e.g., String, Integer, DateTime)
+	column FieldType
+		dataType: string
+		lineageTag: 7bcaf9c3-2156-4bcf-94ae-ca9d8eb467c9
+		summarizeBy: none
+		sourceColumn: FieldType
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Work item type this field belongs to (e.g., User Story, Bug, Task)
+	column WorkItemType
+		dataType: string
+		lineageTag: fb1ff9b0-e95d-4bbb-bd4a-f01adab26eea
+		summarizeBy: none
+		sourceColumn: WorkItemType
+
+		annotation SummarizationSetBy = Automatic
+
+	partition WorkItemTypeFields = m
+		mode: import
+		queryGroup: 'DevOps Tables'
+		source =
+				let
+				    Source = OData.Feed("https://analytics.dev.azure.com/EmergeAotearoa/Data%20and%20Analytics/_odata/v3.0-preview/", null, [Implementation="2.0",OmitValues = ODataOmitValues.Nulls,ODataVersion = 4, Headers=[Authorization=fnGetToken()]]),
+				    WorkItemTypeFields_table = Source{[Name="WorkItemTypeFields",Signature="table"]}[Data]
+				in
+				    WorkItemTypeFields_table
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

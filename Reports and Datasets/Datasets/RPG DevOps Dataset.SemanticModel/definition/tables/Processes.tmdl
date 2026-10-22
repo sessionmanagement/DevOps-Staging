@@ -1,0 +1,146 @@
+/// Work item process templates (e.g., Agile, Scrum) and their associated projects and teams. Source: OData Processes entity.
+table Processes
+	lineageTag: cc354629-f507-40e2-abe4-fb80af0ec92f
+
+	/// Surrogate key uniquely identifying the process backlog configuration
+	column ProcessSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 42435561-dec8-4005-9d46-e8ac7cb51fa9
+		summarizeBy: none
+		sourceColumn: ProcessSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to the Projects dimension table
+	column ProjectSK
+		dataType: string
+		isHidden
+		lineageTag: 6a9610f2-a19b-4899-9652-57b97e57a60c
+		summarizeBy: none
+		sourceColumn: ProjectSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// System reference name for the backlog category
+	column BacklogCategoryReferenceName
+		dataType: string
+		lineageTag: 6479809f-60d7-4539-8526-a39e8df83f20
+		summarizeBy: none
+		sourceColumn: BacklogCategoryReferenceName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Display name of the backlog level
+	column BacklogName
+		dataType: string
+		lineageTag: db912812-9b46-4f8c-8de3-321a9e51b74b
+		summarizeBy: none
+		sourceColumn: BacklogName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Type of backlog (e.g., Portfolio, Requirement, Task)
+	column BacklogType
+		dataType: string
+		lineageTag: ff7cb84c-c6ad-4f5a-a9b1-e0609c0734a4
+		summarizeBy: none
+		sourceColumn: BacklogType
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Numeric level in the backlog hierarchy
+	column BacklogLevel
+		dataType: int64
+		formatString: 0
+		lineageTag: 1089f3d4-f313-4cb3-ac04-df812d7511e2
+		summarizeBy: sum
+		sourceColumn: BacklogLevel
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Work item type associated with this backlog level
+	column WorkItemType
+		dataType: string
+		lineageTag: 112d2761-4ff0-485f-b526-907a2037b6de
+		summarizeBy: none
+		sourceColumn: WorkItemType
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates whether this process configuration has a visible backlog
+	column HasBacklog
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 02457601-6c5c-49d4-aebd-4de75e545d72
+		summarizeBy: none
+		sourceColumn: HasBacklog
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates whether this work item type is hidden from the backlog
+	column IsHiddenType
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 9e2e3724-5b74-4a4f-8a24-4a2b52a30c72
+		summarizeBy: none
+		sourceColumn: IsHiddenType
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates whether this work item type represents bugs
+	column IsBugType
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 88b9c527-dd9f-4fcb-8e87-c8444785e607
+		summarizeBy: none
+		sourceColumn: IsBugType
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key linking to the Teams dimension table
+	column TeamSK
+		dataType: string
+		isHidden
+		lineageTag: a6842627-1617-4e35-8f06-fd651fcb1194
+		summarizeBy: none
+		sourceColumn: TeamSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date and time when this record was last updated in Azure DevOps Analytics
+	column AnalyticsUpdatedDate
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 9e8ec691-8de5-47fe-b467-ef487ac2ca82
+		summarizeBy: none
+		sourceColumn: AnalyticsUpdatedDate
+
+		variation Variation
+			isDefault
+			relationship: 1aa446d1-8497-4764-9c63-3324becab894
+			defaultHierarchy: LocalDateTable_16f9e623-2833-4cc4-8fff-df5612e742da.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates whether this process configuration has been deleted
+	column IsDeleted
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 97e676be-6b11-4375-bafe-3460e36620e3
+		summarizeBy: none
+		sourceColumn: IsDeleted
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Processes = m
+		mode: import
+		queryGroup: 'DevOps Tables'
+		source =
+				let
+				    Source = OData.Feed("https://analytics.dev.azure.com/EmergeAotearoa/Data%20and%20Analytics/_odata/v3.0-preview/", null, [Implementation="2.0",OmitValues = ODataOmitValues.Nulls,ODataVersion = 4, Headers=[Authorization=fnGetToken()]]),
+				    Processes_table = Source{[Name="Processes",Signature="table"]}[Data]
+				in
+				    Processes_table
+

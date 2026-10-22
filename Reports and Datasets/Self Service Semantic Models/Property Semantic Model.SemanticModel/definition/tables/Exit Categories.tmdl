@@ -1,0 +1,82 @@
+/// Waharoa exit reasons and the exit category each one counts as: Positive Exit, Negative Exit or Neutral Exit. Taken from the Definition of Exit Types list that the Transitional Housing reports link to, with the older reasons Waharoa no longer offers added at the end so that earlier exits are still classified. The Exit Outcome column on Tenancy reads this table, so a new Waharoa reason is classified by adding a row here. Moves between Emerge services are listed as neutral but are counted as internal transfers, not exits.
+table 'Exit Categories'
+	isHidden
+	lineageTag: b4dbd27a-3507-4b0c-9a2b-fa614bb68c6f
+
+	/// A leaving reason as recorded in Waharoa, one row per reason. It is matched to the tenancy's leaving reason on the first 50 characters, because longer reasons are stored cut to 50 characters.
+	column 'Waharoa Exit Reason'
+		dataType: string
+		lineageTag: 134846b0-fa5e-43fc-a915-adc3d7461ace
+		summarizeBy: none
+		sourceColumn: Waharoa Exit Reason
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Positive Exit, Negative Exit or Neutral Exit. Neutral exits are left out of the Housing Outcome Score.
+	column 'Exit Category'
+		dataType: string
+		lineageTag: de2baac1-4ef9-46de-b3fc-14538fade8d1
+		summarizeBy: none
+		sourceColumn: Exit Category
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Exit Categories' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    // Exit categories from the Definition of Exit Types list (Exit Categories.xlsx). Cells merged in the file are left blank, as an Excel import returns them.
+				    Source = #table(
+				        type table [#"Waharoa Exit Reasons" = nullable text, #"Recordbase Discharge Reason" = nullable text, #"THVMT Outcome Reason (to choose)" = nullable text, #"Definition (when to use)" = nullable text, #"Exit Categories" = nullable text],
+				        {
+				            {"Abandonment", "Client abandoned accommodation", "Left for unknown reason", "Client abandoned their TH accommodation with no communication to Navigator or Tenancy Manager", "Negative Exit"},
+				            {"Unknown reason", null, null, null, null},
+				            {"Client was asked to leave / evicted", "Early Exit: Service Contribution Arrears or Non-payment", "Removed from service by provider - Asked to leave", "Client repeatedly did not pay service contribution which resulted in arrears. Re-set meeting/payment", null},
+				            {null, "Tenancy Team Initiated Early Exit e.g., breach of accommodation agreement (record approval from Operations Manager)", "Removed from service by provider - Breach of rules", "Multiple breaches of accommodation agreement or request from Tenancy to end service", null},
+				            {null, "TH Motelier Initiated Early Exit e.g., breach of rules of stay (record approval from Operations Manager)", null, "Multiple breaches of rules of stay or request from Motelier to vacate client", null},
+				            {null, "Early Exit: Client did not engage or contact was lost with the Household (record approval from Operations Manager)", "Removed from service by provider - Not willing to engage", "Client repeatedly did not engage with Navigator/service and re-set meeting was unsuccessful", null},
+				            {null, "Early Exit: Client did not adhere to HSA obligations or behaved in a way that posed a risk to others (record approval from Operations Manager).", "Removed from service by provider - Safety, theft or threat of violence", "Client repeatedly breached HSA obligations or was a risk to others", null},
+				            {"Left of own accord", "Household no longer wants to participate", "Left of own accord", "Client does not want support from services or no longer wants to stay at accommodation. Client advised they were leaving service but provided no other details", null},
+				            {"Deceased", "Client passed away", "Deceased", "Client was reported as deceased while in service", "Neutral Exit"},
+				            {"Family or Friends", "Boarding with Whanau/Friends (not renting)", "Family / Whānau", "Client exited service to live with Whanau, or friends without entering into a rental agreement. In some cases, a boarding fee may be paid to contribute towards household expenses.", null},
+				            {null, null, "Mended relationships with whānau", null, null},
+				            {"Motel, Lodge or Boarding House (non-TH)", "Other reason (provide comments)", "Motel, lodge or boarding house", "Client moved into temporary accommodation that is not Transitional Housing and is not receiving housing navigation support.", null},
+				            {"Remanded or Arrested", "Client was remanded in custody or incarcerated", "Remanded or Arrested", "Client exited the service due to legal detention and was unable to continue residing in the Transitional Housing accommodation.", null},
+				            {"Supported Accommodation or Aged Care Facility (from Care Facility)", "Client Entered Rest Home/Permanent Care Facility", null, "Client vacated property directly into a rest home or permanent care facility", null},
+				            {null, "Client entered a residential service or hospital", "Hospital, rehabilitation or care facility", "Client entered a live-in service or hospital setting for an extended period of time where accommodation can't be held", null},
+				            {"Transitional Housing Internal Transfer - Emerge", "Transfer to other Emerge TH Service", null, "Transfer to another Emerge TH service which was more suitable e.g., Motels to Standalones or vice versa (provide comments)", null},
+				            {null, null, "Moved within providers contracted places", null, null},
+				            {"Transitional Housing - Other Provider", "Discharged to another TH provider", "Transferred to other social service provider", "Transferred to another external TH provider which was deemed more suitable", null},
+				            {null, null, "Transferred to other transitional housing provider", null, null},
+				            {"Affordable Housing - Emerge", "Long term accommodation - Other type (add comment)", null, "Client exited Transitional Housing and moved into long-term accommodation that is not classified as private rental or public housing.", "Positive Exit"},
+				            {"Affordable Housing - Other Provider", null, "Long term accommodation - Other type", null, null},
+				            {"Home Ownership", null, null, null, null},
+				            {"Pensioner Housing", null, null, null, null},
+				            {"Private Rental", "Renting - Private Rental", "Long term accommodation - Private rental", "Client exited Transitional Housing and secured long-term accommodation through a private rental tenancy, either as a primary tenant or through a shared living arrangement covered by a tenancy agreement with whānau, or friends.", null},
+				            {null, "Renting - Whanau/Friends", null, null, null},
+				            {"Social Housing - Emerge", "Renting - Emerge Aotearoa Social Housing", null, "Client exited Transitional Housing and moved into a long-term public housing tenancy with a registered social housing provider.", null},
+				            {"Social Housing - Other Provider", "Renting - Kainga Ora", "Long term accommodation - Public housing", null, null},
+				            {null, "Renting - Other Social Housing Provider (not KO)", null, null, null},
+				            {"Return to EH Motel", null, null, "Older Waharoa reason, no longer offered. Client returned to emergency housing motel accommodation.", "Negative Exit"},
+				            {"Arrested", null, null, "Older Waharoa reason, no longer offered. Now recorded as Remanded or Arrested.", "Neutral Exit"},
+				            {"Care Facility", null, null, "Older Waharoa reason, no longer offered. Now recorded as Supported Accommodation or Aged Care Facility (from Care Facility).", "Neutral Exit"},
+				            {"Internal transfer between Emerge services", null, null, "Older Waharoa reason, no longer offered. Now recorded as Transitional Housing Internal Transfer - Emerge.", "Neutral Exit"},
+				            {"Social Housing", null, null, "Older Waharoa reason, no longer offered. Now recorded as Social Housing - Emerge or Social Housing - Other Provider.", "Positive Exit"}
+				        }
+				    ),
+				    // Remove spaces and non-breaking spaces around each value
+				    #"Trimmed Text" = Table.TransformColumns(Source, List.Transform(Table.ColumnNames(Source), (c) => {c, each if _ = null then null else Text.Trim(_, {" ", "#(00A0)"}), type nullable text})),
+				    // Each category is entered once for its group of reasons, so fill it down
+				    #"Filled Down" = Table.FillDown(#"Trimmed Text", {"Exit Categories"}),
+				    // Keep one row per Waharoa exit reason
+				    #"Kept Reasons" = Table.SelectRows(#"Filled Down", each [Waharoa Exit Reasons] <> null and [Waharoa Exit Reasons] <> ""),
+				    #"Removed Duplicates" = Table.Distinct(#"Kept Reasons", {"Waharoa Exit Reasons", "Exit Categories"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Duplicates", {{"Waharoa Exit Reasons", "Waharoa Exit Reason"}, {"Exit Categories", "Exit Category"}}),
+				    // Columns B to D of the file are not needed in the model yet
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns", {"Recordbase Discharge Reason", "THVMT Outcome Reason (to choose)", "Definition (when to use)"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+

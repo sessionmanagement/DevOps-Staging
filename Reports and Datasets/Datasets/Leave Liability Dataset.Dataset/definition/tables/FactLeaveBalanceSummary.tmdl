@@ -1,0 +1,35 @@
+table FactLeaveBalanceSummary
+	lineageTag: 7535911a-56bb-4b15-ae6c-ce389225276a
+
+	column employee_id
+		dataType: string
+		lineageTag: b79bdc26-7a19-4dd7-bbd3-7cef51c73db3
+		summarizeBy: none
+		sourceColumn: employee_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column hourly_balance
+		dataType: double
+		lineageTag: dbb8c140-1dd7-4cd2-b577-340e4a210970
+		summarizeBy: sum
+		sourceColumn: hourly_balance
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition FactLeaveBalanceSummary = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT employee_id, SUM(hourlyBalance) AS hourly_balance#(lf)FROM#(lf)(#(lf)#(tab)SELECT DISTINCT#(lf)#(tab)#(tab)[employee_id],#(lf)#(tab)#(tab)[leave_types].[leave_type_id],#(lf)#(tab)#(tab)[name] AS [leave_name],#(lf)#(tab)#(tab)[effective_date],#(lf)#(tab)#(tab)[unit],#(lf)#(tab)#(tab)[entitlement],#(lf)#(tab)#(tab)[accrual],#(lf)#(tab)#(tab)[taken],#(lf)#(tab)#(tab)[balance],#(lf)#(tab)#(tab)[standard_hours_per_week_value],#(lf)#(tab)#(tab)[standard_days_per_week_value],#(lf)#(tab)#(tab)[anniversary] AS [Anniversary],#(lf)#(tab)#(tab)[next_entitlement],#(lf)#(tab)#(tab)CASE WHEN unit = 'Days' THEN balance * 8#(lf)#(tab)#(tab)#(tab) WHEN unit = 'Weeks' THEN balance * standard_hours_per_week_value#(lf)#(tab)#(tab)#(tab) ELSE balance#(lf)#(tab)#(tab)#(tab) END AS hourlyBalance#(lf)#(tab)FROM [Datapay].[leave_balances]#(lf)#(tab)INNER JOIN [Datapay].[leave_types] ON [leave_balances].[leave_type_id] = [leave_types].[leave_type_id]#(lf)#(tab)INNER JOIN [Datapay].employees ON leave_balances.employee_id = employees.id#(lf)#(tab)WHERE [leave_balances].ODSIsCurrent = 1#(lf)#(tab)--AND employee_id = '8PRD-cTJ7Iv2xD_pVsGB4w'#(lf)#(tab)AND employees.ODSIsCurrent=1 #(lf)#(tab)AND [name] IN ('Annual Leave', 'Long Service Leave', 'Alternative Holidays')#(lf)) AS data#(lf)GROUP BY employee_id"]),
+				    #"Removed Duplicates" = Table.Distinct(Source, {"employee_id"})
+				in
+				    #"Removed Duplicates"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

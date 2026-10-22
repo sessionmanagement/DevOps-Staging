@@ -1,0 +1,170 @@
+expression work_fact_smoking_assessment_all =
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="with CTEDimSmokingStatus as#(lf)(#(lf)SELECT#(lf)'EAL' AS Company,#(lf)SmokingStatusID,#(lf)CONCAT('E',SmokingStatusID) AS DimSmokingStatusKey,#(lf)SmokingStatusValue,#(lf)SmokingStatusText,#(lf)CASE #(lf)WHEN SmokingStatusID = 12308 THEN 0#(lf)WHEN SmokingStatusID = 12522 THEN 1#(lf)WHEN SmokingStatusID = 12307 THEN 2#(lf)WHEN SmokingStatusID = 12306 THEN 3#(lf)WHEN SmokingStatusID = 11555 THEN 4#(lf)WHEN SmokingStatusID = 11556 THEN 5#(lf)WHEN SmokingStatusID = 11557 THEN 6#(lf)WHEN SmokingStatusID = 11558 THEN 7#(lf)WHEN SmokingStatusID = 11559 THEN 8#(lf)ELSE NULL END AS [Rank]#(lf)FROM [RBEAL].[dlDimSmokingStatus]#(lf)WHERE SmokingStatusIsActive = 1#(lf)#(lf)UNION #(lf)#(lf)SELECT#(lf)'MNB' AS Company,#(lf)SmokingStatusID,#(lf)CONCAT('M',SmokingStatusID) AS DimSmokingStatusKey,#(lf)SmokingStatusValue,#(lf)SmokingStatusText,#(lf)CASE #(lf)WHEN SmokingStatusID = 12308 THEN 0#(lf)WHEN SmokingStatusID = 12307 THEN 1#(lf)WHEN SmokingStatusID = 12525 THEN 2#(lf)WHEN SmokingStatusID = 12306 THEN 3#(lf)WHEN SmokingStatusID = 11555 THEN 4#(lf)WHEN SmokingStatusID = 11556 THEN 5#(lf)WHEN SmokingStatusID = 11557 THEN 6#(lf)WHEN SmokingStatusID = 11558 THEN 7#(lf)WHEN SmokingStatusID = 11559 THEN 8#(lf)ELSE NULL END AS [Rank]#(lf)FROM [RBMNB].[dlDimSmokingStatus]#(lf)WHERE SmokingStatusIsActive = 1#(lf))#(lf)#(lf)SELECT#(lf)CASE WHEN sh.PersonSmokingHistoryID IS NOT NULL THEN CONCAT('M',sh.PersonSmokingHistoryID) ELSE NULL END AS PersonSmokingHistoryID,#(lf)CASE WHEN sh.PersonID IS NOT NULL THEN CONCAT('M',sh.PersonID) ELSE NULL END AS PersonID,#(lf)CASE WHEN sh.SmokingStatusId IS NOT NULL THEN CONCAT('M',sh.SmokingStatusId) ELSE NULL END AS DimSmokingStatusKey,#(lf)CASE WHEN dt.TeamFunctionID IS NOT NULL THEN CONCAT('M',dt.TeamFunctionID) ELSE NULL END AS TeamFunctionID,#(lf)CASE WHEN fr.TeamID IS NOT NULL THEN CONCAT('M',fr.TeamID) ELSE NULL END AS TeamID,#(lf)CASE WHEN fr.ID IS NOT NULL THEN CONCAT('M',fr.ID) ELSE NULL END AS ReferralID,#(lf)CASE WHEN dt.TeamFunctionID IS NOT NULL AND fr.TeamID IS NOT NULL THEN CONCAT('M',dt.TeamFunctionID,'M',fr.TeamID) ELSE NULL END AS TeamKeyComposite,#(lf)sh.PersonSmokingHistoryAssessmentDate,#(lf)CASE #(lf)#(tab)WHEN fr.AcceptedDate IS NULL THEN 'No' ELSE 'Yes' END AS ActiveReferralAtTimeOfAssessmentExists,#(lf)COALESCE(LEAD(DATEADD(DAY, -1, sh.PersonSmokingHistoryAssessmentDate)) OVER (PARTITION BY sh.PersonID, fr.TeamID ORDER BY sh.PersonSmokingHistoryAssessmentDate),CAST(fr.DischargeDate AS date),CAST(GETDATE() AS date)) AS AssessmentValidTo,#(lf)CASE#(lf)#(tab)WHEN (LEAD(sh.PersonSmokingHistoryAssessmentDate) OVER (PARTITION BY sh.PersonID ORDER BY sh.PersonSmokingHistoryAssessmentDate)) IS NOT NULL#(lf)#(tab)THEN 'DayBeforeNewerAssessment'#(lf)#(tab)WHEN fr.DischargeDate IS NOT NULL THEN 'ReferralDischargeDate'#(lf)#(tab)ELSE 'ValidToToday' END AS AssessmentValidToReason,#(lf)FLOOR(DATEDIFF(DAY, dp.PersonDateofBirth, sh.PersonSmokingHistoryAssessmentDate)/365) AS AgeAtAssessmentDate,#(lf)'MNB' AS Company,#(lf)CASE WHEN sh.PersonSmokingHistoryBriefAdviceGiven = 1 THEN 'Yes' ELSE 'No' END AS BriefAdviceGiven,#(lf)dss.[Rank] AS AssessmentRank,#(lf)LAG(dss.[Rank]) OVER (PARTITION BY sh.PersonID, fr.TeamID ORDER BY sh.PersonSmokingHistoryAssessmentDate) AS PreviousAssessmentRank,#(lf)'M' + CAST(LAG(sh.SmokingStatusId) OVER (PARTITION BY sh.PersonID, fr.TeamID ORDER BY sh.PersonSmokingHistoryAssessmentDate) AS varchar(10)) AS PreviousAssessmentSmokingStatusKey,#(lf)CASE WHEN sh.PersonSmokingHistorySupportServicesOffered IS NOT NULL AND PersonSmokingHistorySupportServicesOffered <> '' THEN 'Yes' ELSE 'No' END AS SupportServicesOfferedYN#(lf)FROM [RBMNB].[dlFactPersonSmokingHistory] sh #(lf)LEFT OUTER JOIN [RBMNB].[legacyFactReferral] fr#(lf)ON fr.PersonID = sh.PersonID AND sh.PersonSmokingHistoryAssessmentDate BETWEEN fr.AcceptedDate AND fr.DischargeDate#(lf)LEFT OUTER JOIN [RBMNB].[dlDimTeam] dt ON fr.TeamID = dt.TeamID#(lf)LEFT OUTER JOIN [RBMNB].[dlDimPerson] dp ON sh.PersonID = dp.PersonID#(lf)LEFT OUTER JOIN CTEDimSmokingStatus dss ON sh.SmokingStatusID = dss.SmokingStatusID AND Company = 'MNB'#(lf)#(lf)UNION#(lf)#(lf)SELECT#(lf)CASE WHEN sh.PersonSmokingHistoryID IS NOT NULL THEN CONCAT('E',sh.PersonSmokingHistoryID) ELSE NULL END AS PersonSmokingHistoryID,#(lf)CASE WHEN sh.PersonID IS NOT NULL THEN CONCAT('E',sh.PersonID) ELSE NULL END AS PersonID,#(lf)CASE WHEN sh.SmokingStatusId IS NOT NULL THEN CONCAT('E',sh.SmokingStatusId) ELSE NULL END AS SmokingStatusId,#(lf)CASE WHEN dt.TeamFunctionID IS NOT NULL THEN CONCAT('E',dt.TeamFunctionID) ELSE NULL END AS TeamFunctionID,#(lf)CASE WHEN fr.TeamID IS NOT NULL THEN CONCAT('E',fr.TeamID) ELSE NULL END AS TeamID,#(lf)CASE WHEN fr.ID IS NOT NULL THEN CONCAT('E',fr.ID) ELSE NULL END AS ReferralID,#(lf)CASE WHEN dt.TeamFunctionID IS NOT NULL AND fr.TeamID IS NOT NULL THEN CONCAT('E',dt.TeamFunctionID,'E',fr.TeamID) ELSE NULL END AS TeamKeyComposite,#(lf)sh.PersonSmokingHistoryAssessmentDate,#(lf)CASE #(lf)#(tab)WHEN fr.AcceptedDate IS NULL THEN 'No' ELSE 'Yes' END AS ActiveReferralAtTimeOfAssessmentExists,#(lf)COALESCE(LEAD(DATEADD(DAY, -1, sh.PersonSmokingHistoryAssessmentDate)) OVER (PARTITION BY sh.PersonID, fr.TeamID ORDER BY sh.PersonSmokingHistoryAssessmentDate),CAST(fr.DischargeDate AS date),CAST(GETDATE() AS date)) AS AssessmentValidTo,#(lf)CASE#(lf)#(tab)WHEN (LEAD(sh.PersonSmokingHistoryAssessmentDate) OVER (PARTITION BY sh.PersonID ORDER BY sh.PersonSmokingHistoryAssessmentDate)) IS NOT NULL#(lf)#(tab)THEN 'DayBeforeNewerAssessment'#(lf)#(tab)WHEN fr.DischargeDate IS NOT NULL THEN 'ReferralDischargeDate'#(lf)#(tab)ELSE 'ValidToToday' END AS AssessmentValidToReason,#(lf)FLOOR(DATEDIFF(DAY, dp.PersonDateofBirth, sh.PersonSmokingHistoryAssessmentDate)/365) AS AgeAtAssessmentDate,#(lf)'EAL',#(lf)CASE WHEN sh.PersonSmokingHistoryBriefAdviceGiven = 1 THEN 'Yes' ELSE 'No' END AS BriefAdviceGiven,#(lf)dss.[Rank] AS AssessmentRank,#(lf)LAG(dss.[Rank]) OVER (PARTITION BY sh.PersonID, fr.TeamID ORDER BY sh.PersonSmokingHistoryAssessmentDate) AS PreviousAssessmentRank,#(lf)'E' + CAST(LAG(sh.SmokingStatusId) OVER (PARTITION BY sh.PersonID, fr.TeamID ORDER BY sh.PersonSmokingHistoryAssessmentDate) AS varchar(10)) AS PreviousAssessmentSmokingStatusKey,#(lf)CASE WHEN sh.PersonSmokingHistorySupportServicesOffered IS NOT NULL AND PersonSmokingHistorySupportServicesOffered <> '' THEN 'Yes' ELSE 'No' END AS SupportServicesOfferedYN#(lf)FROM [RBEAL].[dlFactPersonSmokingHistory] sh #(lf)LEFT OUTER JOIN [RBEAL].[legacyFactReferral] fr#(lf)ON fr.PersonID = sh.PersonID AND sh.PersonSmokingHistoryAssessmentDate BETWEEN fr.AcceptedDate AND fr.DischargeDate#(lf)LEFT OUTER JOIN [RBEAL].[dlDimTeam] dt ON fr.TeamID = dt.TeamID#(lf)LEFT OUTER JOIN [RBEAL].[dlDimPerson] dp ON sh.PersonID = dp.PersonID#(lf)LEFT OUTER JOIN CTEDimSmokingStatus dss ON sh.SmokingStatusID = dss.SmokingStatusID AND Company = 'EAL'#(lf)#(lf)ORDER BY PersonID,PersonSmokingHistoryAssessmentDate"]),
+		    #"Changed Type" = Table.TransformColumnTypes(Source,{{"PersonSmokingHistoryAssessmentDate", type date}, {"AssessmentValidTo", type date}}),
+		    #"Filtered Rows" = Table.SelectRows(#"Changed Type", each ([PersonSmokingHistoryAssessmentDate] <> #date(1900, 1, 1))),
+		    #"Removed Other Columns" = Table.SelectColumns(#"Filtered Rows",{"PersonSmokingHistoryID", "PersonID", "PersonSmokingHistoryAssessmentDate"}),
+		    #"Reordered Columns" = Table.ReorderColumns(#"Removed Other Columns",{"PersonID", "PersonSmokingHistoryAssessmentDate"})
+		in
+		    #"Reordered Columns"
+	lineageTag: eca67a0d-87db-4b8f-9c7f-1a86921f967a
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression work_fact_smoking_assessment_agg =
+		let
+		    Source = work_fact_smoking_assessment_all,
+		    #"Reordered Columns" = Table.ReorderColumns(Source,{"PersonID", "PersonSmokingHistoryID"}),
+		    #"Added Custom" = Table.AddColumn(#"Reordered Columns", "Count", each 1),
+		    #"Grouped Rows" = Table.Group(#"Added Custom", {"PersonID"}, {{"Count", each List.Sum([Count]), type number}, {"EarliestSmokingAssessmentDate", each List.Min([PersonSmokingHistoryAssessmentDate]), type nullable date}, {"LatestSmokingAssessmentDate", each List.Max([PersonSmokingHistoryAssessmentDate]), type nullable date}}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Grouped Rows",{{"Count", Int64.Type}}),
+		    #"Added Custom1" = Table.AddColumn(#"Changed Type", "HasSmokingAssessment", each "Yes")
+		in
+		    #"Added Custom1"
+	lineageTag: 6b1d3e8f-0ea0-417c-9344-388ce991fbe2
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+/// SQL Database
+expression Database = "sqldb-prod-datawarehouse-01" meta [IsParameterQuery=true, List={"sqldb-dev-datawarehouse-01", "sqldb-prod-datawarehouse-01"}, DefaultValue="sqldb-prod-datawarehouse-01", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 0c9c2294-8078-4c42-8ce0-9048dbb4b4a6
+	queryGroup: Timi
+
+	annotation PBI_ResultType = Text
+
+/// Azure SQL Server
+expression Server = "sql-prod-aus-svc-datawarehouse-01.database.windows.net" meta [IsParameterQuery=true, List={"sql-dev-aue-svc-datawarehouse-01.database.windows.net", "sql-prod-aus-svc-datawarehouse-01.database.windows.net"}, DefaultValue="sql-prod-aus-svc-datawarehouse-01.database.windows.net", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 9340d833-1718-4b4f-ad44-39f86e64fc7b
+	queryGroup: Timi
+
+	annotation PBI_ResultType = Text
+
+expression 'Additional Access (2)' =
+		let
+		    // Load data from SharePoint
+		    Source = SharePoint.Tables(
+		        "https://emergeaotearoaltd.sharepoint.com/sites/OPS_ITServices/", [Implementation = "2.0", ViewMode = "All"]
+		    ),
+		    // Access specific table by ID
+		    SelectedTable = Source{[Id = "27e19ae7-4448-4dfe-b172-3ee660e6e1df"]}[Items],
+		    // Expand "Requester" List Column
+		    ExpandedRequesterList = Table.ExpandListColumn(SelectedTable, "Requester"),
+		    // Expand "Requester" Record Column to "email"
+		    ExpandedRequesterEmail = Table.ExpandRecordColumn(
+		        ExpandedRequesterList, "Requester", {"email"}, {"Requester Email"}
+		    ),
+		    // Expand "Person to Impersonate" List Column
+		    ExpandedImpersonateList = Table.ExpandListColumn(ExpandedRequesterEmail, "Person to Impersonate"),
+		    // Expand "Person to Impersonate" Record Column to "email"
+		    ExpandedImpersonateEmail = Table.ExpandRecordColumn(
+		        ExpandedImpersonateList, "Person to Impersonate", {"email"}, {"Person to Impersonate Email"}
+		    ),
+		    // Expand "Approved By" List Column
+		    ExpandedApprovedList = Table.ExpandListColumn(ExpandedImpersonateEmail, "Approved By"),
+		    // Expand "Approved By" Record Column to "email"
+		    ExpandedApprovedEmail = Table.ExpandRecordColumn(
+		        ExpandedApprovedList, "Approved By", {"email"}, {"Approved By Email"}
+		    ),
+		    // Remove unnecessary columns
+		    RemovedUnnecessaryColumns = Table.RemoveColumns(
+		        ExpandedApprovedEmail,
+		        {
+		            "Color Tag",
+		            "Compliance Asset Id",
+		            "ID",
+		            "Content Type",
+		            "Attachments",
+		            "Edit",
+		            "Type",
+		            "Item Child Count",
+		            "Folder Child Count",
+		            "Label setting",
+		            "Retention label",
+		            "Retention label Applied",
+		            "Label applied by",
+		            "Item is a Record",
+		            "App Created By",
+		            "App Modified By"
+		        }
+		    ),
+		    // Expand "Created By" List Column
+		    ExpandedCreatedByList = Table.ExpandListColumn(RemovedUnnecessaryColumns, "Created By"),
+		    // Expand "Created By" Record Column to "email"
+		    ExpandedCreatedByEmail = Table.ExpandRecordColumn(
+		        ExpandedCreatedByList, "Created By", {"email"}, {"Created By Email"}
+		    ),
+		    // Expand "Modified By" List Column
+		    ExpandedModifiedByList = Table.ExpandListColumn(ExpandedCreatedByEmail, "Modified By"),
+		    // Expand "Modified By" Record Column to "email"
+		    ExpandedModifiedByEmail = Table.ExpandRecordColumn(
+		        ExpandedModifiedByList, "Modified By", {"email"}, {"Modified By Email"}
+		    ),
+		    // Change data types of specified columns
+		    ChangedColumnTypes = Table.TransformColumnTypes(
+		        ExpandedModifiedByEmail,
+		        {
+		            {"Person to Impersonate Email", type text},
+		            {"Requester Email", type text},
+		            {"Expiry Date", type date},
+		            {"Access Reason", type text},
+		            {"Approved By Email", type text},
+		            {"Approved Date", type date},
+		            {"Modified", type date},
+		            {"Created", type date},
+		            {"Created By Email", type text},
+		            {"Modified By Email", type text}
+		        }
+		    ),
+		    // Filtering rows where "Expiry Date" is greater than or equal to today
+		    ExpiryDateFilter = Table.SelectRows(ChangedColumnTypes, each [Expiry Date] >= Date.From(DateTime.LocalNow())),
+		    // Lowercase and trim the emails so the case-sensitive join in 'RLS with Additional Access' matches
+		    #"Lowercased Text" = Table.TransformColumns(ExpiryDateFilter,{{"Requester Email", each Text.Lower(Text.Trim(_)), type text}, {"Person to Impersonate Email", each Text.Lower(Text.Trim(_)), type text}}),
+		    // Filter rows where "Report" is the current report
+		    ReportFilter = Table.SelectRows(#"Lowercased Text", each ([Report] = "Smoking Cessation"))
+		in
+		    ReportFilter
+	lineageTag: bef9436a-dbd8-4384-9ac4-afe355010eae
+	queryGroup: Timi
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression 'RLS - New RB Structure ALL services' =
+		let
+		    Source = Sql.Database(Server, Database, [Query="-- Recordbase RLS rows from edw.row_level_security_general (one row per viewer and client team).#(lf)-- The team company, and so the E/M prefix of RLS Join, comes from edw.dim_client_team.company_id: 1 = Emerge (E), 5 = Mind and Body (M).#(lf)SELECT DISTINCT#(lf)       g.[employee_level_for_exclusion] AS [hierarchy_number]#(lf)      ,g.[dim_employee_key]#(lf)      ,g.[employee_id]#(lf)      ,g.[email] AS [employee_primary_email_address]#(lf)      ,e.[employee_job_name]#(lf)      ,s.[service_name]#(lf)      ,g.[dim_service_key]#(lf)      ,g.[service_id]#(lf)      ,s.[department_name]#(lf)      ,s.[district_name]#(lf)      ,s.[region_name]#(lf)      ,CASE ct.[company_id] WHEN 1 THEN 'Emerge' WHEN 5 THEN 'Mind and Body' END AS [company]#(lf)      ,ct.[client_team_area]#(lf)      ,ct.[client_team_function]#(lf)      ,ct.[client_team_name]#(lf)      ,ct.[client_team_id]#(lf)      ,g.[dim_company_key]#(lf)  FROM [edw].[row_level_security_general] g#(lf)  INNER JOIN [edw].[dim_client_team] ct#(lf)     ON ct.[dim_client_team_key] = g.[dim_client_team_key]#(lf)    AND ct.[company_id] IN (1, 5)#(lf)    AND ct.[DWHDMLOperation] <> 'D'#(lf)  LEFT JOIN [edw].[dim_service] s#(lf)     ON s.[dim_service_key] = g.[dim_service_key]#(lf)  LEFT JOIN [edw].[dim_employee] e#(lf)     ON e.[dim_employee_key] = g.[dim_employee_key]#(lf)  WHERE g.[RLS_type] = 'Recordbase'#(lf)    AND g.[email] IS NOT NULL"]),
+		    ApplyNamingConventions = (columnName as text) as text =>
+		        let
+		            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+		            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+		            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+		            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+		            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+		            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+		            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+		            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+		            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+		            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+		            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+		            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+		            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+		            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+		        in
+		            capitaliseDWH,
+		    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+		    #"Renamed Columns" = Table.RenameColumns(#"Transformed Column Names",{{"Employee Primary Email Address", "User Principal Name"}}),
+		    #"Lowercased Text" = Table.TransformColumns(#"Renamed Columns",{{"User Principal Name", each Text.Lower(Text.Trim(_)), type text}}),
+		    #"Removed Duplicates" = Table.Distinct(#"Lowercased Text")
+		in
+		    #"Removed Duplicates"
+	lineageTag: aa4a36b7-ae3e-4ea9-b069-557dba15f829
+	queryGroup: Timi
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,379 @@
+table 'intellihr jobs'
+	lineageTag: e02e984a-946e-4932-ac75-35322a3fda30
+
+	measure Seps = CALCULATE([_TotalStaff], FILTER('intellihr jobs', NOT(ISBLANK('intellihr jobs'[endDate]))))
+		formatString: 0
+		lineageTag: 3e29f82d-6462-444c-abc7-2c625da056d4
+
+	column person_id
+		dataType: string
+		lineageTag: 5c00783d-d821-4ff3-9a9a-d4e9160822f9
+		summarizeBy: none
+		sourceColumn: person_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column person_displayName
+		dataType: string
+		lineageTag: d8cc01c2-4a18-40f6-af1a-651ae4630ea9
+		summarizeBy: none
+		sourceColumn: person_displayName
+
+		annotation SummarizationSetBy = Automatic
+
+	column person_employeeNumber
+		dataType: int64
+		lineageTag: 84e2cff7-6d5d-48aa-8968-bbb87b38610f
+		summarizeBy: none
+		sourceColumn: person_employeeNumber
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column location_name
+		dataType: string
+		lineageTag: 347fec10-a24c-4fa2-94e7-376c706fd1b9
+		summarizeBy: none
+		sourceColumn: location_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column businessUnit_id
+		dataType: string
+		lineageTag: d15caf58-3e36-4f5b-8b99-67f5b97980ed
+		summarizeBy: none
+		sourceColumn: businessUnit_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column businessUnit_name
+		dataType: string
+		lineageTag: d46f9596-2d92-4f44-844d-6a3f7465efa4
+		summarizeBy: none
+		sourceColumn: businessUnit_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column businessEntity_id
+		dataType: string
+		lineageTag: 4b4c1ec2-de36-490e-81ec-ff3c3d37729f
+		summarizeBy: none
+		sourceColumn: businessEntity_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column supervisorPerson_id
+		dataType: string
+		lineageTag: de341fa0-8f49-4912-8f4a-c546f54717b3
+		summarizeBy: none
+		sourceColumn: supervisorPerson_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column workType
+		dataType: string
+		lineageTag: 8b90c2cd-944b-46b2-a11d-a1e2cfee9f94
+		summarizeBy: none
+		sourceColumn: workType
+
+		annotation SummarizationSetBy = Automatic
+
+	column isPrimaryJob
+		dataType: int64
+		formatString: 0
+		lineageTag: 913af20d-c693-4efe-b7c0-73fafa712c29
+		summarizeBy: sum
+		sourceColumn: isPrimaryJob
+
+		annotation SummarizationSetBy = Automatic
+
+	column jobStatus
+		dataType: string
+		lineageTag: 281fa7ac-c86e-411d-bcaa-66261ab3a92a
+		summarizeBy: none
+		sourceColumn: jobStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column name
+		dataType: string
+		lineageTag: e7deb8aa-c4e4-462a-b77d-994f36cd3a0b
+		summarizeBy: none
+		sourceColumn: name
+
+		annotation SummarizationSetBy = Automatic
+
+	column fte
+		dataType: double
+		formatString: #,0.0000
+		lineageTag: eea90876-1714-4d5c-9496-59ec1a66eb29
+		summarizeBy: sum
+		sourceColumn: fte
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+	column companyStartDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 6014dde5-e3d8-4d05-a2c0-e2892ee6e21f
+		summarizeBy: none
+		sourceColumn: companyStartDate
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column startDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 0638bf2c-8456-423f-ab0b-4da8e5cae727
+		summarizeBy: none
+		sourceColumn: startDate
+
+		variation Variation
+			isDefault
+			relationship: 670a03be-8ce8-40a5-b423-aa216fe0cc87
+			defaultHierarchy: LocalDateTable_4a2c2e43-09f4-410c-b37e-1b7c40ccb1a1.'Date Hierarchy'
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column companyEndDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: f8f96a94-9675-4a02-8981-1b6abfdc1069
+		summarizeBy: none
+		sourceColumn: companyEndDate
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column endDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: cc2e1bb2-9f1e-4293-bfef-4a70139abf2e
+		summarizeBy: none
+		sourceColumn: endDate
+
+		variation Variation
+			isDefault
+			relationship: 8b031f1d-2d4d-44f6-861c-aa53175bb15b
+			defaultHierarchy: LocalDateTable_aad82c50-6bce-4496-804e-dfc76cc4bf00.'Date Hierarchy'
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column TenureDays =
+			
+			
+			IF('intellihr jobs'[companyEndDate],
+			//If they have an end Date, then use days from startDate until endDate
+			    DATEDIFF('intellihr jobs'[companyStartDate], 'intellihr jobs'[companyEndDate] ,DAY),
+			//If they are still here, count until today
+			   DATEDIFF('intellihr jobs'[companyStartDate], TODAY(),DAY))
+		formatString: 0
+		lineageTag: 106ce812-e1d6-4b54-9eef-fdf047e5009f
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column TenureMonths = CEILING([TenureDays]/30, 1) -1
+		formatString: 0
+		lineageTag: 8212cc2a-4a0c-4c34-8838-9242bfcd524b
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tenure Bins' = ```
+			
+			SWITCH (
+			    TRUE (),
+			    'intellihr jobs'[TenureMonths] < 0, " Haven't Started",
+			    'intellihr jobs'[TenureMonths] < 12, " 0-1 Year",
+			    'intellihr jobs'[TenureMonths] < 24, " 1-2 Years",
+			    'intellihr jobs'[TenureMonths] < 36, " 2-3 Years",
+			    'intellihr jobs'[TenureMonths] < 60, " 3-5 Years",
+			    'intellihr jobs'[TenureMonths] < 120, " 5-10 Years",
+			    'intellihr jobs'[TenureMonths] < 180, "10-15 Years",
+			    'intellihr jobs'[TenureMonths] < 240, "15-20 Years",
+			    'intellihr jobs'[TenureMonths] >= 240, "20+ Years"
+			)
+			
+			```
+		lineageTag: afe2054d-0b98-4899-940c-ced85da16000
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column FTE_Type = IF('intellihr jobs'[fte] > 0.99, "Full Time", "Part Time")
+		lineageTag: 714aa810-d92d-4a2c-8722-35bf4ff8967f
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column TenureYears = [TenureDays]/365
+		formatString: 0.0
+		lineageTag: 29dfc734-3a39-4326-8ca3-2cb0c75a09ee
+		summarizeBy: sum
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+	column positionStartDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 0aad21be-d9ab-46c6-ae3c-3242a5c8fa03
+		summarizeBy: none
+		sourceColumn: positionStartDate
+
+		variation Variation
+			isDefault
+			relationship: 9ddc1d95-77f4-4904-a625-3b2ab27b2063
+			defaultHierarchy: LocalDateTable_e0b11c57-7abd-4e62-8932-2e6a9ca731d7.'Date Hierarchy'
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column ActiveStatus = IF('intellihr jobs'[companyEndDate] = BLANK() || 'intellihr jobs'[companyEndDate]>TODAY(),"Active", "Not Active")
+		lineageTag: 905760e0-a6d1-44c2-aca7-83154c72459f
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Index
+		dataType: int64
+		formatString: 0
+		lineageTag: e1541e35-f725-4ebf-a01b-548323a13bcd
+		summarizeBy: sum
+		sourceColumn: Index
+
+		annotation SummarizationSetBy = Automatic
+
+	column LatestJobRank = COUNTROWS(FILTER(ALL('intellihr jobs'),'intellihr jobs'[Index]<=EARLIER('intellihr jobs'[Index]) && 'intellihr jobs'[person_id]=EARLIER('intellihr jobs'[person_id])))
+		formatString: 0
+		lineageTag: 6ff0ac7d-6e78-47ea-a451-4612d8835222
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column NewRank =
+			
+			VAR R1 =
+			    COUNTROWS(
+			        FILTER(
+			            ALL( 'intellihr jobs' ),
+			            'intellihr jobs'[Index]
+			                <= EARLIER( 'intellihr jobs'[Index] )
+			                && 'intellihr jobs'[person_id]
+			                    = EARLIER( 'intellihr jobs'[person_id] )
+			                && 'intellihr jobs'[ActiveStatus] = "Not Active"
+			        )
+			    )
+			RETURN
+			    IF(
+			        'intellihr jobs'[jobStatus] = "Active" && 'intellihr jobs'[ActiveStatus] = "Active",
+			        0,
+			        R1
+			    )
+		formatString: 0
+		lineageTag: c2e95925-3e63-4f58-9f1a-687ed8da72bf
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column extended_leave_start_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 7ecad79b-039e-4ccb-bf9b-15affcd000d6
+		summarizeBy: none
+		sourceColumn: extended_leave_start_date
+
+		variation Variation
+			isDefault
+			relationship: 77d795f0-e35c-4e37-a8a6-922712282081
+			defaultHierarchy: LocalDateTable_09007fb4-c1f0-4c98-af54-7e495524c34c.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column extended_leave_end_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: cc5653ad-834c-459b-8889-bf4c4971b107
+		summarizeBy: none
+		sourceColumn: extended_leave_end_date
+
+		variation Variation
+			isDefault
+			relationship: 9bc5463f-db7d-4c29-9b62-abd920596c6f
+			defaultHierarchy: LocalDateTable_4bbef582-6c22-4238-83f6-bb361fe91fab.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column CompanyCodeKey = 'intellihr jobs'[businessUnit_name] & RELATED('dim_company'[dim_company_key])
+		lineageTag: 2c285174-abbd-4fd7-ab3d-318114a82cb4
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column AgeTotalYears = RELATED('intellihr people'[Total Years])
+		formatString: 0
+		lineageTag: 2c019bcb-cd11-4fcf-b263-d5af520907f1
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column EndDate2
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 0007fff1-2fd6-4619-a4b7-4dd0ab4d9f1b
+		summarizeBy: none
+		sourceColumn: EndDate2
+
+		variation Variation
+			isDefault
+			relationship: a685ae0b-d3b6-412e-8b50-d8cbfb1f5904
+			defaultHierarchy: LocalDateTable_9013f91c-95b2-41ee-880c-322dd185bfda.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition 'intellihr jobs-e9b3d9d1-fd13-4aac-8c74-a747ef355b4d' = m
+		mode: import
+		queryGroup: 'Raw Intelli Data'
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT#(lf)    [person_id],#(lf)    [person_displayName],#(lf)    [person_employeeNumber],#(lf)    [extended_leave_start_date],#(lf)    [extended_leave_end_date],#(lf)    [location_name],#(lf)    [businessUnit_id],#(lf)    [businessUnit_name],#(lf)    [businessEntity_id],#(lf)    [supervisorPerson_id],#(lf)    [workType],#(lf)    [isPrimaryJob],#(lf)    [jobStatus],#(lf)    [name],#(lf)    [fte],#(lf)    [companyStartDate],#(lf)    [startDate],#(lf)    [companyEndDate],#(lf)    [endDate],#(lf)    [positionStartDate]#(lf)FROM [IntelliHR].[jobs]#(lf)WHERE ([ODSIsCurrent] = 1);"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"startDate", type date}, {"companyEndDate", type date}, {"companyStartDate", type date}, {"endDate", type date}}),
+				    #"Duplicated Column" = Table.DuplicateColumn(#"Changed Type", "endDate", "endDate - Copy"),
+				    #"Filtered Rows1" = Table.SelectRows(#"Duplicated Column", each true),
+				    #"Replaced Value" = Table.ReplaceValue(#"Filtered Rows1",null,#date(2999, 12, 31),Replacer.ReplaceValue,{"endDate - Copy"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Replaced Value",{{"endDate - Copy", "EndDate2"}}),
+				    #"Sorted Rows" = Table.Sort(#"Renamed Columns",{{"endDate", Order.Descending}}),
+				    #"Sorted Rows1" = Table.Sort(#"Sorted Rows",{{"companyEndDate", Order.Descending}}),
+				    #"Added Index" = Table.AddIndexColumn(#"Sorted Rows1", "Index", 1, 1, Int64.Type)
+				in
+				    #"Added Index"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

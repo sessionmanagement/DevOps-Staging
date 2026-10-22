@@ -1,0 +1,102 @@
+table 'Dim Date'
+	lineageTag: 8e946e5a-01b7-4e3c-be86-ac0a28bfaa59
+
+	column dim_date_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 2b2b406d-4741-45f9-9134-c90d588026e0
+		summarizeBy: none
+		sourceColumn: dim_date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_date
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 637a9509-f7bb-43e4-9a4a-d3f574a5529c
+		summarizeBy: none
+		sourceColumn: calendar_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column calendar_month_name_short
+		dataType: string
+		lineageTag: 80e6d297-1c18-43fe-b75b-3e3143309b41
+		summarizeBy: none
+		sourceColumn: calendar_month_name_short
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_quarter_full
+		dataType: string
+		lineageTag: b0f525fb-9f26-4e38-aa91-7653531bf628
+		summarizeBy: none
+		sourceColumn: calendar_quarter_full
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_year
+		dataType: int64
+		formatString: 0
+		lineageTag: cf571dc7-1361-4c30-bdfc-6ce1729ca8ca
+		summarizeBy: none
+		sourceColumn: calendar_year
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_month_num
+		dataType: int64
+		formatString: 0
+		lineageTag: 7bbfd555-d238-41e9-bc06-e51037038ea5
+		summarizeBy: none
+		sourceColumn: financial_month_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_quarter_full
+		dataType: string
+		lineageTag: 71ed9d68-9a14-4475-aaea-d7cab0856538
+		summarizeBy: none
+		sourceColumn: financial_quarter_full
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_year_num
+		dataType: string
+		lineageTag: 274faa20-9987-4d64-be8a-727336542a84
+		summarizeBy: none
+		sourceColumn: financial_year_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Financial Month No. and Name' = 'Dim Date'[financial_month_num] & " - " & 'Dim Date'[calendar_month_name_short]
+		lineageTag: 3ed034f8-a1e2-46d1-9eb9-2eaf77b057e5
+		summarizeBy: none
+		sortByColumn: financial_month_num
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_year_month
+		dataType: string
+		lineageTag: b664d1c2-5a02-436f-86fa-d6bd23e9e44a
+		summarizeBy: none
+		sourceColumn: financial_year_month
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Date' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="-- ============================================================#(lf)-- Model:  Fire Incidents Dataset#(lf)-- Table:  Dim Date#(lf)-- Source: native query (complex CTE/window) - emitted in full#(lf)-- Used columns: 9 (mapped 9, unmapped 0)  [full query, not trimmed]#(lf)-- Auto-generated from pbi_complete_dump.csv + model M + EDW/ODS schema.#(lf)-- Review before use; verify joins/filters against the model.#(lf)-- ============================================================#(lf)-- USED model columns: Financial Month No. and Name; calendar_date; calendar_month_name_short; calendar_quarter_full; calendar_year; dim_date_key; financial_month_num; financial_quarter_full; financial_year_num#(lf)#(lf)--Select#(tab)#(tab)*#(lf)--From#(tab)#(tab)edw.vw_dim_date dd#(lf)--Where#(tab)#(tab)IsNull(dd.current_date_rolling_financial_year_offset, 0) Between -10 And 0;#(lf)--I got rid of the select * - Timi#(lf)#(lf)#(lf)Select#(tab)#(tab)#(lf)dim_date_key,#(lf)calendar_date,#(lf)calendar_month_name_short,#(lf)calendar_quarter_full,#(lf)calendar_year,#(lf)financial_month_num,#(lf)financial_quarter_full,#(lf)financial_year_num,#(lf)financial_year_month#(lf)#(lf)#(lf)#(lf)From#(tab)#(tab)edw.vw_dim_date dd#(lf)Where#(tab)#(tab)IsNull(dd.current_date_rolling_financial_year_offset, 0) Between -10 And 0;#(lf)"])
+				in
+				    Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

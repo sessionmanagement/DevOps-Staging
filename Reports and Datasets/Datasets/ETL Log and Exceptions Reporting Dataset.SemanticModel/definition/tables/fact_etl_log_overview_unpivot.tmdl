@@ -1,0 +1,190 @@
+table fact_etl_log_overview_unpivot
+	lineageTag: d06fc31c-7ce6-431c-8992-b9671e280a4d
+
+	column BatchID
+		dataType: int64
+		formatString: 0
+		lineageTag: 11279b93-d896-4e81-ad01-a1fa751a8242
+		summarizeBy: count
+		sourceColumn: BatchID
+
+		annotation SummarizationSetBy = Automatic
+
+	column StartTime
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 47cfdd57-0bf1-4b34-9f14-2211ac84d760
+		summarizeBy: none
+		sourceColumn: StartTime
+
+		annotation SummarizationSetBy = Automatic
+
+	column EndTime
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 72814dd9-1a05-41b1-9faa-fcbdd76f80fd
+		summarizeBy: none
+		sourceColumn: EndTime
+
+		annotation SummarizationSetBy = Automatic
+
+	column SourceSystem
+		dataType: string
+		lineageTag: dfa09fe4-364c-4c7e-8c93-120425a6068c
+		summarizeBy: none
+		sourceColumn: SourceSystem
+
+		annotation SummarizationSetBy = Automatic
+
+	column TableName
+		dataType: string
+		lineageTag: 65fc4aee-77c1-40ef-b7b8-4a80f8cd8c8f
+		summarizeBy: none
+		sourceColumn: TableName
+
+		annotation SummarizationSetBy = Automatic
+
+	column Completed
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 9136b00f-afdb-4d7f-ac11-a8e2656eca7c
+		summarizeBy: none
+		sourceColumn: Completed
+
+		annotation SummarizationSetBy = Automatic
+
+	column LastUpdateTime
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 5c21e4d7-8bc7-43ff-aa94-0f773da50f6b
+		summarizeBy: none
+		sourceColumn: LastUpdateTime
+
+		annotation SummarizationSetBy = Automatic
+
+	column TotalSourceRecords
+		dataType: int64
+		formatString: 0
+		lineageTag: 49fab72a-3a15-43b2-bd89-2b76b7c1692d
+		summarizeBy: sum
+		sourceColumn: TotalSourceRecords
+
+		annotation SummarizationSetBy = Automatic
+
+	column TotalTargetRecords
+		dataType: int64
+		formatString: 0
+		lineageTag: 49b278ed-2b24-4ee6-b3fd-45503fb2dc20
+		summarizeBy: sum
+		sourceColumn: TotalTargetRecords
+
+		annotation SummarizationSetBy = Automatic
+
+	column HighWaterValue
+		dataType: string
+		lineageTag: 79373862-8bc0-4745-a0ba-7ab7869331b1
+		summarizeBy: none
+		sourceColumn: HighWaterValue
+
+		annotation SummarizationSetBy = Automatic
+
+	column table_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 8f2603e0-3a93-44c2-9f60-af3d14b2d4b9
+		summarizeBy: none
+		sourceColumn: table_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column StartDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 826b8af1-4514-401c-93dd-635f5e60787d
+		summarizeBy: none
+		sourceColumn: StartDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column EndDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 53474def-8fe3-47ae-95ab-c2814df25981
+		summarizeBy: none
+		sourceColumn: EndDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column LastUpdateDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 836c1a61-c27c-4565-873f-eaa699007f51
+		summarizeBy: none
+		sourceColumn: LastUpdateDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column CountType
+		dataType: string
+		lineageTag: bf1d47ef-6fc0-422d-8677-667bcb382cb0
+		summarizeBy: none
+		sourceColumn: CountType
+
+		annotation SummarizationSetBy = Automatic
+
+	column CountTypeDisplay
+		dataType: string
+		lineageTag: 0952cde6-fa45-4861-a0d4-3919bb948035
+		summarizeBy: none
+		sourceColumn: CountTypeDisplay
+
+		annotation SummarizationSetBy = Automatic
+
+	column CountValue
+		dataType: int64
+		formatString: 0
+		lineageTag: 374f5847-59e8-4778-adc0-2d4d2ba7a21d
+		summarizeBy: sum
+		sourceColumn: CountValue
+
+		annotation SummarizationSetBy = Automatic
+
+	column action_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 236f841d-65cc-4259-8867-95d1c65a573f
+		summarizeBy: none
+		sourceColumn: action_key
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_etl_log_overview_unpivot = m
+		mode: import
+		queryGroup: Facts
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-fk-01.database.windows.net", "Framework", [Query="SELECT #(lf)    BatchID,#(lf)#(tab)CONVERT(datetime, SWITCHOFFSET(CONVERT(datetimeoffset, StartTime), DATEPART(TZOFFSET,StartTime AT TIME ZONE 'New Zealand Standard Time'))) AS StartTime,#(lf)#(tab)CONVERT(datetime, SWITCHOFFSET(CONVERT(datetimeoffset, EndTime), DATEPART(TZOFFSET,EndTime AT TIME ZONE 'New Zealand Standard Time'))) AS EndTime,#(lf)    SourceSystem,#(lf)    TableName,#(lf)    Completed,#(lf)    CONVERT(datetime, SWITCHOFFSET(CONVERT(datetimeoffset, LastUpdateDate), DATEPART(TZOFFSET,LastUpdateDate AT TIME ZONE 'New Zealand Standard Time'))) AS LastUpdateDate,#(lf)    TotalSourceRecords,#(lf)    TotalTargetRecords,#(lf)    HighWaterValue,#(lf)    CountType,#(lf)#(tab)CASE#(lf)#(tab)#(tab)WHEN CountType = 'ETLInsertCount' THEN 'Inserts'#(lf)#(tab)#(tab)WHEN CountType = 'ETLUpdateCount' THEN 'Updates'#(lf)#(tab)#(tab)WHEN CountType = 'ETLDeleteCount' THEN 'Deletes'#(lf)#(tab)#(tab)WHEN CountType = 'ETLRowCount' THEN 'Rows'#(lf)#(tab)#(tab)WHEN CountType = 'ETLWarningCount' THEN 'Warnings'#(lf)#(tab)#(tab)WHEN CountType = 'ETLErrorCount' THEN 'Errors'#(lf)#(tab)END AS CountTypeDisplay,#(lf)    CountValue#(lf)FROM #(lf)    (#(lf)        SELECT #(lf)            BatchID,#(lf)            StartTime,#(lf)            EndTime,#(lf)            SourceSystem,#(lf)            TableName,#(lf)            ETLRowCount,#(lf)            ETLErrorCount,#(lf)            ETLWarningCount,#(lf)            ETLInsertCount,#(lf)            ETLUpdateCount,#(lf)            ETLDeleteCount,#(lf)            Completed,#(lf)            LastUpdateDate,#(lf)            TotalSourceRecords,#(lf)            TotalTargetRecords,#(lf)            HighWaterValue#(lf)        FROM #(lf)            [ETL].[BatchDataLoadDetail]#(lf)    ) AS SourceTable#(lf)UNPIVOT#(lf)    (#(lf)        CountValue FOR CountType IN #(lf)        (ETLRowCount, ETLErrorCount, ETLWarningCount, ETLInsertCount, ETLUpdateCount, ETLDeleteCount)#(lf)    ) AS UnpivotedTable"]),
+				    #"Merged Queries" = Table.NestedJoin(Source, {"SourceSystem", "TableName"}, dim_table, {"SourceSystem", "TableName"}, "dim_table", JoinKind.Inner),
+				    #"Expanded dim_table" = Table.ExpandTableColumn(#"Merged Queries", "dim_table", {"table_key"}, {"table_key"}),
+				    #"Duplicated Column" = Table.DuplicateColumn(#"Expanded dim_table", "StartTime", "StartTime - Copy"),
+				    #"Duplicated Column1" = Table.DuplicateColumn(#"Duplicated Column", "EndTime", "EndTime - Copy"),
+				    #"Duplicated Column2" = Table.DuplicateColumn(#"Duplicated Column1", "LastUpdateDate", "LastUpdateDate - Copy"),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Duplicated Column2",{{"LastUpdateDate - Copy", type date}, {"EndTime - Copy", type date}, {"StartTime - Copy", type date}}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"StartTime - Copy", "StartDate"}, {"EndTime - Copy", "EndDate"}, {"LastUpdateDate", "LastUpdateTime"}, {"LastUpdateDate - Copy", "LastUpdateDate"}}),
+				    #"Merged Queries1" = Table.NestedJoin(#"Renamed Columns", {"CountTypeDisplay"}, dim_action, {"action_type"}, "dim_action", JoinKind.LeftOuter),
+				    #"Expanded dim_action" = Table.ExpandTableColumn(#"Merged Queries1", "dim_action", {"action_key"}, {"action_key"}),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Expanded dim_action",{"action_key", "table_key", "BatchID", "StartTime", "EndTime", "SourceSystem", "TableName", "Completed", "LastUpdateTime", "TotalSourceRecords", "TotalTargetRecords", "HighWaterValue", "CountType", "CountTypeDisplay", "CountValue", "StartDate", "EndDate", "LastUpdateDate"}),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Reordered Columns",{{"StartTime", type datetime}})
+				in
+				    #"Changed Type1"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

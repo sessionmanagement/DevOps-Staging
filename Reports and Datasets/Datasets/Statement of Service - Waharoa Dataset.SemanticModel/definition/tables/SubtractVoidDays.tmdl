@@ -1,0 +1,29 @@
+table SubtractVoidDays
+	isHidden
+	lineageTag: d7aedb42-213c-44a1-8f1e-2eb1233487e5
+
+	column SubtractVoidDays
+		dataType: string
+		isHidden
+		lineageTag: f5f5c56e-63cf-4c1c-bda7-971de8598212
+		summarizeBy: none
+		sourceColumn: SubtractVoidDays
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition SubtractVoidDays = m
+		mode: import
+		queryGroup: helpers
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WikwtVorViVbyy1eKjQUA", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [SubtractVoidDays = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"SubtractVoidDays", type text}})
+				in
+				    #"Changed Type"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+

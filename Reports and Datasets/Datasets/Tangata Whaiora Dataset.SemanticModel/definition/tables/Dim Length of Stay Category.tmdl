@@ -1,0 +1,52 @@
+table 'Dim Length of Stay Category'
+	lineageTag: 7d5cf7af-550f-47b3-9914-de8c4226b713
+
+	column 'Dim Length of Stay Category KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 6a194b50-38f0-40ef-86b0-18cc9020713a
+		summarizeBy: none
+		sourceColumn: Dim Length of Stay Category KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Length of Stay Category'
+		dataType: string
+		lineageTag: 42433cf3-d2a2-43f8-a9df-b5a23eda1db2
+		summarizeBy: none
+		sourceColumn: Length of Stay Category
+		sortByColumn: Order
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Order
+		dataType: string
+		isHidden
+		lineageTag: 40d830e1-3a70-44c9-82f9-02997f816b17
+		summarizeBy: none
+		sourceColumn: Order
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Length of Stay Category' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WMlTSUbIEAqXYWAA=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Begin = _t, End = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Begin", Int64.Type}, {"End", Int64.Type}}),
+				    #"Added Custom" = Table.AddColumn(#"Changed Type", "Explosion", each {[Begin]..[End]}),
+				    #"Expanded Explosion" = Table.ExpandListColumn(#"Added Custom", "Explosion"),
+				    #"Removed Columns" = Table.RemoveColumns(#"Expanded Explosion",{"Begin", "End"}),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Removed Columns",{{"Explosion", Int64.Type}}),
+				    #"Added Conditional Column" = Table.AddColumn(#"Changed Type1", "Length of Stay Category", each if [Explosion] <= 30 then "1 month" else if [Explosion] <= 180 then "2-6 months" else if [Explosion] <= 366 then "7-12 months" else if [Explosion] <= 1098 then "1-3 years" else if [Explosion] <= 1830 then "4-5 years" else "5+ years"),
+				    #"Added Conditional Column1" = Table.AddColumn(#"Added Conditional Column", "Order", each if [Explosion] <= 30 then 1 else if [Explosion] <= 180 then 2 else if [Explosion] <= 366 then 3 else if [Explosion] <= 1098 then 4 else if [Explosion] <= 1830 then 5 else 6),
+				    #"Renamed Columns" = Table.RenameColumns(#"Added Conditional Column1",{{"Explosion", "Dim Length of Stay Category KEY"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+

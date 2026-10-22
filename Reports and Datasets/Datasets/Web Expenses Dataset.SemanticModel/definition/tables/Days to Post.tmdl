@@ -1,0 +1,202 @@
+table 'Days to Post'
+	lineageTag: 47499663-da60-4bb8-a587-c5597e0c2eed
+
+	column 'Claimant Region Name'
+		dataType: string
+		lineageTag: da0080fc-b920-48c1-963a-961cd1dda154
+		summarizeBy: none
+		sourceColumn: Claimant Region Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Claimant Employee Id'
+		dataType: int64
+		formatString: 0
+		lineageTag: 950df5fd-a35c-4a9d-bb9c-945a59383c55
+		summarizeBy: count
+		sourceColumn: Claimant Employee Id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Claimant Name'
+		dataType: string
+		lineageTag: 90895cfe-6628-464d-9c19-fc8c4acd2515
+		summarizeBy: none
+		sourceColumn: Claimant Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Expense Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 2498b966-6bcb-47ff-a430-d0dc8ffb603f
+		summarizeBy: none
+		sourceColumn: Expense Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Post On'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 99c0893c-f8e6-42fa-90f7-8c6c7211c2cf
+		summarizeBy: none
+		sourceColumn: Post On
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Days To Post'
+		dataType: double
+		formatString: 0.0
+		lineageTag: c153f648-7078-44ef-9d54-e8a48795c35f
+		summarizeBy: sum
+		sourceColumn: Days To Post
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Posted Within Timeframe'
+		dataType: int64
+		formatString: 0
+		lineageTag: 02432c9b-4c11-401f-81f3-c7ad451d7e45
+		summarizeBy: sum
+		sourceColumn: Posted Within Timeframe
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Posted Outside Of Timeframe'
+		dataType: int64
+		formatString: 0
+		lineageTag: 8c400775-8f94-466f-8404-b708db889dae
+		summarizeBy: sum
+		sourceColumn: Posted Outside Of Timeframe
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Posted Record Count'
+		dataType: int64
+		formatString: 0
+		lineageTag: 0b3ca8fa-3ac3-451b-b5eb-339adf209c11
+		summarizeBy: sum
+		sourceColumn: Posted Record Count
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Claim Number'
+		dataType: int64
+		formatString: 0
+		lineageTag: b4119d54-5a51-4b43-9a90-e8c20851e5e7
+		summarizeBy: sum
+		sourceColumn: Claim Number
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Claim Line Number'
+		dataType: int64
+		formatString: 0
+		lineageTag: 53ebfeed-f64a-4c86-ada1-f61b7561221f
+		summarizeBy: sum
+		sourceColumn: Claim Line Number
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Approver Name'
+		dataType: string
+		lineageTag: 1bfdd39f-b0c6-49a2-8ffd-19f3dbfd250f
+		summarizeBy: none
+		sourceColumn: Approver Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Expense Status'
+		dataType: string
+		lineageTag: 9455df44-806f-4962-985c-f35b8dcad601
+		summarizeBy: none
+		sourceColumn: Expense Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: 4872e732-1167-46bc-b3b2-faedf3de31c8
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column Category
+		dataType: string
+		lineageTag: c83dd0f6-44c9-43d1-9489-e24051d3ede1
+		summarizeBy: none
+		sourceColumn: Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'GL Code'
+		dataType: string
+		lineageTag: ea620a29-0b33-45e7-b5d5-e78cd3780101
+		summarizeBy: none
+		sourceColumn: GL Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Currency Code'
+		dataType: string
+		lineageTag: 0a12c726-27de-4a6d-a0e6-1448e900215f
+		summarizeBy: none
+		sourceColumn: Currency Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Expense Amount'
+		dataType: double
+		lineageTag: ac2f44fa-b0b6-41aa-b952-bdcc2a583e95
+		summarizeBy: sum
+		sourceColumn: Expense Amount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'CC Amount'
+		dataType: double
+		lineageTag: 7420f337-3391-4723-b57e-be86cfc1a304
+		summarizeBy: sum
+		sourceColumn: CC Amount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Exchange Rate'
+		dataType: double
+		lineageTag: 290f8c97-622a-49ce-a939-0bfab6b520a7
+		summarizeBy: sum
+		sourceColumn: Exchange Rate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Receipt Available Flag'
+		dataType: string
+		lineageTag: 290fd227-abd7-46a5-a5c8-6a136a6cd029
+		summarizeBy: none
+		sourceColumn: Receipt Available Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Days to Post' = m
+		mode: import
+		queryGroup: 'Primary Datasets'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="-- Get the current link between the employee and the service#(lf)Drop Table If Exists #EmployeeServiceLink#(lf)Select#(tab)#(tab)ds.dim_service_key,#(lf)#(tab)#(tab)#(tab)ds.dim_company_key,#(lf)#(tab)#(tab)#(tab)de.dim_employee_key,#(lf)#(tab)#(tab)#(tab)de.employee_id,#(lf)#(tab)#(tab)#(tab)Row_Number() Over (Partition By de.dim_employee_key Order By ds.dim_company_key) As SortOrder,#(lf)#(tab)#(tab)#(tab)de.employee_name#(lf)Into#(tab)#(tab)#EmployeeServiceLink#(lf)From#(tab)#(tab)edw.vw_dim_employee_hierarchy deh#(lf)#(tab)Inner Join#(tab)edw.vw_dim_employee de#(lf)#(tab)#(tab)On#(tab)#(tab)deh.employee_id = de.employee_id#(lf)#(tab)#(tab)And#(tab)#(tab)de.DWHDMLOperation <> 'D'#(lf)#(tab)#(tab)And#(tab)#(tab)de.DWHIsCurrent = 1#(lf)#(tab)#(tab)And#(tab)#(tab)de.employee_employment_status In ('Current Staff', 'Exiting Staff')#(lf)#(tab)Inner Join#(tab)edw.vw_dim_service ds#(lf)#(tab)#(tab)On#(tab)#(tab)Coalesce(deh.employee_people_leader_business_unit_name_level_9,#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)deh.employee_people_leader_business_unit_name_level_8,#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)deh.employee_people_leader_business_unit_name_level_7,#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)deh.employee_people_leader_business_unit_name_level_6,#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)deh.employee_people_leader_business_unit_name_level_5,#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)deh.employee_people_leader_business_unit_name_level_4,#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)deh.employee_people_leader_business_unit_name_level_3,#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)deh.employee_people_leader_business_unit_name_level_2,#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)deh.employee_people_leader_business_unit_name_level_1#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)) = ds.service_name#(lf)#(tab)#(tab)And#(tab)#(tab)ds.DWHDMLOperation <> 'D'#(lf)#(tab)#(tab)And#(tab)#(tab)ds.DWHIsCurrent = 1#(lf)Where#(tab)#(tab)deh.DWHDMLOperation <> 'D'#(lf)#(tab)And#(tab)#(tab)deh.DWHIsCurrent = 1#(lf)Order By#(tab)4, 2#(lf)#(lf)#(lf)-- Get the days to post data#(lf)Select#(tab)#(tab)ds.region_name As ClaimantRegionName,#(lf)#(tab)#(tab)#(tab)esl.employee_id As ClaimantEmployeeId,#(lf)#(tab)#(tab)#(tab)dw.claimant_name As ClaimantName,#(lf)#(tab)#(tab)#(tab)fw.expense_date As ExpenseDate,#(lf)#(tab)#(tab)#(tab)fw.posted_on As PostOn,#(lf)#(tab)#(tab)#(tab)DateDiff(Day, fw.expense_date, fw.posted_on) As DaysToPost,#(lf)#(tab)#(tab)#(tab)IIf(DateDiff(Day, fw.expense_date, fw.posted_on) <= 7, 1, 0) As PostedWithinTimeframe,#(lf)#(tab)#(tab)#(tab)IIf(DateDiff(Day, fw.expense_date, fw.posted_on) > 7, 1, 0) As PostedOutsideOfTimeframe,#(lf)#(tab)#(tab)#(tab)1 As PostedRecordCount,#(lf)#(tab)#(tab)#(tab)fw.claim_number As ClaimNumber,#(lf)#(tab)#(tab)#(tab)Row_Number() Over (Partition By fw.claim_number, dw.claimant_name Order By fw.expense_date, fw.base_amount, dw.description) As ClaimLineNumber,#(lf)#(tab)#(tab)#(tab)dw.approver_name As ApproverName,#(lf)#(tab)#(tab)#(tab)dw.status As ExpenseStatus,#(lf)#(tab)#(tab)#(tab)dw.description As Description,#(lf)#(tab)#(tab)#(tab)dw.category_name As Category,#(lf)#(tab)#(tab)#(tab)dw.gl_code As GLCode,#(lf)#(tab)#(tab)#(tab)dw.currency_code As CurrencyCode,#(lf)#(tab)#(tab)#(tab)fw.base_amount As ExpenseAmount,#(lf)#(tab)#(tab)#(tab)fw.amount As CCAmount,#(lf)#(tab)#(tab)#(tab)fw.exchange_rate As ExchangeRate,#(lf)#(tab)#(tab)#(tab)Case When dw.receipt_available_flag = 'Y'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)Then 'Yes'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)When dw.receipt_available_flag = 'N'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)Then 'No'#(lf)#(tab)#(tab)#(tab)#(tab)Else 'Unknown'#(lf)#(tab)#(tab)#(tab)#(tab)End As ReceiptAvailableFlag#(lf)From#(tab)#(tab)edw.vw_fact_webexpenses fw#(lf)#(tab)Inner Join#(tab)edw.vw_dim_webexpenses dw#(lf)#(tab)#(tab)On#(tab)#(tab)fw.dim_webexpense_key = dw.dim_webexpense_key#(lf)#(tab)Inner Join#(tab)#EmployeeServiceLink esl#(lf)#(tab)#(tab)On#(tab)#(tab)fw.dim_claimant_employee_key = esl.dim_employee_key#(lf)#(tab)#(tab)And#(tab)#(tab)esl.SortOrder = 1#(lf)#(tab)Inner Join#(tab)edw.vw_dim_service ds#(lf)#(tab)#(tab)On#(tab)#(tab)esl.dim_service_key = ds.dim_service_key#(lf)Where#(tab)#(tab)fw.DWHIsCurrent = 1#(lf)#(tab)And#(tab)#(tab)fw.DWHDMLOperation <> 'D'#(lf)#(tab)And#(tab)#(tab)dw.status Not In  ('Not Imported', 'Open')#(tab)-- Ignore as not posted in web expenses#(lf)#(tab)And#(tab)#(tab)dw.source = 'VIS'#(lf)"]),
+				    #"Renamed Columns" = Table.RenameColumns(Source,{{"ClaimantRegionName", "Claimant Region Name"}, {"ClaimantEmployeeId", "Claimant Employee Id"}, {"ClaimantName", "Claimant Name"}, {"ExpenseDate", "Expense Date"}, {"PostOn", "Post On"}, {"DaysToPost", "Days To Post"}, {"PostedWithinTimeframe", "Posted Within Timeframe"}, {"PostedOutsideOfTimeframe", "Posted Outside Of Timeframe"}, {"PostedRecordCount", "Posted Record Count"}, {"ClaimNumber", "Claim Number"}, {"ClaimLineNumber", "Claim Line Number"}, {"ApproverName", "Approver Name"}, {"ExpenseStatus", "Expense Status"}, {"GLCode", "GL Code"}, {"CurrencyCode", "Currency Code"}, {"ExpenseAmount", "Expense Amount"}, {"CCAmount", "CC Amount"}, {"ExchangeRate", "Exchange Rate"}, {"ReceiptAvailableFlag", "Receipt Available Flag"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

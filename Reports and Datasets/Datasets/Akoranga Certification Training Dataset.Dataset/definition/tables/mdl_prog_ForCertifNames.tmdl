@@ -1,0 +1,115 @@
+table mdl_prog_ForCertifNames
+	lineageTag: 455bf6c2-e158-4c5a-b697-d7e98b258232
+
+	measure RefreshedAt_forDisplay = "Date Last Refreshed: " & FORMAT( LASTDATE( mdl_prog_ForCertifNames[Refresh Date] ), "dd/MM/YYYY" )
+		lineageTag: c40a498b-57b9-4aa1-b1a3-2e864a446cad
+
+	column certifid
+		dataType: int64
+		formatString: 0
+		lineageTag: 180586ef-52a9-4e80-a45b-725910bcfb5c
+		summarizeBy: none
+		sourceColumn: certifid
+
+		annotation SummarizationSetBy = Automatic
+
+	column idnumber
+		dataType: string
+		lineageTag: 7abf2bb4-84a8-4eb5-921c-27cff353ab13
+		summarizeBy: none
+		sourceColumn: idnumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column shortname
+		dataType: string
+		lineageTag: 4f6a6db9-0b63-4ac4-b6b6-aae3d1a367ed
+		summarizeBy: none
+		sourceColumn: shortname
+
+		annotation SummarizationSetBy = Automatic
+
+	column fullname
+		dataType: string
+		lineageTag: bc4f724d-fa3d-433c-aba5-f6544148fa86
+		summarizeBy: none
+		sourceColumn: fullname
+
+		annotation SummarizationSetBy = Automatic
+
+	column category
+		dataType: int64
+		formatString: 0
+		lineageTag: 61de3560-1419-4a5f-bddb-ec5653d542e8
+		summarizeBy: none
+		sourceColumn: category
+
+		annotation SummarizationSetBy = Automatic
+
+	column id
+		dataType: int64
+		formatString: 0
+		lineageTag: f93b2198-2a08-4385-bfbd-9e691d6f9791
+		summarizeBy: none
+		sourceColumn: id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Refresh Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: bff1f8bf-8cf7-4697-b889-d66e77c0a1f9
+		summarizeBy: none
+		sourceColumn: Refresh Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Short Name'
+		dataType: string
+		lineageTag: 8ae164e2-5754-4a76-8506-a688f417349b
+		summarizeBy: none
+		sourceColumn: Short Name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition mdl_prog_ForCertifNames-d292e203-032b-4b24-909a-68186ace2832 = m
+		mode: import
+		queryGroup: Akoranga
+		source = ```
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT [id] AS [id]#(lf)      ,[category] AS [category]#(lf)      ,[sort_order] AS [sortorder]#(lf)      ,[full_name] AS [fullname]#(lf)      ,[short_name] AS [shortname]#(lf)      ,[id_number] AS [idnumber]#(lf)      ,[summary] AS [summary]#(lf)      ,[end_note] AS [endnote]#(lf)      ,[visible] AS [visible]#(lf)      ,[available_from] AS [availablefrom]#(lf)      ,[available_until] AS [availableuntil]#(lf)      ,[available] AS [available]#(lf)      ,[time_created] AS [timecreated]#(lf)      ,[time_modified] AS [timemodified]#(lf)      ,[user_modified] AS [usermodified]#(lf)      ,[icon] AS [icon]#(lf)      ,[exceptions_sent] AS [exceptionssent]#(lf)      ,[audience_visible] AS [audiencevisible]#(lf)      ,[certif_id] AS [certifid]#(lf)      ,[assignments_deferred] AS [assignmentsdeferred]#(lf)      ,[allow_extension_requests] AS [allowextensionrequests]#(lf)      ,[ODSIsCurrent] AS [ODSIsCurrent]#(lf)      ,[ODSEffectiveFrom] AS [ODSEffectiveFrom]#(lf)      ,[ODSEffectiveTo] AS [ODSEffectiveTo]#(lf)      ,[ODSDMLOperation] AS [ODSDMLOperation]#(lf)      ,[ODSBatchId] AS [ODSBatchId]#(lf)      ,[ODSSourceSystem] AS [ODSSourceSystem]#(lf)  FROM [Akoranga].[mdl_prog]#(lf)  WHERE [ODSIsCurrent] = 1#(lf)  AND [ODSDMLOperation] <> 'D'#(lf)"]),
+				    // Selecting specific columns
+				    #"Removed Other Columns" = Table.SelectColumns(Source,{"certifid", "timemodified", "timecreated", "idnumber", "shortname", "fullname", "category", "id"}),
+				
+				    // Removing unwanted columns
+				    #"Removed Columns" = Table.RemoveColumns(#"Removed Other Columns",{"timemodified", "timecreated"}),
+				
+				    // Adding a refresh date column
+				    #"Added Refresh Date" = Table.AddColumn(#"Removed Columns", "Refresh Date", each DateTimeZone.FixedLocalNow(), type datetimezone),
+				
+				    // Changing the type of the refresh date column
+				    #"Changed Type" = Table.TransformColumnTypes(#"Added Refresh Date",{{"Refresh Date", type datetime}}),
+				
+				    // Filtering rows where certifid is not null
+				    #"Filtered Rows" = Table.SelectRows(#"Changed Type", each ([certifid] <> null)),
+				
+				    // Adding a conditional column for short name
+				    #"Added Conditional Column" = Table.AddColumn(#"Filtered Rows", "Short Name", 
+				        each if [fullname] = "De-escalation" then "De-Escalation" 
+				        else if [fullname] = "Helping People to Stop Smoking" then "Smoking" 
+				        else if [fullname] = "Managing Actual and Potential Aggression 1" then "Mng Actual & Pot. Aggr 1" 
+				        else if [fullname] = "Managing Actual and Potential Aggression 2" then "Mng Actual & Pot. Aggr 2" 
+				        else if [fullname] = "Client Rights and Preventing Abuse and Neglect" then "Client Rights" 
+				        else if [fullname] = "Infection, Prevention and Control" then "Infection, Prevention & Control" 
+				        else if [fullname] = "Medication Management" then "Medication Mgmt" 
+				        else if [fullname] = "Safety Interventions 1" then "Safety Int. 1" 
+				        else if [fullname] = "Safety Interventions 2" then "Safety Int. 2" 
+				        else [fullname], type text)
+				in
+				    #"Added Conditional Column"
+				```
+
+	annotation PBI_QueryRelationships = {"columnCount":7,"keyColumnNames":[],"queryRelationships":[],"columnIdentities":["Section1/mdl_prog_ForCertifNames/totaraem_prod-totara mdl_prog1.{certifid,18}","Section1/mdl_prog_ForCertifNames/totaraem_prod-totara mdl_prog1.{idnumber,5}","Section1/mdl_prog_ForCertifNames/totaraem_prod-totara mdl_prog1.{shortname,4}","Section1/mdl_prog_ForCertifNames/totaraem_prod-totara mdl_prog1.{fullname,3}","Section1/mdl_prog_ForCertifNames/totaraem_prod-totara mdl_prog1.{category,1}","Section1/mdl_prog_ForCertifNames/totaraem_prod-totara mdl_prog1.{id,0}","Section1/mdl_prog_ForCertifNames/Changed Type.{Refresh Date,6}"],"ColumnCount":7,"KeyColumnNames":[],"ColumnIdentities":["Section1/mdl_prog_ForCertifNames/totaraem_prod-totara mdl_prog1.{certifid,18}","Section1/mdl_prog_ForCertifNames/totaraem_prod-totara mdl_prog1.{idnumber,5}","Section1/mdl_prog_ForCertifNames/totaraem_prod-totara mdl_prog1.{shortname,4}","Section1/mdl_prog_ForCertifNames/totaraem_prod-totara mdl_prog1.{fullname,3}","Section1/mdl_prog_ForCertifNames/totaraem_prod-totara mdl_prog1.{category,1}","Section1/mdl_prog_ForCertifNames/totaraem_prod-totara mdl_prog1.{id,0}","Section1/mdl_prog_ForCertifNames/Changed Type.{Refresh Date,6}"],"RelationshipInfo":[]}
+
+	annotation PBI_ResultType = Table
+

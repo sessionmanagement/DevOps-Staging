@@ -1,0 +1,43 @@
+table fact_incident_open_time
+	lineageTag: 05b14cfb-a179-4d08-8e13-4dc3a7684501
+
+	column IncidentKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 74e59bba-b382-4745-ac13-dc5be8c31e00
+		summarizeBy: none
+		sourceColumn: IncidentKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column MinutesOpen
+		dataType: int64
+		formatString: 0
+		lineageTag: 0a11f51e-6a7a-41a5-9266-c8d0ef3db2d0
+		summarizeBy: sum
+		sourceColumn: MinutesOpen
+
+		annotation SummarizationSetBy = Automatic
+
+	column DaysOpen =
+			
+			fact_incident_open_time[MinutesOpen]/60/24
+		formatString: 0.0
+		lineageTag: 64ebb0f3-b413-4383-8d30-a98785a0001c
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_incident_open_time-f1e91176-13ae-419b-80cc-70b215a4765a = m
+		mode: import
+		queryGroup: Facts
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="Select#(tab)#(tab)fci.dim_client_incident_company_key_incident_id_key As IncidentKey,#(lf)#(tab)#(tab)#(tab)DateDiff(Minute, fci.incident_created_date ,IIf(fci.current_incident_status_type_id = 4, fci.current_incident_status_created_date, GetDate())) As MinutesOpen#(lf)From#(tab)#(tab)edw.vw_fact_client_incident fci#(lf)Where#(tab)#(tab)fci.DWHIsCurrent = 1#(lf)#(tab)And#(tab)#(tab)fci.DWHDMLOperation <> 'D'#(lf)"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

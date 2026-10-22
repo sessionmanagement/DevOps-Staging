@@ -1,0 +1,155 @@
+table 'Fuel Invoice Data'
+	lineageTag: 1d4a0728-6f90-45a0-8d63-e786e7948e2c
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 618fd6ff-5b34-469a-9a02-4a212610764f
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Time
+		dataType: dateTime
+		formatString: Long Time
+		lineageTag: 4e180e07-d5ca-4fbd-a595-183522a7de29
+		summarizeBy: none
+		sourceColumn: Time
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Time
+
+	column 'Card Number'
+		dataType: int64
+		formatString: 0
+		lineageTag: 7e147cab-7acb-4783-b409-e62ccddf32cd
+		summarizeBy: sum
+		sourceColumn: Card Number
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vehicle Registration'
+		dataType: string
+		lineageTag: d42d2e9a-d869-49e9-8e6d-91bb0592abbf
+		summarizeBy: none
+		sourceColumn: Vehicle Registration
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Card Holder'
+		dataType: string
+		lineageTag: 6ed942a7-f0bf-4dc2-80a9-fffd29b3a3d5
+		summarizeBy: none
+		sourceColumn: Card Holder
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Cost Centre'
+		dataType: string
+		lineageTag: 13a00b1f-7c5b-4e27-b61d-31e4d210c08b
+		summarizeBy: none
+		sourceColumn: Cost Centre
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Location '
+		dataType: string
+		lineageTag: 85d7edb1-1fa0-4169-98ca-c5d5121e1767
+		summarizeBy: none
+		sourceColumn: "Location "
+
+		annotation SummarizationSetBy = Automatic
+
+	column Voucher
+		dataType: int64
+		formatString: 0
+		lineageTag: 2136f087-d252-410d-bc24-87b33b3315d3
+		summarizeBy: sum
+		sourceColumn: Voucher
+
+		annotation SummarizationSetBy = Automatic
+
+	column Odometer
+		dataType: int64
+		formatString: 0
+		lineageTag: cad77e61-6107-4d4c-a512-64098a14d854
+		summarizeBy: sum
+		sourceColumn: Odometer
+
+		annotation SummarizationSetBy = Automatic
+
+	column Product
+		dataType: string
+		lineageTag: 049aad3c-31c1-46aa-b657-9703a681f6c1
+		summarizeBy: none
+		sourceColumn: Product
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quantity
+		dataType: double
+		lineageTag: b4437a8b-1483-40ac-ae10-e1b9b173d5e6
+		summarizeBy: sum
+		sourceColumn: Quantity
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Voucher Value'
+		dataType: double
+		lineageTag: 98c53fcb-2f26-4c8b-924a-d172266fae90
+		summarizeBy: sum
+		sourceColumn: Voucher Value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Invoice Rate'
+		dataType: double
+		lineageTag: ebd2bbc4-a3df-451d-8951-62652f1bd67e
+		summarizeBy: sum
+		sourceColumn: Invoice Rate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Net Excl GST'
+		dataType: double
+		lineageTag: d0e50cf9-3687-4dac-8da4-2d4646e94ca5
+		summarizeBy: sum
+		sourceColumn: Net Excl GST
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Fuel Invoice Data' = m
+		mode: import
+		queryGroup: 'Excel Spreadsheets'
+		source =
+				let
+				    Source = SharePoint.Files("https://emergeaotearoaltd.sharepoint.com/sites/DRCollaboration/", [ApiVersion = 15]),
+				    #"Filtered Rows" = Table.SelectRows(Source, each Text.Contains([Name], "20260518") or Text.Contains([Name], "20260518")),
+				    #"Filtered Rows1" = Table.SelectRows(#"Filtered Rows", each ([Name] = "Fuel Invoice Data 20260518.xlsx")),
+				    #"Fuel Invoice Data 20240730 xlsx_https://emergeaotearoaltd sharepoint com/sites/DRCollaboration/Shared Documents/General/Power BI Report/Tapui Waka/Sample Data/" = #"Filtered Rows1"{[Name="Fuel Invoice Data 20260518.xlsx",#"Folder Path"="https://emergeaotearoaltd.sharepoint.com/sites/DRCollaboration/Shared Documents/General/Power BI Report/Tapui Waka/Sample Data/"]}[Content],
+				    #"Imported Excel Workbook" = Excel.Workbook(#"Fuel Invoice Data 20240730 xlsx_https://emergeaotearoaltd sharepoint com/sites/DRCollaboration/Shared Documents/General/Power BI Report/Tapui Waka/Sample Data/"),
+				    #"Fuel Card_Sheet" = #"Imported Excel Workbook"{[Item="Fuel Card",Kind="Sheet"]}[Data],
+				    #"Removed Top Rows" = Table.Skip(#"Fuel Card_Sheet",2),
+				    #"Promoted Headers" = Table.PromoteHeaders(#"Removed Top Rows", [PromoteAllScalars=true]),
+				    #"Filtered Rows2" = Table.SelectRows(#"Promoted Headers", each ([Date] <> null and [Date] <> "" and [Date] <> "Total for Emerge Aotearoa Limited")),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Filtered Rows2",{{"Date", type date}, {"Time", type time}, {"Card Number", Int64.Type}, {"Reg No", type text}, {"Card Holder", type text}, {"Cost Centre", type text}, {"Location ", type text}, {"Voucher", Int64.Type}, {"Odometer", Int64.Type}, {"Product", type text}, {"Quantity", type number}, {"Voucher Value", type number}, {"Invoice Rate", type number}, {"Net Excl GST", type number}}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"Reg No", "Vehicle Registration"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,107 @@
+table 'RLS with Additional Access'
+	lineageTag: 81089d99-3333-43de-906c-f54d4063d1cf
+
+	column 'Manager ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 1a85fe26-ad16-44c0-a445-a8e56b2e6f5f
+		summarizeBy: count
+		sourceColumn: Manager ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Manager Business Unit'
+		dataType: string
+		lineageTag: 2f5b97c8-6f70-4a2f-b4f1-7004404837a7
+		summarizeBy: none
+		sourceColumn: Manager Business Unit
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 224c531c-1a4d-49c9-a611-a25fb19cdf69
+		summarizeBy: count
+		sourceColumn: Employee ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Email'
+		dataType: string
+		lineageTag: 0b284ec9-79f6-45da-995a-15d0101b4c10
+		summarizeBy: none
+		sourceColumn: Employee Email
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Company'
+		dataType: string
+		lineageTag: a341ae23-5e23-4504-b210-afd86221b7f1
+		summarizeBy: none
+		sourceColumn: Employee Company
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'User Principal Name'
+		dataType: string
+		lineageTag: 87feb553-e938-45b9-8665-09d21ffaa467
+		summarizeBy: none
+		sourceColumn: User Principal Name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'RLS with Additional Access' = m
+		mode: import
+		queryGroup: RLS
+		source =
+				let
+				    // Load both tables
+				    RowLevelSecurity = @#"RLS - New Intelli Structure",
+				    AdditionalAccess = #"Additional Access",
+				    PBI_Service_RLS_Impersonation = #"PBI Service RLS Impersonation",
+				
+				    // Join tables
+				    JoinedTable = Table.Join(
+				        AdditionalAccess, "Person to Impersonate Email", RowLevelSecurity, "User Principal Name", JoinKind.RightOuter
+				    ),
+				
+				    #"Added Conditional Column" = Table.AddColumn(
+				        JoinedTable, "Custom", each if [Requester Email] = null then [User Principal Name] else [Requester Email]
+				    ),
+				
+				    #"Removed Columns" = Table.RemoveColumns(
+				        #"Added Conditional Column",
+				        {
+				            "Report",
+				            "Requester Email",
+				            "Person to Impersonate Email",
+				            "Expiry Date",
+				            "Access Reason",
+				            "Approved By Email",
+				            "Approved Date",
+				            "Modified",
+				            "Created",
+				            "Created By Email",
+				            "Modified By Email",
+				            "Version",
+				            "User Principal Name"
+				        }
+				    ),
+				
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns", {{"Custom", "User Principal Name"}}),
+				
+				    #"Reordered Columns" = Table.ReorderColumns(
+				        #"Renamed Columns", {"User Principal Name"}
+				    ),
+				
+				    #"Changed Type" = Table.TransformColumnTypes(#"Reordered Columns", {{"User Principal Name", type text}}),
+				    #"Appended Query" = Table.Combine({#"Changed Type", #"RLS - New Intelli Structure"}),
+				    #"Removed Duplicates" = Table.Distinct(#"Appended Query")
+				in
+				    #"Removed Duplicates"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

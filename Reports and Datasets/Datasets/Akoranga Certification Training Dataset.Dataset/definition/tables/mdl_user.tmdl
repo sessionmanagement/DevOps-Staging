@@ -1,0 +1,106 @@
+table mdl_user
+	lineageTag: 09985f57-807b-46af-a705-fbc7856eceab
+
+	column id
+		dataType: int64
+		formatString: 0
+		lineageTag: bc0c71b3-2893-457f-8a4d-d9f886206e1b
+		summarizeBy: none
+		sourceColumn: id
+
+		annotation SummarizationSetBy = Automatic
+
+	column username
+		dataType: string
+		lineageTag: 6b67a300-ea75-4da0-b11c-20c4948ac0f0
+		summarizeBy: none
+		sourceColumn: username
+
+		annotation SummarizationSetBy = Automatic
+
+	column idnumber
+		dataType: string
+		lineageTag: e2955da5-7647-408e-bc54-35877f5470b3
+		summarizeBy: none
+		sourceColumn: idnumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column firstname
+		dataType: string
+		lineageTag: 5ef9e0b9-604b-4004-aaff-e1772e7ba045
+		summarizeBy: none
+		sourceColumn: firstname
+
+		annotation SummarizationSetBy = Automatic
+
+	column lastname
+		dataType: string
+		lineageTag: 3cf2c1af-60e9-4dc7-8cae-a93b4354f0a1
+		summarizeBy: none
+		sourceColumn: lastname
+
+		annotation SummarizationSetBy = Automatic
+
+	column email
+		dataType: string
+		lineageTag: 366a2e68-4926-43db-a6de-3db2d5b7c7d1
+		summarizeBy: none
+		sourceColumn: email
+
+		annotation SummarizationSetBy = Automatic
+
+	column displayname
+		dataType: string
+		lineageTag: bd6691c7-cf62-4f71-9b91-aac21722339b
+		summarizeBy: none
+		sourceColumn: displayname
+
+		annotation SummarizationSetBy = Automatic
+
+	partition mdl_user-4ecd2350-ae25-461e-93c9-28e6ff4fabc5 = m
+		mode: import
+		queryGroup: Akoranga
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT [id] AS [id]#(lf)      ,[auth] AS [auth]#(lf)      ,[confirmed] AS [confirmed]#(lf)      ,[policy_agreed] AS [policyagreed]#(lf)      ,[deleted] AS [deleted]#(lf)      ,[suspended] AS [suspended]#(lf)      ,[mnethost_id] AS [mnethostid]#(lf)      ,[user_name] AS [username]#(lf)      ,[password] AS [password]#(lf)      ,[id_number] AS [idnumber]#(lf)      ,[first_name] AS [firstname]#(lf)      ,[last_name] AS [lastname]#(lf)      ,[email] AS [email]#(lf)      ,[email_stop] AS [emailstop]#(lf)      ,[skype] AS [skype]#(lf)      ,[phone_1] AS [phone1]#(lf)      ,[phone_2] AS [phone2]#(lf)      ,[institution] AS [institution]#(lf)      ,[department] AS [department]#(lf)      ,[address] AS [address]#(lf)      ,[city] AS [city]#(lf)      ,[country] AS [country]#(lf)      ,[lang] AS [lang]#(lf)      ,[calendar_type] AS [calendartype]#(lf)      ,[theme] AS [theme]#(lf)      ,[timezone] AS [timezone]#(lf)      ,[first_access] AS [firstaccess]#(lf)      ,[last_access] AS [lastaccess]#(lf)      ,[last_login] AS [lastlogin]#(lf)      ,[current_login] AS [currentlogin]#(lf)      ,[last_ip] AS [lastip]#(lf)      ,[secret] AS [secret]#(lf)      ,[picture] AS [picture]#(lf)      ,[url] AS [url]#(lf)      ,[description] AS [description]#(lf)      ,[description_format] AS [descriptionformat]#(lf)      ,[mail_format] AS [mailformat]#(lf)      ,[mail_digest] AS [maildigest]#(lf)      ,[mail_display] AS [maildisplay]#(lf)      ,[auto_subscribe] AS [autosubscribe]#(lf)      ,[track_forums] AS [trackforums]#(lf)      ,[time_created] AS [timecreated]#(lf)      ,[time_modified] AS [timemodified]#(lf)      ,[trust_bit_mask] AS [trustbitmask]#(lf)      ,[image_alt] AS [imagealt]#(lf)      ,[last_name_phonetic] AS [lastnamephonetic]#(lf)      ,[first_name_phonetic] AS [firstnamephonetic]#(lf)      ,[middle_name] AS [middlename]#(lf)      ,[alternate_name] AS [alternatename]#(lf)      ,[totara_sync] AS [totarasync]#(lf)      ,[tenant_id] AS [tenantid]#(lf)      ,[ODSIsCurrent] AS [ODSIsCurrent]#(lf)      ,[ODSEffectiveFrom] AS [ODSEffectiveFrom]#(lf)      ,[ODSEffectiveTo] AS [ODSEffectiveTo]#(lf)      ,[ODSDMLOperation] AS [ODSDMLOperation]#(lf)      ,[ODSBatchId] AS [ODSBatchId]#(lf)      ,[ODSSourceSystem] AS [ODSSourceSystem]#(lf)  FROM [Akoranga].[mdl_user]#(lf)  WHERE [ODSIsCurrent] = 1#(lf)  AND [ODSDMLOperation] <> 'D'#(lf)"]),
+				    /* CJN 2023-07-03: Was #"Filtered Rows1" = Table.SelectRows(#"Kept First Rows", each ([suspended] = false) and ([deleted] = false)),
+				       I'm assuming False now = 0 */
+				    #"Filtered Rows1" = Table.SelectRows(Source, each ([suspended] = 0) and ([deleted] = 0)),
+				
+				    // Removing unwanted columns and selecting specific columns
+				    #"Removed Other Columns" = Table.SelectColumns(#"Filtered Rows1",{"id", "username", "idnumber", "firstname", "lastname", "email"}),
+				
+				    // Filtering rows where idnumber is not null or empty
+				    #"Filtered Rows" = Table.SelectRows(#"Removed Other Columns", each [idnumber] <> null and [idnumber] <> ""),
+				
+				    // Merging with dim_people_hierarchy table using fuzzy join on email
+				    #"Merged Queries" = Table.FuzzyNestedJoin(#"Filtered Rows", {"email"}, dim_people_hierarchy, {"employee_primary_email_address"}, "DenJob_Columnar", JoinKind.Inner, [IgnoreCase=true, IgnoreSpace=false, Threshold=1]),
+				
+				    // Removing the merged table column
+				    #"Removed Columns" = Table.RemoveColumns(#"Merged Queries",{"DenJob_Columnar"}),
+				
+				    // Inserting merged column for display name
+				    #"Inserted Merged Column" = Table.AddColumn(#"Removed Columns", "Merged", each Text.Combine({[firstname], " ", [lastname]}), type text),
+				
+				    // Renaming merged column to displayname
+				    #"Renamed Columns" = Table.RenameColumns(#"Inserted Merged Column",{{"Merged", "displayname"}}),
+				
+				    // Removing duplicates
+				    #"Removed Duplicates" = Table.Distinct(#"Renamed Columns"),
+				
+				    // Merging with mdl_user - Remove duplicate Emails table
+				    #"Merged Queries1" = Table.NestedJoin(#"Removed Duplicates", {"id"}, #"mdl_user - Remove duplicate Emails", {"MaxID"}, "mdl_user - Remove duplicate Emails", JoinKind.Inner),
+				
+				    // Sorting rows by ID
+				    #"Sorted Rows" = Table.Sort(#"Merged Queries1",{{"id", Order.Ascending}}),
+				
+				    // Removing the merged table column
+				    #"Removed Columns1" = Table.RemoveColumns(#"Sorted Rows",{"mdl_user - Remove duplicate Emails"})
+				in
+				    #"Removed Columns1"
+
+	annotation PBI_QueryRelationships = {"columnCount":6,"keyColumnNames":[],"queryRelationships":[],"columnIdentities":["Section1/mdl_user/totaraem_prod-totara mdl_user1.{id,0}","Section1/mdl_user/totaraem_prod-totara mdl_user1.{username,7}","Section1/mdl_user/totaraem_prod-totara mdl_user1.{idnumber,9}","Section1/mdl_user/totaraem_prod-totara mdl_user1.{firstname,10}","Section1/mdl_user/totaraem_prod-totara mdl_user1.{lastname,11}","Section1/mdl_user/totaraem_prod-totara mdl_user1.{email,12}"],"ColumnCount":6,"KeyColumnNames":[],"ColumnIdentities":["Section1/mdl_user/totaraem_prod-totara mdl_user1.{id,0}","Section1/mdl_user/totaraem_prod-totara mdl_user1.{username,7}","Section1/mdl_user/totaraem_prod-totara mdl_user1.{idnumber,9}","Section1/mdl_user/totaraem_prod-totara mdl_user1.{firstname,10}","Section1/mdl_user/totaraem_prod-totara mdl_user1.{lastname,11}","Section1/mdl_user/totaraem_prod-totara mdl_user1.{email,12}"],"RelationshipInfo":[]}
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,430 @@
+table FactKaimahi
+	lineageTag: e02e984a-946e-4932-ac75-35322a3fda30
+
+	measure Seps = CALCULATE([Head Count], FILTER('FactKaimahi', NOT(ISBLANK('FactKaimahi'[endDate]))))
+		formatString: 0
+		lineageTag: 3e29f82d-6462-444c-abc7-2c625da056d4
+
+	column person_id
+		dataType: string
+		lineageTag: 5c00783d-d821-4ff3-9a9a-d4e9160822f9
+		summarizeBy: none
+		sourceColumn: person_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Kaimahi Name'
+		dataType: string
+		lineageTag: d8cc01c2-4a18-40f6-af1a-651ae4630ea9
+		summarizeBy: none
+		sourceColumn: Kaimahi Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column person_employeeNumber
+		dataType: int64
+		lineageTag: 84e2cff7-6d5d-48aa-8968-bbb87b38610f
+		summarizeBy: sum
+		sourceColumn: person_employeeNumber
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column location_id
+		dataType: string
+		lineageTag: 82a7dd37-0b82-4bfe-9957-cb7130451120
+		summarizeBy: none
+		sourceColumn: location_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column payGrade_id
+		dataType: string
+		lineageTag: e562b1c0-3b32-421e-99ca-fae1b7cbb0ef
+		summarizeBy: none
+		sourceColumn: payGrade_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column businessUnit_id
+		dataType: string
+		lineageTag: d15caf58-3e36-4f5b-8b99-67f5b97980ed
+		summarizeBy: none
+		sourceColumn: businessUnit_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column workType
+		dataType: string
+		lineageTag: 8b90c2cd-944b-46b2-a11d-a1e2cfee9f94
+		summarizeBy: none
+		sourceColumn: workType
+
+		annotation SummarizationSetBy = Automatic
+
+	column jobStatus
+		dataType: string
+		lineageTag: 281fa7ac-c86e-411d-bcaa-66261ab3a92a
+		summarizeBy: none
+		sourceColumn: jobStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Job Title'
+		dataType: string
+		lineageTag: e7deb8aa-c4e4-462a-b77d-994f36cd3a0b
+		summarizeBy: none
+		sourceColumn: Job Title
+
+		annotation SummarizationSetBy = Automatic
+
+	column fte
+		dataType: double
+		formatString: #,0.0000
+		lineageTag: eea90876-1714-4d5c-9496-59ec1a66eb29
+		summarizeBy: sum
+		sourceColumn: fte
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+	column companyStartDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 6014dde5-e3d8-4d05-a2c0-e2892ee6e21f
+		summarizeBy: none
+		sourceColumn: companyStartDate
+
+		variation Variation
+			isDefault
+			relationship: 39c49385-2ac0-48e3-9c9b-77ec5be6bc08
+			defaultHierarchy: LocalDateTable_89d6fa07-d8e9-464d-b4ff-18d825f73e42.'Date Hierarchy'
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column startDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 0638bf2c-8456-423f-ab0b-4da8e5cae727
+		summarizeBy: none
+		sourceColumn: startDate
+
+		variation Variation
+			isDefault
+			relationship: 670a03be-8ce8-40a5-b423-aa216fe0cc87
+			defaultHierarchy: LocalDateTable_4a2c2e43-09f4-410c-b37e-1b7c40ccb1a1.'Date Hierarchy'
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column companyEndDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: f8f96a94-9675-4a02-8981-1b6abfdc1069
+		summarizeBy: none
+		sourceColumn: companyEndDate
+
+		variation Variation
+			isDefault
+			relationship: 4fae1984-2c09-4b0f-870c-9e3f8d76ad1b
+			defaultHierarchy: LocalDateTable_7b4268e7-5332-4f0d-9093-95700c250855.'Date Hierarchy'
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column endDate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: cc2e1bb2-9f1e-4293-bfef-4a70139abf2e
+		summarizeBy: none
+		sourceColumn: endDate
+
+		variation Variation
+			isDefault
+			relationship: 8b031f1d-2d4d-44f6-861c-aa53175bb15b
+			defaultHierarchy: LocalDateTable_aad82c50-6bce-4496-804e-dfc76cc4bf00.'Date Hierarchy'
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column TenureDays =
+			
+			
+			IF('FactKaimahi'[companyEndDate],
+			//If they have an end Date, then use days from startDate until endDate
+			    DATEDIFF('FactKaimahi'[companyStartDate], 'FactKaimahi'[companyEndDate] ,DAY),
+			//If they are still here, count until today
+			   DATEDIFF('FactKaimahi'[companyStartDate], TODAY(),DAY))
+		formatString: 0
+		lineageTag: 106ce812-e1d6-4b54-9eef-fdf047e5009f
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column TenureMonths = CEILING([TenureDays]/30, 1) -1
+		formatString: 0
+		lineageTag: 8212cc2a-4a0c-4c34-8838-9242bfcd524b
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tenure Bins' = ```
+			
+			SWITCH (
+			    TRUE (),
+			    'FactKaimahi'[TenureMonths] < 0, " Haven't Started",
+			    'FactKaimahi'[TenureMonths] < 12, " 0-1 Year",
+			    'FactKaimahi'[TenureMonths] < 24, " 1-2 Years",
+			    'FactKaimahi'[TenureMonths] < 36, " 2-3 Years",
+			    'FactKaimahi'[TenureMonths] < 60, " 3-5 Years",
+			    'FactKaimahi'[TenureMonths] < 120, " 5-10 Years",
+			    'FactKaimahi'[TenureMonths] < 180, "10-15 Years",
+			    'FactKaimahi'[TenureMonths] < 240, "15-20 Years",
+			    'FactKaimahi'[TenureMonths] >= 240, "20+ Years"
+			)
+			
+			```
+		lineageTag: afe2054d-0b98-4899-940c-ced85da16000
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column FTE_Type = IF('FactKaimahi'[fte] > 0.99, "Full Time", "Part Time")
+		lineageTag: 714aa810-d92d-4a2c-8722-35bf4ff8967f
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column TenureYears = [TenureDays]/365
+		formatString: 0.0
+		lineageTag: 29dfc734-3a39-4326-8ca3-2cb0c75a09ee
+		summarizeBy: sum
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+	column positionStartDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 0aad21be-d9ab-46c6-ae3c-3242a5c8fa03
+		summarizeBy: none
+		sourceColumn: positionStartDate
+
+		variation Variation
+			isDefault
+			relationship: 9ddc1d95-77f4-4904-a625-3b2ab27b2063
+			defaultHierarchy: LocalDateTable_e0b11c57-7abd-4e62-8932-2e6a9ca731d7.'Date Hierarchy'
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column ActiveStatus = IF('FactKaimahi'[companyEndDate] = BLANK() || 'FactKaimahi'[companyEndDate]>TODAY(),"Active", "Not Active")
+		lineageTag: 905760e0-a6d1-44c2-aca7-83154c72459f
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Index
+		dataType: int64
+		formatString: 0
+		lineageTag: e1541e35-f725-4ebf-a01b-548323a13bcd
+		summarizeBy: sum
+		sourceColumn: Index
+
+		annotation SummarizationSetBy = Automatic
+
+	column LatestJobRank = COUNTROWS(FILTER(ALL('FactKaimahi'),'FactKaimahi'[Index]<=EARLIER('FactKaimahi'[Index]) && 'FactKaimahi'[person_id]=EARLIER('FactKaimahi'[person_id])))
+		formatString: 0
+		lineageTag: 6ff0ac7d-6e78-47ea-a451-4612d8835222
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column NewRank =
+			
+			VAR R1 =
+			    COUNTROWS(
+			        FILTER(
+			            ALL( 'FactKaimahi' ),
+			            'FactKaimahi'[Index]
+			                <= EARLIER( 'FactKaimahi'[Index] )
+			                && 'FactKaimahi'[person_id]
+			                    = EARLIER( 'FactKaimahi'[person_id] )
+			                && 'FactKaimahi'[ActiveStatus] = "Not Active"
+			        )
+			    )
+			RETURN
+			    IF(
+			        'FactKaimahi'[jobStatus] = "Active" && 'FactKaimahi'[ActiveStatus] = "Active",
+			        0,
+			        R1
+			    )
+		formatString: 0
+		lineageTag: c2e95925-3e63-4f58-9f1a-687ed8da72bf
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column dateOfBirth
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 727242cb-ff5a-413f-9078-d60e5a8f64dc
+		summarizeBy: none
+		sourceColumn: dateOfBirth
+
+		variation Variation
+			isDefault
+			relationship: dc6d9362-8b18-4d93-9a85-f107765b7ae1
+			defaultHierarchy: LocalDateTable_349dc95b-6384-4d01-853f-bf8013bb8d19.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column employmentStatus
+		dataType: string
+		lineageTag: 4cb7e3a5-478e-4a1c-bc78-0ba29c63b46f
+		summarizeBy: none
+		sourceColumn: employmentStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column Gender
+		dataType: string
+		lineageTag: 9061f857-6a5f-430c-a54e-b97ab4026df8
+		summarizeBy: none
+		sourceColumn: Gender
+
+		annotation SummarizationSetBy = Automatic
+
+	column Age
+		dataType: int64
+		formatString: 0
+		lineageTag: 506432e7-4ead-4ee3-836f-153801f71f3b
+		summarizeBy: sum
+		sourceColumn: Age
+
+		annotation SummarizationSetBy = Automatic
+
+	column HourlyPay
+		dataType: double
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 8484eef7-a393-455c-9222-8a8b4e145fe9
+		summarizeBy: sum
+		sourceColumn: HourlyPay
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	column PayBucket =
+			SWITCH(TRUE(),
+			    FactKaimahi[HourlyPay] < 25, "1",
+			    AND(FactKaimahi[HourlyPay] >= 25, FactKaimahi[HourlyPay] < 30), "2",
+			    AND(FactKaimahi[HourlyPay] >= 30, FactKaimahi[HourlyPay] < 35), "3",
+			    AND(FactKaimahi[HourlyPay] >= 35, FactKaimahi[HourlyPay] < 40), "4",
+			    AND(FactKaimahi[HourlyPay] >= 40, FactKaimahi[HourlyPay] < 45), "5",
+			    AND(FactKaimahi[HourlyPay] >= 45, FactKaimahi[HourlyPay] < 50), "6",
+			    FactKaimahi[HourlyPay] >= 50, "7",
+			    "0"
+			)
+		lineageTag: 7e258092-77d8-4ce3-8647-d66fbe960694
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column email
+		dataType: string
+		lineageTag: 575486b9-4a0c-49fe-8a0b-c0c3ac84baf1
+		summarizeBy: none
+		sourceColumn: email
+
+		annotation SummarizationSetBy = Automatic
+
+	column extended_leave_start_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 4a7d3b4e-a31a-4f36-bb50-c78c2c4e7ff8
+		summarizeBy: none
+		sourceColumn: extended_leave_start_date
+
+		variation Variation
+			isDefault
+			relationship: ce138cb7-6151-4731-b0ec-16bb72f9a4e0
+			defaultHierarchy: LocalDateTable_2b9ad240-489b-4fda-8926-bb477fb2dbb5.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column extended_leave_end_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: ef4b26c2-e054-4d48-a5d2-b922ac19ebb7
+		summarizeBy: none
+		sourceColumn: extended_leave_end_date
+
+		variation Variation
+			isDefault
+			relationship: ea1d6ab5-8cf0-4593-b7bc-3013528ea169
+			defaultHierarchy: LocalDateTable_8e596757-cead-4809-81c5-f0756b2177d1.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column EndDate2
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 73da1b34-4a7c-4ac3-bc13-1443a1e2c429
+		summarizeBy: none
+		sourceColumn: EndDate2
+
+		variation Variation
+			isDefault
+			relationship: aa61a384-e7c4-477d-9497-964f1d2946ed
+			defaultHierarchy: LocalDateTable_8d951fc5-ea38-48f6-bac8-7639d55d91ed.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition FactKaimahi-e9b3d9d1-fd13-4aac-8c74-a747ef355b4d = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT#(lf)    [person_id],#(lf)    [person_displayName],#(lf)    [person_employeeNumber],#(lf)    [extended_leave_start_date],#(lf)    [extended_leave_end_date],#(lf)    [location_id],#(lf)    [payGrade_id],#(lf)    [businessUnit_id],#(lf)    [workType],#(lf)    [jobStatus],#(lf)    [name],#(lf)    [fte],#(lf)    [companyStartDate],#(lf)    [startDate],#(lf)    [companyEndDate],#(lf)    [endDate],#(lf)    [positionStartDate]#(lf)FROM [IntelliHR].[jobs]#(lf)WHERE ([ODSIsCurrent] = 1);#(lf)"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"startDate", type date}, {"companyEndDate", type date}, {"companyStartDate", type date}, {"endDate", type date}}),
+				    #"Duplicated Column" = Table.DuplicateColumn(#"Changed Type", "endDate", "endDate - Copy"),
+				    #"Filtered Rows1" = Table.SelectRows(#"Duplicated Column", each true),
+				    #"Replaced Value" = Table.ReplaceValue(#"Filtered Rows1",null,#date(2999, 12, 31),Replacer.ReplaceValue,{"endDate - Copy"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Replaced Value",{{"endDate - Copy", "EndDate2"}, {"name", "Job Title"}, {"person_displayName", "Kaimahi Name"}}),
+				    #"Sorted Rows" = Table.Sort(#"Renamed Columns",{{"endDate", Order.Descending}}),
+				    #"Sorted Rows1" = Table.Sort(#"Sorted Rows",{{"companyEndDate", Order.Descending}}),
+				    #"Added Index" = Table.AddIndexColumn(#"Sorted Rows1", "Index", 1, 1, Int64.Type),
+				    #"Merged Queries" = Table.NestedJoin(#"Added Index", {"person_id"}, FactPeople, {"people_id"}, "intellihr people", JoinKind.LeftOuter),
+				    #"Expanded intellihr people" = Table.ExpandTableColumn(#"Merged Queries", "intellihr people", {"dateOfBirth", "primaryEmailAddress_email","gender", "employmentStatus", "Total Years"}, {"dateOfBirth", "email", "Gender", "employmentStatus", "Age"}),
+				    #"Merged Queries1" = Table.NestedJoin(#"Expanded intellihr people", {"person_employeeNumber"}, PayRates, {"code"}, "PayRates", JoinKind.LeftOuter),
+				    #"Expanded PayRates" = Table.ExpandTableColumn(#"Merged Queries1", "PayRates", {"HourlyPay"}, {"HourlyPay"}),
+				    #"Filtered Rows2" = Table.SelectRows(#"Expanded PayRates", each ([HourlyPay] <> 0))
+				in
+				    #"Filtered Rows2"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

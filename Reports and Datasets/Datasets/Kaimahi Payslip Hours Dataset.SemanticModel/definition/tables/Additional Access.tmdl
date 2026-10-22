@@ -1,0 +1,201 @@
+table 'Additional Access'
+	lineageTag: dd5f45ec-bab4-4c5a-a57d-038967e09400
+
+	column Report
+		dataType: string
+		lineageTag: 2b024d90-f518-458b-bfa7-8d1941b8b200
+		summarizeBy: none
+		sourceColumn: Report
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Requester Email'
+		dataType: string
+		lineageTag: fe020b4f-4130-40d0-beb5-524d2afe91ed
+		summarizeBy: none
+		sourceColumn: Requester Email
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Person to Impersonate Email'
+		dataType: string
+		lineageTag: 124c2392-b63d-4c24-81a0-990606e12d77
+		summarizeBy: none
+		sourceColumn: Person to Impersonate Email
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Expiry Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 3051a548-3e2b-485f-8dfc-f64110e9db3d
+		summarizeBy: none
+		sourceColumn: Expiry Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Access Reason'
+		dataType: string
+		lineageTag: e51796bf-b364-497d-a9b9-864d3c13663e
+		summarizeBy: none
+		sourceColumn: Access Reason
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Approved By Email'
+		dataType: string
+		lineageTag: d010c0b3-9d3a-42ed-b597-c2b809dc81a6
+		summarizeBy: none
+		sourceColumn: Approved By Email
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Approved Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 02a9eeae-c08a-4a0f-a2a3-dd997281d109
+		summarizeBy: none
+		sourceColumn: Approved Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Modified
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: f9259410-e407-49f3-9bf7-72b8ae445735
+		summarizeBy: none
+		sourceColumn: Modified
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Created
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: e7fd826a-140a-4ade-9d0f-81017f5a10d1
+		summarizeBy: none
+		sourceColumn: Created
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Created By Email'
+		dataType: string
+		lineageTag: ef3473fb-0313-4eb2-9040-019f43a56cd4
+		summarizeBy: none
+		sourceColumn: Created By Email
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Modified By Email'
+		dataType: string
+		lineageTag: 06292e9c-31ba-46d1-81a5-1f8682773b9b
+		summarizeBy: none
+		sourceColumn: Modified By Email
+
+		annotation SummarizationSetBy = Automatic
+
+	column Version
+		dataType: string
+		lineageTag: 6a3f6216-3cf8-4879-bef9-2111728e9502
+		summarizeBy: none
+		sourceColumn: Version
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Additional Access' = m
+		mode: import
+		queryGroup: 'Row Level Security'
+		source =
+				let
+				    // Load data from SharePoint
+				    Source = SharePoint.Tables(
+				        "https://emergeaotearoaltd.sharepoint.com/sites/OPS_ITServices/", [Implementation = "2.0", ViewMode = "All"]
+				    ),
+				    // Access specific table by ID
+				    SelectedTable = Source{[Id = "27e19ae7-4448-4dfe-b172-3ee660e6e1df"]}[Items],
+				    // Expand "Requester" List Column
+				    ExpandedRequesterList = Table.ExpandListColumn(SelectedTable, "Requester"),
+				    // Expand "Requester" Record Column to "email"
+				    ExpandedRequesterEmail = Table.ExpandRecordColumn(
+				        ExpandedRequesterList, "Requester", {"email"}, {"Requester Email"}
+				    ),
+				    // Expand "Person to Impersonate" List Column
+				    ExpandedImpersonateList = Table.ExpandListColumn(ExpandedRequesterEmail, "Person to Impersonate"),
+				    // Expand "Person to Impersonate" Record Column to "email"
+				    ExpandedImpersonateEmail = Table.ExpandRecordColumn(
+				        ExpandedImpersonateList, "Person to Impersonate", {"email"}, {"Person to Impersonate Email"}
+				    ),
+				    // Expand "Approved By" List Column
+				    ExpandedApprovedList = Table.ExpandListColumn(ExpandedImpersonateEmail, "Approved By"),
+				    // Expand "Approved By" Record Column to "email"
+				    ExpandedApprovedEmail = Table.ExpandRecordColumn(
+				        ExpandedApprovedList, "Approved By", {"email"}, {"Approved By Email"}
+				    ),
+				    // Remove unnecessary columns
+				    RemovedUnnecessaryColumns = Table.RemoveColumns(
+				        ExpandedApprovedEmail,
+				        {
+				            "Color Tag",
+				            "Compliance Asset Id",
+				            "ID",
+				            "Content Type",
+				            "Attachments",
+				            "Edit",
+				            "Type",
+				            "Item Child Count",
+				            "Folder Child Count",
+				            "Label setting",
+				            "Retention label",
+				            "Retention label Applied",
+				            "Label applied by",
+				            "Item is a Record",
+				            "App Created By",
+				            "App Modified By"
+				        }
+				    ),
+				    // Expand "Created By" List Column
+				    ExpandedCreatedByList = Table.ExpandListColumn(RemovedUnnecessaryColumns, "Created By"),
+				    // Expand "Created By" Record Column to "email"
+				    ExpandedCreatedByEmail = Table.ExpandRecordColumn(
+				        ExpandedCreatedByList, "Created By", {"email"}, {"Created By Email"}
+				    ),
+				    // Expand "Modified By" List Column
+				    ExpandedModifiedByList = Table.ExpandListColumn(ExpandedCreatedByEmail, "Modified By"),
+				    // Expand "Modified By" Record Column to "email"
+				    ExpandedModifiedByEmail = Table.ExpandRecordColumn(
+				        ExpandedModifiedByList, "Modified By", {"email"}, {"Modified By Email"}
+				    ),
+				    // Change data types of specified columns
+				    ChangedColumnTypes = Table.TransformColumnTypes(
+				        ExpandedModifiedByEmail,
+				        {
+				            {"Person to Impersonate Email", type text},
+				            {"Requester Email", type text},
+				            {"Expiry Date", type date},
+				            {"Access Reason", type text},
+				            {"Approved By Email", type text},
+				            {"Approved Date", type date},
+				            {"Modified", type date},
+				            {"Created", type date},
+				            {"Created By Email", type text},
+				            {"Modified By Email", type text}
+				        }
+				    ),
+				    // Filtering rows where "Expiry Date" is greater than or equal to today
+				    ExpiryDateFilter = Table.SelectRows(ChangedColumnTypes, each [Expiry Date] >= Date.From(DateTime.LocalNow())),
+				    // Filter rows where "Report" is the current report
+				    ReportFilter = Table.SelectRows(ExpiryDateFilter, each ([Report] = "Kaimahi Payslip Hours"))
+				in
+				    ReportFilter
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

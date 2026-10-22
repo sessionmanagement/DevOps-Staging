@@ -1,0 +1,50 @@
+table 'Wellbeing Domains'
+	lineageTag: 4134f742-d02c-4ff6-a72a-9474fa872d3d
+
+	column 'Wellbeing Domains'
+		dataType: string
+		lineageTag: d99f2a1a-bfe2-43b3-8c63-b953b57d8a12
+		summarizeBy: none
+		sourceColumn: Wellbeing Domains
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Wellbeing Type'
+		dataType: string
+		lineageTag: 9ae99ea5-d0d4-4f55-afcb-9f42e9e5b1cb
+		summarizeBy: none
+		sourceColumn: Wellbeing Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column Custom
+		dataType: string
+		lineageTag: a3fc5ec4-cf22-4ae0-9703-034e01eef000
+		summarizeBy: none
+		sourceColumn: Custom
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Domain Groups'
+		dataType: string
+		lineageTag: a1cc1622-a993-461f-817b-12fde4c8f7ee
+		summarizeBy: none
+		sourceColumn: Domain Groups
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Wellbeing Domains-9cc5e37e-77c7-40c8-bec1-5041a00d35cd' = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("VY6xDsIwDET/pXO/AiQEQ4XEGmUIiRGWglM1zsDfk0tJ1U537+yzbMwwsYRhXMWOZjil8K3cBHx1T9Zck79pWfoQEgj4QdEpJ8lvnrF6ZGzcvS9zy+p4B5hdWJx4QnGz61W/UO/sALNbIFFWfLrZ9j1FphdOdYf0XKKWBS9319IkQl4pCGU0jmztDw==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Wellbeing Domains" = _t, #"Wellbeing Type" = _t]),
+				    #"Added Custom" = Table.AddColumn(Source, "Custom", each "Merge"),
+				    #"Added Custom1" = Table.AddColumn(#"Added Custom", "Domain Groups", each if [Wellbeing Domains] = "Mind" or [Wellbeing Domains] =  "Body" or [Wellbeing Domains] = "Habits" or [Wellbeing Domains] = "Home" then "My Health" else if [Wellbeing Domains] = "Finances" or [Wellbeing Domains] = "Occupation" or [Wellbeing Domains] = "Relationships" or [Wellbeing Domains] = "Recreation" then "My Life" else if [Wellbeing Domains] = "Beliefs" or [Wellbeing Domains] = "culture" or [Wellbeing Domains] = "Connectedness" or [Wellbeing Domains] = "Identity" or [Wellbeing Domains] = "Culture" then " My Meaning" else "")
+				in
+				    #"Added Custom1"
+
+	annotation PBI_ResultType = Exception
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,49 @@
+table DimEthnicityGroup
+	lineageTag: d56732e3-6ed3-4b1c-8f74-6d965118440d
+
+	column people_id
+		dataType: string
+		lineageTag: eec72c35-6266-4b3f-9f76-ec4c30f71de4
+		summarizeBy: none
+		sourceColumn: people_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ethnicities
+		dataType: string
+		lineageTag: 44fb449b-009b-4537-bb74-c288002d7999
+		summarizeBy: none
+		sourceColumn: Ethnicities
+
+		annotation SummarizationSetBy = Automatic
+
+	column custom_field_name
+		dataType: string
+		lineageTag: 32f5dfc7-9e4f-4212-9397-f715a4fecd70
+		summarizeBy: none
+		sourceColumn: custom_field_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ethnicity Group'
+		dataType: string
+		lineageTag: 157e846b-23eb-42b5-919c-1db4fe1e7cb2
+		summarizeBy: none
+		sourceColumn: Ethnicity Group
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DimEthnicityGroup-77682088-9e03-49b8-b779-2bda093cbc35 = m
+		mode: import
+		queryGroup: 'Final Tables'
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT #(lf)  people_id, #(lf)  definition_value_label, #(lf)  custom_field_name, #(lf)  case            when definition_value_label is null then 'Unknown'             when  definition_value_label in (#(lf)    '[""Samoan""]', '[""Tongan""]', '[""Pacific Peoples""]', #(lf)    '[""Cook Islander""]', '[""Cook Island Maori""]'            , #(lf)    '[""Cook Islander"",""Samoan""]', '[""Fijian (except Fiji Indian / Indo-Fijian)""]', #(lf)    '[""I-Kiribati / Gilbertese""]', #(lf)    '[""Manihiki Islander""]', '[""Niuean""]'            , #(lf)    '[""Tokelauan""]', '[""Tuvalu Islander / Ellice Islander""]', #(lf)    '[""New Zealand European / Pakeha"",""Danish"",""Samoan"",""Tongan""]'#(lf)  )             #(lf)  or definition_value_label like '%cook island%'             then 'Pacific Peoples'             when definition_value_label in (#(lf)    '[""New Zealand Maori"",""Irish"",""Scottish (Scots)""]', #(lf)    '[""New Zealand Maori"",""New Zealand European / Pakeha""]'#(lf)  )              then 'New Zealand Maori'             when definition_value_label  like '%New Zealand M%ori""]%'             #(lf)  or definition_value_label like '%m%ori%'             then 'New Zealand Maori'             when definition_value_label in (#(lf)    '[""Russian""]', '[""British""]', '[""American (US)""]'            , #(lf)    '[""Australian""]', '[""Canadian""]', #(lf)    '[""English""]', '[""European""]', '[""German""]', #(lf)    '[""Greek (including Greek Cypriot)""]', #(lf)    '[""Hungarian""]'            , #(lf)    '[""Dutch / Netherlands""]', '[""Irish""]', #(lf)    '[""Italian""]', '[""Lithuanian""]', #(lf)    '[""Maltese""]', '[""Scottish (Scots)""]', #(lf)    '[""Serb / Serbian""]'            , #(lf)    '[""Portuguese""]', '[""Scandinavian""]', #(lf)    '[""Swedish""]', '[""Turkish (including Turkish Cypriot)""]', #(lf)    '[""Welsh""]', '[""Dutch / Netherlands"",""Indonesian""]'            , #(lf)    '[""New Zealand European / Pakeha"",""Finnish""]', #(lf)    '[""New Zealand European / Pakeha"",""Italian""]'             #(lf)  ) then 'European'             when  definition_value_label in (#(lf)    '[""Indian""]', '[""Filipina/Filipino""]', #(lf)    '[""Fijian Indian / Indo-Fijian""]', #(lf)    '[""Korean""]', '[""Sri Lankan""]'            , #(lf)    '[""Asian""]', '[""Bangladeshi""]', #(lf)    '[""Cambodian""]', '[""Chinese""]', #(lf)    '[""Malaysian Chinese""]', '[""Malaysian""]', #(lf)    '[""Indonesian""]', '[""Japanese""]'            , #(lf)    '[""Nepalese""]', '[""Pakistani""]', #(lf)    '[""Singaporean""]', '[""Sinhalese""]', #(lf)    '[""Punjabi""]', '[""South Asian (Other)""]', #(lf)    '[""New Zealand European / Pakeha"",""Malaysian""]'#(lf)  ) then 'Asian'              when definition_value_label in (#(lf)    '[""Brazilian""]', '[""Iranian""]', '[""African""]', #(lf)    '[""African American""]', '[""Afghani""]', #(lf)    '[""Chilean""]'             , #(lf)    '[""Argentinian""]', '[""Latin American / Hispanic""]', #(lf)    '[""Middle Eastern""]', '[""South American""]', #(lf)    '[""West Indian""]', '[""Uruguayan""]'             , #(lf)    '[""South African""]', '[""New Zealand European / Pakeha"",""African American""]', #(lf)    '[""New Zealand European / Pakeha"",""Brazilian""]'             , #(lf)    '[""New Zealand European / Pakeha"",""African American""]', #(lf)    '[""New Zealand European / Pakeha"",""Brazilian""]'#(lf)  )               then 'MELAA'  when definition_value_label in (#(lf)    '[""New Zealand European / Pakeha""]') then 'New Zealander' else 'Other Not Classified'              end as ethnicity_group             #(lf)FROM #(lf)  IntelliHR.people_custom_fields   #(lf)where #(lf)  custom_field_name = 'ethnicity'                 #(lf)  and ODSIsCurrent = 1 "]),
+				    #"Renamed Columns" = Table.RenameColumns(Source,{{"ethnicity_group", "Ethnicity Group"}, {"definition_value_label", "Ethnicities"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,45 @@
+expression ALL_DimTeam =
+		let
+		    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)'EAL' AS CompanyIdentifier,#(lf)CASE WHEN [TeamID]IS NOT NULL THEN CONCAT('E',[TeamID]) ELSE NULL END AS [TeamID],#(lf)CASE WHEN [CompanyID]IS NOT NULL THEN CONCAT('E',[CompanyID]) ELSE NULL END AS [CompanyID],#(lf)CASE WHEN [ContractID]IS NOT NULL THEN CONCAT('E',[ContractID]) ELSE NULL END AS [ContractID],#(lf)CASE WHEN [TeamFunctionID]IS NOT NULL THEN CONCAT('E',[TeamFunctionID]) ELSE NULL END AS [TeamFunctionID],#(lf)CASE WHEN [OldTeamID]IS NOT NULL THEN CONCAT('E',[OldTeamID]) ELSE NULL END AS [OldTeamID],#(lf)CASE WHEN [OldSupportLevelID]IS NOT NULL THEN CONCAT('E',[OldSupportLevelID]) ELSE NULL END AS [OldSupportLevelID],#(lf)CASE WHEN [SupportLevelTypeID]IS NOT NULL THEN CONCAT('E',[SupportLevelTypeID]) ELSE NULL END AS [SupportLevelTypeID],#(lf)CASE WHEN [TaskProcessID]IS NOT NULL THEN CONCAT('E',[TaskProcessID]) ELSE NULL END AS [TaskProcessID],#(lf)CASE WHEN [EmploymentPlanTemplateID]IS NOT NULL THEN CONCAT('E',[EmploymentPlanTemplateID]) ELSE NULL END AS [EmploymentPlanTemplateID],#(lf)CASE WHEN [AreaID]IS NOT NULL THEN CONCAT('E',[AreaID]) ELSE NULL END AS [AreaID],#(lf)CASE WHEN [DynamicFormID]IS NOT NULL THEN CONCAT('E',[DynamicFormID]) ELSE NULL END AS [DynamicFormID],#(lf)[TeamCode],#(lf)[TeamName],#(lf)[TeamDescription],#(lf)[TeamAutoAccept],#(lf)[TeamCapacity],#(lf)[TeamStartDate],#(lf)[TeamEndDate],#(lf)[TeamUDF1],#(lf)[TeamUDF2],#(lf)[TeamUDF3],#(lf)[TeamUDF4],#(lf)[TeamUDF5],#(lf)[TeamUDF6],#(lf)[TeamUDF7],#(lf)[TeamUDF8],#(lf)[TeamUDF9],#(lf)[TeamUDF10],#(lf)[TeamLUDF1],#(lf)[TeamLUDF2],#(lf)[TeamLUDF3],#(lf)[TeamLUDF4],#(lf)[TeamLUDF5],#(lf)[TeamRecentlyDischargedPeriodDaysOverride],#(lf)[TeamIsEmploymentTeam],#(lf)[TeamIsAllocatedSupportTimeTeam],#(lf)[TeamReferenceNumberRequired],#(lf)[TeamIsFosterCarerTeam],#(lf)[TeamIsFosterChildTeam],#(lf)[TeamShowGlobalActivityTemplate]#(lf)FROM RBEAL.dlDimTeam"]),
+		    #"Appended Query" = Table.Combine({Source, MNB_DimTeam})
+		in
+		    #"Appended Query"
+	lineageTag: 254ca1cc-93cf-4cbf-b61d-a1af97fa09f8
+	queryGroup: 'All (Unioned Data)'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression RLS-Recordbase =
+		let
+		    // Hierarchy-derived RecordBase client teams per viewer, read from edw.row_level_security_general (RLS_type 'Recordbase')
+		    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="-- Row-level security for RecordBase client teams, read from edw.row_level_security_general (RLS_type 'Recordbase').#(lf)-- The team's RecordBase instance comes from edw.dim_client_team.company_id: 1 = RBEAL ('E'), 5 = RBMNB ('M').#(lf)-- [Team Key] matches ALL_DimTeamFunction[TeamID]. Historic Mind and Body rows (company 15) are excluded on purpose.#(lf)SELECT DISTINCT#(lf)       rls.[email] AS [UserEmailAddress]#(lf)      ,ct.[client_team_id]#(lf)      ,CONCAT(CASE ct.[company_id] WHEN 1 THEN 'E' WHEN 5 THEN 'M' END, ct.[client_team_id]) AS [Team Key]#(lf)  FROM [edw].[row_level_security_general] rls#(lf)  INNER JOIN [edw].[dim_client_team] ct#(lf)          ON ct.[dim_client_team_key] = rls.[dim_client_team_key]#(lf)         AND ct.[DWHDMLOperation] <> 'D'#(lf)         AND ct.[dim_client_team_end_date] IS NULL#(lf) WHERE rls.[RLS_type] = 'Recordbase'#(lf)   AND rls.[email] IS NOT NULL#(lf)   AND ct.[company_id] IN (1, 5)"]),
+		    // Lowercase and trim the email so the case-sensitive Additional Access join matches
+		    #"Lowercased Text" = Table.TransformColumns(Source, {{"UserEmailAddress", each Text.Lower(Text.Trim(_)), type text}}),
+		    #"Removed Duplicates" = Table.Distinct(#"Lowercased Text")
+		in
+		    #"Removed Duplicates"
+	lineageTag: fee6f2c8-ed3e-439e-9391-6731aa42e88e
+	queryGroup: RLS
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression Database = "ODS" meta [IsParameterQuery=true, Type="Any", IsParameterQueryRequired=true]
+	lineageTag: ca2050c3-0ec7-4f28-8408-a14349e42a90
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+expression Server = "synapseausprod-ondemand.sql.azuresynapse.net" meta [IsParameterQuery=true, Type="Any", IsParameterQueryRequired=true]
+	lineageTag: 2bf0a866-ef90-4cd2-9d40-093d648d424e
+	queryGroup: Parameters
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+

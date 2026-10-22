@@ -1,0 +1,187 @@
+table ChangeLog
+	isHidden
+	lineageTag: 86e69004-c57f-4947-9a40-ffef7cbb14ab
+
+	measure 'Max ChangeLog ID' =
+			
+			CONCATENATE("Dataset Version ",
+			MAX(
+			    ChangeLog[Version]
+			)
+			)
+		isHidden
+		lineageTag: 5b251258-b8bd-4c56-9cd0-140644529120
+
+		changedProperty = IsHidden
+
+	column 'Change ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 95972b22-0bf0-406f-9f51-a25852e0f707
+		summarizeBy: count
+		sourceColumn: Change ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Version
+		dataType: string
+		isHidden
+		lineageTag: e0d08e28-47cd-4678-a2b9-bfeba764f14a
+		summarizeBy: none
+		sourceColumn: Version
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Change Date'
+		dataType: string
+		isHidden
+		lineageTag: 6fd88387-5910-4cce-903b-d119b8332cad
+		summarizeBy: none
+		sourceColumn: Change Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Changed By'
+		dataType: string
+		isHidden
+		lineageTag: ac764b7d-bd86-45bc-826b-0f8b01c4f3a9
+		summarizeBy: none
+		sourceColumn: Changed By
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'User Story ID'
+		dataType: string
+		isHidden
+		lineageTag: ad90c6f3-155d-4fc2-a10e-02fadb66de1c
+		summarizeBy: none
+		sourceColumn: User Story ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		isHidden
+		lineageTag: d5f64338-f88b-4092-987b-dbe1bedd8222
+		summarizeBy: none
+		sourceColumn: Description
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ChangeLog = m
+		mode: import
+		source =
+				let
+				    // Define the table schema without the ChangeID column
+				    InitialTable = #table(
+				        {"Version", "Change Date", "Changed By", "User Story ID", "Description"},
+				        {
+				            {
+				                "1.0.2",
+				                #date(2024, 1, 1),  /* Placeholder date - update with actual date when known */
+				                "N/A",
+				                "#7392",
+				                "Fixed RLS issue #7392"
+				            },
+				            {
+				                "1.1.0",
+				                #date(2024, 1, 1),  /* Placeholder date - update with actual date when known */
+				                "N/A",
+				                "#7300",
+				                "ODS RLS"
+				            },
+				            {
+				                "1.1.1",
+				                #date(2024, 1, 1),  /* Placeholder date - update with actual date when known */
+				                "N/A",
+				                "#7620",
+				                "point dim_date to production server and database"
+				            },
+				            {
+				                "1.1.2",
+				                #date(2024, 1, 1),  /* Placeholder date - update with actual date when known */
+				                "N/A",
+				                "#7988",
+				                "Formatted Smoking Status to capitalize each word for better readability in visuals"
+				            },
+				            {
+				                "1.1.3",
+				                #date(2024, 1, 1),  /* Placeholder date - update with actual date when known */
+				                "N/A",
+				                "#8107",
+				                "Fixed All Access RLS"
+				            },
+				                {
+				                "1.1.4", /* Version: Update this to the new version number */
+				                #date(2024, 7, 9),  /* Change Date: Update year, month, day */
+				                "Mike R",  /* Changed By: Update with the name of the person making the change, or leave as "N/A" */
+				                "8197",  /* User Story ID: Update if applicable, otherwise leave as "N/A" */
+				                "Add mechanism for closed teams to be easily filtered out by the user"  /* Description: Provide a brief description of the change */
+				            },
+				                {
+				                "1.1.5", /* Version: Update this to the new version number */
+				                #date(2024, 8, 20),  /* Change Date: Update year, month, day */
+				                "Mike R",  /* Changed By: Update with the name of the person making the change, or leave as "N/A" */
+				                "8197",  /* User Story ID: Update if applicable, otherwise leave as "N/A" */
+				                "Updated Applied Filters measures to support new filter for team status and modernise it"  /* Description: Provide a brief description of the change */
+				            },
+				                {
+				                "1.2.0", /* Version: Update this to the new version number */
+				                #date(2024, 11, 04),  /* Change Date: Update year, month, day */
+				                "Mike G",  /* Changed By: Update with the name of the person making the change, or leave as "N/A" */
+				                "9196",  /* User Story ID: Update if applicable, otherwise leave as "N/A" */
+				                "New RLS"  /* Description: Provide a brief description of the change */
+				            },
+				            {
+				                "1.3.0", /* Version: Update this to the new version number */
+				                #date(2024, 12, 02),  /* Change Date: Update year, month, day */
+				                "Mike G",  /* Changed By: Update with the name of the person making the change, or leave as "N/A" */
+				                "9385",  /* User Story ID: Update if applicable, otherwise leave as "N/A" */
+				                "RLS - New RB Structure ALL services"  /* Description: Provide a brief description of the change */
+				            }
+				        }
+				    ),
+				
+				    // Add an Index column to generate incremental numbers (Change ID)
+				    // This automatically assigns a unique ID to each entry
+				    TableWithIndex = Table.AddIndexColumn(InitialTable, "Change ID", 1, 1, Int64.Type),
+				
+				    // Reorder the columns to place ChangeID first
+				    // This ensures the Change ID appears as the first column in the final table
+				    ReorderedColumns = Table.ReorderColumns(TableWithIndex, {"Change ID", "Version", "Change Date", "Changed By", "User Story ID", "Description"})
+				in
+				    ReorderedColumns
+				
+				// How to add a new entry:
+				// 1. Copy the template entry block from the InitialTable
+				// 2. Paste it above the comment "Entries from the image"
+				// 3. Update the information in each field:
+				//    - "Version": Update to the new version number
+				//    - #date(): Update the year, month, and day (currently set to 2024-01-01 as placeholder)
+				//    - "Changed By": Update with the name of the person making the change, or leave as "N/A"
+				//    - "User Story ID": Update with the relevant ID (e.g., "#1234")
+				//    - "Description": Provide a brief description of the change
+				// 4. Ensure there's a comma after the closing brace } of the previous entry
+				// 5. Remove the comma after the closing brace } of the last entry in the list
+				
+				// Note: The Change ID will be automatically assigned when the query is refreshed
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,34 @@
+table 'Dim Overall Status'
+	lineageTag: d87ea1e0-1508-4658-ad5d-28493935550b
+
+	column 'KPI Status'
+		dataType: int64
+		formatString: 0
+		lineageTag: 02557376-1a86-48a7-a3df-948943f9d505
+		summarizeBy: none
+		sourceColumn: KPI Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column Meaning
+		dataType: string
+		lineageTag: 524a77d4-f93e-499d-b452-57fab52d54f9
+		summarizeBy: none
+		sourceColumn: Meaning
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Overall Status' = m
+		mode: import
+		queryGroup: Dim
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WMlTSUQpJzE5VcEwuyczPU4rViVYyAooFpZZlppaDucZArmNyRiZQJC9dKTYWAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"KPI Status" = _t, Meaning = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"KPI Status", Int64.Type}, {"Meaning", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

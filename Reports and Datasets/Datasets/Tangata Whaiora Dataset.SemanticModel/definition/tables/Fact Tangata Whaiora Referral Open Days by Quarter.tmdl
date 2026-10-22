@@ -1,0 +1,99 @@
+table 'Fact Tangata Whaiora Referral Open Days by Quarter'
+	lineageTag: a4e585ff-8288-46ed-bc6b-5dd5f224531f
+
+	column 'Dim Tangata Whaiora KEY'
+		formatString: 0
+		lineageTag: 928cfb51-f0ad-4ed7-a0a5-04d33bf3a09a
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Fact Tangata Whaiora Referral _Explosion[Dim Tangata Whaiora KEY]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Tangata Whaiora Referral KEY'
+		formatString: 0
+		lineageTag: c5ab6fa8-0a20-48b4-8ad1-e4fc24386567
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: Fact Tangata Whaiora Referral _Explosion[Dim Tangata Whaiora Referral KEY]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fact Tangata Whaiora Referral Unique KEY'
+		lineageTag: 653af574-a14e-4784-af8b-8c3eff9e8eb5
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Fact Tangata Whaiora Referral _Explosion[Fact Tangata Whaiora Referral Unique KEY]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Accepted Date'
+		formatString: Short Date
+		lineageTag: 247ce1f0-4221-4f9a-ab26-5d8f6e09637e
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Fact Tangata Whaiora Referral _Explosion[Tangata Whaiora Referral Accepted Date]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Referral End Date for Quarter'
+		formatString: Short Date
+		lineageTag: 472a55f4-5df1-40cc-8b43-e3fe51bc17de
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Referral End Date for Quarter]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Referral Open Days at Quarter End' =
+			
+			DATEDIFF(
+			    'Fact Tangata Whaiora Referral Open Days by Quarter'[Tangata Whaiora Referral Accepted Date],
+			    'Fact Tangata Whaiora Referral Open Days by Quarter'[Referral End Date for Quarter],
+			    DAY
+			)
+		formatString: 0
+		lineageTag: 82de2a77-76f7-42ed-806a-71d383854077
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Referral Discharge Date'
+		formatString: Short Date
+		lineageTag: 05dda7a1-3cc4-4234-997d-2d1ee4ca7d2b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Fact Tangata Whaiora Referral _Explosion[Tangata Whaiora Referral Discharge Date]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Referral Explosion Calendar Last Day Of Quarter Date'
+		lineageTag: 210fedbd-56b2-4ae7-9b85-95359d093d24
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: Dim TW Referral _Explosion[Referral Explosion Calendar Last Day Of Quarter Date]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Fact Tangata Whaiora Referral Open Days by Quarter' = calculated
+		mode: import
+		source =
+				
+				SUMMARIZECOLUMNS(
+				    'Fact Tangata Whaiora Referral _Explosion'[Dim Tangata Whaiora KEY],
+				    'Fact Tangata Whaiora Referral _Explosion'[Dim Tangata Whaiora Referral KEY],
+				    'Fact Tangata Whaiora Referral _Explosion'[Fact Tangata Whaiora Referral Unique KEY],
+				    'Dim TW Referral _Explosion'[Referral Explosion Calendar Last Day Of Quarter Date],
+				    'Fact Tangata Whaiora Referral _Explosion'[Tangata Whaiora Referral Accepted Date],
+				    'Fact Tangata Whaiora Referral _Explosion'[Tangata Whaiora Referral Discharge Date],
+				    "Referral End Date for Quarter", MAX('Fact Tangata Whaiora Referral _Explosion'[Explosion])
+				)
+
+	annotation PBI_Id = 1cc1a1f13392462982abb512b9417b88
+

@@ -1,0 +1,128 @@
+table fact_etl_pipeline_counts
+	lineageTag: 535ede94-0501-43b6-98a4-895869fb28cd
+
+	column load_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: f3cef1be-13ff-4521-ad06-6b9dd340fed5
+		summarizeBy: none
+		sourceColumn: load_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column source_load_count
+		dataType: int64
+		formatString: 0
+		lineageTag: 8b77cdef-ca77-469b-8d9d-2c4172b5f0ed
+		summarizeBy: sum
+		sourceColumn: source_load_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column ods_load_count
+		dataType: int64
+		formatString: 0
+		lineageTag: f32a3947-54fc-4c17-a253-c77678f956e8
+		summarizeBy: sum
+		sourceColumn: ods_load_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column edw_load_count
+		dataType: int64
+		formatString: 0
+		lineageTag: b62abff7-aca2-4ade-b750-e865a93594e5
+		summarizeBy: sum
+		sourceColumn: edw_load_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column ods_load_difference
+		dataType: int64
+		formatString: 0
+		lineageTag: 7b709349-a737-4b09-95e6-058761cac89f
+		summarizeBy: sum
+		sourceColumn: ods_load_difference
+
+		annotation SummarizationSetBy = Automatic
+
+	column edw_load_difference
+		dataType: int64
+		formatString: 0
+		lineageTag: ba121a0e-450e-478a-afec-7783e5008732
+		summarizeBy: sum
+		sourceColumn: edw_load_difference
+
+		annotation SummarizationSetBy = Automatic
+
+	column percent_daily_change
+		dataType: double
+		lineageTag: 35cbec05-ad74-4221-ae3b-270b04114e48
+		summarizeBy: sum
+		sourceColumn: percent_daily_change
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ods_daily_change
+		dataType: int64
+		formatString: 0
+		lineageTag: 0b4859bf-8270-4ad3-b81a-2fad3c37ad1a
+		summarizeBy: sum
+		sourceColumn: ods_daily_change
+
+		annotation SummarizationSetBy = Automatic
+
+	column edw_daily_change
+		dataType: int64
+		formatString: 0
+		lineageTag: 09831084-af84-4b18-82f7-d220879301f2
+		summarizeBy: sum
+		sourceColumn: edw_daily_change
+
+		annotation SummarizationSetBy = Automatic
+
+	column SourceSystem
+		dataType: string
+		lineageTag: ba6c1714-31fb-401c-a02d-039d949c4915
+		summarizeBy: none
+		sourceColumn: SourceSystem
+
+		annotation SummarizationSetBy = Automatic
+
+	column TableName
+		dataType: string
+		lineageTag: 78eb6025-753c-4609-87be-6fd885e27860
+		summarizeBy: none
+		sourceColumn: TableName
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'SourceSystem Hierarchy'
+		lineageTag: 8b4e5bf2-30f5-4f35-a945-0c83956aaa57
+
+		level SourceSystem
+			lineageTag: da378d9e-a9b7-4942-839f-03790861e9ea
+			column: SourceSystem
+
+		level TableName
+			lineageTag: 47863f5d-86e8-4b18-98d7-351cdefb0115
+			column: TableName
+
+	partition fact_etl_pipeline_counts = m
+		mode: import
+		queryGroup: Facts
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-manager", [Query="-- Full history version#(lf)-- One row per (table, load_date) with deltas against the preceding load.#(lf)WITH rc_prev#(lf)AS (#(lf) SELECT rc.check_detail_id,#(lf)  rc.load_date,#(lf)  rc.source_load_count,#(lf)  rc.ods_load_count,#(lf)  rc.edw_load_count,#(lf)  -- Previous counts per table (NULL for first load)#(lf)  LAG(rc.source_load_count) OVER (#(lf)   PARTITION BY rc.check_detail_id ORDER BY rc.load_date#(lf)   ) AS prev_source_load_count,#(lf)  LAG(rc.ods_load_count) OVER (#(lf)   PARTITION BY rc.check_detail_id ORDER BY rc.load_date#(lf)   ) AS prev_ods_load_count,#(lf)  LAG(rc.edw_load_count) OVER (#(lf)   PARTITION BY rc.check_detail_id ORDER BY rc.load_date#(lf)   ) AS prev_edw_load_count#(lf) FROM load_check.row_count rc#(lf) )#(lf)-- Final (I hope)#(lf)SELECT ss.source_system_name AS SourceSystem,#(lf) cd.table_name AS TableName,#(lf) r.load_date,#(lf) r.source_load_count,#(lf) r.ods_load_count,#(lf) r.edw_load_count,#(lf) r.source_load_count - r.ods_load_count + COALESCE(cd.source_ods_acceptable_difference, 0) AS ods_load_difference,#(lf) r.ods_load_count - r.edw_load_count + COALESCE(cd.ods_edw_acceptable_difference, 0) AS edw_load_difference,#(lf) CASE #(lf)  WHEN r.prev_source_load_count IS NOT NULL#(lf)   AND r.prev_source_load_count > 0#(lf)   THEN ROUND((CAST(r.source_load_count - r.prev_source_load_count AS DECIMAL(20, 8)) / r.prev_source_load_count) * 100, 3)#(lf)  ELSE NULL#(lf)  END AS percent_daily_change,#(lf) r.ods_load_count - COALESCE(r.prev_ods_load_count, 0) AS ods_daily_change,#(lf) r.edw_load_count - COALESCE(r.prev_edw_load_count, 0) AS edw_daily_change#(lf)FROM rc_prev r#(lf)JOIN load_check.check_detail cd ON cd.check_detail_id = r.check_detail_id#(lf)JOIN meta_data.source_system ss ON ss.source_system_id = cd.source_system_id#(lf)WHERE cd.IsActive = 1#(lf)ORDER BY ss.source_system_name,#(lf) cd.source_load_dataset,#(lf) cd.table_name,#(lf) r.load_date;"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"load_date", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

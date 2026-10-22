@@ -1,0 +1,760 @@
+/// Version history and change log for this semantic model. Documents changes made to the model with version numbers, dates, authors, and linked Azure DevOps user story IDs. Used to track model evolution and display version information in reports.
+table Changelog
+	isHidden
+	lineageTag: dd7d704e-afce-4c37-a8ff-f57b26cad25a
+
+	measure 'Latest Version' =
+			
+			VAR LatestChangeID =
+			    MAX ( 'Changelog'[Change ID] ) -- Get the highest Change ID
+			VAR LatestRow =
+			    CALCULATETABLE ( 'Changelog', 'Changelog'[Change ID] = LatestChangeID ) -- Get the row with the highest Change ID
+			VAR LatestVersion =
+			    MAXX ( LatestRow, 'Changelog'[Version] ) -- Extract the latest version
+			VAR LatestDatasetName =
+			    MAXX ( LatestRow, 'Changelog'[Dataset Name] ) -- Extract the latest Dataset Name
+			RETURN
+			    LatestDatasetName & " Semantic Model - v" & LatestVersion
+			-- Return the latest dataset name and version
+		isHidden
+		lineageTag: ad961283-3df3-4e5a-924e-ad2ef7384233
+
+		changedProperty = IsHidden
+
+	column 'Change ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: a3b28ccb-3958-44c8-85ce-1542858d93fe
+		summarizeBy: count
+		sourceColumn: Change ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Version
+		dataType: string
+		isHidden
+		lineageTag: 33189ea3-66fe-4474-adc1-eb6b6cc1771d
+		summarizeBy: none
+		sourceColumn: Version
+		sortByColumn: 'Change ID'
+
+		changedProperty = IsHidden
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Change Date'
+		dataType: string
+		isHidden
+		lineageTag: 97b74fa7-8867-4e57-9510-0ba301981df6
+		summarizeBy: none
+		sourceColumn: Change Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Changed By'
+		dataType: string
+		isHidden
+		lineageTag: d589c588-84df-4bf9-9545-6f04da6000f1
+		summarizeBy: none
+		sourceColumn: Changed By
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'User Story ID'
+		dataType: string
+		isHidden
+		lineageTag: 65d1b56c-45d7-4aea-a1b2-f9fa1fb26b1c
+		summarizeBy: none
+		sourceColumn: User Story ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		isHidden
+		lineageTag: 87bcb7a2-6f4e-4ac6-a8ea-b9812cc00d34
+		summarizeBy: none
+		sourceColumn: Description
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dataset Name'
+		dataType: string
+		isHidden
+		lineageTag: 85997e8b-916c-4a13-856f-e6898143dbf2
+		summarizeBy: none
+		sourceColumn: Dataset Name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Changelog = m
+		mode: import
+		queryGroup: Changelog
+		source =
+				let
+				    // Define the table schema without the ChangeID column
+				    InitialTable = #table(
+				        {"Version", "Change Date", "Changed By", "User Story ID", "Description"},
+				        {
+				            // Add new entries at the top here
+				            {
+				                "2.11.0", /* Version */
+				                #date(2026, 10, 16),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "15064",  /* User Story */
+				                "Added the Exit Categories table: the Waharoa exit reasons and their positive, negative or neutral exit category from the Definition of Exit Types list, with the older reasons Waharoa no longer offers. The Exit Outcome column on Tenancy now takes each leaving reason's outcome from this table instead of its own lists, so a new reason is classified by adding a row. Internal transfers still do not count as exits. No reported figure changes."  /* Description */
+				            },
+				            {
+				                "2.10.0", /* Version */
+				                #date(2026, 10, 16),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "15064",  /* User Story */
+				                "Transitional Housing exits are now classified once, in a new Exit Outcome column on Tenancy, which also covers the new Waharoa leaving reasons; the exit measures read it instead of their own lists. Added the Housing Outcome Score, with positive and negative exit rates that leave neutral exits out. A property vacated or acquired on the last day of the period now counts as unoccupied at period end, with its void category shown. CHRA measures are unchanged."  /* Description */
+				            },
+				            {
+				                "2.9.0", /* Version */
+				                #date(2026, 10, 6),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14913",  /* User Story */
+				                "Executive PII masking for the Waharoa Aged Debt report. The Executive Masking table lists the Group Chief Executive and their direct reports from edw.vw_dim_employee. Is Executive User now returns 1 for those users and 0 for everyone else, replacing the FALSE() stub. Added Is Executive User (Aged Debt), the gate used by the report's visual filters, and Property Tenancy Tenancy Name Masked, which shows executives the property name instead of the tenancy name."  /* Description */
+				            },
+				            {
+				                "2.8.2", /* Version */
+				                #date(2026, 9, 25),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14591",  /* User Story */
+				                "Property Timeline: on a shared start date, a void with no ready to let date now ranks as the latest interval ahead of a closed one (an open tenancy still wins), so it is counted as currently void and its end is filled to the refresh date. Void checklists marked as reverted to untenantable are left out, matching 2.8.1."  /* Description */
+				            },
+				            {
+				                "2.8.1", /* Version */
+				                #date(2026, 9, 25),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14591",  /* User Story */
+				                "A ready to let milestone on a void checklist marked as reverted to untenantable in Waharoa no longer counts in the Property Vacancy table, Untenantable Unoccupied Days (Period) or Untenantable Unoccupied Days (Period End), so the vacancy stays untenantable until a new milestone is recorded."  /* Description */
+				            },
+				            {
+				                "2.8.0", /* Version */
+				                #date(2026, 9, 17),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14591",  /* User Story */
+				                "Added Untenantable Unoccupied Days (Period) and Tenantable Unoccupied Days (Period), which split Unoccupied Days (Period) at the ready to let date and count every vacancy in the period. Added the Property Vacancy table and its five measures, so each vacancy is a row with its own ready to let date and void category."  /* Description */
+				            },
+				            {
+				                "2.7.0", /* Version */
+				                #date(2026, 9, 14),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14591",  /* User Story */
+				                "Added Void Category (Period End), Untenantable Unoccupied Days (Period End) and Tenantable Unoccupied Days (Period End) for the CLS vacancy table. The two day measures split Unoccupied Days (Period End) at the ready to let date."  /* Description */
+				            },
+				            {
+				                "2.6.0", /* Version */
+				                #date(2026, 7, 28),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14107",  /* User Story */
+				                "Added Places Active (Period End) and Places Disposed During Period so the occupancy card row balances: contracted = occupied + unoccupied + disposed during period. Property Status at Date now reports an address as active if any record sharing it was active, so it no longer drops from the property list."  /* Description */
+				            },
+				            {
+				                "2.5.0", /* Version */
+				                #date(2026, 7, 27),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14107",  /* User Story */
+				                "Added hidden Tenancy column Is Occupying Tenancy so a place counts as occupied only once taken up. Occupancy measures now use it, so Places Occupied plus Unoccupied equals Places Contracted. Continuous Vacant Days (Period End) gained an Acquired Date fallback so never-tenanted stock shows as vacant."  /* Description */
+				            },
+				            {
+				                "2.4.6", /* Version */
+				                #date(2026, 7, 17),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14107",  /* User Story */
+				                "Refreshed measure and column descriptions to match the DAX and removed stale hard-coded figures. Timeline void measures now state they exclude Returned-To-Landlord voids. Text only, no logic changes."  /* Description */
+				            },
+				            {
+				                "2.4.5", /* Version */
+				                #date(2026, 7, 17),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14107",  /* User Story */
+				                "Restored column and table descriptions overwritten with audit notes. Fixed HH - Has Wall Insulation and Voids Awaiting Move-In, and the CHRA 1.2 rent ageing buckets again sum to CHRA 1.2 Rent Outstanding (Period End). Ethnicity sub-measures and Total Active Tenants (Period) now all exclude cancelled tenancies."  /* Description */
+				            },
+				            {
+				                "2.4.4", /* Version */
+				                #date(2026, 7, 17),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14107",  /* User Story */
+				                "Repaired v2.4.2 and v2.4.3 defects: invalid summarizeBy and formatString column values, and broken expressions in TH Avg Household Turnover (12M), TH Households Entered - Avg Whanau Size (12M) and Maintenance On-Time Completion %. Maintenance Completed By Contractor stays hidden as its source column is commented out."  /* Description */
+				            },
+				            {
+				                "2.4.3", /* Version */
+				                #date(2026, 7, 16),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14107",  /* User Story */
+				                "Applied column metadata fixes: descriptions, summarizeBy none on keys and flags, format strings, hidden surrogate keys, a sort order, and data-type corrections that take effect on next refresh."  /* Description */
+				            },
+				            {
+				                "2.4.2", /* Version */
+				                #date(2026, 7, 16),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14107",  /* User Story */
+				                "Refined business definitions: Capacity Utilisation Rate (Current) now computes, CHRA 1.2 Rent Outstanding (Period End) floors each tenancy at zero, TH Places Contracted (Period) and TH Occupied Bed Nights (Period) filter to Transitional Housing, and Timeline void measures exclude Returned-To-Landlord voids."  /* Description */
+				            },
+				            {
+				                "2.4.1", /* Version */
+				                #date(2026, 7, 16),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14107",  /* User Story */
+				                "Renamed measures to the naming convention, including CHRA 4 Vacancies (Period End) and TH Internal Transfer-Out Events (Period), and updated report references. Republish model and reports together."  /* Description */
+				            },
+				            {
+				                "2.4.0", /* Version */
+				                #date(2026, 7, 16),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14107",  /* User Story */
+				                "Audited all measures against the live model: rewrote descriptions to the house standard, standardised format strings, corrected display folders, fixed Tenants With Disability and Tenants Employed, and made CHRA 3.4 Untenantable Days Vacant (Period) additive across months."  /* Description */
+				            },
+				            {
+				                "2.3.0", /* Version */
+				                #date(2026, 7, 16),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14107",  /* User Story */
+				                "Fixed CHRA 3.1 Tenantable Vacancies Ended (Period) and CHRA 3.2 Tenantable Days Vacant (Period), which were always zero. They now measure the re-let lag from the ready date to the next interval start."  /* Description */
+				            },
+				            {
+				                "2.2.0", /* Version */
+				                #date(2026, 7, 15),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14107",  /* User Story */
+				                "Corrected CHRA 1.2 Rent Outstanding (Period End) and CHRA 1.4 Households in Rent Arrears over 21 Days (Period End) to honour the Program filter. Added CHRA 4.2 Occupancy Rate % (Period End), CHRA 4.1 Vacancies (Period End), CHRA 6 Repairs Received (Period) and CHRA 1.2 rent ageing-bucket measures."  /* Description */
+				            },
+				            {
+				                "2.1.0", /* Version */
+				                #date(2026, 7, 15),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14107",  /* User Story */
+				                "Added the CHRA KPM Reporting measure set and display folders for the Community Housing Regulatory Authority annual funder return, covering KPM 1 to 4 and KPM 6. The rent versus non-rent split is FIFO-approximate and repair completion coverage is partial. KPM 5 and KPM 7 were deferred with no source data."  /* Description */
+				            },
+				            {
+				                "2.0.0", /* Version */
+				                #date(2026, 7, 14),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14107",  /* User Story */
+				                "Reviewed and reorganised all measures for self-service: applied the (Current), (Period) and (Period End) naming suffixes, moved staging folders into numbered domain folders, renamed measures, rewrote descriptions, hid helpers in _Internal, fixed Property Timeline and Last Refreshed calculations and removed duplicates."  /* Description */
+				            },
+				            {
+				                "1.7.0", /* Version */
+				                #date(2026, 7, 13),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14107",  /* User Story */
+				                "Added occupancy, vacancy and length of stay measures to the Measures table. Renamed the incoming Total Length of Stay (Days) to Total Length of Stay (Days) (CLS) to avoid a name collision."  /* Description */
+				            },
+				            {
+				                "1.6.0", /* Version */
+				                #date(2026, 7, 13),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14107",  /* User Story */
+				                "Changed Places Contracted (Exclude disposed; exclude acquired after period) to count by Property ID instead of Property Name, as names are not unique and had undercounted active places."  /* Description */
+				            },
+				            {
+				                "1.5.0", /* Version */
+				                #date(2026, 7, 13),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14107",  /* User Story */
+				                "Changed Places Contracted (Exclude disposed; exclude acquired after period) so the acquisition cutoff tracks the end of the selected range, not the end of the first selected month."  /* Description */
+				            },
+				            {
+				                "1.4.0", /* Version */
+				                #date(2026, 7, 13),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14107",  /* User Story */
+				                "Fixed Avg Length of Stay (in Weeks) and Max Length of Stay (in Weeks) to exclude tenancies starting after the month and floor weeks at 0, as past months had shown negative weeks."  /* Description */
+				            },
+				            {
+				                "1.3.0", /* Version */
+				                #date(2026, 7, 13),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14107",  /* User Story */
+				                "Changed Occupied Days (Period), Count of Unoccupied Properties (Period) and TH Places Unoccupied over 20 Days so open tenancies run to period end, fixing understated current-month occupancy."  /* Description */
+				            },
+				            {
+				                "1.2.1", /* Version */
+				                #date(2026, 7, 9),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14107",  /* User Story */
+				                "Fixed the Property Timeline load error. It stays a calculated table, copying from the new hidden native SQL import table Property Timeline Source. Supersedes the direct import attempted in 1.2.0."  /* Description */
+				            },
+				            {
+				                "1.2.0", /* Version */
+				                #date(2026, 7, 9),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14107",  /* User Story */
+				                "Rebuilt Property Timeline as a native SQL import for faster refresh, with enhanced Days Between Intervals. Names and relationships unchanged; non-final gaps can be negative where intervals overlap."  /* Description */
+				            },
+				            {
+				                "1.1.2", /* Version */
+				                #date(2026, 7, 9),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14107",  /* User Story */
+				                "Changed Timeline Avg Gap Days and (Review) Timeline Avg Ready-to-Let Gap Days to exclude each property's most recent open interval, so they average completed gaps only."  /* Description */
+				            },
+				            {
+				                "1.1.1", /* Version */
+				                #date(2026, 7, 9),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "14107",  /* User Story */
+				                "Fixed Property Timeline: Days Between Intervals now shows the running gap for the most recent interval, and Reverse Row Num no longer duplicates for intervals with identical dates."  /* Description */
+				            },
+				            {
+				                "1.1.0", /* Version */
+				                #date(2026, 5, 13),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "13655",  /* User Story */
+				                "Added Aged Debt from the EDW, with friendly column names, descriptions, aged debt measures and As At date attributes that work without Date Table relationships."  /* Description */
+				            },
+				            {
+				                "1.0.2", /* Version */
+				                #date(2026, 4, 20),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "13514",  /* User Story */
+				                "Replace SELECT mapping from property_tenant_primary_tenant_flag to property_tenant_head_of_household_flag in Tenant.tmdl to match the renamed source column."  /* Description */
+				            },
+				            {
+				                "1.0.1", /* Version */
+				                #date(2026, 2, 20),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added the Latest Tenancy Manager measure to the 02. Tenancy folder, returning the manager of the most recent non-cancelled tenancy for a property. Designed for property tooltips."  /* Description */
+				            },
+				            {
+				                "1.0.0", /* Version */
+				                #date(2026, 2, 18),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Initial production release: tenancy-referral matching, date-aware occupancy and vacancy measures, property timeline, tenant demographics, HUD THVM dashboard metrics and data quality audit."  /* Description */
+				            },
+				            {
+				                "0.5.4", /* Version */
+				                #date(2026, 2, 18),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Removed the original Tenancy Referral Audit and renamed Tenancy Referral Audit V2 to Tenancy Referral Audit. Updated descriptions to document all current Match Quality categories."  /* Description */
+				            },
+				            {
+				                "0.5.3", /* Version */
+				                #date(2026, 2, 18),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added the Verified Match (Cross-Chain) category to Tenancy Referral Audit Match Quality for valid matches where several referrals cover different segments of a tenancy chain."  /* Description */
+				            },
+				            {
+				                "0.5.2", /* Version */
+				                #date(2026, 2, 17),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Changed TH Households With Transfer Activity to use the exact Date Table range selected instead of snapping to full calendar months."  /* Description */
+				            },
+				            {
+				                "0.5.1", /* Version */
+				                #date(2026, 2, 17),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Rebuilt Tenancy Referral Audit with the chain-aware matching used by the Bridge, adding Chain Start/End Date columns, Waitlisted referral exclusion and expanded Match Quality categories."  /* Description */
+				            },
+				            {
+				                "0.5.0", /* Version */
+				                #date(2026, 2, 16),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Made Tenancy Referral Bridge matching chain-aware so internal transfers match, added Chain Start Date and Chain End Date, excluded Waitlisted referrals and made Effective Referrer Name chain-aware."  /* Description */
+				            },
+				            {
+				                "0.4.2", /* Version */
+				                #date(2026, 2, 13),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added Effective Referrer Name to Tenancy Referral Bridge. It returns Referrer Name, or inherits the referrer from the client's closest earlier referral when blank (internal transfers)."  /* Description */
+				            },
+				            {
+				                "0.4.1", /* Version */
+				                #date(2026, 2, 11),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added date-aware TH Places Unoccupied >20 Days v2 (replaces original), TH Places Unoccupied >20 Days Period End, Unoccupied Days (Period End) and Count of Unoccupied Properties (Period/Period End)."  /* Description */
+				            },
+				            {
+				                "0.4.0", /* Version */
+				                #date(2026, 1, 30),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added the Property Timeline calculated table of void and tenancy intervals per property, clamped to the property lifecycle and related to Property, with Timeline void and tenancy day measures."  /* Description */
+				            },
+				            {
+				                "0.3.5", /* Version */
+				                #date(2026, 1, 28),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added the disconnected Tenancy Referral Audit table, matching tenancies to referrals by Tangata Whaiora ID with gap days and Match Quality. For data quality review only, not operational reporting."  /* Description */
+				            },
+				            {
+				                "0.3.4", /* Version */
+				                #date(2026, 1, 28),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added Most Recent Referrer to Tenancy and a date tolerance window to Tenancy Referral Bridge matching, so slightly misaligned administrative dates still match."  /* Description */
+				            },
+				            {
+				                "0.3.3", /* Version */
+				                #date(2026, 1, 27),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added date-aware occupancy measures such as Occupied Days (Period) and Occupancy Rate (Period) %, which respect the property lifecycle and supersede Occupied Bed Nights (Period)."  /* Description */
+				            },
+				            {
+				                "0.3.2", /* Version */
+				                #date(2026, 1, 26),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Made TH vacancy measures date-aware, added TH Property Unoccupied Days, replaced TH Places Unoccupied >20 Days and renamed TH Places Unoccupied at Month End to TH Places Unoccupied (Period)."  /* Description */
+				            },
+				            {
+				                "0.3.1", /* Version */
+				                #date(2026, 1, 23),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added Rent Payable Weekly to Tenancy: the full weekly rent before IRRS subsidy, with summarization disabled."  /* Description */
+				            },
+				            {
+				                "0.3.0", /* Version */
+				                #date(2026, 1, 22),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added Occupied Bed Nights (Period) and, for charts, TH Short/Medium/Long/Ultra-Long Stay % (Grand Total) measures that keep Date Table, City and Provider Agreement Number filters."  /* Description */
+				            },
+				            {
+				                "0.2.9", /* Version */
+				                #date(2026, 1, 21),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Switched TH Exited Short/Medium/Long-UltraLong Stay (12M), TH Households Entered This Month, TH Households Serviced (12M) and TH Avg Household Turnover (12M) to chain logic."  /* Description */
+				            },
+				            {
+				                "0.2.8", /* Version */
+				                #date(2026, 1, 21),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Updated TH Households Still in Service, TH In Service Short/Medium/Long/Ultra-Long Stay % and TH Avg Exit Time by Stay to use stay chains, so categorisation is accurate across tenant transfers."  /* Description */
+				            },
+				            {
+				                "0.2.7", /* Version */
+				                #date(2026, 1, 21),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added TH Exits/Positive/Negative/Neutral (Period) count and rate measures that use the Date Table slicer range instead of fixed month or 12-month rolling periods."  /* Description */
+				            },
+				            {
+				                "0.2.6", /* Version */
+				                #date(2026, 1, 20),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added tenant demographic measures in 10. Tenant Demographics for ethnicity, gender and data completeness, responding to the Date Table slicer."  /* Description */
+				            },
+				            {
+				                "0.2.5", /* Version */
+				                #date(2026, 1, 16),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Updated TH Avg/Max Stay Weeks (Exited 12M) to use stay chains, measuring from Chain Start Date to final Vacated Date and excluding chains ending in an internal transfer."  /* Description */
+				            },
+				            {
+				                "0.2.4", /* Version */
+				                #date(2026, 1, 16),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Fixed TH Avg/Max Stay Weeks (In Service) measures to only include chains actually IN SERVICE at reference date. Excludes tenancies that exited before reference date."  /* Description */
+				            },
+				            {
+				                "0.2.3", /* Version */
+				                #date(2026, 1, 16),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Updated TH Avg/Max Stay Weeks (In Service) to use stay chains, including only chains whose last tenancy started on or before the reference date."  /* Description */
+				            },
+				            {
+				                "0.2.2", /* Version */
+				                #date(2026, 1, 16),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Updated TH Max Stay Weeks (In Service) to include exited tenancies, measuring from Chain Start Date to the reference date or, if exited, the final vacated date."  /* Description */
+				            },
+				            {
+				                "0.2.1", /* Version */
+				                #date(2026, 1, 16),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Updated TH Avg Stay Weeks (In Service) to include exited tenancies, measuring from Chain Start Date to the reference date or, if exited, the final vacated date."  /* Description */
+				            },
+				            {
+				                "0.2.0", /* Version */
+				                #date(2026, 1, 16),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added Transitional Housing Referrals table and Tenancy Referral Bridge, plus Tenancy columns Referral Count, First Referral Accepted Date, Last Referral Discharge Date, Has Matching Referrals."  /* Description */
+				            },
+				            {
+				                "0.1.18", /* Version */
+				                #date(2026, 1, 14),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added Client dimension table with core demographics, a Tangata Whaiora ID column on Tenancy (from Primary Tenant Record Base ID) and a Tenancy to Client relationship."  /* Description */
+				            },
+				            {
+				                "0.1.17", /* Version */
+				                #date(2026, 1, 5),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added pre-calculated stay chain columns to Tenancy (Prev Vacate Date, Gap Days, Is New Chain, Chain ID, Chain Start Date) and measures Total Length of Stay (Days) v2/v3 and Stay Chain Gap Check."  /* Description */
+				            },
+				            {
+				                "0.1.16", /* Version */
+				                #date(2025, 12, 30),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Updated THVM measures to take the reference date from the Date Table slicer, defaulting to today when unfiltered, enabling historical analysis."  /* Description */
+				            },
+				            {
+				                "0.1.15", /* Version */
+				                #date(2025, 12, 24),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added HUD THVM Dashboard measures in 09. THVM Dashboard covering occupancy, service flows, length of stay and exits, per HUD glossary definitions."  /* Description */
+				            },
+				            {
+				                "0.1.14", /* Version */
+				                #date(2025, 12, 19),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added 4 Model Info calculated tables using DAX INFO functions (_Model Info - Tables, Columns, Measures, Relationships) for self-service model documentation. Added description to Measures table."  /* Description */
+				            },
+				            {
+				                "0.1.13", /* Version */
+				                #date(2025, 12, 11),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added Active Tenancies in Period measure - calculates tenancies active during selected Date Table period using date overlap logic"  /* Description */
+				            },
+				            {
+				                "0.1.12", /* Version */
+				                #date(2025, 12, 10),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added Sub Program Owner column to Property table"  /* Description */
+				            },
+				            {
+				                "0.1.11", /* Version */
+				                #date(2025, 12, 10),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added Program Owner column to Property table"  /* Description */
+				            },
+				            {
+				                "0.1.10", /* Version */
+				                #date(2025, 12, 10),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Updated Program field description with examples: IRRS, Transitional Housing"  /* Description */
+				            },
+				            {
+				                "0.1.9", /* Version */
+				                #date(2025, 12, 10),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Updated Contract Service Name and Contract Service Code descriptions to clarify these are EAL BC Dimension fields"  /* Description */
+				            },
+				            {
+				                "0.1.8", /* Version */
+				                #date(2025, 12, 10),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Renamed Business Central Service Name/Code to Contract Service Name/Code for clarity"  /* Description */
+				            },
+				            {
+				                "0.1.7", /* Version */
+				                #date(2025, 12, 10),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Updated Property Service Name and Property Service Code descriptions to clarify these are EAHT BC Dimension fields"  /* Description */
+				            },
+				            {
+				                "0.1.6", /* Version */
+				                #date(2025, 12, 8),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Date Table hidden"  /* Description */
+				            },
+				            {
+				                "0.1.5", /* Version */
+				                #date(2025, 12, 4),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added self-service measures across 7 folders: Property Portfolio, Tenancy, Tenant, Financial, Maintenance, Inspections, Healthy Homes"  /* Description */
+				            },
+				            {
+				                "0.1.4", /* Version */
+				                #date(2025, 12, 2),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Applied Short Date format to 56 DateTime columns across all tables for improved self-service usability"  /* Description */
+				            },
+				            {
+				                "0.1.3", /* Version */
+				                #date(2025, 12, 2),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added Property Maintenance Type, Property Maintenance and Property Maintenance Task tables with relationships, renamed flag columns to the Is.../Has.../Are... pattern and hid technical columns."  /* Description */
+				            },
+				            {
+				                "0.1.2", /* Version */
+				                #date(2025, 12, 2),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added Healthy Homes table with 1:1 relationship to Property, disabled summarization on 13 attribute columns"  /* Description */
+				            },
+				            {
+				                "0.1.1", /* Version */
+				                #date(2025, 12, 1),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added Tenancy Transaction fact table (1.26M rows) with relationships to Property and Tenancy via business keys, filtered orphaned records with NULL keys"  /* Description */
+				            },
+				            {
+				                "0.1.0", /* Version */
+				                #date(2025, 12, 1),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Fixed SCD2 for self-service: filtered dimensions to current records only, changed relationships from surrogate keys to business keys (Property ID, Property Tenancy ID)"  /* Description */
+				            },
+				            {
+				                "0.0.12", /* Version */
+				                #date(2025, 12, 1),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Disabled summarization on 14 attribute/flag columns (Lat/Long, codes, flags) across Property, Tenancy, Tenant"  /* Description */
+				            },
+				            {
+				                "0.0.11", /* Version */
+				                #date(2025, 12, 1),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Disabled summarization on Date Table numeric columns"  /* Description */
+				            },
+				            {
+				                "0.0.10", /* Version */
+				                #date(2025, 12, 1),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Hidden KEY and DWH columns across all tables for cleaner self-service experience"  /* Description */
+				            },
+				            {
+				                "0.0.9", /* Version */
+				                #date(2025, 11, 25),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Fixed fnApplyNamingConventions step ordering (capitaliseID before fixIdentifier) and added EA acronym"  /* Description */
+				            },
+				            {
+				                "0.0.8", /* Version */
+				                #date(2025, 11, 25),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added Tenant fact table"  /* Description */
+				            },
+				            {
+				                "0.0.7", /* Version */
+				                #date(2025, 11, 25),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Updated fnApplyNamingConventions to handle MSD, SNG acronyms and fix Identifier issue"  /* Description */
+				            },
+				            {
+				                "0.0.6", /* Version */
+				                #date(2025, 11, 25),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added Tenancy table"  /* Description */
+				            },
+				            {
+				                "0.0.5", /* Version */
+				                #date(2025, 11, 25),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Updated Property and Date Table to use shared fnApplyNamingConventions function"  /* Description */
+				            },
+				            {
+				                "0.0.4", /* Version */
+				                #date(2025, 11, 25),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Created fnApplyNamingConventions shared function in Functions group"  /* Description */
+				            },
+				            {
+				                "0.0.3", /* Version */
+				                #date(2025, 11, 25),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added Property table with naming convention fixes"  /* Description */
+				            },
+				            {
+				                "0.0.2", /* Version */
+				                #date(2025, 11, 25),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Added Date Table with essential columns, filtered from 2000-01-01"  /* Description */
+				            },
+				            {
+				                "0.0.1", /* Version */
+				                #date(2025, 11, 25),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Addition of Measures table"  /* Description */
+				            },
+				            {
+				                "0.0.0", /* Version */
+				                #date(2025, 11, 25),  /* Date */
+				                "Mike G",  /* Changed By */
+				                "11331",  /* User Story */
+				                "Dataset Creation"  /* Description */
+				            }
+				        }
+				    ),
+				
+				    // Reverse the order of the rows so new entries are at the top
+				    ReversedTable = Table.ReverseRows(InitialTable),
+				
+				    // Add an Index column to generate incremental numbers
+				    TableWithIndex = Table.AddIndexColumn(ReversedTable, "Change ID", 1, 1, Int64.Type),
+				
+				    // Add a new column for the parameter "Dataset Name"
+				    TableWithParameter = Table.AddColumn(TableWithIndex, "Dataset Name", each #"Semantic Model"),
+				
+				    // Reorder the columns to place ChangeID first
+				    ReorderedColumns = Table.ReorderColumns(TableWithParameter, {"Change ID", "Version", "Change Date", "Changed By", "User Story ID", "Description", "Dataset Name"})
+				in
+				    ReorderedColumns
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

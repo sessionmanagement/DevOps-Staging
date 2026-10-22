@@ -1,0 +1,35 @@
+table 'Ref Referrer Groupings'
+	lineageTag: 0bbf452d-12d1-471d-84ba-0826bb098f5a
+
+	column dim_client_referral_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 88af1010-7b9c-48f5-9a49-b5bd18285047
+		summarizeBy: sum
+		sourceColumn: dim_client_referral_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column referrer_group
+		dataType: string
+		lineageTag: 961d6a6d-4025-41d8-9c1d-610159339ae0
+		summarizeBy: none
+		sourceColumn: referrer_group
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Ref Referrer Groupings' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="select dim_client_referral_key,#(lf)case when client_referrer_name like 'Winz%' #(lf)#(tab)or client_referrer_code in ('msd','sw')#(lf)#(tab)or client_referrer_name like 'msd%'#(lf)#(tab)or client_referrer_name like 'Oranga Tam%'#(lf)#(tab)or client_referrer_name = 'MOVC'#(lf)then 'WINZ/MSD/OT/MOVC'#(lf)when client_referrer_code in ( 'gp','ac','pp') or client_referrer_name like 'gp%' #(lf)then 'GPs/Medical Centre etc'#(lf)when client_referrer_code #(lf)in ('commhous','ptymgmtagncy','pvtllord','sh','dcm' )  then 'Other Housing incl Pvt Landlord etc'#(lf)#(lf)when client_referrer_code = 'sr' or client_referrer_code = 'self'#(lf)or client_referrer_name like 'sr self%' then 'Self or Relative Referral'#(lf)when client_referrer_code = 'ph' then 'DHB or Secondary Health'#(lf)when client_referrer_code = 'km' then 'Community incl MH'#(lf)when client_referrer_code in ('po','JU','dept of corr') #(lf)#(tab)or client_referrer_name like 'dept of corr%'#(lf)then 'Corrections/Police/Justice'#(lf) when client_referrer_code in ('dhb','pd','dh','na','np','PI','PH','OP','ae')#(lf) or client_referrer_name = 'MHSOP - Middlemore Hospital'#(lf) then 'DHB or Secondary Health'#(lf)#(lf)when client_referrer_code in ('kaingaora','kainga_hnz') #(lf)#(tab)or client_referrer_name like 'hnz%' then 'Kainga Ora/HNZ'#(lf)when client_referrer_code in ('es') #(lf)or client_referrer_code in ('twoa') -- Te Wananga o Aoteraroa#(lf)then 'Education'#(lf)when client_referrer_code in ('ad') then 'Alcohol and Drug'#(lf)when client_referrer_code in ('cs') then 'Community incl MH'#(lf)when client_referrer_code in ('ca') then 'Child and Adolescent'#(lf)when client_referrer_code in ( 'CM','fo','ad')#(lf)or client_referrer_name = 'OL Older Adults Community Mental Health Service'#(lf)then 'Community incl MH'#(lf)when client_referrer_code in ( 'cs','kp','km') #(lf)#(tab)or client_referrer_name like 'cs community%' #(lf)#(tab)or client_referrer_name like 'se mh community%'#(lf)#(tab)or client_referrer_name in ('tamaki regeneration','waypoint','other-Other NGO','Te Pokapu Hub')#(lf)#(tab)then 'Community incl MH'#(lf)when client_referrer_code in ('dhb') then 'District Health Board'#(lf)when client_referrer_name like '%emerge%' #(lf)#(tab)or client_referrer_name like 'internal service%'#(lf)#(tab)or client_referrer_code in ( 'postsng','cpp')#(lf)then 'Emerge Aotearoa'#(lf)when client_referrer_code in ('re') then 'MH Residence'#(lf)when client_referrer_code in ('ot','other','99','vs','se') then 'Other'#(lf)when client_referrer_name is null or client_referrer_code in ( 'NR','UN') then 'Unknown'#(lf)else ''#(lf)end as referrer_group#(lf)#(lf) from edw.dim_client_referral#(lf)"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

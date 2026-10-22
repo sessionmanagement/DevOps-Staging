@@ -1,0 +1,100 @@
+table 'Dim Age Group'
+	lineageTag: 4ec0b7c1-2e0b-458c-b426-d0ea2e854903
+
+	column dim_age_group_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 82d8ac4d-118f-4026-b54f-b1775c94cb18
+		summarizeBy: none
+		sourceColumn: dim_age_group_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column age_in_years
+		dataType: int64
+		formatString: 0
+		lineageTag: 3ea192b9-f834-4fd2-8e23-d4cda42235a6
+		summarizeBy: none
+		sourceColumn: age_in_years
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column age_group_tangatawhaiora
+		dataType: string
+		lineageTag: cb8f195c-7bd2-4eb2-9959-ca93f3b44151
+		summarizeBy: none
+		sourceColumn: age_group_tangatawhaiora
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column age_5_Year_Groups
+		dataType: string
+		lineageTag: 81528e94-4001-48c8-b632-272076857bd0
+		summarizeBy: none
+		sourceColumn: age_5_Year_Groups
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column age_decade_Group
+		dataType: string
+		lineageTag: e726bd9e-4ba9-48ec-a7c9-89d091f8f806
+		summarizeBy: none
+		sourceColumn: age_decade_Group
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column age_Group_Broad
+		dataType: string
+		lineageTag: a590b749-8ee2-41c5-964e-440be15841a8
+		summarizeBy: none
+		sourceColumn: age_Group_Broad
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column age_Group_MoH_Covid
+		dataType: string
+		lineageTag: 063244ea-2907-490c-92ed-96966e5f6665
+		summarizeBy: none
+		sourceColumn: age_Group_MoH_Covid
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column age_group_groupings
+		dataType: string
+		lineageTag: e3dc1083-8170-435e-880f-4fe8d803bbd9
+		summarizeBy: none
+		sourceColumn: age_group_groupings
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Age Group' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01"),
+				    edw_dim_age_group = Source{[Schema="edw",Item="vw_dim_age_group"]}[Data],
+				    #"Removed Columns" = Table.RemoveColumns(edw_dim_age_group,{"DWHSourceSystem", "DWHCreatedAt", "DWHBatchId"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,32 @@
+table dim_supervisor
+	lineageTag: 4712a3bd-10a3-4f48-8b2d-59f3e52a4472
+
+	column people_id
+		dataType: string
+		lineageTag: 6a9cf2a2-aac2-4975-b9ab-5b3f9a92821e
+		summarizeBy: none
+		sourceColumn: people_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Supervisor Name'
+		dataType: string
+		lineageTag: 649fad5a-91cb-4502-a7eb-bc5efb06dc38
+		summarizeBy: none
+		sourceColumn: Supervisor Name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_supervisor = m
+		mode: import
+		queryGroup: Dim
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT#(lf)    displayName AS 'Supervisor Name',#(lf)    [people_id]#(lf)FROM [IntelliHR].[people]#(lf)  WHERE ODSIsCurrent = 1#(lf)  AND IsSupervisor = 1;"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,114 @@
+table 'KPI Test Comparison'
+	lineageTag: 733f1251-7d63-4a44-9f0b-194ff4cc2184
+
+	column 'Kpi ID'
+		dataType: string
+		lineageTag: 99a44e73-dfcf-430a-a47e-5acb33c0a755
+		summarizeBy: none
+		sourceColumn: kpi_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column Version
+		dataType: string
+		lineageTag: 640fee65-fef6-45ae-8ef3-37436e83451b
+		summarizeBy: none
+		sourceColumn: Version
+
+		annotation SummarizationSetBy = Automatic
+
+	column Rows
+		dataType: int64
+		formatString: 0
+		lineageTag: 33e8a5e2-88a2-48bb-b2f7-9699f8aad51f
+		summarizeBy: sum
+		sourceColumn: Rows
+
+		annotation SummarizationSetBy = Automatic
+
+	column Entities
+		dataType: int64
+		formatString: 0
+		lineageTag: 702d261a-8fcf-480e-9422-b2dcf171254f
+		summarizeBy: sum
+		sourceColumn: Entities
+
+		annotation SummarizationSetBy = Automatic
+
+	column Green
+		dataType: int64
+		formatString: 0
+		lineageTag: ad6d5746-fe2d-4dfc-9dcf-63616f041d29
+		summarizeBy: sum
+		sourceColumn: Green
+
+		annotation SummarizationSetBy = Automatic
+
+	column Amber
+		dataType: int64
+		formatString: 0
+		lineageTag: a07a1727-cba6-4319-bedd-52c940a616df
+		summarizeBy: sum
+		sourceColumn: Amber
+
+		annotation SummarizationSetBy = Automatic
+
+	column Red
+		dataType: int64
+		formatString: 0
+		lineageTag: 54227bef-1593-408c-8fae-37e7ae7e95aa
+		summarizeBy: sum
+		sourceColumn: Red
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Avg Value'
+		dataType: double
+		lineageTag: 895b6a67-8890-4c4f-a84f-680f454edbe5
+		summarizeBy: sum
+		sourceColumn: Avg Value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Sum Value'
+		dataType: double
+		lineageTag: 7651cde9-44d8-419e-9cef-8b02d484d961
+		summarizeBy: sum
+		sourceColumn: Sum Value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'KPI Test Comparison' = m
+		mode: import
+		queryGroup: 'KPI Testing'
+		source =
+				let
+				    // Formula-firewall safe: prod data comes from a dedicated source query (#"Prod KPI Snapshot"),
+				    // and the test kpi_ids filter it LOCALLY. No data-source call consumes another query's data.
+				    testIds = List.Buffer(List.Distinct(#"Test KPIs Combined"[kpi_id])),
+				    prodForTest = if List.IsEmpty(testIds) then #table(type table [kpi_id = Int64.Type, service_id = Int64.Type, kpi_status = Int64.Type, kpi_value = number, entity_key = text], {}) else Table.SelectRows(#"Prod KPI Snapshot", each List.Contains(testIds, [kpi_id])),
+				    prodTagged = Table.AddColumn(prodForTest, "Version", each "Current (prod)", type text),
+				    newSel = Table.SelectColumns(#"Test KPIs Combined", {"kpi_id", "service_id", "kpi_status", "kpi_value", "entity_key"}, MissingField.UseNull),
+				    newTagged = Table.AddColumn(newSel, "Version", each "New (test)", type text),
+				    both = Table.Combine({prodTagged, newTagged}),
+				    grouped = Table.Group(both, {"kpi_id", "Version"}, {
+				        {"Rows", each Table.RowCount(_), Int64.Type},
+				        {"Entities", each List.Count(List.Distinct(List.RemoveNulls(_[entity_key]))), Int64.Type},
+				        {"Green", each List.Count(List.Select(_[kpi_status], each _ = 3)), Int64.Type},
+				        {"Amber", each List.Count(List.Select(_[kpi_status], each _ = 2)), Int64.Type},
+				        {"Red", each List.Count(List.Select(_[kpi_status], each _ = 1)), Int64.Type},
+				        {"Avg Value", each List.Average(List.RemoveNulls(_[kpi_value])), type number},
+				        {"Sum Value", each List.Sum(List.RemoveNulls(_[kpi_value])), type number}
+				    }),
+				    sorted = Table.Sort(grouped, {{"kpi_id", Order.Ascending}, {"Version", Order.Descending}})
+				in
+				    sorted
+
+	annotation PBI_ResultType = Exception
+
+	annotation PBI_NavigationStepName = Navigation
+

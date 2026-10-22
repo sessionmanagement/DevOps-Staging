@@ -1,0 +1,93 @@
+table template_1
+	lineageTag: 8fecea98-a2e3-4ea5-89b7-6ebe3d865e40
+
+	measure 'DV - Template1' = ```
+			
+			    SWITCH(
+			        SELECTEDVALUE(template_1[id]),
+			        1,FORMAT([Accepted referrals in year],"0,0"),
+			        2,FORMAT([Discharged referrals in year],"0,0"),
+			        3,FORMAT([Average length of engagement for FY],"0.00"),
+			        4,FORMAT([Bed Nights Provided],"0,0"),
+			        5,FORMAT([Number of absent nights (hospitalisation - residential and respite only)],"0,0"),
+			        6,FORMAT([Number of absent nights (other - residential and respite only)],"0,0"),
+			        7,FORMAT([Actual number of accommodation nights provided],"0,0"),
+			        8,FORMAT([Number of unique people with referrals in period],"0,0"),
+			        9,FORMAT([Number of unique referrals active period],"0,0"),
+			        10,FORMAT([Average number of contracted bed nights per person in FY],"0.00"),
+			        11,FORMAT([Average length of engagement (all time)],"0.00")
+			    )
+			```
+		lineageTag: 78f3e817-cd8c-4bea-9b29-bb9fef15df11
+
+	measure 'DV - Prev Year' =
+			
+			VAR _year = SELECTEDVALUE(DimDate[financial_year_num])-1
+			RETURN
+			CALCULATE(
+			    [DV - Template1],
+			    ALL(DimDate),
+			    DimDate[financial_year_num] = _year
+			)
+		formatString: 0
+		lineageTag: 03427b97-1db9-4592-a38b-b00c94f3d87d
+
+	column id
+		dataType: int64
+		formatString: 0
+		lineageTag: 5806cf9b-c94b-478b-a61f-c3cdb53a386a
+		summarizeBy: none
+		sourceColumn: id
+
+		annotation SummarizationSetBy = Automatic
+
+	column metric
+		dataType: string
+		lineageTag: 44871ad5-7c9b-42ae-8e3d-a59c4a067be8
+		summarizeBy: none
+		sourceColumn: metric
+		sortByColumn: order
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column order
+		dataType: int64
+		formatString: 0
+		lineageTag: 290a48d4-4478-474e-a949-fd8d9a5070c1
+		summarizeBy: none
+		sourceColumn: order
+
+		annotation SummarizationSetBy = Automatic
+
+	column description
+		dataType: string
+		lineageTag: 2274b83c-6529-45f2-8e36-d8383a524015
+		summarizeBy: none
+		sourceColumn: description
+
+		annotation SummarizationSetBy = Automatic
+
+	column showhide
+		dataType: string
+		lineageTag: 84270248-c5d1-4639-af79-14e72fba5785
+		summarizeBy: none
+		sourceColumn: showhide
+
+		annotation SummarizationSetBy = Automatic
+
+	partition template_1-19438089-c676-45d3-a896-518630f89c73 = m
+		mode: import
+		queryGroup: Shared
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("xVdNb9s4EP0rhE8JIARt06QteioKFLuH3cv2UiQ9jCXaIiCRWpKy1v9+35DUB+U6drCHPQSOZM7jmzeffnravN0Umz/7diutMDtBZSk7Lyth5U5aS40TSotvP3CID36vlRM7te+tFK42gxO+lkJP5rPVBARzPuNkI0t+/qY06VJRI35Isnfid1wqykZJ7UVNTrR941XXyBewcohCDLXEaytKo8veWkYyoMPvBuVkISSV9YQnBtU0YitxvNeM6s1Alj8CuDeemjv4+hf82/wsnjbvMoVmWpVyZU12H4kFjd69SiNfE/t8kFBgAhMVeQmOvr6k3Pc6+SBwYWW0FB1uGOELoY0Pb6K4p0r7wazJEDgv3LrMohBb6BwljVyimow3yZCpeY+HLwdpCa42Uu9hDVHwD160TC1oKW4qOrpbnL0/Kym9hLIzdu3cIGFOpVcsuBfOtEDzjFD1Vun9ZbWnFJoyMgTrZqgVEqylI6cV+JNGylkobcF6hDni1S2HKlzjyXq+szMqsQ2CtZLcWrH3ePhqtLcUiP3xG26phFb72jt89X4lUElN2Tfg5eZ8XqQf6xr1WBQYzEwn9RUBT1RZC6cqKM1fkOaG4ToFMbyk1kW5wlVb6QcpdbJJ+gX3g5nUScSE6xICC4V65jtsqFGWNi+kqADCGviXs0I43FlzgCkr5Rg6E/QhK+gEQ1vHeVP1LJmoDXtDjXLkldEweDibh2uFR16XtQxhiBXpUnqeYQEOmQuPL7iwG5sf9CYHDXH28X9gn3HI2H/gHlD6PrsYNWXa1lRB8JFGimMFgw9rF/ptCHjqr5kEN1KFyzMd1RhNsRboVuysaQNOeabQ0D79L9v5fCTvMnCuOU78M/c/ZsHrtfobNEchU/uLrSy2YKDIgzK9AyDXjJYDd8aP68Ln/rumt0KfKWYXcOvXx9SMrpjY+P4YJ9fpuC6ijnHOgJ3zPByMBvlx4mJOyzvxNXGCOyFdeos77UGVEhjs55RbtYmX1VRhhE1dBERHZUJ3dakRhEsyxT/9SvHlghGGwjjFP10xxU8wTkbMNcPTyj2GZSOdY0xfp+kfsLKGqeYtKA3yeZ2hxYbEMz1K0VmFNGcZlVtMvWvDXAjl15tSJunbN4tBPuuyqJ9FZfAagj/U2rxOvrk42F+H+qotc6Gf60hrHsVTKgcBi5iyi95yRUtc5N9iEZo8Kni+63HVaOkf1fbtae9FH+QzoSdxvByemjwZ7h8f4oxFswdv4nfPZ7eE5w22utCHxPaIc/+1+Txv8lTgnwZfkCpetS+vZRz3878j6BoI0Xfjqs67Qyqbs4FnWnORwhbBUc2V5iGeSpdNX42/PngtSQsWJsnnvEp5AwyNCtDRgOYOtWI2CfjzXw==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [id = _t, metric = _t, order = _t, description = _t, showhide = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"id", Int64.Type}, {"metric", type text}, {"order", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

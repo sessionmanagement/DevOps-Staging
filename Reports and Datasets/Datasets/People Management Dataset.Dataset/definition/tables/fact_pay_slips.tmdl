@@ -1,0 +1,167 @@
+table fact_pay_slips
+	lineageTag: 7c2a6681-a871-486a-b671-97795a6387b2
+
+	column pay_packet_row_id
+		dataType: string
+		lineageTag: 06c5f656-4379-40b6-928b-d2efe976b15b
+		summarizeBy: none
+		sourceColumn: pay_packet_row_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column pay_packet_id
+		dataType: int64
+		formatString: 0
+		lineageTag: acde76b3-48a5-4bf0-9c23-dc7a866dab18
+		summarizeBy: sum
+		sourceColumn: pay_packet_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column employee_id
+		dataType: string
+		lineageTag: 17982f66-ebc9-4f35-a761-341b38e6e516
+		summarizeBy: none
+		sourceColumn: employee_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column gross_name
+		dataType: string
+		lineageTag: cc72b319-28fb-43cf-8966-64c509e4d7e3
+		summarizeBy: none
+		sourceColumn: gross_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column gross_summary
+		dataType: string
+		lineageTag: f5136a82-cc4a-4e85-bbfe-ae31c38b17d2
+		summarizeBy: none
+		sourceColumn: gross_summary
+
+		annotation SummarizationSetBy = Automatic
+
+	column Number_Hours
+		dataType: double
+		lineageTag: 71ef52f8-c96c-4adf-bb41-af92244dde6e
+		summarizeBy: sum
+		sourceColumn: Number_Hours
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Number_Days
+		dataType: double
+		lineageTag: 5e82bd04-d7ff-4450-bf6d-be55bc6707f3
+		summarizeBy: sum
+		sourceColumn: Number_Days
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Number_Weeks
+		dataType: double
+		lineageTag: e3816f91-048e-4012-955b-f1af3d882908
+		summarizeBy: sum
+		sourceColumn: Number_Weeks
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column pay_period_start_date
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 74dc342a-6d38-410c-8436-6e1b99d4b4f0
+		summarizeBy: none
+		sourceColumn: pay_period_start_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column pay_period_end_date
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: d02b04a9-cdf7-476e-bc5d-77364730b72f
+		summarizeBy: none
+		sourceColumn: pay_period_end_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column pay_packet_type
+		dataType: string
+		lineageTag: 809b55f1-2e0d-4e8a-a571-c0e172ca345c
+		summarizeBy: none
+		sourceColumn: pay_packet_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column deductions_name
+		dataType: string
+		lineageTag: c1c327ff-1ca2-4da0-ab1d-d72097f6eebe
+		summarizeBy: none
+		sourceColumn: deductions_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column HoursWorked
+		dataType: double
+		formatString: 0.0
+		lineageTag: 6f5bce2e-4724-4893-b2e7-9f000733bac5
+		summarizeBy: sum
+		sourceColumn: HoursWorked
+
+		annotation SummarizationSetBy = Automatic
+
+	column Kaimahi = RELATED(dim_people[Kaimahi])
+		lineageTag: af9a9d38-b407-4783-be80-f7c9a10c6851
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column EmpID = RELATED(dim_people[EmpID])
+		formatString: 0
+		lineageTag: 811ca078-0201-44ff-a416-25da8c2ab876
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column Supervisor = RELATED(dim_people[Supervisor])
+		lineageTag: 1a835d56-3574-4e58-9ab9-ac47e14df630
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Work Type' = RELATED(dim_people[Work Type])
+		lineageTag: 530053d2-289c-4c23-aef9-b6a248596b6d
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Work Class' = RELATED(dim_people[Work Class])
+		lineageTag: c28d9c8f-d011-4e1f-87d1-e0c422d39558
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Business Unit' = RELATED(DimBusinessUnits[Business Unit])
+		lineageTag: 621b56b6-0dd7-45ec-bb01-4923fb257824
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_pay_slips = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="with __original_data as#(lf)(#(lf)SELECT#(lf)      psg.[pay_packet_row_id]#(lf)      ,psg.[pay_packet_id]#(lf)      ,psg.[employee_id]#(lf)      ,case when psg.[gross_name] like '%addtional%' then 'Additional Hours'#(lf)      else psg.gross_name#(lf)      end as gross_name#(lf)      ,psg.[gross_summary]#(lf)      ,ps.pay_period_start_date#(lf)      ,ps.pay_period_end_date#(lf)      ,ps.pay_packet_type#(lf)      --,psn.net_pay_name#(lf)#(tab)  ,psd.deductions_name#(lf)     ,#(lf)      charindex(' ',gross_summary) as first_blank#(lf)        FROM [DataPay].[employees] as e#(lf)#(tab)#(tab)left join Datapay.pay_slips as ps on ps.employee_id = e.id#(lf)#(tab)#(tab)left join Datapay.pay_slips_gross as psg on ps.pay_packet_id = psg.pay_packet_id #(lf)#(tab)#(tab)--left join Datapay.pay_slips_net as psn on psn.pay_packet_id = ps.pay_packet_id#(lf)#(tab)#(tab)left join Datapay.pay_slips_deductions as psd on psd.pay_packet_id = ps.pay_packet_id#(lf)#(lf)  WHERE e.ODSIsCurrent=1#(lf)  AND ps.ODSIsCurrent=1#(lf)  --AND psn.ODSIsCurrent=1#(lf)  AND psg.ODSIsCurrent=1#(lf)  AND psd.ODSIsCurrent=1#(lf)  --AND net_pay_name = 'Direct Credit Balance' #(lf)  AND deductions_name = 'PAYE'#(lf)  AND pay_packet_type in ('main','manual')#(lf)  AND gross_name IN('Addtional Hours',#(lf)  'Alternative Holiday Payment',#(lf)  'Annual Leave Payment',#(lf)  'Annual Leave Payment - Parental Rate',#(lf)  'Bereavement Leave Payment',#(lf)  'Birthday Leave Payment',#(lf)  'COVID-19 Leave Payment',#(lf)  'Cultural Contribution Payment',#(lf)  'Discretionary Leave Payment',#(lf)  'Discretionary Payment',#(lf)  'Disturbed Hours',#(lf)  'Domestic Violence Leave Payment',#(lf)  'In Lieu Of Notice - Extra Pay',#(lf)  'Long Service Leave Payment',#(lf)  'Meeting Hours',#(lf)  'Ordinary Pay',#(lf)  'Overtime x0.5',#(lf)  'Public Holiday Payment',#(lf)  'Sick Leave Payment',#(lf)  'Study Leave Payment',#(lf)  'Union Leave Payment',#(lf)  'Well Being Leave Payment')#(lf)  )#(lf)#(lf)  select #(lf)  pay_packet_row_id,#(lf)  pay_packet_id,#(lf)  employee_id,#(lf)  gross_name,#(lf)  gross_summary,#(lf)  case #(lf)  when LEFT(gross_summary,4) = 'hour' then CAST (0 AS NVARCHAR)#(lf)  when LEFT(gross_summary,4) = 'days' then CAST (0 AS NVARCHAR)#(lf)  when LEFT(gross_summary,4) = 'week' then CAST (0 AS NVARCHAR)#(lf)  when gross_summary like '%hours%' then #(lf)#(tab)CAST(TRIM(substring(gross_summary,1,first_blank)) AS NVARCHAR)#(lf)    end as Number_Hours,#(lf)  case #(lf)  when LEFT(gross_summary,4) = 'days' then CAST (0 AS NVARCHAR)#(lf)  when gross_summary like '%day%' then #(lf)    CAST(TRIM(substring(gross_summary,1,first_blank)) AS NVARCHAR)#(lf)     end #(lf)     as Number_Days,#(lf)   case#(lf)    when LEFT(gross_summary,4) = 'week' then CAST (0 AS NVARCHAR)#(lf)#(tab)when gross_summary like '%weeks%' and gross_summary not like '%hours%' then #(lf)    CAST(TRIM(substring(gross_summary,1,first_blank)) AS NVARCHAR)#(lf)    end as Number_Weeks ,#(lf)     pay_period_start_date,#(lf)    pay_period_end_date,#(lf)    pay_packet_type,#(lf)#(tab)--net_pay_name,#(lf)#(tab)deductions_name#(lf)#(lf)  from __original_data"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Number_Hours", type number}, {"Number_Days", type number}, {"Number_Weeks", type number}}),
+				    #"Added Conditional Column" = Table.AddColumn(#"Changed Type", "HoursWorked", each if [Number_Hours] is null then [Number_Days] * 8 else [Number_Hours], type any),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Added Conditional Column",{{"HoursWorked", type number}})
+				in
+				    #"Changed Type1"
+
+	annotation PBI_ResultType = Table
+

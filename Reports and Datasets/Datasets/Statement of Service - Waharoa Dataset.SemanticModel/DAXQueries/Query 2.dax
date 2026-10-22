@@ -1,0 +1,34 @@
+  DEFINE
+      VAR TestFY = 2025  // Change this to your current/test FY
+
+  EVALUATE
+  ADDCOLUMNS(
+      FILTER(
+          SUMMARIZE(
+              dim_date,
+              dim_date[financial_year_num]
+          ),
+          dim_date[financial_year_num] = TestFY
+      ),
+
+      "FY", [financial_year_num],
+
+      // Measure values
+      "Avg Age of Housing (Days)", [Average Age of Housing (Days)],
+      "Avg Ownership Length (Days)", [Average Property Ownership Length (All)],
+
+      // Convert to years for readability
+      "Avg Age (Years)", DIVIDE([Average Age of Housing (Days)], 365, BLANK()),
+      "Avg Ownership (Years)", DIVIDE([Average Property Ownership Length (All)], 365, BLANK()),
+
+      // Counts for context
+      "Total Properties", [Housing Portfolio Count (by Year)],
+      "Owned Properties", [Number of properties owned in FY],
+
+      // Sanity checks
+      "Age seems reasonable?",
+          [Average Age of Housing (Days)] > 0 && [Average Age of Housing (Days)] < 36500,  // Between 0 and 100  years
+
+      "Ownership seems reasonable?",
+          [Average Property Ownership Length (All)] > 0 && [Average Property Ownership Length (All)] < 36500
+  )

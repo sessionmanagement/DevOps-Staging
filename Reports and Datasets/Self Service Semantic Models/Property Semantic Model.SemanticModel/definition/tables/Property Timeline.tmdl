@@ -1,0 +1,149 @@
+/// Chronological timeline of void and tenancy intervals per property - one row per interval, covering every property that has void or tenancy history. Record Type is 'VoidInterval' or 'TenancyInterval'. Calculated table that copies all 14 columns directly from the hidden import table 'Property Timeline Source' via a single SELECTCOLUMNS (that source runs the native SQL query - see Property Timeline.sql). Kept as a calculated table so existing relationships, measures, and date hierarchies stay bound, while all heavy interval / gap / row-number logic runs in the folding SQL source rather than in DAX.
+table 'Property Timeline'
+	lineageTag: e4b0bd76-348b-4948-839d-624320cdd1fd
+
+	/// Identifies the interval source: 'VoidInterval' for void checklist periods or 'TenancyInterval' for tenancy periods.
+	column 'Record Type'
+		lineageTag: f9de3f5e-de75-4cf4-95e0-e5335bdb82a5
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Record Type]
+
+	/// Property business key linking to the Property dimension. Hidden; used for the relationship to the Property table.
+	column 'Property ID'
+		isHidden
+		lineageTag: c676ae50-715d-4220-b9d5-86aff7f7463c
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Property ID]
+
+	/// Start date of the interval. For voids: COALESCE(Date Tenancy Terminated, Created On), shifted to Acquired Date for NEW* categories or when acquired is later. For tenancies: Tenancy Start Date, shifted to Acquired Date if later.
+	column 'Interval Start Date'
+		formatString: d/mm/yyyy
+		lineageTag: 1361b1f1-c74b-4998-a2f8-48bc120d4bf4
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Interval Start Date]
+
+		variation Variation
+			isDefault
+			relationship: a2239a72-cc40-4cdd-8efa-29598c771550
+			defaultHierarchy: LocalDateTable_7cbbfce1-4472-43b8-af43-f689abaf88b9.'Date Hierarchy'
+
+	/// End date of the interval. For voids: the ready to let date, else the Confirmed Disposal Date. A void with neither takes the refresh date (New Zealand time) when it is the property's most recent interval (Reverse Row Number 1); any other void with neither date is left blank. For tenancies: the Vacated Date, else the Confirmed Disposal Date, else the refresh date.
+	column 'Interval End Date'
+		formatString: d/mm/yyyy
+		lineageTag: a497dad7-620b-40b2-ba67-a53a6e8878d6
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Interval End Date]
+
+		variation Variation
+			isDefault
+			relationship: 040f5a18-94bc-4c15-8397-ed074471ade0
+			defaultHierarchy: LocalDateTable_f63141e1-461a-4948-871c-e37bdb72c3df.'Date Hierarchy'
+
+	/// Void category code from the Void Checklist (e.g., ROTH, MAJD, NEWT). Blank for tenancy intervals.
+	column 'Void Category'
+		lineageTag: e7b4c853-b4e6-45d8-9060-ff38636540f6
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Void Category]
+
+	/// Void workflow status from the Void Checklist (e.g., Current, New Tenant Occupied). Blank for tenancy intervals. Checklists with status Void Category Change or Reverted to Untenantable are not included.
+	column 'Void Status'
+		lineageTag: 66433f1e-7ec2-4ac7-85b0-d9ea85fc79ee
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Void Status]
+
+	/// Free-text comments from the Void Checklist record. Blank for tenancy intervals.
+	column 'Void Comments'
+		lineageTag: fba487cd-b42f-4a36-a477-ce8688dadff9
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Void Comments]
+
+	/// Tenancy name from the Tenancy table identifying the tenant and property. Blank for void intervals.
+	column 'Tenancy Name'
+		lineageTag: 0304df5f-ce87-4d02-b0fb-b458676b3b3b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tenancy Name]
+
+	/// Current tenancy status (e.g., Active, Vacated, Vacated Closed Account). Blank for void intervals.
+	column 'Tenancy Status'
+		lineageTag: 6e5d6ff1-4121-40a8-9cbe-d12e5b92eb8c
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tenancy Status]
+
+	/// Business key of the source Void Checklist record. Hidden; blank for tenancy intervals.
+	column 'Void Checklist ID'
+		isHidden
+		lineageTag: 16b6f9c6-5b40-4ec0-af0e-eea742a17bec
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Void Checklist ID]
+
+	/// Duration of the interval in days = DATEDIFF(Interval Start Date, Interval End Date). Note: the source can produce negative values (Interval End Date < Interval Start Date, e.g. back-dated void ready dates) and blanks; these distort Timeline day-sum/average KPIs and should be cleaned at the SQL source.
+	column 'Days Interval'
+		formatString: #,0
+		lineageTag: 4b486872-fb7d-451b-b714-a2ffe8c5bde9
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Days Interval]
+
+	/// Unique surrogate key per interval (from the SQL source). Hidden; used to look up Days Between Intervals and Reverse Row Num from 'Property Timeline Source'.
+	column 'Interval Key'
+		isHidden
+		formatString: 0
+		lineageTag: 608c76a5-e2cd-5254-8360-39c5bb2aa963
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Interval Key]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Position of each interval within its property, newest first (1 = the property's most recent interval, increasing into the past). Ordered by start date, then end date. A void with no ready to let date counts as ending on the refresh date, so on a shared start date it ranks ahead of a closed interval but not ahead of a tenancy that is still open. Sourced from the SQL query; used by Timeline measures to isolate the latest interval (=1) or earlier intervals (>1). Not additive.
+	column 'Reverse Row Number'
+		isHidden
+		formatString: 0
+		lineageTag: 0f3b7f2c-43db-4321-b812-3760ba3af708
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Reverse Row Number]
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Gap in days between this interval's end and the start of the same property's next interval, the re-let or turnaround lag after the interval closes. Sourced from the SQL query, one value per interval row, and averaged rather than summed. For the most recent interval (Reverse Row Number 1) it is the gap from its end to the refresh date, or to the Confirmed Disposal Date if earlier, and is never negative (usually 0). Blank only where the interval's own end date is missing in the source (the same rows where Days Interval is blank); these rows can sit anywhere in a property's history but are never the most recent interval. Can be negative where intervals overlap, including a closed interval that starts the same day as the most recent interval, and is 0 wherever the next interval begins the same day this one ends.
+	column 'Days Between Intervals'
+		formatString: 0
+		lineageTag: 2073588a-8d48-4a1f-903c-5633a901ea90
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Days Between Intervals]
+
+		annotation SummarizationSetBy = User
+
+	partition 'Property Timeline' = calculated
+		mode: import
+		source =
+				SELECTCOLUMNS(
+				    'Property Timeline Source',
+				    "Record Type", [Record Type],
+				    "Days Between Intervals", [Days Between Intervals],
+				    "Property ID", [Property ID],
+				    "Interval Start Date", [Interval Start Date],
+				    "Interval End Date", [Interval End Date],
+				    "Void Category", [Void Category],
+				    "Void Status", [Void Status],
+				    "Void Comments", [Void Comments],
+				    "Tenancy Name", [Tenancy Name],
+				    "Tenancy Status", [Tenancy Status],
+				    "Void Checklist ID", [Void Checklist ID],
+				    "Days Interval", [Days Interval],
+				    "Interval Key", [Interval Key],
+				    "Reverse Row Number", [Reverse Row Num]
+				)
+

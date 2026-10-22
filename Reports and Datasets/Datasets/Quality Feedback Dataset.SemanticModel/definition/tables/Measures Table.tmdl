@@ -1,0 +1,3981 @@
+table 'Measures Table'
+	lineageTag: 59b1bfb2-6735-4fca-8df4-4dc1cc543ce3
+
+	measure 'Fact General Ledger Row Count' =
+			
+			COUNTROWS ( 'Fact Finance General Ledger' )
+		formatString: 0
+		displayFolder: Activity Measures
+		lineageTag: 7c79360a-3037-4d14-b0de-df24b542f091
+
+	measure 'Sum of GL' =
+			
+			SUM ( 'Fact Finance General Ledger'[Finance General Ledger Amount] )
+		formatString: \$#,0;-\$#,0;\$#,0
+		displayFolder: Activity Measures
+		lineageTag: 12cfd773-4fc4-44c9-a04f-b89ab482407b
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	/// Calculates the total revenue by summing the 'Finance General Ledger Amount' for accounts with the 'Finance General Ledger Account Hierarchy Second Level Code' equal to "1001".
+	/// 
+	measure 'Total Revenue' =
+			
+			VAR _revenue =
+			    CALCULATE (
+			        - SUM ( 'Fact Finance General Ledger'[Finance General Ledger Amount] ),
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Second Level Code] = "1001"
+			    )
+			RETURN
+			    IF ( ISBLANK ( _revenue ), 0, _revenue )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Revenue
+		lineageTag: 8f82f4d0-8b18-4dc0-9012-2df186c91700
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total salary and wages by summing the 'Finance General Ledger Amount' for accounts with the 'Finance General Ledger Account Hierarchy Third Level Code' equal to "2001".
+	/// 
+	measure SalaryWages =
+			
+			VAR SalWage =
+			    CALCULATE (
+			        SUM ( 'Fact Finance General Ledger'[Finance General Ledger Amount] ),
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Third Level Code] = "2001"
+			    )
+			RETURN
+			    IF ( ISBLANK ( SalWage ), 0, SalWage )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Salary and Wages
+		lineageTag: a4c726e9-3520-44b4-9266-0e03dc5a30a2
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the gross surplus by subtracting SalaryWages from Total Revenue.
+	/// 
+	measure 'Gross Surplus' =
+			
+			[Total Revenue] - [SalaryWages]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Gross Surplus
+		lineageTag: 95194325-ca8f-42d6-b7a6-f8eba43aadb7
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total expenses by summing the 'Finance General Ledger Amount' for accounts with the 'Finance General Ledger Account Hierarchy Second Level Code' equal to "2000".
+	/// 
+	measure 'Total Expenses' =
+			
+			VAR _Expense =
+			    CALCULATE (
+			        SUM ( 'Fact Finance General Ledger'[Finance General Ledger Amount] ),
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Second Level Code] = "2000"
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Expense ), 0, _Expense )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: 7332f3da-fee4-4f56-9565-386ffd027e02
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total operating expenses by subtracting SalaryWages from Total Expenses.
+	/// 
+	measure 'Total Operating Expenses' =
+			
+			[Total Expenses] - [SalaryWages] - [Total Recharges]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: 2edb5853-1ce5-43bf-bbaa-e5d53a226d84
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the net surplus by subtracting Total Operating Expenses from Gross Surplus.
+	/// 
+	measure 'Net Surplus' =
+			
+			[Total Revenue] - [Total Expenses]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Net Surplus
+		lineageTag: b388c9e2-8198-442e-a4ad-c1518d105950
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the year-to-date total revenue up to the current date.
+	/// 
+	measure 'Total Revenue YTD' =
+			
+			VAR _value =
+			    CALCULATE (
+			        SUM ( 'Fact Finance General Ledger'[Finance General Ledger Amount] ),
+			        DATESYTD ( 'Dim Date'[Calendar Date], "6/30" ),
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Second Level Name] = "Total Income"
+			    ) * -1
+			RETURN
+			    IF ( MAX ( 'Dim Date'[Calendar Date] ) <= TODAY (), _value, BLANK () )
+			//_value
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Revenue
+		lineageTag: de9bfe1d-d636-4239-97cd-e0657a5a67d6
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the year-to-date total revenue budget up to the current date.
+	/// 
+	measure 'Total Revenue Budget YTD' =
+			
+			VAR RevBudYTD =
+			    CALCULATE (
+			        SUM ( 'Fact Finance Budget'[Finance Budget Amount] ),
+			        DATESYTD ( 'Dim Date'[Calendar Date], "30/06" ),
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Second Level Name] = "Total Income"
+			    ) * -1
+			RETURN
+			    //IF(MAX('Dim Date'[Calendar Date]) <= TODAY(), RevBudYTD, BLANK())
+			    RevBudYTD
+			//RETURN
+			//IF(ISBLANK(RevBudYTD),0,RevBudYTD)
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Revenue
+		lineageTag: d10ffd4d-1ac9-4d3b-a7c5-2ce4f9c8e050
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the year-to-date salary and wages up to the current date.
+	/// 
+	measure 'Salary and Wages YTD' =
+			
+			VAR _value =
+			    CALCULATE (
+			        [SalaryWages],
+			        DATESYTD ( 'Dim Date'[Calendar Date], "6/30" ),
+			        USERELATIONSHIP ( 'Fact Finance General Ledger'[Finance Posting Date KEY], 'Dim General Ledger Posting Date'[General Ledger Posting Dim Date KEY] ),
+			        USERELATIONSHIP ( 'Dim General Ledger Posting Date'[General Ledger Posting Dim Date KEY], 'Dim Date'[Dim Date KEY] )
+			    )
+			RETURN
+			    IF ( MAX ( 'Dim Date'[Calendar Date] ) <= TODAY (), _value, BLANK () )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Salary and Wages
+		lineageTag: a792519e-bd9b-4db7-8946-1acf4f2d541c
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the year-to-date salary and wages budget up to the current date.
+	/// 
+	measure 'SalaryWages Budget YTD' =
+			
+			VAR _value =
+			    IFERROR (
+			        CALCULATE (
+			            [SalaryWages Budget],
+			            DATESYTD ( 'Dim Date'[Calendar Date], "6/30" ),
+			            USERELATIONSHIP ( 'Fact Finance Budget'[Finance Budget Date KEY], 'Dim Budget Date'[Budget Dim Date KEY] ),
+			            USERELATIONSHIP ( 'Dim Budget Date'[Budget Dim Date KEY], 'Dim Date'[Dim Date KEY] )
+			        ),
+			        0
+			    )
+			RETURN
+			    //IF(MAX('Dim Date'[Calendar Date]) <= TODAY(), _value, BLANK())
+			    _value
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Salary and Wages
+		lineageTag: cba6e83b-51c9-48d7-805b-06815cf045fa
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total salary and wages budget.
+	/// 
+	measure 'SalaryWages Budget' =
+			
+			VAR SalWagB =
+			    CALCULATE (
+			        SUM ( 'Fact Finance Budget'[Finance Budget Amount] ),
+			        //FILTER('Fact Finance Budget', 'Fact Finance Budget'[Finance Budget Date] <= TODAY()),
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Third Level Code] = "2001"
+			    )
+			RETURN
+			    IF ( ISBLANK ( SalWagB ), 0, SalwagB )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Salary and Wages
+		lineageTag: 7e4fbaaa-1b6c-4d91-905c-5814174ac464
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the year-to-date total operating expenses up to the current date.
+	/// 
+	measure 'Total Operating Expenses YTD' =
+			
+			VAR _value =
+			    CALCULATE (
+			        [Total Operating Expenses],
+			        DATESYTD ( 'Dim Date'[Calendar Date], "6/30" ),
+			        USERELATIONSHIP ( 'Fact Finance General Ledger'[Finance Posting Date KEY], 'Dim General Ledger Posting Date'[General Ledger Posting Dim Date KEY] ),
+			        USERELATIONSHIP ( 'Dim General Ledger Posting Date'[General Ledger Posting Dim Date KEY], 'Dim Date'[Dim Date KEY] )
+			    )
+			RETURN
+			    IF ( MAX ( 'Dim Date'[Calendar Date] ) <= TODAY (), _value, BLANK () )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: 77aa27b0-44b1-421c-a95d-48db60a6a761
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the year-to-date total operating expenses budget up to the current date.
+	/// 
+	measure 'Total Operating Expenses Budget YTD' =
+			
+			VAR _value =
+			    CALCULATE (
+			        [Total Operating Expenses Budget],
+			        DATESYTD ( 'Dim Date'[Calendar Date], "6/30" ),
+			        USERELATIONSHIP ( 'Fact Finance Budget'[Finance Budget Date KEY], 'Dim Budget Date'[Budget Dim Date KEY] ),
+			        USERELATIONSHIP ( 'Dim Budget Date'[Budget Dim Date KEY], 'Dim Date'[Dim Date KEY] )
+			    )
+			RETURN
+			    //IF(MAX('Dim Date'[Calendar Date]) <= TODAY(), _value, BLANK())
+			    _value
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: 794823a0-fd85-4795-a2ae-4737832c8969
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total operating expenses budget by subtracting SalaryWages Budget from Total Expenses Budget.
+	/// 
+	measure 'Total Operating Expenses Budget' =
+			
+			[Total Expenses Budget] - [SalaryWages Budget] - [Total Recharges Budget]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: 7fcc05ff-db04-4927-b102-af5204e8a599
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total expenses budget.
+	/// 
+	measure 'Total Expenses Budget' =
+			
+			VAR _Expense =
+			    CALCULATE (
+			        SUM ( 'Fact Finance Budget'[Finance Budget Amount] ),
+			        //FILTER('Fact Finance Budget', 'Fact Finance Budget'[Finance Budget Date]<= TODAY()),
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Second Level Code] = "2000"
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Expense ), 0, _Expense )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: 73b38b4a-2665-43ec-a4d5-0fe5d3cbf36f
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the Earnings Before Interest and Taxes (EBIT) by subtracting Total Operating Expenses, Total Depreciation, and InterestExpense from Gross Surplus.
+	/// 
+	measure EBIT =
+			
+			[Gross Surplus] - [Total Operating Expenses] - [Total Depreciation] - [InterestExpense]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: cf89858a-887e-4ac6-a70d-fe471b76e0be
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total depreciation amount.
+	/// 
+	measure 'Total Depreciation' =
+			
+			VAR _Depreciation =
+			    CALCULATE (
+			        SUM ( 'Fact Finance General Ledger'[Finance General Ledger Amount] ),
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Fourth Level Code] = "2600"
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Depreciation ), 0, _Depreciation )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Depreciation
+		lineageTag: d1f01a67-15e5-4946-8adb-f542530ca267
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total interest expense.
+	/// 
+	measure InterestExpense =
+			
+			VAR _Interest =
+			    CALCULATE (
+			        SUM ( 'Fact Finance General Ledger'[Finance General Ledger Amount] ),
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Fourth Level Code] = "2200"
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Interest ), 0, _Interest )
+		formatString: "$#,##0,. "
+		displayFolder: Expenses
+		lineageTag: b2555976-06ba-415d-9937-c2f81414f1f0
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total revenue budget.
+	/// 
+	measure 'Total Revenue (Budget)' =
+			
+			VAR RevenueBudget =
+			    CALCULATE (
+			        - SUM ( 'Fact Finance Budget'[Finance Budget Amount] ),
+			        'Fact Finance Budget'[Finance Budget Date] <= TODAY (),
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Second Level Name] = "Total Income"
+			    )
+			RETURN
+			    IF ( ISBLANK ( RevenueBudget ), 0, RevenueBudget )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Revenue
+		lineageTag: 047a7d9d-36ca-48e3-b6d6-b85c589e8b83
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Retrieves the actual value based on the selected measure and corresponding actual column.
+	/// 
+	measure VariableActual =
+			
+			VAR M =
+			    SELECTEDVALUE ( 'InExFrame'[Measure] )
+			VAR A =
+			    SELECTEDVALUE ( InExFrame[Actual] )
+			VAR F =
+			    SELECTEDVALUE ( InExFrame[Forecast] )
+			VAR V =
+			    SELECTEDVALUE ( InExFrame[Variance] )
+			VAR PV =
+			    SELECTEDVALUE ( InExFrame[%Variance] )
+			VAR I =
+			    SELECTEDVALUE ( InExFrame[Icon] )
+			VAR PY =
+			    SELECTEDVALUE ( InExFrame[Previous Year] )
+			VAR AF =
+			    SELECTEDVALUE ( InExFrame[Annual Forecast] )
+			VAR AL =
+			    SELECTEDVALUE ( InExFrame[Actual Line] )
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        M = "Total Income"
+			            && A = "TR_Actual", FORMAT ( [Total Revenue], "#,##0, ;(#,##0,);-" ),
+			        M = "Total Wages"
+			            && A = "SW_Actual", FORMAT ( [SalaryWages], "#,##0, ;(#,##0,);-" ),
+			        M = "Gross Surplus"
+			            && A = "GS_Actual", FORMAT ( [Gross Surplus], "#,##0, ;(#,##0,);-" ),
+			        M = "Total Operating Expenses"
+			            && A = "TOE_Actual", FORMAT ( [Total Operating Expenses], "#,##0, ;(#,##0,);-" ),
+			        M = "Total Operating Surplus"
+			            && A = "TOS_Actual", FORMAT ( [EBIT], "#,##0, ;(#,##0,);-" ),
+			        M = "Interest Expense"
+			            && A = "IE_Actual", FORMAT ( [InterestExpense], "#,##0, ;(#,##0,);-" ),
+			        M = "Recharges"
+			            && A = "R_Actual", FORMAT ( [Total Recharges], "#,##0, ;(#,##0,);-" ),
+			        M = "Depreciation"
+			            && A = "D_Actual", FORMAT ( [Total Depreciation], "#,##0, ;(#,##0,);-" ),
+			        M = "Net Surplus"
+			            && A = "NS_Actual", FORMAT ( [Net Surplus], "#,##0, ;(#,##0,);-" ),
+			        M = "Net Margin"
+			            && A = "NM_Actual", FORMAT ( [Net Surplus Margin], "0.0%" )
+			    )
+		displayFolder: Variable Measures
+		lineageTag: 9bab054b-d6fa-486a-8617-c957f76fcac3
+
+	/// Retrieves the forecast value based on the selected measure and corresponding forecast column.
+	/// 
+	measure VariableForecast =
+			
+			VAR M =
+			    SELECTEDVALUE ( 'InExFrame'[Measure] )
+			VAR A =
+			    SELECTEDVALUE ( InExFrame[Actual] )
+			VAR F =
+			    SELECTEDVALUE ( InExFrame[Forecast] )
+			VAR V =
+			    SELECTEDVALUE ( InExFrame[Variance] )
+			VAR PV =
+			    SELECTEDVALUE ( InExFrame[%Variance] )
+			VAR I =
+			    SELECTEDVALUE ( InExFrame[Icon] )
+			VAR PY =
+			    SELECTEDVALUE ( InExFrame[Previous Year] )
+			VAR AF =
+			    SELECTEDVALUE ( InExFrame[Annual Forecast] )
+			VAR AL =
+			    SELECTEDVALUE ( InExFrame[Actual Line] )
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        M = "Total Income"
+			            && F = "TR_Forecast", FORMAT ( [Total Revenue (Budget)], "#,##0, ;(#,##0,);-" ),
+			        M = "Total Wages"
+			            && F = "SW_Forecast", FORMAT ( [SalaryWages Budget], "#,##0, ;(#,##0,);-" ),
+			        M = "Gross Surplus"
+			            && F = "GS_Forecast", FORMAT ( [Gross Surplus Budget], "#,##0, ;(#,##0,);-" ),
+			        M = "Total Operating Expenses"
+			            && F = "TOE_Forecast", FORMAT ( [Total Operating Expenses Budget], "#,##0, ;(#,##0,);-" ),
+			        M = "Total Operating Surplus"
+			            && F = "TOS_Forecast", FORMAT ( [EBIT Budget], "#,##0, ;(#,##0,);-" ),
+			        M = "Interest Expense"
+			            && F = "IE_Forecast", FORMAT ( [InterestExpense Budget], "#,##0, ;(#,##0,);-" ),
+			        M = "Depreciation"
+			            && F = "D_Forecast", FORMAT ( [Total Depreciation Budget], "#,##0, ;(#,##0,);-" ),
+			        M = "Recharges"
+			            && F = "R_Forecast", FORMAT ( [Total Recharges Budget], "#,##0, ;(#,##0,);-" ),
+			        M = "Net Surplus"
+			            && F = "NS_Forecast", FORMAT ( [Net Surplus Budget], "#,##0, ;(#,##0,);-" ),
+			        M = "Net Margin"
+			            && F = "NM_Forecast", FORMAT ( [Net Margin Budget], "0.0%" )
+			    )
+		displayFolder: Variable Measures
+		lineageTag: 40c68ac1-eec0-4970-a7e7-f651b43e9e39
+
+	/// Calculates the gross surplus budget by subtracting SalaryWages Budget from Total Revenue (Budget).
+	/// 
+	measure 'Gross Surplus Budget' =
+			
+			[Total Revenue (Budget)] - [SalaryWages Budget]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Gross Surplus
+		lineageTag: c2bbe2f8-06ca-4700-bdaf-c7a52dc19a25
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the EBIT budget by subtracting Total Operating Expenses Budget, InterestExpense Budget, and Total Depreciation Budget from Gross Surplus Budget.
+	/// 
+	measure 'EBIT Budget' =
+			
+			[Gross Surplus Budget] - [Total Operating Expenses Budget] - [InterestExpense Budget] - [Total Depreciation Budget]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: 3a16026e-983e-4b26-8ccf-02c92d0b09f7
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the interest expense budget.
+	/// 
+	measure 'InterestExpense Budget' =
+			
+			VAR _Interest =
+			    CALCULATE (
+			        SUM ( 'Fact Finance Budget'[Finance Budget Amount] ),
+			        FILTER (
+			            'Fact Finance Budget',
+			            'Fact Finance Budget'[Finance Budget Date] <= TODAY ()
+			        ),
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Fourth Level Code] = "2200"
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Interest ), 0, _Interest )
+		formatString: "$#,##0,. "
+		displayFolder: Expenses
+		lineageTag: f750cb35-bf1d-4eb6-9496-f9f164244ce2
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total depreciation budget.
+	/// 
+	measure 'Total Depreciation Budget' =
+			
+			VAR _Depreciation =
+			    CALCULATE (
+			        SUM ( 'Fact Finance Budget'[Finance Budget Amount] ),
+			        FILTER (
+			            'Fact Finance Budget',
+			            'Fact Finance Budget'[Finance Budget Date] <= TODAY ()
+			        ),
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Fourth Level Code] = "2600"
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Depreciation ), 0, _Depreciation )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Depreciation
+		lineageTag: d7f0a891-bca3-4c95-9610-34609539c052
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Retrieves the variance value based on the selected measure and corresponding variance column.
+	/// 
+	measure VariableVariance =
+			
+			VAR M =
+			    SELECTEDVALUE ( 'InExFrame'[Measure] )
+			VAR A =
+			    SELECTEDVALUE ( InExFrame[Actual] )
+			VAR F =
+			    SELECTEDVALUE ( InExFrame[Forecast] )
+			VAR V =
+			    SELECTEDVALUE ( InExFrame[Variance] )
+			VAR PV =
+			    SELECTEDVALUE ( InExFrame[%Variance] )
+			VAR I =
+			    SELECTEDVALUE ( InExFrame[Icon] )
+			VAR PY =
+			    SELECTEDVALUE ( InExFrame[Previous Year] )
+			VAR AF =
+			    SELECTEDVALUE ( InExFrame[Annual Forecast] )
+			VAR AL =
+			    SELECTEDVALUE ( InExFrame[Actual Line] )
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        M = "Total Income"
+			            && V = "TR_Variance", [Total Revenue Variance],
+			        M = "Total Wages"
+			            && V = "SW_Variance", [Total Salary and Wage Variance],
+			        M = "Gross Surplus"
+			            && V = "GS_Variance", [Gross Surplus Variance],
+			        M = "Total Operating Expenses"
+			            && V = "TOE_Variance", [Total Ope Exp Variance],
+			        M = "Total Operating Surplus"
+			            && V = "TOS_Variance", [EBIT Variance],
+			        M = "Interest Expense"
+			            && V = "IE_Variance", [Interest Variance],
+			        M = "Depreciation"
+			            && V = "D_Variance", [Depreciation Variance],
+			        M = "Recharges"
+			            && V = "R_Variance", [Total Recharges variance$],
+			        M = "Net Surplus"
+			            && V = "NS_Variance", [Net Surplus Variance$]
+			    )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variable Measures
+		lineageTag: c2879c02-87d2-4e81-8fec-b1483877af74
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the variance percentage based on the selected measure and corresponding actual and forecast values.
+	/// 
+	measure VariableVariancePercentage =
+			
+			VAR M =
+			    SELECTEDVALUE ( 'InExFrame'[Measure] )
+			VAR A =
+			    SELECTEDVALUE ( InExFrame[Actual] )
+			VAR F =
+			    SELECTEDVALUE ( InExFrame[Forecast] )
+			VAR V =
+			    SELECTEDVALUE ( InExFrame[Variance] )
+			VAR PV =
+			    SELECTEDVALUE ( InExFrame[%Variance] )
+			VAR I =
+			    SELECTEDVALUE ( InExFrame[Icon] )
+			VAR PY =
+			    SELECTEDVALUE ( InExFrame[Previous Year] )
+			VAR AF =
+			    SELECTEDVALUE ( InExFrame[Annual Forecast] )
+			VAR AL =
+			    SELECTEDVALUE ( InExFrame[Actual Line] )
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        M = "Total Income"
+			            && PV = "TR_%Variance",
+			            [Total Revenue] / [Total Revenue (Budget)] - 1,
+			        M = "Total Wages"
+			            && PV = "SW_%Variance",
+			            [SalaryWages Budget] / [SalaryWages] - 1,
+			        M = "Gross Surplus"
+			            && PV = "GS_%Variance",
+			            [Gross Surplus] / [Gross Surplus Budget] - 1,
+			        M = "Total Operating Expenses"
+			            && PV = "TOE_%Variance",
+			            [Total Operating Expenses Budget] / [Total Operating Expenses] - 1,
+			        M = "Total Operating Surplus"
+			            && PV = "TOS_%Variance",
+			            [EBIT] / [EBIT Budget] - 1,
+			        M = "Interest Expense"
+			            && PV = "IE_%Variance",
+			            [InterestExpense Budget] / [InterestExpense] - 1,
+			        M = "Depreciation"
+			            && PV = "D_%Variance",
+			            [Total Depreciation Budget] / [Total Depreciation] - 1,
+			        M = "Recharges"
+			            && PV = "R_%Variance", [Total Recharge variance%],
+			        M = "Net Surplus"
+			            && PV = "NS_%Variance",
+			            [Net Surplus] / [Net Surplus Budget] - 1
+			    )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Variable Measures
+		lineageTag: d18a71f5-8c3d-4c13-9cfa-4829f6dac21a
+
+	/// Calculates the net surplus budget by adding InterestExpense Budget and Total Depreciation Budget to EBIT Budget.
+	/// 
+	measure 'Net Surplus Budget' =
+			
+			[Total Revenue (Budget)] - [Total Expenses Budget]
+			//[EBIT Budget]+[InterestExpense Budget]+[Total Depreciation Budget]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Net Surplus
+		lineageTag: 36de9003-4c1e-4eaf-ac2f-d5c60ba9287e
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total revenue for the previous year.
+	/// 
+	measure 'Revenue Previous Year' =
+			
+			VAR _Revenue =
+			    CALCULATE (
+			        SUM ( 'Fact Finance General Ledger'[Inverse Amount] ),
+			        //SAMEPERIODLASTYEAR(DimDate[Date]),
+			        DATEADD (
+			            'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date],
+			            -1,
+			            YEAR
+			        ),
+			        FILTER (
+			            ALL ( 'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date] ),
+			            'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date]
+			                <= TODAY () - 365
+			        ),
+			        'Fact Finance General Ledger'[Finance General Ledger Account No] < 2000
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Revenue ), 0, _Revenue )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Revenue
+		lineageTag: 137cef09-1273-4a51-91bd-8a9f14726825
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total salaries and wages for the previous year.
+	/// 
+	measure 'SalariesWages Previous Year' =
+			
+			VAR _SW =
+			    CALCULATE (
+			        SUM ( 'Fact Finance General Ledger'[Inverse Amount] ),
+			        DATEADD (
+			            'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date],
+			            -1,
+			            YEAR
+			        ),
+			        FILTER (
+			            ALL ( 'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date] ),
+			            'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date]
+			                <= TODAY () - 365
+			        ),
+			        'Fact Finance General Ledger'[Finance General Ledger Account No] > 2000,
+			        'Fact Finance General Ledger'[Finance General Ledger Account No] < 2050
+			    )
+			RETURN
+			    IF ( ISBLANK ( _SW ), 0, _SW )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Salary and Wages
+		lineageTag: bad88c77-e0cf-4b03-a7a0-dca94de2f4e3
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the gross surplus for the previous year by subtracting SalariesWages Previous Year from Revenue Previous Year.
+	/// 
+	measure 'Gross Surplus Previous Year' =
+			
+			[Revenue Previous Year] - [SalariesWages Previous Year]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Gross Surplus
+		lineageTag: d7f097f1-4ab4-4234-b8f4-230aff12b66a
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total operating expenses for the previous year.
+	/// 
+	measure 'Operating Expenses Previous Year' =
+			
+			VAR _OpExp =
+			    CALCULATE (
+			        [Total Operating Expenses],
+			        DATEADD (
+			            'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date],
+			            -1,
+			            YEAR
+			        ),
+			        FILTER (
+			            ALL ( 'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date] ),
+			            'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date]
+			                <= TODAY () - 365
+			        )
+			    )
+			RETURN
+			    IF ( ISBLANK ( _OpExp ), 0, _OpExp )
+			
+			
+			// VAR _OpExp =
+			//     CALCULATE (
+			//         SUM ( 'Fact Finance General Ledger'[Inverse Amount] ),
+			//         DATEADD (
+			//             'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date],
+			//             -1,
+			//             YEAR
+			//         ),
+			//         FILTER (
+			//             ALL ( 'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date] ),
+			//             'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date]
+			//                 <= TODAY () - 365
+			//         ),
+			//         'Fact Finance General Ledger'[Finance General Ledger Account No] > 2050,
+			//         'Fact Finance General Ledger'[Finance General Ledger Account No] < 3000
+			//     )
+			// RETURN
+			//     IF ( ISBLANK ( _OpExp ), 0, _OpExp )
+		formatString: "$#,##0,. "
+		displayFolder: Expenses
+		lineageTag: 5db1645a-1f37-4f14-b682-6f0c4ca8708f
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total operating expenses for the previous year.
+	/// 
+	measure 'Operating Surplus Previous Year' =
+			
+			[Gross Surplus Previous Year] - [Operating Expenses Previous Year]
+		formatString: "$#,##0,. "
+		displayFolder: Expenses
+		lineageTag: 7f57ff25-a24e-4663-8690-9654cd5bf68a
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total interest expenses for the previous year.
+	/// 
+	measure 'Interest Expenses Previous Year' =
+			
+			VAR _Interest =
+			    CALCULATE (
+			        SUM ( 'Fact Finance General Ledger'[Inverse Amount] ),
+			        DATEADD (
+			            'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date],
+			            -1,
+			            YEAR
+			        ),
+			        FILTER (
+			            ALL ( 'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date] ),
+			            'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date]
+			                <= TODAY () - 365
+			        ),
+			        'Fact Finance General Ledger'[Finance General Ledger Account No] = 2200
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Interest ), 0, _Interest )
+		formatString: "$#,##0,. "
+		displayFolder: Expenses
+		lineageTag: da0f437a-f244-4be6-94ca-ec81b0d38478
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total depreciation for the previous year.
+	/// 
+	measure 'Depreciation Previous Year' =
+			
+			CALCULATE (
+			    SUM ( 'Fact Finance General Ledger'[Inverse Amount] ),
+			    DATEADD (
+			        'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date],
+			        -1,
+			        YEAR
+			    ),
+			    FILTER (
+			        ALL ( 'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date] ),
+			        'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date]
+			            <= TODAY () - 365
+			    ),
+			    'Fact Finance General Ledger'[Finance General Ledger Account No] > 2600,
+			    'Fact Finance General Ledger'[Finance General Ledger Account No] < 2620
+			)
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Depreciation
+		lineageTag: d9dcb389-2dd6-40dc-9d6a-6037422cc579
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the net surplus for the previous year by subtracting Interest Expenses Previous Year and Depreciation Previous Year from Operating Surplus Previous Year.
+	/// 
+	measure 'Net Surplus Previous Year' =
+			
+			[Revenue Previous Year] - [Total Expenses Previous Year]
+			//[Operating Surplus Previous Year] - [Interest Expenses Previous Year] - [Depreciation Previous Year]
+		formatString: "$#,##0,. "
+		displayFolder: Net Surplus
+		lineageTag: 13712e7e-2673-482a-8f46-7b9ba9b10b97
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Retrieves the previous year value based on the selected measure and corresponding previous year column.
+	/// 
+	measure VariablePreviousYear =
+			
+			VAR M =
+			    SELECTEDVALUE ( 'InExFrame'[Measure] )
+			VAR A =
+			    SELECTEDVALUE ( InExFrame[Actual] )
+			VAR F =
+			    SELECTEDVALUE ( InExFrame[Forecast] )
+			VAR V =
+			    SELECTEDVALUE ( InExFrame[Variance] )
+			VAR PV =
+			    SELECTEDVALUE ( InExFrame[%Variance] )
+			VAR I =
+			    SELECTEDVALUE ( InExFrame[Icon] )
+			VAR PY =
+			    SELECTEDVALUE ( InExFrame[Previous Year] )
+			VAR AF =
+			    SELECTEDVALUE ( InExFrame[Annual Forecast] )
+			VAR AL =
+			    SELECTEDVALUE ( InExFrame[Actual Line] )
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        M = "Total Income"
+			            && PY = "TR_Previous Year", [Revenue Previous Year],
+			        M = "Total Wages"
+			            && PY = "SW_Previous Year", [SalariesWages Previous Year],
+			        M = "Gross Surplus"
+			            && PY = "GS_Previous Year", [Gross Surplus Previous Year],
+			        M = "Total Operating Expenses"
+			            && PY = "TOE_Previous Year", [Operating Expenses Previous Year],
+			        M = "Total Operating Surplus"
+			            && PY = "TOS_Previous Year", [Operating Surplus Previous Year],
+			        M = "Interest Expense"
+			            && PY = "IE_Previous Year", [Interest Expenses Previous Year],
+			        M = "Depreciation"
+			            && PY = "D_Previous Year", [Depreciation Previous Year],
+			        M = "Recharges"
+			            && PY = "R_Previous Year", FORMAT ( [Recharges Previous Year], "#,##0, ;(#,##0,);-" ),
+			        M = "Net Surplus"
+			            && PY = "NS_Previous Year", [Net Surplus Previous Year]
+			    )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variable Measures
+		lineageTag: 3dbd3069-b77d-4258-82c9-92463a6b39b3
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total annual budget revenue by summing the inverse amount from the fact budget table where Second Level Account Name = "Total Income"
+	/// 
+	measure 'Annual Budget Revenue' =
+			
+			VAR RevenueBudget =
+			    CALCULATE (
+			        - SUM ( 'Fact Finance Budget'[Finance Budget Amount] ),
+			        ALL ( 'Dim Date'[Calendar Year Month] ),
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Second Level Name] = "Total Income"
+			    )
+			RETURN
+			    IF ( ISBLANK ( RevenueBudget ), 0, RevenueBudget )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Revenue
+		lineageTag: bd72aeee-bef8-4793-a358-65c314c53e4f
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total annual salary and wages budget.
+	/// 
+	measure 'Annual SalaryWages Budget' =
+			
+			VAR SalWagB =
+			    CALCULATE (
+			        SUM ( 'Fact Finance Budget'[Finance Budget Amount] ),
+			        ALL ( 'Dim Date'[Calendar Year Month] ),
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Third Level Code] = "2001"
+			    )
+			RETURN
+			    IF ( ISBLANK ( SalWagB ), 0, SalwagB )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Salary and Wages
+		lineageTag: 315f1534-4e3f-4ab2-8192-ef218c47b884
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the annual gross surplus budget by subtracting Annual SalaryWages Budget from Annual Budget Revenue.
+	/// 
+	measure 'Annual Gross Surplus Budget' =
+			
+			[Annual Budget Revenue] - [Annual SalaryWages Budget]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Gross Surplus
+		lineageTag: f10436c7-d6f1-4497-90a6-4d17c7748f97
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total annual operating expenses budget.
+	/// 
+	measure 'Annual Total Operating Expenses Budget' =
+			
+			VAR OperatingExpenses =
+			    CALCULATE (
+			        [Total Operating Expenses Budget],
+			        ALL ( 'Dim Date'[Calendar Year Month] )
+			    )
+			RETURN
+			    IF ( ISBLANK ( OperatingExpenses ), 0, OperatingExpenses )
+			
+			// VAR OperatingExpenses =
+			//     CALCULATE (
+			//         SUM ( 'Fact Finance Budget'[Finance Budget Amount] ),
+			//         ALL ( 'Dim Date'[Calendar Year Month] ),
+			//         'Dim Finance General Ledger Account'[Finance General Ledger Account Code] >= 2050
+			//             && 'Dim Finance General Ledger Account'[Finance General Ledger Account Code] < 3000
+			//     )
+			// RETURN
+			//     IF ( ISBLANK ( OperatingExpenses ), 0, OperatingExpenses )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: 5e74fa85-115a-4c1c-ac37-13ce32b692c8
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the annual operating surplus budget.
+	/// 
+	measure 'Annual Operating Surplus Budget' =
+			
+			[Annual Gross Surplus Budget] - [Annual Total Operating Expenses Budget]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: e172874c-84ac-44bc-8c87-634198552fa7
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the annual interest expenses.
+	/// 
+	measure 'Annual Interest Expense' =
+			
+			VAR Interest =
+			    CALCULATE (
+			        SUM ( 'Fact Finance Budget'[Finance Budget Amount] ),
+			        ALL ( 'Dim Date'[Calendar Year Month] ),
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Code] = 2200
+			    )
+			RETURN
+			    IF ( ISBLANK ( Interest ), 0, Interest )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: 04c7a9d6-9c92-4524-8012-55a80ab7447c
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total annual depreciation budget.
+	/// 
+	measure 'Annual Depreciation Budget' =
+			
+			VAR _Depreciation =
+			    CALCULATE (
+			        SUM ( 'Fact Finance Budget'[Finance Budget Amount] ),
+			        ALL ( 'Dim Date'[Calendar Year Month] ),
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Code] > 2600
+			            && 'Dim Finance General Ledger Account'[Finance General Ledger Account Code] < 2620
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Depreciation ), 0, _Depreciation )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Depreciation
+		lineageTag: aba6caf1-d951-4ba2-b740-1fed7a46834b
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the annual net surplus by subtracting Annual Interest Expense and Annual Depreciation Budget from Annual Operating Surplus Budget.
+	/// 
+	measure 'Annual Net Surplus' =
+			
+			[Annual Operating Surplus Budget] - [Annual Interest Expense] - [Annual Depreciation Budget]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Net Surplus
+		lineageTag: 7ec9d6b6-8b03-454f-9063-924d8a3db246
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Retrieves the annual forecast value based on the selected measure and corresponding annual forecast column.
+	/// 
+	measure VariableAnnualForecast =
+			
+			VAR M =
+			    SELECTEDVALUE ( 'InExFrame'[Measure] )
+			VAR A =
+			    SELECTEDVALUE ( InExFrame[Actual] )
+			VAR F =
+			    SELECTEDVALUE ( InExFrame[Forecast] )
+			VAR V =
+			    SELECTEDVALUE ( InExFrame[Variance] )
+			VAR PV =
+			    SELECTEDVALUE ( InExFrame[%Variance] )
+			VAR I =
+			    SELECTEDVALUE ( InExFrame[Icon] )
+			VAR PY =
+			    SELECTEDVALUE ( InExFrame[Previous Year] )
+			VAR AF =
+			    SELECTEDVALUE ( InExFrame[Annual Forecast] )
+			VAR AL =
+			    SELECTEDVALUE ( InExFrame[Actual Line] )
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        M = "Total Income"
+			            && AF = "TR_Annual Forecast", FORMAT ( [Annual Budget Revenue], "#,##0, ;(#,##0,);-" ),
+			        M = "Total Wages"
+			            && AF = "SW_Annual Forecast", FORMAT ( [Annual SalaryWages Budget], "#,##0, ;(#,##0,);-" ),
+			        M = "Gross Surplus"
+			            && AF = "GS_Annual Forecast", FORMAT ( [Annual Gross Surplus Budget], "#,##0, ;(#,##0,);-" ),
+			        M = "Total Operating Expenses"
+			            && AF = "TOE_Annual Forecast", FORMAT ( [Annual Total Operating Expenses Budget], "#,##0, ;(#,##0,);-" ),
+			        M = "Total Operating Surplus"
+			            && AF = "TOS_Annual Forecast", FORMAT ( [Annual Operating Surplus Budget], "#,##0, ;(#,##0,);-" ),
+			        M = "Interest Expense"
+			            && AF = "IE_Annual Forecast", FORMAT ( [Annual Interest Expense], "#,##0, ;(#,##0,);-" ),
+			        M = "Depreciation"
+			            && AF = "D_Annual Forecast", FORMAT ( [Annual Depreciation Budget], "#,##0, ;(#,##0,);-" ),
+			        M = "Recharges"
+			            && AF = "R_Annual Forecast", FORMAT ( [Annual Recharges Budget], "#,##0, ;(#,##0,);-" ),
+			        M = "Net Surplus"
+			            && AF = "NS_Annual Forecast", FORMAT ( [Annual Net Surplus], "#,##0, ;(#,##0,);-" ),
+			        M = "Net Margin"
+			            && AF = "NM_Annual Forecast", FORMAT ( [Annual Net Margin], "0.0%" )
+			    )
+		displayFolder: Variable Measures
+		lineageTag: 014a9d19-2b02-4fd8-bd99-761b08f90357
+
+	measure 'Fact Budget Row Count' =
+			
+			COUNTROWS ( 'Fact Finance Budget' )
+		formatString: 0
+		displayFolder: Activity Measures
+		lineageTag: 851731e2-30fb-4ca5-8f5d-f4e8f4dc819a
+
+	/// Retrieves the revenue forecast value.
+	/// 
+	measure 'Revenue Forecast' =
+			
+			VAR _Value =
+			    FORMAT ( [Total Revenue (Budget)], "$#,##0," )
+			RETURN
+			    "Forecast: " & _Value
+		displayFolder: Revenue
+		lineageTag: e679bb82-d3c4-4837-9e04-3c34f8f36f5a
+
+	/// Calculates the revenue forecast percentage.
+	/// 
+	measure RevenueForecastPerc =
+			
+			VAR _Value =
+			    DIVIDE (
+			        ( [Total Revenue] - [Total Revenue (Budget)] ),
+			        [Total Revenue (Budget)]
+			    )
+			RETURN
+			    IF (
+			        _Value = -1,
+			        "0.0% -",
+			        FORMAT ( _Value, "0.0%" )
+			            & IF ( _Value = 0, " -", IF ( _Value > 0, " ⬆", " ⬇" ) )
+			    )
+		displayFolder: Revenue
+		lineageTag: f197b6f0-fc1f-4b91-894a-e6b0324055b3
+
+	/// Retrieves the salary and wages forecast value.
+	/// 
+	measure 'SalaryWages Forecast' =
+			
+			VAR _Value =
+			    FORMAT ( [SalaryWages Budget], "$#,##0," )
+			RETURN
+			    "Forecast: " & _Value
+		displayFolder: Salary and Wages
+		lineageTag: 04812a92-b96d-42a0-91d2-7ad5ebc07197
+
+	/// Calculates the salary and wages forecast percentage.
+	/// 
+	measure SalaryWagesForecastPerc =
+			
+			VAR _Value =
+			    DIVIDE ( ( [SalaryWages Budget] - [SalaryWages] ), [SalaryWages Budget] )
+			RETURN
+			    IF (
+			        _Value = -1,
+			        "0.0% -",
+			        FORMAT ( _Value, "0.0%" )
+			            & IF ( _Value = 0, " -", IF ( _Value > 0, " ⬆", " ⬇" ) )
+			    )
+		displayFolder: Salary and Wages
+		lineageTag: 2254d12a-df2c-4452-83f1-82c8e2a56e9b
+
+	/// Retrieves the gross surplus forecast value.
+	/// 
+	measure 'Gross Surplus Forecast' =
+			
+			VAR _Value =
+			    FORMAT ( [Gross Surplus Budget], "$#,##0," )
+			RETURN
+			    "Forecast: " & _Value
+		displayFolder: Gross Surplus
+		lineageTag: 95314d67-1df9-44b6-bc94-f432970f1d06
+
+	/// Calculates the gross surplus forecast percentage.
+	/// 
+	measure GrossSurplusForecastPerc =
+			
+			VAR _Value =
+			    DIVIDE ( ( [Gross Surplus] - [Gross Surplus Budget] ), [Gross Surplus Budget] )
+			RETURN
+			    IF (
+			        _Value = -1,
+			        "0.0% -",
+			        FORMAT ( _Value, "0.0%" )
+			            & IF ( _Value = 0, " -", IF ( _Value > 0, " ⬆", " ⬇" ) )
+			    )
+		displayFolder: Gross Surplus
+		lineageTag: 3a404f0e-9b33-402e-a084-f22aae878a05
+
+	/// Retrieves the total operating expense forecast value.
+	/// 
+	measure 'Total Operating Expense Forecast' =
+			
+			VAR _Value =
+			    FORMAT ( [Total Operating Expenses Budget], "$#,##0," )
+			RETURN
+			    "Forecast: " & _Value
+		displayFolder: Expenses
+		lineageTag: 4c0e0f51-1635-4f77-b385-8d9d740e5dcc
+
+	/// Calculates the operating expense forecast percentage.
+	/// 
+	measure OperatingExpenseForecastPerc =
+			
+			VAR _Value =
+			    DIVIDE (
+			        ( [Total Operating Expenses Budget] - [Total Operating Expenses] ),
+			        [Total Operating Expenses Budget]
+			    )
+			RETURN
+			    IF (
+			        _Value = -1,
+			        "0.0% -",
+			        FORMAT ( _Value, "0.0%" )
+			            & IF ( _Value = 0, " -", IF ( _Value > 0, " ⬆", " ⬇" ) )
+			    )
+		displayFolder: Expenses
+		lineageTag: 46fa92af-ae22-40b2-9d13-dc605762572a
+
+	/// Retrieves the net surplus forecast value.
+	/// 
+	measure 'NetSurplus Forecast' =
+			
+			VAR _Value =
+			    FORMAT ( [Net Surplus Budget], "$#,##0," )
+			RETURN
+			    "Forecast: " & _Value
+		displayFolder: Net Surplus
+		lineageTag: 894e6400-cecb-4154-933f-fb87b9a7a2e4
+
+	/// Calculates the net surplus forecast percentage.
+	/// 
+	measure NetSurplusForecastPerc =
+			
+			VAR _Value =
+			    DIVIDE ( ( [Net Surplus] - [Net Surplus Budget] ), [Net Surplus Budget] )
+			RETURN
+			    IF (
+			        _Value = -1,
+			        "0.0% -",
+			        FORMAT ( _Value, "0.0%" )
+			            & IF ( _Value = 0, " -", IF ( _Value > 0, " ⬆", " ⬇" ) )
+			    )
+		displayFolder: Net Surplus
+		lineageTag: 1dbb2b25-abbf-46ae-8bbf-c211571c0a4c
+
+	/// Calculates the budget amount up to the current date.
+	/// 
+	measure 'Budget Amount Less Than Today' =
+			
+			VAR _amount =
+			    CALCULATE (
+			        [Budget Amount],
+			        FILTER (
+			            'Dim Budget Date',
+			            'Dim Budget Date'[Budget Calendar Date] <= TODAY ()
+			        )
+			    )
+			RETURN
+			    IF ( ISBLANK ( _amount ), 0, _amount )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Budget
+		lineageTag: 67e41b7e-7c40-44f8-a10e-e37c9101fea7
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total inverse budget amount.
+	/// 
+	measure 'Budget Amount' =
+			
+			CALCULATE ( SUM ( 'Fact Finance Budget'[Inverse Budget Amount] ) )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Budget
+		lineageTag: 81f09319-68db-4e21-a663-6603486e2d1c
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the variance amount between actual and budget amounts based on the selected account hierarchy level.
+	/// 
+	measure 'Variance $' = ```
+			
+			VAR __Val =
+			    SELECTEDVALUE ( 'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Second Level Name] )
+			VAR __Rev = [Actual Amount Less Than Today] - [Budget Amount Less Than Today] -- Jay - 2023-06-15 : A positive outcome of the above equation is a favourable (positive) result and should be represented in an upward arrow and the % positive A negative outcome is unfavourable (negative) and  should be represented by a downward arrow and the % should be negative */
+			VAR __Exp = [Budget Amount Less Than Today] - [Actual Amount Less Than Today] -- Jay - 2023-06-15 : If the outcome is negative then it’s unfavourable (negative) and should be represented in a downward arrow and % should be a negative value.  If the outcome is positive then is favourable (positive) and should be represented in an upward arrow and the % be a positive value. 
+			RETURN
+			    IF ( __Val = "Total Expenses", __Exp, __Rev )
+			```
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 1f7238ce-0ad1-45af-b38e-da87fec203be
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the inverse amount from the Fact Finance general ledger up to the current date.
+	/// 
+	measure 'Actual Amount Less Than Today' =
+			
+			VAR _Amount =
+			    CALCULATE (
+			        SUM ( 'Fact Finance General Ledger'[Inverse Amount] ),
+			        FILTER (
+			            'Dim General Ledger Posting Date',
+			            'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date]
+			                <= TODAY ()
+			        )
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Amount ), 0, _Amount )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Revenue
+		lineageTag: 75d8ea30-88eb-49fc-9a4d-8bcfb6e55fc1
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the variance percentage between actual and budget amounts based on the selected account hierarchy level.
+	/// 
+	measure 'Variance %' =
+			
+			VAR __Val =
+			    SELECTEDVALUE ( 'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Second Level Name] )
+			VAR __Rev =
+			    IF (
+			        [Actual Amount Less Than Today] = 0
+			            || [Budget Amount Less Than Today] = 0,
+			        "",
+			        DIVIDE (
+			            ( [Actual Amount Less Than Today] - [Budget Amount Less Than Today] ),
+			            [Budget Amount Less Than Today]
+			        )
+			    )
+			VAR __Exp =
+			    IF (
+			        [Actual Amount Less Than Today] = 0
+			            || [Budget Amount Less Than Today] = 0,
+			        "",
+			        DIVIDE (
+			            ( [Budget Amount Less Than Today] - [Actual Amount Less Than Today] ),
+			            [Budget Amount Less Than Today]
+			        )
+			    )
+			VAR _Perc =
+			    IF ( __Val = "Total Expenses", __Exp, __Rev )
+			RETURN
+			    IF ( ISBLANK ( _Perc ), 0, _Perc )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Variance
+		lineageTag: 9d2bad5b-8752-46b8-94e3-c705d21720fd
+
+	/// Calculates the sum of the inverse amount of the fact general ledger table for the previous year.
+	measure 'Previous Year' =
+			
+			VAR _amount =
+			    CALCULATE (
+			        SUM ( 'Fact Finance General Ledger'[Inverse Amount] ),
+			        DATEADD (
+			            'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date],
+			            -1,
+			            YEAR
+			        ),
+			        FILTER (
+			            ALL ( 'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date] ),
+			            'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date]
+			                <= TODAY () - 365
+			        )
+			    )
+			RETURN
+			    IF ( ISBLANK ( _amount ), 0, _amount )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Revenue
+		lineageTag: 66ba993b-1624-4dd2-aede-e722c1f7c3af
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the gross surplus variance by subtracting Gross Surplus Budget from Gross Surplus.
+	/// 
+	measure 'Gross Surplus Variance' =
+			
+			[Gross Surplus] - [Gross Surplus Budget]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: ed6aa917-7adc-4d21-a1c5-2d287afa9da3
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the interest variance by subtracting InterestExpense from InterestExpense Budget.
+	/// 
+	measure 'Interest Variance' =
+			
+			IF (
+			    ISBLANK ( [InterestExpense Budget] ),
+			    0,
+			    [InterestExpense Budget] - [InterestExpense]
+			)
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 767589bb-d8d0-46c0-a765-299d3f11ed65
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the net surplus variance by subtracting Net Surplus Budget from Net Surplus.
+	/// 
+	measure 'Net Surplus Variance$' =
+			
+			[Net Surplus] - [Net Surplus Budget]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: e82da0cd-df8e-4452-aee7-17e70f986c53
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the EBIT variance by subtracting EBIT Budget from EBIT.
+	/// 
+	measure 'EBIT Variance' =
+			
+			IF ( [ebit budget] = 0, "", [EBIT] - [EBIT Budget] )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: c229c089-1791-4832-9733-bd3c6e4e6986
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total revenue variance by subtracting Total Revenue (Budget) from Total Revenue.
+	/// 
+	measure 'Total Revenue Variance' =
+			
+			[Total Revenue] - [Total Revenue (Budget)]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 43fffe13-e136-42ff-8fa5-18cfe6280523
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total salary and wage variance by subtracting SalaryWages from SalaryWages Budget.
+	/// 
+	measure 'Total Salary and Wage Variance' =
+			
+			[SalaryWages Budget] - [SalaryWages]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: cce28048-9a59-40a8-b4e3-b7d06653aff8
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the year-to-date variance amount between actual and budget amounts based on the selected account hierarchy level.
+	/// 
+	measure 'Variance $ YTD' = ```
+			
+			VAR __Val =
+			    SELECTEDVALUE ( 'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Second Level Name] )
+			VAR __Rev = [Actual Amount Less Than Today YTD] - [Budget Amount Less Than Today YTD] -- Jay - 2023-06-15 : A positive outcome of the above equation is a favourable (positive) result and should be represented in an upward arrow and the % positive A negative outcome is unfavourable (negative) and  should be represented by a downward arrow and the % should be negative */
+			VAR __Exp = [Budget Amount Less Than Today YTD] - [Actual Amount Less Than Today YTD] -- Jay - 2023-06-15 : If the outcome is negative then it’s unfavourable (negative) and should be represented in a downward arrow and % should be a negative value.  If the outcome is positive then is favourable (positive) and should be represented in an upward arrow and the % be a positive value. 
+			RETURN
+			    IF ( __Val = "Total Expenses", __Exp, __Rev )
+			```
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 8e2d72cd-b917-4b56-b01a-7fbe5809b381
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Inverse Budget Sum YTD' =
+			
+			"Delete"
+			// CALCULATE(SUM('Fact Finance Budget'[Inverse Budget Amount]),
+			//         'Fact Finance Budget'[Finance Budget Date]
+			//             <= TODAY(),
+			//             datesytd('Dim Date'[Calendar Date],"6/30")
+			// )
+		displayFolder: Budget
+		lineageTag: 4c29f4ef-4c0f-4628-990a-bd8f99277a81
+
+	/// Calculates the year-to-date current amount.
+	/// 
+	measure 'Current Amount YTD' =
+			
+			CALCULATE ( [Current Amount], DATESYTD ( 'Dim Date'[Calendar Date], "6/30" ) )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Revenue
+		lineageTag: 7c6a6075-e9ba-49b5-9400-840ea9946c01
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the current amount from the fact general ledger table
+	/// 
+	measure 'Current Amount' =
+			
+			VAR _amount =
+			    SUM ( 'Fact Finance General Ledger'[Inverse Amount] )
+			RETURN
+			    IF ( ISBLANK ( _amount ), 0, _amount )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Revenue
+		lineageTag: 61356116-9d36-4e66-a525-7be11f8e2e10
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total operating expense variance by subtracting Total Operating Expenses from Total Operating Expenses Budget.
+	/// 
+	measure 'Total Ope Exp Variance' =
+			
+			[Total Operating Expenses Budget] - [Total Operating Expenses]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 06354830-4a25-4b6e-98ec-4007bde65e23
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total other expenses by adding InterestExpense and Total Depreciation.
+	/// 
+	measure 'Other Expense' =
+			
+			IF (
+			    ISBLANK ( [InterestExpense] + [Total Depreciation] ),
+			    0,
+			    [InterestExpense] + [Total Depreciation]
+			)
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: aa9b36c3-e00f-4af4-adba-f277800d8fc9
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total other expenses budget by adding InterestExpense Budget and Total Depreciation Budget.
+	/// 
+	measure 'Other Expense Budget' =
+			
+			IF (
+			    ISBLANK ( [InterestExpense Budget] + [Total Depreciation Budget] ),
+			    0,
+			    ( [InterestExpense Budget] + [Total Depreciation Budget] )
+			)
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: e2624adf-084c-485c-a5d6-4767f401422c
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the other expense variance by subtracting Other Expense from Other Expense Budget.
+	/// 
+	measure 'Other Expense Variance' =
+			
+			[Other Expense Budget] - [Other Expense]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 920302b4-4492-4182-a5d0-653b03ca3f69
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the net margin by dividing Net Surplus by Total Revenue.
+	/// 
+	measure 'Net Margin' =
+			
+			VAR __Surplus = [Net Surplus]
+			VAR __Revenue = [Total Revenue]
+			RETURN
+			    IF (
+			        OR (
+			            OR ( ISBLANK ( __Surplus ), __Surplus = 0 ),
+			            OR ( ISBLANK ( __Revenue ), __Revenue = 0 )
+			        ),
+			        BLANK (),
+			        DIVIDE ( __Surplus, __Revenue, BLANK () )
+			    )
+		formatString: 0%;-0%;0%
+		displayFolder: Other
+		lineageTag: 85e553af-64f0-4c2b-a9bd-7c33ddd4b946
+
+	/// Retrieves the applied filters based on various dimensions such as Date, Company, Department, Region, District, and Service.
+	/// 
+	measure 'Filters Applied' =
+			
+			VAR __1FinYear =
+			    IF (
+			        ISFILTERED ( 'Dim Date'[Financial Year Desc] ),
+			        CONCATENATEX (
+			            FILTERS ( 'Dim Date'[Financial Year Desc] ),
+			            'Dim Date'[Financial Year Desc],
+			            ", "
+			        ),
+			        BLANK ()
+			    )
+			VAR __2YearMonth =
+			    IF (
+			        ISFILTERED ( 'Dim Date'[Calendar Year Month] ),
+			        CONCATENATEX (
+			            FILTERS ( 'Dim Date'[Calendar Year Month] ),
+			            'Dim Date'[Calendar Year Month],
+			            ", "
+			        ),
+			        BLANK ()
+			    )
+			VAR __3Company =
+			    IF (
+			        ISFILTERED ( 'Dim Company'[Company Name] ),
+			        CONCATENATEX (
+			            FILTERS ( 'Dim Company'[Company Name] ),
+			            'Dim Company'[Company Name],
+			            ", "
+			        ),
+			        BLANK ()
+			    )
+			VAR __4BusUnit =
+			    IF (
+			        ISFILTERED ( 'Dim Department'[Department Code] ),
+			        CONCATENATEX (
+			            FILTERS ( 'Dim Department'[Department Code] ),
+			            'Dim Department'[Department Code],
+			            ", "
+			        ),
+			        BLANK ()
+			    )
+			VAR __5Region =
+			    IF (
+			        ISFILTERED ( 'Dim Region'[Region Name] ),
+			        CONCATENATEX (
+			            FILTERS ( 'Dim Region'[Region Name] ),
+			            'Dim Region'[Region Name],
+			            ", "
+			        ),
+			        BLANK ()
+			    )
+			VAR __6District =
+			    IF (
+			        ISFILTERED ( 'Dim District'[District Name] ),
+			        CONCATENATEX (
+			            FILTERS ( 'Dim District'[District Name] ),
+			            'Dim District'[District Name],
+			            ", "
+			        ),
+			        BLANK ()
+			    )
+			VAR __7Department =
+			    IF (
+			        ISFILTERED ( 'Dim Department'[Department Name] ),
+			        CONCATENATEX (
+			            FILTERS ( 'Dim Department'[Department Name] ),
+			            'Dim Department'[Department Name],
+			            ", "
+			        ),
+			        BLANK ()
+			    )
+			VAR __8ServiceType =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Service Type Name] ),
+			        CONCATENATEX (
+			            FILTERS ( 'Dim Service'[Service Type Name] ),
+			            'Dim Service'[Service Type Name],
+			            ", "
+			        ),
+			        BLANK ()
+			    )
+			VAR __9SeviceName =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Service Name] ),
+			        CONCATENATEX (
+			            FILTERS ( 'Dim Service'[Service Name] ),
+			            'Dim Service'[Service Name],
+			            ", "
+			        ),
+			        BLANK ()
+			    )
+			VAR __10BudgetName =
+			    IF (
+			        ISFILTERED ( 'Fact Finance Budget'[Finance Budget Budget Name] ),
+			        CONCATENATEX (
+			            FILTERS ( 'Fact Finance Budget'[Finance Budget Budget Name] ),
+			            'Fact Finance Budget'[Finance Budget Budget Name],
+			            ", "
+			        ),
+			        BLANK ()
+			    )
+			VAR _FC_1FinYear =
+			    IF ( ISBLANK ( __1FinYear ), BLANK (), "FINANCIAL YEARS CHOSEN: " & __1FinYear )
+			VAR _FC_2YearMonth =
+			    IF (
+			        ISBLANK ( __2YearMonth ),
+			        BLANK (),
+			        "-- FINANCIAL MONTHS CHOSEN: " & __2YearMonth
+			    )
+			VAR _FC_3Company =
+			    IF ( ISBLANK ( __3Company ), BLANK (), "-- COMPANY CHOSEN: " & __3Company )
+			VAR _FC_4BusUnit =
+			    IF (
+			        ISBLANK ( __4BusUnit ),
+			        BLANK (),
+			        "-- BUSINESS UNIT CHOSEN: " & __4BusUnit
+			    )
+			VAR _FC_5Region =
+			    IF ( ISBLANK ( __5Region ), BLANK (), "-- REGION CHOSEN: " & __5Region )
+			VAR _FC_6District =
+			    IF ( ISBLANK ( __6District ), BLANK (), "-- DISTRICT CHOSEN: " & __6District )
+			VAR _FC_7Department =
+			    IF (
+			        ISBLANK ( __7Department ),
+			        BLANK (),
+			        "-- DEPARTMENT CHOSEN: " & __7Department
+			    )
+			VAR _FC_8ServiceType =
+			    IF (
+			        ISBLANK ( __8ServiceType ),
+			        BLANK (),
+			        "-- SERVICE TYPE CHOSEN: " & __8ServiceType
+			    )
+			VAR _FC_9SeviceName =
+			    IF (
+			        ISBLANK ( __9SeviceName ),
+			        BLANK (),
+			        "-- SERVICE NAME CHOSEN: " & __9SeviceName
+			    )
+			VAR _FC_10BudgetName =
+			    IF (
+			        ISBLANK ( __10BudgetName ),
+			        BLANK (),
+			        "-- BUDGET NAME CHOSEN: " & __10BudgetName
+			    )
+			RETURN
+			    " ( " & FORMAT ( FIRSTDATE ( 'Dim Date'[Calendar Date] ), "dd/MM/YYYY" ) & " - "
+			        & FORMAT ( LASTDATE ( 'Dim Date'[Calendar Date] ), "dd/MM/YYYY" ) & " ) "
+			        & IF (
+			            AND (
+			                AND (
+			                    AND (
+			                        AND (
+			                            AND (
+			                                AND (
+			                                    AND ( ISBLANK ( _FC_3Company ), ISBLANK ( _FC_4BusUnit ) ),
+			                                    ISBLANK ( _FC_5Region )
+			                                ),
+			                                ISBLANK ( _FC_6District )
+			                            ),
+			                            ISBLANK ( _FC_7Department )
+			                        ),
+			                        ISBLANK ( _FC_8ServiceType )
+			                    ),
+			                    ISBLANK ( _FC_9SeviceName )
+			                ),
+			                ISBLANK ( _FC_10BudgetName )
+			            ),
+			            "",
+			            "and other selected fields: " & " " & _FC_3Company & " " & _FC_4BusUnit & " " & _FC_5Region & " " & _FC_6District & " " & _FC_7Department & " " & _FC_8ServiceType & " " & _FC_9SeviceName & " " & _FC_10BudgetName
+			        )
+		displayFolder: Other
+		lineageTag: ad187b75-6d45-4469-bc6f-97ba24374e04
+
+	/// Retrieves the actual line value based on the selected measure and corresponding actual line column.
+	/// 
+	measure VariableActualLine =
+			
+			VAR M =
+			    SELECTEDVALUE ( 'InExFrame'[Measure] )
+			VAR A =
+			    SELECTEDVALUE ( InExFrame[Actual] )
+			VAR F =
+			    SELECTEDVALUE ( InExFrame[Forecast] )
+			VAR V =
+			    SELECTEDVALUE ( InExFrame[Variance] )
+			VAR PV =
+			    SELECTEDVALUE ( InExFrame[%Variance] )
+			VAR I =
+			    SELECTEDVALUE ( InExFrame[Icon] )
+			VAR PY =
+			    SELECTEDVALUE ( InExFrame[Previous Year] )
+			VAR AF =
+			    SELECTEDVALUE ( InExFrame[Annual Forecast] )
+			VAR AL =
+			    SELECTEDVALUE ( InExFrame[Actual Line] )
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        M = "Total Income"
+			            && AL = "TR_Actual line",
+			            CALCULATE (
+			                SUM ( 'Fact Finance General Ledger'[Finance General Ledger Amount] ),
+			                DATESYTD ( 'Dim Date'[Calendar Date], "6/30" ),
+			                USERELATIONSHIP ( 'Fact Finance General Ledger'[Finance Posting Date KEY], 'Dim General Ledger Posting Date'[General Ledger Posting Dim Date KEY] ),
+			                USERELATIONSHIP ( 'Dim General Ledger Posting Date'[General Ledger Posting Dim Date KEY], 'Dim Date'[Dim Date KEY] ),
+			                'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Second Level Name] = "Total Income"
+			            ) * -1,
+			        M = "Total Wages"
+			            && AL = "SW_Actual line", [SalaryWages],
+			        M = "Gross Surplus"
+			            && AL = "GS_Actual line", [Gross Surplus],
+			        M = "Total Operating Expenses"
+			            && AL = "TOE_Actual line", [Total Operating Expenses],
+			        M = "Total Operating Surplus"
+			            && AL = "TOS_Actual line", [EBIT],
+			        M = "Interest Expense"
+			            && AL = "IE_Actual line", [InterestExpense],
+			        M = "Recharges"
+			            && A = "R_Actual", [Total Recharges],
+			        M = "Depreciation"
+			            && AL = "D_Actual line", [Total Depreciation],
+			        M = "Net Surplus"
+			            && AL = "NS_Actual line", [Net Surplus]
+			    )
+		displayFolder: Variable Measures
+		lineageTag: 0b21b663-0d50-4dea-b040-c23e176e23dd
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Calculates the difference between the forecast and actual values based on the selected measure.
+	/// 
+	measure 'VariableForecast minus Actual' =
+			
+			VAR M =
+			    SELECTEDVALUE ( 'InExFrame'[Measure] )
+			VAR A =
+			    SELECTEDVALUE ( InExFrame[Actual] )
+			VAR F =
+			    SELECTEDVALUE ( InExFrame[Forecast] )
+			VAR V =
+			    SELECTEDVALUE ( InExFrame[Variance] )
+			VAR PV =
+			    SELECTEDVALUE ( InExFrame[%Variance] )
+			VAR I =
+			    SELECTEDVALUE ( InExFrame[Icon] )
+			VAR PY =
+			    SELECTEDVALUE ( InExFrame[Previous Year] )
+			VAR AF =
+			    SELECTEDVALUE ( InExFrame[Annual Forecast] )
+			VAR AL =
+			    SELECTEDVALUE ( InExFrame[Actual Line] )
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        M = "Total Income"
+			            && F = "TR_Forecast", [Total Revenue (Budget)] - [Total Revenue],
+			        M = "Total Wages"
+			            && F = "SW_Forecast", [SalaryWages Budget] - [SalaryWages],
+			        M = "Gross Surplus"
+			            && F = "GS_Forecast", [Gross Surplus Budget] - [Gross Surplus],
+			        M = "Total Operating Expenses"
+			            && F = "TOE_Forecast", [Total Operating Expenses Budget] - [Total Operating Expenses],
+			        M = "Total Operating Surplus"
+			            && F = "TOS_Forecast", [EBIT Budget] - [EBIT],
+			        M = "Interest Expense"
+			            && F = "IE_Forecast", [InterestExpense Budget] - [InterestExpense],
+			        M = "Depreciation"
+			            && F = "D_Forecast", [Total Depreciation Budget] - [Total Depreciation],
+			        M = "Recharges"
+			            && F = "R_Forecast", FORMAT ( [Total Recharges Budget] - [Total Recharges], "#,##0, ;(#,##0,);-" ),
+			        M = "Net Surplus"
+			            && F = "NS_Forecast", [Net Surplus Budget] - [Net Surplus]
+			    )
+		displayFolder: Variable Measures
+		lineageTag: 7b815b08-863b-4e80-8e5d-17a1032f492f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Calculates the total inverse amount from Fact Finance General Ledger table
+	/// 
+	measure 'Total Inverse Amount' =
+			
+			SUM ( 'Fact Finance General Ledger'[Inverse Amount] )
+		formatString: "$#,##0,. "
+		displayFolder: Expenses
+		lineageTag: 92a27e60-51ea-484d-bf12-d8ef374a2af7
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Retrieves the text-based applied filters.
+	/// 
+	measure 'Text Filters Applied' =
+			
+			"Please be aware all numbers are based on the current selected period" & [Filters Applied]
+		displayFolder: Other
+		lineageTag: 8a669e19-44f7-4735-8931-6f225865d31e
+
+	/// Identifies the top or bottom 5 entries based on the Variance $ measure.
+	/// 
+	measure TopBottom5 =
+			
+			IF (
+			    ISBLANK ( [Variance $] ),
+			    BLANK (),
+			    IF (
+			        RANKX (
+			            ALLSELECTED ( 'Dim Finance General Ledger Account'[Finance General Ledger Account Description] ),
+			            [Variance $],
+			            [Variance $],
+			            ASC
+			        ) <= 5
+			            || RANKX (
+			                ALL ( 'Dim Finance General Ledger Account'[Finance General Ledger Account Description] ),
+			                [Variance $],
+			                [Variance $],
+			                DESC
+			            ) <= 5,
+			        1,
+			        0
+			    )
+			)
+		formatString: 0
+		displayFolder: Other
+		lineageTag: d542ceff-1864-4ee4-b1b8-47ccf493df4b
+
+	/// Calculates the depreciation variance by subtracting Total Depreciation from Total Depreciation Budget.
+	/// 
+	measure 'Depreciation Variance' =
+			
+			[Total Depreciation Budget] - [Total Depreciation]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 5ab3a2bf-64fa-4e2c-8e54-26a7415b110b
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Variance $ duplicate' = ```
+			
+			VAR __Val =
+			    SELECTEDVALUE ( 'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Second Level Name] )
+			VAR __Rev = [Actual Amount Less Than Today] - [Budget Amount Less Than Today] -- Jay - 2023-06-15 : A positive outcome of the above equation is a favourable (positive) result and should be represented in an upward arrow and the % positive A negative outcome is unfavourable (negative) and  should be represented by a downward arrow and the % should be negative */
+			VAR __Exp = [Budget Amount Less Than Today] - [Actual Amount Less Than Today] -- Jay - 2023-06-15 : If the outcome is negative then it’s unfavourable (negative) and should be represented in a downward arrow and % should be a negative value.  If the outcome is positive then is favourable (positive) and should be represented in an upward arrow and the % be a positive value. 
+			RETURN
+			    IF ( __Val = "Total Expenses", __Exp, __Rev )
+			```
+		displayFolder: Variance
+		lineageTag: 0419d155-9a45-4182-87e9-52b7581c4eac
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'GL Row Count' =
+			
+			COUNTROWS ( 'Fact Finance General Ledger' )
+		formatString: 0
+		displayFolder: Activity Measures
+		lineageTag: 949fc9bc-eb9b-4249-8ef9-0f23298e94bc
+
+	/// Calculates the year-to-date inverse amount from the Fact Finance general ledger up to the current date.
+	measure 'Actual Amount Less Than Today YTD' =
+			
+			CALCULATE (
+			    SUM ( 'Fact Finance General Ledger'[Inverse Amount] ),
+			    FILTER (
+			        'Dim General Ledger Posting Date',
+			        'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date]
+			            <= TODAY ()
+			    ),
+			    DATESYTD ( 'Dim Date'[Calendar Date], "6/30" )
+			)
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Revenue
+		lineageTag: d14343fc-379f-4885-89aa-b84dd67d25a3
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the year-to-date budget amount up to the current date.
+	/// 
+	measure 'Budget Amount Less Than Today YTD' =
+			
+			CALCULATE (
+			    [Budget Amount],
+			    FILTER (
+			        'Dim Budget Date',
+			        'Dim Budget Date'[Budget Calendar Date] <= TODAY ()
+			    ),
+			    DATESYTD ( 'Dim Date'[Calendar Date], "6/30" )
+			)
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Budget
+		lineageTag: ad42d764-1391-4e67-ac95-a15553ffc799
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the year-to-date variance percentage between actual and budget amounts based on the selected account hierarchy level.
+	/// 
+	measure 'Variance % YTD' =
+			
+			VAR __Val =
+			    SELECTEDVALUE ( 'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Second Level Name] )
+			VAR __Rev =
+			    IF (
+			        [Actual Amount Less Than Today YTD] = 0
+			            || [Budget Amount Less Than Today YTD] = 0,
+			        "",
+			        DIVIDE (
+			            ( [Actual Amount Less Than Today YTD] - [Budget Amount Less Than Today YTD] ),
+			            [Budget Amount Less Than Today YTD]
+			        )
+			    )
+			VAR __Exp =
+			    IF (
+			        [Actual Amount Less Than Today YTD] = 0
+			            || [Budget Amount Less Than Today YTD] = 0,
+			        "",
+			        DIVIDE (
+			            ( [Budget Amount Less Than Today YTD] - [Actual Amount Less Than Today YTD] ),
+			            [Budget Amount Less Than Today YTD]
+			        )
+			    )
+			RETURN
+			    IF ( __Val = "Total Expenses", __Exp, __Rev )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 786c34a4-b6bc-4d1d-8b29-0ce12c7ac507
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the running total of the total revenue variance.
+	/// 
+	measure 'Total Revenue Variance running total' =
+			
+			CALCULATE (
+			    [Total Revenue Variance],
+			    FILTER (
+			        ALLSELECTED ( 'Dim Date'[Calendar Year Month] ),
+			        ISONORAFTER (
+			            'Dim Date'[Calendar Year Month], MAX ( 'Dim Date'[Calendar Year Month] ), DESC
+			        )
+			    )
+			)
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 968f2b2a-c655-44de-af41-63d4c4df7a70
+
+		extendedProperty MeasureTemplate =
+				{
+				  "daxTemplateName": "RunningTotal",
+				  "version": 0
+				}
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the running total of the total salary and wage variance.
+	/// 
+	measure 'Total Salary and Wage Variance running total' =
+			
+			CALCULATE (
+			    [Total Salary and Wage Variance],
+			    FILTER (
+			        ALLSELECTED ( 'Dim Date'[Calendar Year Month] ),
+			        ISONORAFTER (
+			            'Dim Date'[Calendar Year Month], MAX ( 'Dim Date'[Calendar Year Month] ), DESC
+			        )
+			    )
+			)
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: a06a69ea-3d17-41d2-9e7b-c0822111009c
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the running total of the gross surplus variance.
+	/// 
+	measure 'Gross Surplus Variance running total' =
+			
+			CALCULATE (
+			    [Gross Surplus Variance],
+			    FILTER (
+			        ALLSELECTED ( 'Dim Date'[Calendar Year Month] ),
+			        ISONORAFTER (
+			            'Dim Date'[Calendar Year Month], MAX ( 'Dim Date'[Calendar Year Month] ), DESC
+			        )
+			    )
+			)
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: b99cd524-32f2-4f95-a427-9c314924f6e5
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the running total of the net surplus variance.
+	/// 
+	measure 'Net Surplus Variance running total' =
+			
+			CALCULATE (
+			    [Net Surplus Variance$],
+			    FILTER (
+			        ALLSELECTED ( 'Dim Date'[Calendar Year Month] ),
+			        ISONORAFTER (
+			            'Dim Date'[Calendar Year Month], MAX ( 'Dim Date'[Calendar Year Month] ), DESC
+			        )
+			    )
+			)
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: cc5b5abe-da25-483a-9817-cd0bedafcc40
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the running total of the EBIT variance.
+	/// 
+	measure 'EBIT Variance running total' =
+			
+			CALCULATE (
+			    [EBIT Variance],
+			    FILTER (
+			        ALLSELECTED ( 'Dim Date'[Calendar Year Month] ),
+			        ISONORAFTER (
+			            'Dim Date'[Calendar Year Month], MAX ( 'Dim Date'[Calendar Year Month] ), DESC
+			        )
+			    )
+			)
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 684ea9cb-9431-433a-9496-63e349b1a404
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the running total of the depreciation variance.
+	/// 
+	measure 'Depreciation Variance running total' =
+			
+			CALCULATE (
+			    [Depreciation Variance],
+			    FILTER (
+			        ALLSELECTED ( 'Dim Date'[Calendar Year Month] ),
+			        ISONORAFTER (
+			            'Dim Date'[Calendar Year Month], MAX ( 'Dim Date'[Calendar Year Month] ), DESC
+			        )
+			    )
+			)
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 598d20d7-02a4-4899-b145-a47e57f99ac3
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the running total of the interest variance.
+	/// 
+	measure 'Interest Variance running total' =
+			
+			CALCULATE (
+			    [Interest Variance],
+			    FILTER (
+			        ALLSELECTED ( 'Dim Date'[Calendar Year Month] ),
+			        ISONORAFTER (
+			            'Dim Date'[Calendar Year Month], MAX ( 'Dim Date'[Calendar Year Month] ), DESC
+			        )
+			    )
+			)
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 540016a1-22d2-406f-9035-2bc09bbc78ba
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the running total of the total operating expense variance.
+	/// 
+	measure 'Total Ope Exp Variance running total' =
+			
+			CALCULATE (
+			    [Total Ope Exp Variance],
+			    FILTER (
+			        ALLSELECTED ( 'Dim Date'[Calendar Year Month] ),
+			        ISONORAFTER (
+			            'Dim Date'[Calendar Year Month], MAX ( 'Dim Date'[Calendar Year Month] ), DESC
+			        )
+			    )
+			)
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 926ab526-0408-42e6-8264-e8ad217f91cd
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the actual amount for the current month.
+	/// 
+	measure 'Actual - Month' =
+			
+			CALCULATE (
+			    [Actual Amount Less Than Today],
+			    'Dim Date'[Current Month Flag] = 1
+			)
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: P&L Summary
+		lineageTag: d0dc76e7-fff7-45cc-8eca-d8ab6dbccb72
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the forecast amount for the current month.
+	/// 
+	measure 'Forecast - Month' =
+			
+			CALCULATE (
+			    [Budget Amount Less Than Today],
+			    'Dim Date'[Current Month Flag] = 1
+			)
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: P&L Summary
+		lineageTag: 8721c621-1cfa-44e5-995c-34a1c7977a45
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the variance amount for the current month.
+	/// 
+	measure 'Variance $ - Month' =
+			
+			CALCULATE ( [Variance $], 'Dim Date'[Current Month Flag] = 1 )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: P&L Summary
+		lineageTag: 6c7953e5-0009-4377-8381-0e24c700139e
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the variance percentage for the current month.
+	/// 
+	measure 'Variance % - Month' =
+			
+			CALCULATE (
+			    DIVIDE ( [Variance $ - Month], [Forecast - Month] ),
+			    'Dim Date'[Current Month Flag] = 1
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: P&L Summary
+		lineageTag: 8af90008-38ca-4646-aa26-d0913ba76d85
+
+	/// Calculates the forecast amount for the full year.
+	/// 
+	measure 'Forecast - Full Year' =
+			
+			CALCULATE ( [Budget Amount], ALL ( 'Dim Date'[Calendar Year Month] ) )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: P&L Summary
+		lineageTag: 20a082ec-b30b-4501-91d2-042c770eb2b1
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the gross profit variance for the current month.
+	/// 
+	measure 'Gross Profit Variance$ Month' =
+			
+			VAR _Income =
+			    CALCULATE (
+			        [Variance $ - Month],
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Code]
+			            IN { 1010, 1011, 1060, 1061, 1100 }
+			    )
+			VAR _Wages =
+			    CALCULATE (
+			        [Variance $ - Month],
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Code]
+			            IN { 2010, 2011, 2030, 2040, 2020 }
+			    )
+			RETURN
+			    _Income + _Wages
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Gross Surplus
+		lineageTag: bf17a7be-c42c-4c8e-b776-ea0e812e6617
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the variance percentage year-to-date.
+	/// 
+	measure 'Variance % - YTD' =
+			
+			CALCULATE ( DIVIDE ( [Variance $ YTD], [Budget Amount Less Than Today YTD] ) )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: P&L Summary
+		lineageTag: 5adbdfa8-a27b-4287-8e0e-6ca5373c0d72
+
+	/// Calculates the gross profit forecast for the full year.
+	/// 
+	measure 'Gross profit Forecast - FY' =
+			
+			VAR _Income =
+			    CALCULATE (
+			        [Budget Amount],
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Code]
+			            IN { 1010, 1011, 1060, 1061, 1100 },
+			        ALL ( 'Dim Date'[Calendar Year Month] )
+			    )
+			VAR _Wages =
+			    CALCULATE (
+			        [Budget Amount],
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Code]
+			            IN { 2010, 2011, 2030, 2040, 2020 },
+			        ALL ( 'Dim Date'[Calendar Year Month] )
+			    )
+			RETURN
+			    _Income - _Wages
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Gross Surplus
+		lineageTag: 58c864a0-f428-4cf8-aa14-34a1b092653e
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the net surplus before recharges for the previous month.
+	/// 
+	measure 'Month Net Surplus (bef rechar)' =
+			
+			VAR _PreviousMonth = [Max filtered Month]
+			VAR _surplus =
+			    CALCULATE (
+			        [Net Surplus (bef rechar)],
+			        'Dim Date'[Calendar Year Month] = _PreviousMonth
+			    )
+			RETURN
+			    IF ( ISBLANK ( _surplus ), 0, _surplus )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Net Surplus
+		lineageTag: 6f786538-42bf-4af7-8c81-c1c7b1076fee
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the net surplus before recharges budget for the previous month.
+	/// 
+	measure 'Month Net Surplus (bef rechar) Budget' =
+			
+			VAR _PreviousMonth = [Max filtered Month]
+			VAR _surplus =
+			    CALCULATE (
+			        [Net Surplus (bef rechar) Budget],
+			        'Dim Date'[Calendar Year Month] = _PreviousMonth
+			    )
+			RETURN
+			    IF ( ISBLANK ( _surplus ), 0, _surplus )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Net Surplus
+		lineageTag: 2a99e799-21ba-4c63-8717-fb64274dae5e
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the net surplus before recharges variance for the previous month.
+	/// 
+	measure 'Month Net Surplus (bef Rechar) variance$' =
+			
+			[Month Net Surplus (bef rechar)] - [Month Net Surplus (bef rechar) Budget]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Net Surplus
+		lineageTag: 175cb0c3-70fd-4028-a5c1-9956c61dcba2
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the net surplus before recharges variance percentage for the previous month.
+	/// 
+	measure 'Month Net Surplus (bef rechar) variance%' =
+			
+			DIVIDE (
+			    [Month Net Surplus (bef Rechar) variance$],
+			    [Month Net Surplus (bef rechar) Budget]
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Surplus
+		lineageTag: 0db45ba4-1683-4cf0-be03-c6ea21216d79
+
+	/// Calculates the net surplus before recharges.
+	/// 
+	measure 'Net Surplus (bef rechar)' =
+			
+			[Total Revenue YTD] - [Sub Total Expenses]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Net Surplus
+		lineageTag: 0061f268-4a81-4e53-972a-27ec6a37dac1
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the net surplus before recharges budget.
+	/// 
+	measure 'Net Surplus (bef rechar) Budget' =
+			
+			[Total Revenue (Budget)] - [Sub Total Expenses Budget]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Net Surplus
+		lineageTag: 2c6c2c6a-f5ba-46e1-9703-62ad5ef29ed3
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the net surplus before recharges variance.
+	/// 
+	measure 'Net Surplus (bef rechar) variance$' =
+			
+			[Net Surplus (bef rechar)] - [Net Surplus (bef rechar) Budget]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Net Surplus
+		lineageTag: 8bcdfd2e-2e3a-4f2e-8ff7-e9bb54a35ede
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the net surplus before recharges variance percentage.
+	/// 
+	measure 'Net Surplus (bef rechar) variance%' =
+			
+			DIVIDE (
+			    [Net Surplus (bef rechar) variance$],
+			    [Net Surplus (bef rechar) Budget]
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Surplus
+		lineageTag: 7bd05dbd-68ca-4fae-b1d1-8dd948e34bba
+
+	/// Calculates the annual net surplus before recharges.
+	/// 
+	measure 'Annual Net Surplus (bef rechar)' =
+			
+			[Annual Budget Revenue] - [Annual Sub Total Expenses]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Net Surplus
+		lineageTag: 19e967b0-229a-458c-8d5f-c36cff0ac267
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the gross surplus variance percentage.
+	/// 
+	measure 'Gross Surplus Variance%' =
+			
+			DIVIDE ( [Gross Surplus Variance], [Gross Surplus Budget] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Variance
+		lineageTag: 3b033760-aed3-404e-830d-f5f81686ce45
+
+	/// Calculates the total revenue for the previous month.
+	/// 
+	measure 'Month Total Revenue' =
+			
+			VAR _PreviousMonth = [Max filtered Month]
+			VAR _revenue =
+			    CALCULATE ( [Total Revenue], 'Dim Date'[Calendar Year Month] = _PreviousMonth )
+			RETURN
+			    IF ( ISBLANK ( _revenue ), 0, _revenue )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Revenue
+		lineageTag: a16aebe4-5e35-48c1-a67c-4586a31aa956
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the salary and wages variance for the previous month.
+	/// 
+	measure 'Month S&W Variance$' =
+			
+			[Month SalaryWages Budget] - [Month SalaryWages]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 23b241b7-423c-4456-b720-ee0512edf2ba
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the salary and wages for the previous month.
+	/// 
+	measure 'Month SalaryWages' =
+			
+			VAR _PreviousMonth = [Max filtered Month]
+			VAR _SW =
+			    CALCULATE ( [SalaryWages], 'Dim Date'[Calendar Year Month] = _PreviousMonth )
+			RETURN
+			    IF ( ISBLANK ( _SW ), 0, _SW )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Salary and Wages
+		lineageTag: 8efcb1e2-9869-42c1-a44b-ab9e9b54f75f
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the revenue variance for the previous month.
+	/// 
+	measure 'Month Revenue Variance$' =
+			
+			[Month Total Revenue] - [Month Total Revenue Budget]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: bb7a6814-f2e6-48da-afd6-bb68c5336427
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the revenue variance percentage for the previous month.
+	/// 
+	measure 'Month Revenue Variance%' =
+			
+			DIVIDE ( [Month Revenue Variance$], [Month Total Revenue Budget] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Variance
+		lineageTag: 1eb2b6f8-5b1c-42e9-bdff-d55d1a81adef
+
+	/// Calculates the total revenue budget for the previous month.
+	/// 
+	measure 'Month Total Revenue Budget' =
+			
+			VAR _PreviousMonth = [Max filtered Month]
+			VAR _budget =
+			    CALCULATE (
+			        [Total Revenue (Budget)],
+			        'Dim Date'[Calendar Year Month] = _PreviousMonth
+			    )
+			RETURN
+			    IF ( ISBLANK ( _budget ), 0, _budget )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Revenue
+		lineageTag: 4954e48a-bfea-47e0-8851-8d9e4c9ecc8c
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the salary and wages budget for the previous month.
+	/// 
+	measure 'Month SalaryWages Budget' =
+			
+			VAR _PreviousMonth = [Max filtered Month]
+			VAR _budget =
+			    CALCULATE (
+			        [SalaryWages Budget],
+			        'Dim Date'[Calendar Year Month] = _PreviousMonth
+			    )
+			RETURN
+			    IF ( ISBLANK ( _budget ), 0, _budget )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Salary and Wages
+		lineageTag: e5accf11-00b0-4780-ba57-214e4d0e7745
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the salary and wages variance percentage for the previous month.
+	/// 
+	measure 'Month S&W Variance%' =
+			
+			DIVIDE ( [Month S&W Variance$], [Month SalaryWages Budget] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Variance
+		lineageTag: e5a6d21a-fe23-4e08-9894-8ddd87bc7514
+
+	/// Calculates the gross surplus variance for the previous month.
+	/// 
+	measure 'Month Gross Surplus Variance$' =
+			
+			[Month Gross Surplus] - [Month Gross Surplus Budget]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 60c83293-f2e3-46c9-b73f-0b40b9b7cd19
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the gross surplus variance percentage for the previous month.
+	/// 
+	measure 'Month Gross Surplus Variance%' =
+			
+			DIVIDE ( [Month Gross Surplus Variance$], [Month Gross Surplus Budget] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Variance
+		lineageTag: 21211ee4-babd-4849-a81d-e731bac22552
+
+	/// Calculates the gross surplus budget for the previous month.
+	/// 
+	measure 'Month Gross Surplus Budget' =
+			
+			[Month Total Revenue Budget] - [Month SalaryWages Budget]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Gross Surplus
+		lineageTag: 1334420d-cb1a-4659-8a22-0858b4c0997d
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the gross surplus for the previous month.
+	/// 
+	measure 'Month Gross Surplus' =
+			
+			VAR _PreviousMonth = [Max filtered Month]
+			VAR _Surplus =
+			    CALCULATE ( [Gross Surplus], 'Dim Date'[Calendar Year Month] = _PreviousMonth )
+			RETURN
+			    IF ( ISBLANK ( _Surplus ), 0, _Surplus )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Gross Surplus
+		lineageTag: 70725f2e-4079-44ce-950a-6a67bae5c15f
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total controllable expenses.
+	/// 
+	measure 'Controllable Expenses' =
+			
+			VAR _Controllable =
+			    CALCULATE (
+			        SUM ( 'Fact Finance General Ledger'[Finance General Ledger Amount] ),
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Code]
+			            IN {
+			                2060,
+			                2095,
+			                2110,
+			                2115,
+			                2140,
+			                2150,
+			                2160,
+			                2170,
+			                2230,
+			                2240,
+			                2260,
+			                2270,
+			                2290,
+			                2300,
+			                2310,
+			                2350,
+			                2370,
+			                2390,
+			                2411,
+			                2412,
+			                2420,
+			                2430,
+			                2440
+			            }
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Controllable ), 0, _Controllable )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: 0134b2bf-659a-48e9-8cdc-0fb74d234d26
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total uncontrollable expenses.
+	/// 
+	measure 'Uncontrollable Expenses' =
+			
+			VAR _Uncontrollable =
+			    CALCULATE (
+			        SUM ( 'Fact Finance General Ledger'[Finance General Ledger Amount] ),
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Code]
+			            IN {
+			                2055,
+			                2065,
+			                2070,
+			                2075,
+			                2080,
+			                2100,
+			                2180,
+			                2190,
+			                2200,
+			                2205,
+			                2210,
+			                2211,
+			                2220,
+			                2250,
+			                2280,
+			                2380,
+			                2410,
+			                2480,
+			                2490,
+			                2495,
+			                2510,
+			                2520,
+			                2530,
+			                2540,
+			                2550,
+			                2560,
+			                2570,
+			                2580,
+			                2610,
+			                2611,
+			                2612,
+			                2613,
+			                2614,
+			                2615,
+			                2616,
+			                2650,
+			                2670,
+			                2990
+			            }
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Uncontrollable ), 0, _Uncontrollable )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: a59190bd-9a6b-4051-8d4e-ad7c098dc5b3
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total uncontrollable expenses budget.
+	/// 
+	measure 'Uncontrollable Expenses Budget' =
+			
+			VAR _Uncontrollable =
+			    CALCULATE (
+			        SUM ( 'Fact Finance Budget'[Finance Budget Amount] ),
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Code]
+			            IN {
+			                2055,
+			                2065,
+			                2070,
+			                2075,
+			                2080,
+			                2100,
+			                2180,
+			                2190,
+			                2200,
+			                2205,
+			                2210,
+			                2211,
+			                2220,
+			                2250,
+			                2280,
+			                2380,
+			                2410,
+			                2480,
+			                2490,
+			                2495,
+			                2510,
+			                2520,
+			                2530,
+			                2540,
+			                2550,
+			                2560,
+			                2570,
+			                2580,
+			                2610,
+			                2611,
+			                2612,
+			                2613,
+			                2614,
+			                2615,
+			                2616,
+			                2650,
+			                2670,
+			                2990
+			            }
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Uncontrollable ), 0, _Uncontrollable )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Budget
+		lineageTag: c6d53dc7-8675-4e10-bebb-27e1618cc9ad
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total controllable expenses budget.
+	/// 
+	measure 'Controllable Expenses Budget' =
+			
+			VAR _Controllable =
+			    CALCULATE (
+			        SUM ( 'Fact Finance Budget'[Finance Budget Amount] ),
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Code]
+			            IN {
+			                2060,
+			                2095,
+			                2110,
+			                2115,
+			                2140,
+			                2150,
+			                2160,
+			                2170,
+			                2230,
+			                2240,
+			                2260,
+			                2270,
+			                2300,
+			                2310,
+			                2350,
+			                2370,
+			                2390,
+			                2411,
+			                2412,
+			                2420,
+			                2430,
+			                2440
+			            }
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Controllable ), 0, _Controllable )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Budget
+		lineageTag: 71bdf03a-37b4-481b-bca4-6d470f552f32
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the uncontrollable expense variance.
+	/// 
+	measure 'Uncontrollable Expense Variance$' =
+			
+			[Uncontrollable Expenses Budget] - [Uncontrollable Expenses]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 932b1abf-305a-45f0-ba7b-117c986f2e58
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the controllable expense variance for the previous month.
+	/// 
+	measure 'Month Controllable Variance$' =
+			
+			[Month Controllable Expense Budget] - [Month Controllable Expense]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: ba837444-c6c8-4f38-b18f-bd0b14a38bbb
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the uncontrollable expense variance for the previous month.
+	/// 
+	measure 'Month Uncontrollable Variance$' =
+			
+			[Month Uncontrollable Expense Budget] - [Month Uncontrollable Expense]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 879cdede-f8ae-4608-b739-ff4e8280e4a1
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the controllable expense variance.
+	/// 
+	measure 'Controllable Expense Variance$' =
+			
+			[Controllable Expenses Budget] - [Controllable Expenses]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 3b6cc9e7-0927-4bda-8e0f-28468c9aff0d
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the uncontrollable expense variance percentage for the previous month.
+	/// 
+	measure 'Month Uncontrollable Expense Variance%' =
+			
+			DIVIDE (
+			    [Month Uncontrollable Variance$],
+			    [Month Uncontrollable Expense Budget]
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Variance
+		lineageTag: 7859bace-3ae5-47a1-a67a-d6d852e8eb8d
+
+	/// Calculates the uncontrollable expenses for the previous month.
+	/// 
+	measure 'Month Uncontrollable Expense' =
+			
+			VAR _PreviousMonth = [Max filtered Month]
+			VAR _Uncontrollable =
+			    CALCULATE (
+			        [Uncontrollable Expenses],
+			        'Dim Date'[Calendar Year Month] = _PreviousMonth
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Uncontrollable ), 0, _Uncontrollable )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: 346e7c64-4ace-4532-9f3c-f864fcd4ace4
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the uncontrollable expenses budget for the previous month.
+	/// 
+	measure 'Month Uncontrollable Expense Budget' =
+			
+			VAR _PreviousMonth = [Max filtered Month]
+			VAR _Uncontrollable =
+			    CALCULATE (
+			        [Uncontrollable Expenses Budget],
+			        'Dim Date'[Calendar Year Month] = _PreviousMonth
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Uncontrollable ), 0, _Uncontrollable )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Budget
+		lineageTag: 2259d932-d2e8-4d8a-b3bc-3b70e187adcd
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the controllable expenses for the previous month.
+	/// 
+	measure 'Month Controllable Expense' =
+			
+			VAR _PreviousMonth = [Max filtered Month]
+			VAR _Controllable =
+			    CALCULATE (
+			        [Controllable Expenses],
+			        'Dim Date'[Calendar Year Month] = _PreviousMonth
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Controllable ), 0, _Controllable )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: bc6a2d84-bb12-46af-a587-8ab38ff874d8
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the controllable expenses budget for the previous month.
+	/// 
+	measure 'Month Controllable Expense Budget' =
+			
+			VAR _PreviousMonth = [Max filtered Month]
+			VAR _Controllable =
+			    CALCULATE (
+			        [Controllable Expenses Budget],
+			        'Dim Date'[Calendar Year Month] = _PreviousMonth
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Controllable ), 0, _Controllable )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Budget
+		lineageTag: cfbcd1c1-6c21-4d66-8d78-67c4dd8635b6
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the uncontrollable expense variance percentage.
+	/// 
+	measure 'Uncontrollable Expense Variance%' =
+			
+			DIVIDE ( [Uncontrollable Expense Variance$], [Uncontrollable Expenses Budget] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Variance
+		lineageTag: 3b831807-0bb5-4c73-8da4-8e50d9154f8c
+
+	/// Calculates the controllable expense variance percentage.
+	/// 
+	measure 'Controllable Expense Variance%' =
+			
+			DIVIDE ( [Controllable Expense Variance$], [Controllable Expenses Budget] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Variance
+		lineageTag: 8ef9e640-50f8-453a-ad03-e08a340d3276
+
+	/// Calculates the controllable expense variance percentage for the previous month.
+	/// 
+	measure 'Month Controllable Expense Variance%' =
+			
+			DIVIDE ( [Month Controllable Variance$], [Month Controllable Expense Budget] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Variance
+		lineageTag: f78be0c1-4411-40ac-aebe-d255b76d8163
+
+	/// Calculates the total salary and wage variance percentage.
+	/// 
+	measure 'Total Salary and Wage Variance%' =
+			
+			DIVIDE ( [Total Salary and Wage Variance], [SalaryWages Budget] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Variance
+		lineageTag: 6933ab18-5181-4f4a-9dd3-78b69aab9851
+
+	/// Calculates the total revenue variance percentage.
+	/// 
+	measure 'Total Revenue Variance%' =
+			
+			DIVIDE ( [Total Revenue Variance], [Total Revenue (Budget)] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Variance
+		lineageTag: 7d5ba8e2-2738-4dbe-a34e-1123e16f1727
+
+	/// Calculates the annual uncontrollable expenses.
+	/// 
+	measure 'Annual Uncontrollable Expenses' =
+			
+			CALCULATE (
+			    [Uncontrollable Expenses Budget],
+			    ALL ( 'Dim Date'[Calendar Year Month] )
+			)
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: 8221b172-73b5-4e88-b2e3-94105c80b5cf
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the annual controllable expenses.
+	/// 
+	measure 'Annual Controllable Expenses' =
+			
+			CALCULATE (
+			    [Controllable Expenses Budget],
+			    ALL ( 'Dim Date'[Calendar Year Month] )
+			)
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: 77168336-90cb-4cb4-a257-bfd56a2b4fda
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total controllable and uncontrollable expenses.
+	/// 
+	measure 'Total Controllable and Uncontrollable Expense' =
+			
+			[Controllable Expenses] + [Uncontrollable Expenses]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: 0d415ea9-0e2b-456f-93b0-aa148f3d1ed2
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total controllable and uncontrollable expenses budget.
+	/// 
+	measure 'Total Controllable and Uncontrollable Budget' =
+			
+			[Controllable Expenses Budget] + [Uncontrollable Expenses Budget]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Budget
+		lineageTag: a81f1824-b8d6-4b75-97d2-cfa5ad91a3c9
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total controllable and uncontrollable expenses budget for the previous month.
+	/// 
+	measure 'Month Contr and Uncontr Expense Budget' =
+			
+			[Month Controllable Expense Budget] + [Month Uncontrollable Expense Budget]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Budget
+		lineageTag: d2a635f9-d573-4d39-a04b-6a7068f94613
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total controllable and uncontrollable expenses for the previous month.
+	/// 
+	measure 'Month Contr and Uncontr Expense' =
+			
+			[Month Controllable Expense] + [Month Uncontrollable Expense]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: ee5ebfcb-b0c4-438f-8ae7-b877b5721eb5
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total controllable and uncontrollable expense variance for the previous month.
+	/// 
+	measure 'Month Contr and Uncontr variance$' =
+			
+			[Month Contr and Uncontr Expense Budget] - [Month Contr and Uncontr Expense]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 6e2dad05-4e06-485d-b7f8-c674ae01d0a5
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total controllable and uncontrollable expense variance.
+	/// 
+	measure 'Controllable and Uncontrollable variance$' =
+			
+			[Total Controllable and Uncontrollable Budget] - [Total Controllable and Uncontrollable Expense]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 5a82da47-f0cf-4b2d-9a68-c1143c8eb786
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total controllable and uncontrollable expense variance percentage for the previous month.
+	/// 
+	measure 'Month Contr and uncontr Expense Variance%' =
+			
+			DIVIDE (
+			    [Month Contr and Uncontr variance$],
+			    [Month Contr and Uncontr Expense Budget]
+			)
+		displayFolder: Variance
+		lineageTag: 0cd5a3eb-9869-4485-b9a7-0e2340cdf3ab
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Calculates the total controllable and uncontrollable expense variance percentage.
+	/// 
+	measure 'Controllable and Uncontrollable Expense Variance%' =
+			
+			DIVIDE (
+			    [Controllable and Uncontrollable variance$],
+			    [Total Controllable and Uncontrollable Budget]
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Variance
+		lineageTag: daca54ad-5ae8-4cbe-b567-ee2a9d8ae755
+
+	/// Calculates the annual controllable and uncontrollable expenses.
+	/// 
+	measure 'Annual Controllable and Uncontrollable Expenses' =
+			
+			CALCULATE (
+			    [Total Controllable and Uncontrollable Budget],
+			    ALL ( 'Dim Date'[Calendar Year Month] )
+			)
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: c9f3c684-1185-457d-b165-4951526cdcd5
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the subtotal expenses by adding Total Controllable and Uncontrollable Expense and SalaryWages.
+	/// 
+	measure 'Sub Total Expenses' =
+			
+			[Total Controllable and Uncontrollable Expense] + [SalaryWages]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: ddb99870-1821-494c-a29c-293dfdec1a47
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the subtotal expenses budget by adding Total Controllable and Uncontrollable Budget and SalaryWages Budget.
+	/// 
+	measure 'Sub Total Expenses Budget' =
+			
+			[Total Controllable and Uncontrollable Budget] + [SalaryWages Budget]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: 9cd67acd-4e83-4fb6-90c2-bbb3918c5b57
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the subtotal expenses for the previous month.
+	/// 
+	measure 'Month Sub Total Expenses' =
+			
+			[Month Contr and Uncontr Expense] + [Month SalaryWages]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: a133398a-35f2-449f-b914-ced38f13fb0a
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the subtotal budget for the previous month.
+	/// 
+	measure 'Month Sub Total Budget' =
+			
+			[Month Contr and Uncontr Expense Budget] + [Month SalaryWages Budget]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: 2f11dce7-8bc4-428f-90ca-0c07adfb4ee7
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the subtotal expense variance for the previous month.
+	/// 
+	measure 'Month Sub Total Expense variance$' =
+			
+			[Month Sub Total Budget] - [Month Sub Total Expenses]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 50216905-4491-4b96-81d9-82b2f938a2eb
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the subtotal expense variance.
+	/// 
+	measure 'Sub Total Expense variance$' =
+			
+			[Sub Total Expenses Budget] - [Sub Total Expenses]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 6d2f081f-c8ea-42b1-8473-6fd814d619ae
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the subtotal expense variance percentage for the previous month.
+	/// 
+	measure 'Month Sub Total Expense variance%' =
+			
+			DIVIDE ( [Month Sub Total Expense variance$], [Month Sub Total Budget] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Variance
+		lineageTag: 8bfea5a5-fb62-4672-9ac2-be27ebd26f46
+
+	/// Calculates the subtotal expense variance percentage.
+	/// 
+	measure 'Sub Total Expense variance%' =
+			
+			DIVIDE ( [Sub Total Expense variance$], [Sub Total Expenses Budget] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Variance
+		lineageTag: 3f6e3eaa-0d8b-4621-8b88-3322b6fa465f
+
+	/// Calculates the annual subtotal expenses.
+	/// 
+	measure 'Annual Sub Total Expenses' =
+			
+			CALCULATE (
+			    [Sub Total Expenses Budget],
+			    ALL ( 'Dim Date'[Calendar Year Month] )
+			)
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: 242fb8b2-0b95-4a53-b1cd-eddd2c7dd92f
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the net surplus variance percentage.
+	/// 
+	measure 'Net Surplus Variance%' =
+			
+			DIVIDE ( [Net Surplus Variance$], [Net Surplus Budget] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Variance
+		lineageTag: 26b8f65b-df1c-4888-ab96-10817609c517
+
+	/// Calculates the net surplus for the previous month.
+	/// 
+	measure 'Month Net Surplus' =
+			
+			VAR _PreviousMonth = [Max filtered Month]
+			VAR _surplus =
+			    CALCULATE ( [Net Surplus], 'Dim Date'[Calendar Year Month] = _PreviousMonth )
+			RETURN
+			    IF ( ISBLANK ( _surplus ), 0, _surplus )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Net Surplus
+		lineageTag: 76247872-934d-49c4-b85e-ce50789f8887
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the net surplus budget for the previous month.
+	/// 
+	measure 'Month Net Surplus Budget' =
+			
+			VAR _PreviousMonth = [Max filtered Month]
+			VAR _surplus =
+			    CALCULATE (
+			        [Net Surplus Budget],
+			        'Dim Date'[Calendar Year Month] = _PreviousMonth
+			    )
+			RETURN
+			    IF ( ISBLANK ( _surplus ), 0, _surplus )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Net Surplus
+		lineageTag: d78fc026-468a-44fa-b08c-4323fbf6d19d
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the net surplus variance percentage for the previous month.
+	/// 
+	measure 'Month Net Surplus variance%' =
+			
+			DIVIDE ( [Month Net Surplus variance$], [Month Net Surplus Budget] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Surplus
+		lineageTag: 96426a5d-6518-40c8-81cf-741ff9d1b0d8
+
+	/// Calculates the net surplus variance for the previous month.
+	/// 
+	measure 'Month Net Surplus variance$' =
+			
+			[Month Net Surplus] - [Month Net Surplus Budget]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Net Surplus
+		lineageTag: 28dfca17-932c-4f36-8f98-0a5e4e215b67
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total expense variance.
+	/// 
+	measure 'Total Expense variance$' =
+			
+			[Total Expenses Budget] - [Total Expenses]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 125d35f4-bf51-470b-b4e4-6ea7d489da84
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total expense variance percentage.
+	/// 
+	measure 'Total Expense variance%' =
+			
+			DIVIDE ( [Total Expense variance$], [Total Expenses Budget] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Variance
+		lineageTag: 124b9e6b-0033-4938-a71d-6dd2772f63da
+
+	/// Calculates the total expenses for the previous month.
+	/// 
+	measure 'Month Total Expense' =
+			
+			VAR _PreviousMonth = [Max filtered Month]
+			VAR _Expense =
+			    CALCULATE ( [Total Expenses], 'Dim Date'[Calendar Year Month] = _PreviousMonth )
+			RETURN
+			    IF ( ISBLANK ( _Expense ), 0, _Expense )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: 0a319096-8208-4758-b48f-3220dd528bce
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total expenses budget for the previous month.
+	/// 
+	measure 'Month Total Expense Budget' =
+			
+			VAR _PreviousMonth = [Max filtered Month]
+			VAR _Expense =
+			    CALCULATE (
+			        [Total Expenses Budget],
+			        'Dim Date'[Calendar Year Month] = _PreviousMonth
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Expense ), 0, _Expense )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: d66dae63-d272-4533-aa26-a4e113d1381b
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total expense variance percentage for the previous month.
+	/// 
+	measure 'Month Total Expense variance%' =
+			
+			DIVIDE ( [Month Total Expense variance$], [Month Total Expense Budget] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Variance
+		lineageTag: 32edead5-b023-4e4b-91a3-5d32c0116682
+
+	/// Calculates the total expense variance for the previous month.
+	/// 
+	measure 'Month Total Expense variance$' =
+			
+			[Month Total Expense Budget] - [Month Total Expense]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: 1a3b8889-80ac-4311-99c8-8d8073ac24ae
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the annual total expenses.
+	/// 
+	measure 'Annual Total Expenses' =
+			
+			CALCULATE ( [Total Expenses Budget], ALL ( 'Dim Date'[Calendar Year Month] ) )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: 3570a684-51a1-46d6-b5cf-d2f86ed32090
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the net surplus margin by dividing Net Surplus by Total Revenue.
+	/// 
+	measure 'Net Surplus Margin' =
+			
+			DIVIDE ( [Net Surplus], [Total Revenue] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Surplus
+		lineageTag: 7b67187b-847b-4060-88b7-dfe157855062
+
+	/// Calculates the net margin budget by dividing Net Surplus Budget by Total Revenue (Budget).
+	/// 
+	measure 'Net Margin Budget' =
+			
+			DIVIDE ( [Net Surplus Budget], [Total Revenue (Budget)] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Surplus
+		lineageTag: 2d561876-ba27-4831-a7a0-0a8eba513d5c
+
+	/// Calculates the net margin for the previous month.
+	/// 
+	measure 'Month Net Margin' =
+			
+			DIVIDE ( [Month Net Surplus], [Month Total Revenue] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Surplus
+		lineageTag: 4f629ef5-3f0d-4e99-8447-c217f564b063
+
+	/// Calculates the net margin budget for the previous month.
+	/// 
+	measure 'Month Net Margin Budget' =
+			
+			DIVIDE ( [Month Net Surplus Budget], [Month Total Revenue Budget] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Surplus
+		lineageTag: 9f9407d2-7f06-4aac-bd78-a0da52da5b17
+
+	/// Calculates the annual net margin.
+	/// 
+	measure 'Annual Net Margin' =
+			
+			DIVIDE ( [Annual Net Surplus], [Annual Budget Revenue] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Surplus
+		lineageTag: 50b06e74-29d7-4605-a24b-d42385403d15
+
+	/// Calculates the annual net margin before recharges.
+	/// 
+	measure 'Annual Net (bef rechar) Margin' =
+			
+			DIVIDE ( [Annual Net Surplus (bef rechar)], [Annual Budget Revenue] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Surplus
+		lineageTag: c4eb185f-ccf8-49c0-914c-e633563e2f91
+
+	/// Calculates the net margin before recharges for the previous month.
+	/// 
+	measure 'Month Net (bef rechar) Margin' =
+			
+			DIVIDE ( [Month Net Surplus (bef rechar)], [Month Total Revenue] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Surplus
+		lineageTag: ac46cf7f-8b8f-4379-aa19-68677a580a59
+
+	/// Calculates the net margin before recharges budget for the previous month.
+	/// 
+	measure 'Month Net (bef rechar) Margin Budget' =
+			
+			DIVIDE ( [Month Net Surplus (bef rechar) Budget], [Month Total Revenue Budget] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Surplus
+		lineageTag: 557c2796-5978-4179-af30-c654b877f835
+
+	/// Calculates the net margin before recharges.
+	/// 
+	measure 'Net (bef rechar) Margin' =
+			
+			DIVIDE ( [Net Surplus (bef rechar)], [Total Revenue] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Surplus
+		lineageTag: e735fe01-d111-44c3-a25d-4c154691beff
+
+	/// Calculates the net margin before recharges budget.
+	/// 
+	measure 'Net (bef rechar) Margin Budget' =
+			
+			DIVIDE ( [Net Surplus (bef rechar) Budget], [Total Revenue (Budget)] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Surplus
+		lineageTag: a03a1b2c-995a-4c7e-b8e9-7e89c6330d11
+
+	/// Retrieves the maximum month from the filtered dates.
+	/// 
+	measure 'Max filtered Month' =
+			
+			CALCULATE ( MAX ( 'Dim Date'[Calendar Year Month] ) )
+		displayFolder: Other
+		lineageTag: 24a9ea77-a86f-4348-b1a3-597ce7331f96
+
+	/// Retrieves the previous month from the filtered dates.
+	/// 
+	measure 'Previous filtered month' =
+			
+			CALCULATE (
+			    MAX ( 'Dim Date'[Calendar Year Month] ),
+			    DATEADD ( 'Dim Date'[Calendar Date], -1, MONTH )
+			)
+		displayFolder: Other
+		lineageTag: 46fb3f55-7666-47a0-be53-a7e47e204c5f
+
+	/// Calculates the total recharges.
+	/// 
+	measure 'Total Recharges' =
+			
+			VAR _Recharges =
+			    CALCULATE (
+			        SUM ( 'Fact Finance General Ledger'[Finance General Ledger Amount] ),
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Fourth Level Code] = "2900"
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Recharges ), 0, _Recharges )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Recharges
+		lineageTag: 232c67b3-67ed-469f-8a79-a925f35dd637
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total recharges budget.
+	/// 
+	measure 'Total Recharges Budget' =
+			
+			VAR _Recharges =
+			    CALCULATE (
+			        SUM ( 'Fact Finance Budget'[Finance Budget Amount] ),
+			        FILTER (
+			            'Fact Finance Budget',
+			            'Fact Finance Budget'[Finance Budget Date] <= TODAY ()
+			        ),
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Fourth Level Code] = "2900"
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Recharges ), 0, _Recharges )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Recharges
+		lineageTag: 81ac14df-9f54-445a-9056-0f5a3c7e525b
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total recharges variance.
+	/// 
+	measure 'Total Recharges variance$' =
+			
+			[Total Recharges Budget] - [Total Recharges]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Recharges
+		lineageTag: 12ae5a85-65f8-4381-ab91-7014b4e363e5
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the total recharges variance percentage.
+	/// 
+	measure 'Total Recharge variance%' =
+			
+			DIVIDE ( [Total Recharges variance$], [Total Recharges Budget] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Recharges
+		lineageTag: 29d7ec9a-82bd-4a17-84f9-482227f4ef4c
+
+	/// Calculates the recharges for the previous month.
+	/// 
+	measure 'Month Recharges' =
+			
+			VAR _PreviousMonth = [Max filtered Month]
+			VAR _recharge =
+			    CALCULATE (
+			        [Total Recharges],
+			        'Dim Date'[Calendar Year Month] = _PreviousMonth
+			    )
+			RETURN
+			    IF ( ISBLANK ( _recharge ), 0, _recharge )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Recharges
+		lineageTag: 29de1c8f-bf2a-4dbf-8d8e-35ac8e0971bd
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the recharges budget for the previous month.
+	/// 
+	measure 'Month Recharges Budget' =
+			
+			VAR _PreviousMonth = [Max filtered Month]
+			VAR _recharge =
+			    CALCULATE (
+			        [Total Recharges Budget],
+			        'Dim Date'[Calendar Year Month] = _PreviousMonth
+			    )
+			RETURN
+			    IF ( ISBLANK ( _recharge ), 0, _recharge )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Recharges
+		lineageTag: 963d8574-654d-426c-8863-0f2d9cd515a8
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the recharges variance for the previous month.
+	/// 
+	measure 'Month Recharges variance$' =
+			
+			[Month Recharges Budget] - [Month Recharges]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Recharges
+		lineageTag: 2933c94b-ba2c-4e37-9cbd-2d1eec7ed7bd
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Calculates the recharges variance percentage for the previous month.
+	/// 
+	measure 'Month Recharge variance%' =
+			
+			DIVIDE ( [Month Recharges variance$], [Month Recharges Budget] )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Recharges
+		lineageTag: 85fe0186-be4d-405f-884f-a3c4eb4ece6b
+
+	/// Calculates the annual recharges budget.
+	/// 
+	measure 'Annual Recharges Budget' =
+			
+			CALCULATE ( [Total Recharges Budget], ALL ( 'Dim Date'[Calendar Year Month] ) )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Recharges
+		lineageTag: 180fa7a2-ed21-4264-8978-3dde9ce71248
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	/// Retrieves the applied filters for the P&L Summary based on various dimensions.
+	/// 
+	measure 'P&L Summary OTHER filters applied' = ```
+			
+			VAR __1FinYear =
+			    IF (
+			        ISFILTERED ( 'Dim Date'[Financial Year Desc] ),
+			        CONCATENATEX (
+			            FILTERS ( 'Dim Date'[Financial Year Desc] ),
+			            'Dim Date'[Financial Year Desc],
+			            ", "
+			        ),
+			        BLANK ()
+			    )
+			VAR __2YearMonth =
+			    IF (
+			        ISFILTERED ( 'Dim Date'[Calendar Year Month] ),
+			        CONCATENATEX (
+			            FILTERS ( 'Dim Date'[Calendar Year Month] ),
+			            'Dim Date'[Calendar Year Month],
+			            ", "
+			        ),
+			        BLANK ()
+			    )
+			VAR __3Company =
+			    IF (
+			        ISFILTERED ( 'Dim Company'[Company Name] ),
+			        CONCATENATEX (
+			            FILTERS ( 'Dim Company'[Company Name] ),
+			            'Dim Company'[Company Name],
+			            ", "
+			        ),
+			        BLANK ()
+			    )
+			VAR __4BusUnit =
+			    IF (
+			        ISFILTERED ( 'Dim Department'[Department Code] ),
+			        CONCATENATEX (
+			            FILTERS ( 'Dim Department'[Department Code] ),
+			            'Dim Department'[Department Code],
+			            ", "
+			        ),
+			        BLANK ()
+			    )
+			VAR __5Region =
+			    IF (
+			        ISFILTERED ( 'Dim Region'[Region Name] ),
+			        CONCATENATEX (
+			            FILTERS ( 'Dim Region'[Region Name] ),
+			            'Dim Region'[Region Name],
+			            ", "
+			        ),
+			        BLANK ()
+			    )
+			VAR __6District =
+			    IF (
+			        ISFILTERED ( 'Dim District'[District Name] ),
+			        CONCATENATEX (
+			            FILTERS ( 'Dim District'[District Name] ),
+			            'Dim District'[District Name],
+			            ", "
+			        ),
+			        BLANK ()
+			    )
+			VAR __7Department =
+			    IF (
+			        ISFILTERED ( 'Dim Department'[Department Name] ),
+			        CONCATENATEX (
+			            FILTERS ( 'Dim Department'[Department Name] ),
+			            'Dim Department'[Department Name],
+			            ", "
+			        ),
+			        BLANK ()
+			    )
+			VAR __8ServiceType =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Service Type Name] ),
+			        CONCATENATEX (
+			            FILTERS ( 'Dim Service'[Service Type Name] ),
+			            'Dim Service'[Service Type Name],
+			            ", "
+			        ),
+			        BLANK ()
+			    )
+			VAR __9SeviceName =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Service Name] ),
+			        CONCATENATEX (
+			            FILTERS ( 'Dim Service'[Service Name] ),
+			            'Dim Service'[Service Name],
+			            ", "
+			        ),
+			        BLANK ()
+			    )
+			VAR _FC_1FinYear =
+			    IF ( ISBLANK ( __1FinYear ), BLANK (), "FINANCIAL YEARS: " & __1FinYear )
+			VAR _FC_2YearMonth =
+			    IF (
+			        ISBLANK ( __2YearMonth ),
+			        BLANK (),
+			        "-- FINANCIAL MONTHS: " & __2YearMonth
+			    )
+			VAR _FC_3Company =
+			    IF ( ISBLANK ( __3Company ), BLANK (), "-- COMPANY: " & __3Company )
+			VAR _FC_4BusUnit =
+			    IF ( ISBLANK ( __4BusUnit ), BLANK (), "-- BUSINESS UNIT: " & __4BusUnit )
+			VAR _FC_5Region =
+			    IF ( ISBLANK ( __5Region ), BLANK (), "-- REGION: " & __5Region )
+			VAR _FC_6District =
+			    IF ( ISBLANK ( __6District ), BLANK (), "-- DISTRICT: " & __6District )
+			VAR _FC_7Department =
+			    IF ( ISBLANK ( __7Department ), BLANK (), "-- DEPARTMENT: " & __7Department )
+			VAR _FC_8ServiceType =
+			    IF (
+			        ISBLANK ( __8ServiceType ),
+			        BLANK (),
+			        "-- SERVICE TYPE: " & __8ServiceType
+			    )
+			VAR _FC_9SeviceName =
+			    IF ( ISBLANK ( __9SeviceName ), BLANK (), "-- SERVICE NAME: " & __9SeviceName )
+			RETURN
+			    // " ( " & FORMAT(FIRSTDATE('Dim Date'[Calendar Date]), "dd/MM/YYYY") & " - " & FORMAT(LASTDATE('Dim Date'[Calendar Date]), "dd/MM/YYYY") & " ) "
+			    // & 
+			    IF (
+			        AND (
+			            AND (
+			                AND (
+			                    AND (
+			                        AND (
+			                            AND ( ISBLANK ( _FC_3Company ), ISBLANK ( _FC_4BusUnit ) ),
+			                            ISBLANK ( _FC_5Region )
+			                        ),
+			                        ISBLANK ( _FC_6District )
+			                    ),
+			                    ISBLANK ( _FC_7Department )
+			                ),
+			                ISBLANK ( _FC_8ServiceType )
+			            ),
+			            ISBLANK ( _FC_9SeviceName )
+			        ),
+			        "",
+			        "Additional filters selected: " & " " & _FC_3Company & " " & _FC_4BusUnit & " " & _FC_5Region & " " & _FC_7Department & " " & _FC_8ServiceType & " " & _FC_9SeviceName
+			    )
+			```
+		displayFolder: Other
+		lineageTag: 676c41ff-09e4-4968-8015-0260e19189ef
+
+	/// Retrieves the applied district filters for the P&L Summary.
+	/// 
+	measure 'P&LSummary DISTRICT Filters Applied' =
+			
+			VAR __6District =
+			    IF (
+			        ISFILTERED ( 'Dim District'[District Name] ),
+			        CONCATENATEX (
+			            FILTERS ( 'Dim District'[District Name] ),
+			            'Dim District'[District Name],
+			            ", "
+			        ),
+			        "All Districts"
+			    )
+			RETURN
+			    "Revenue and Expense overview for: " & __6District
+		displayFolder: Other
+		lineageTag: 5cec2b92-ba6b-40c3-9ecf-dc4656e6cc2e
+
+	/// Retrieves the applied date filters for the P&L Summary.
+	/// 
+	measure 'P&LSummary Date Filters Applied' =
+			
+			"For the " & DISTINCTCOUNT ( 'Dim Date'[Financial Year Month] ) & " Months Ending: "
+			    & FORMAT ( LASTDATE ( 'Dim Date'[Calendar Date] ), "dd/MM/YYYY" )
+		displayFolder: Other
+		lineageTag: 295faeca-dd72-4edd-bfb4-94bbf3340667
+
+	/// Returns a blank value.
+	/// 
+	measure Blank =
+			
+			BLANK ()
+		formatString: 0
+		displayFolder: Other
+		lineageTag: 4b213fa0-2c5a-4f3a-b49d-bf3a9a5969c2
+
+	/// Calculates the running total of the net surplus margin.
+	/// 
+	measure 'Net Margin running total' =
+			
+			CALCULATE (
+			    [Net Surplus Margin],
+			    FILTER (
+			        ALLSELECTED ( 'Dim Date'[Calendar Year Month] ),
+			        ISONORAFTER (
+			            'Dim Date'[Calendar Year Month], MAX ( 'Dim Date'[Calendar Year Month] ), DESC
+			        )
+			    )
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Net Surplus
+		lineageTag: 00269a7a-890a-4d11-b04e-5ab7a115f69c
+
+	/// Determines whether to hide or show rows based on the current and budget amounts.
+	/// 
+	measure HideShow =
+			
+			IF (
+			    OR ( [Current Amount] = 0, ISBLANK ( [Current Amount] ) )
+			        && OR (
+			            [Budget Amount Less Than Today] = 0,
+			            ISBLANK ( [Budget Amount Less Than Today] )
+			        ),
+			    "Hide",
+			    "Show"
+			)
+		displayFolder: Other
+		lineageTag: 14fc4edd-cdfb-45fc-8cc7-792661765da2
+
+	/// Calculates the total annual budget amount for the selected Financial year.
+	/// 
+	measure 'Total Annual Budget' =
+			
+			VAR _amount =
+			    CALCULATE (
+			        SUM ( 'Fact Finance Budget'[Inverse Budget Amount] ),
+			        ALL ( 'Dim Date'[Calendar Year Month] )
+			    )
+			RETURN
+			    IF ( ISBLANK ( _amount ), 0, _amount )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Budget
+		lineageTag: 9cffdd96-dbb2-495a-b742-f71f1648238e
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure RechargesForecastPerc =
+			
+			VAR _Value =
+			    DIVIDE ( [Total Recharges variance$], [Total Recharges Budget] )
+			RETURN
+			    IF (
+			        _Value = -1,
+			        "0.0% -",
+			        FORMAT ( _Value, "0.0%" )
+			            & IF ( _Value = 0, " -", IF ( _Value > 0, " ⬆", " ⬇" ) )
+			    )
+		displayFolder: Recharges
+		lineageTag: 29140c41-3bc3-4957-b42a-bfae0f7032ac
+
+	measure 'Total Expenses Previous Year' =
+			
+			VAR _Expense =
+			    CALCULATE (
+			        SUM ( 'Fact Finance General Ledger'[Inverse Amount] ),
+			        DATEADD (
+			            'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date],
+			            -1,
+			            YEAR
+			        ),
+			        FILTER (
+			            ALL ( 'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date] ),
+			            'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date]
+			                <= TODAY () - 365
+			        ),
+			        'Dim Finance General Ledger Account'[Finance General Ledger Account Hierarchy Second Level Code] = "2000"
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Expense ), 0, _Expense )
+		displayFolder: Expenses
+		lineageTag: 2832d073-1f65-4440-bed9-11bafcfb3d6f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Recharges Variance running total' =
+			
+			CALCULATE (
+			    [Total Recharges variance$],
+			    FILTER (
+			        ALLSELECTED ( 'Dim Date'[Calendar Year Month] ),
+			        ISONORAFTER (
+			            'Dim Date'[Calendar Year Month], MAX ( 'Dim Date'[Calendar Year Month] ), DESC
+			        )
+			    )
+			)
+		displayFolder: Recharges
+		lineageTag: ebb42fdb-79f4-4bd9-9a26-620023579b5f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Recharges Previous Year' =
+			
+			VAR _Revenue =
+			    CALCULATE (
+			        [Total Recharges],
+			        //SAMEPERIODLASTYEAR(DimDate[Date]),
+			        DATEADD (
+			            'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date],
+			            -1,
+			            YEAR
+			        ),
+			        FILTER (
+			            ALL ( 'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date] ),
+			            'Dim General Ledger Posting Date'[General Ledger Posting Calendar Date]
+			                <= TODAY () - 365
+			        )
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Revenue ), 0, _Revenue )
+		displayFolder: Recharges
+		lineageTag: 8676eacd-bc9b-4b21-a79e-91686557e4d9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Line chart title' =
+			
+			VAR _AccountCode =
+			    ADDCOLUMNS (
+			        TOPN (
+			            2,
+			            FILTER (
+			                VALUES ( 'Dim Finance General Ledger Account'[Account Code & Description] ),
+			                NOT (
+			                    ISBLANK ( 'Dim Finance General Ledger Account'[Account Code & Description] )
+			                )
+			            ),
+			            'Dim Finance General Ledger Account'[Account Code & Description], ASC
+			        ),
+			        "Accounts_Display", 'Dim Finance General Ledger Account'[Account Code & Description]
+			    )
+			VAR __AccountCodeCount =
+			    IF (
+			        ISFILTERED ( 'Dim Finance General Ledger Account'[Account Code & Description] ),
+			        COUNTROWS (
+			            VALUES ( 'Dim Finance General Ledger Account'[Account Code & Description] )
+			        ),
+			        0
+			    )
+			VAR _FC_AccountCode =
+			    IF (
+			        __AccountCodeCount > 0,
+			        CONCATENATEX ( _AccountCode, [Accounts_Display], "and " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreAccountCodes =
+			    IF (
+			        __AccountCodeCount > 2,
+			        " and " & ( __AccountCodeCount - 2 ) & " more",
+			        ""
+			    )
+			RETURN
+			    IF (
+			        ISBLANK ( _FC_AccountCode ),
+			        "Actual vs Budget for All Account Codes",
+			        "Actual vs Budget for: " & " " & _FC_AccountCode & " " & _FC_MoreAccountCodes
+			    )
+		displayFolder: Other
+		lineageTag: 0d57925a-4f09-4888-b0ad-d2a74fde80c0
+
+	measure FilterOutZeros =
+			
+			IF (
+			    AND (
+			        [Current Amount] = 0,
+			        AND (
+			            [Budget Amount Less Than Today] = 0,
+			            AND ( [Variance $] = 0, AND ( [Total Annual Budget] = 0, [Previous Year] = 0 ) )
+			        )
+			    ),
+			    0,
+			    1
+			)
+		formatString: 0
+		displayFolder: Other
+		lineageTag: a44387f5-6cac-49d8-b42a-f4a3b71a72fc
+
+	measure MonthOperatingExpenseForecastPerc =
+			
+			VAR _Value =
+			    DIVIDE (
+			        ( [Month Total Operating Expense Budget] - [Month Total Operating Expense] ),
+			        [Month Total Operating Expense Budget]
+			    )
+			RETURN
+			    IF (
+			        _Value = -1,
+			        "0.0% -",
+			        FORMAT ( _Value, "0.0%" )
+			            & IF ( _Value = 0, " -", IF ( _Value > 0, " ⬆", " ⬇" ) )
+			    )
+		displayFolder: Expenses
+		lineageTag: 7624f73f-2128-4700-ab02-ccfa2c560dfe
+
+	measure 'Month Total Operating Expense' =
+			
+			VAR _PreviousMonth = [Max filtered Month]
+			VAR _Operating =
+			    CALCULATE (
+			        [Total Operating Expenses],
+			        'Dim Date'[Calendar Year Month] = _PreviousMonth
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Operating ), 0, _Operating )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: 51f0146e-9830-4a40-8779-53d99599ecc9
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Month Total Operating Expense Budget' =
+			
+			VAR _PreviousMonth = [Max filtered Month]
+			VAR _Operating =
+			    CALCULATE (
+			        [Total Operating Expenses Budget],
+			        'Dim Date'[Calendar Year Month] = _PreviousMonth
+			    )
+			RETURN
+			    IF ( ISBLANK ( _Operating ), 0, _Operating )
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Expenses
+		lineageTag: 207776ea-d71c-454a-ba9e-85f2a5040094
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Month Total Operating Expense variance$' =
+			
+			[Month Total Operating Expense Budget] - [Month Total Operating Expense]
+		formatString: "#,##0,. ;(#,##0,.);- "
+		displayFolder: Variance
+		lineageTag: aa75ee17-55b7-40d4-95bb-80189e822427
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Month Total Operating Expense variance%' =
+			
+			DIVIDE ( [Month Total Operating Expense variance$], [Month Total Operating Expense Budget] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Variance
+		lineageTag: fdfc9dd8-969b-42c7-a2dd-7a7a5f6c421e
+
+	measure MonthRevenueForecastPerc =
+			
+			VAR _Value =
+			    DIVIDE (
+			        ( [Month Total Revenue] - [Month Total Revenue Budget] ),
+			        [Month Total Revenue Budget]
+			    )
+			RETURN
+			    IF (
+			        _Value = -1,
+			        "0.0% -",
+			        FORMAT ( _Value, "0.0%" )
+			            & IF ( _Value = 0, " -", IF ( _Value > 0, " ⬆", " ⬇" ) )
+			    )
+		displayFolder: Revenue
+		lineageTag: 5ac117ca-ec03-43de-b53a-f45a07a972bb
+
+	measure MonthSalaryWagesForecastPerc =
+			
+			VAR _Value =
+			    DIVIDE ( ( [Month SalaryWages Budget] - [Month SalaryWages] ), [Month SalaryWages Budget] )
+			RETURN
+			    IF (
+			        _Value = -1,
+			        "0.0% -",
+			        FORMAT ( _Value, "0.0%" )
+			            & IF ( _Value = 0, " -", IF ( _Value > 0, " ⬆", " ⬇" ) )
+			    )
+		displayFolder: Salary and Wages
+		lineageTag: 489c9c3f-6e39-4e94-88af-325107367bf7
+
+	measure 'Total Operating Expense variance%' =
+			
+			DIVIDE ( [Total Ope Exp Variance], [Total Operating Expenses Budget] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Variance
+		lineageTag: 48d629f0-ac23-4c19-803f-69d38b01ee70
+
+	measure 'Previous Month' =
+			
+			VAR _PreviousMonth = CALCULATE ( MAX ( 'Dim Date'[Calendar Year Month] ) , FILTER('Dim Date', 'Dim Date'[Full Financial Month] = "Yes"))
+			
+			RETURN
+			FORMAT(DATEVALUE(_PreviousMonth), "mmm YYYY")
+		displayFolder: Other
+		lineageTag: 0b3c34de-c278-4487-b142-7cab31d2acac
+
+	measure 'Text previous reporting month' = "Month values for: " & [Previous Month]
+		displayFolder: Other
+		lineageTag: 4beff772-5d91-4e66-801a-c50f2fc136cf
+
+	measure 'Text YTD monthly measures' = "YTD values as at end: " & [Previous Month]
+		displayFolder: Other
+		lineageTag: a2414130-42a9-4049-8538-232c4ea50803
+
+	partition 'Measures Table' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

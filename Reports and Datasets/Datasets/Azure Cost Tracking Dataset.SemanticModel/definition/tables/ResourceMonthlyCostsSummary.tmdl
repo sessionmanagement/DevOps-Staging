@@ -1,0 +1,155 @@
+table ResourceMonthlyCostsSummary
+	lineageTag: d918abcc-6ac2-4321-a99f-b9248bf4ba6e
+
+	measure 'Total Costs per Resource per Month' =
+			
+			SUM(ResourceMonthlyCostsSummary[Total Costs])
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		lineageTag: ebd3b54e-147a-45b8-9f8b-a9f68cb9a4ae
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	measure '(Parameter) Rolling Average Monthly Costs by Resource' = ```
+			
+			VAR RollingMonths = SELECTEDVALUE('Rolling Average No. of Months'[Rolling Average No. of Months], 12)
+			RETURN
+			CALCULATE(
+			    AVERAGEX(
+			        VALUES(dim_date[calendar_year_month]),
+			        CALCULATE([Total Cost])
+			    ),
+			    FILTER(
+			        ALL(dim_date),
+			        dim_date[month_offset] <= MAX(dim_date[month_offset]) &&
+			        dim_date[month_offset] > MAX(dim_date[month_offset]) - RollingMonths
+			    )
+			)
+			
+			```
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 2493e990-071b-4e5b-a90c-5d1d2b1acb2c
+
+	measure 'Rolling StdDev Monthly Cost by Resource' =
+			
+			CALCULATE(
+			    STDEVX.P(
+			        VALUES(ResourceMonthlyCostsSummary[calendar_year_month]),
+			        [Total Costs per Resource per Month]
+			    ),
+			    FILTER(
+			        ALL(ResourceMonthlyCostsSummary),
+			        ResourceMonthlyCostsSummary[calendar_year_month] <= MAX(ResourceMonthlyCostsSummary[calendar_year_month]) &&
+			        ResourceMonthlyCostsSummary[month_offset] >= MAX(ResourceMonthlyCostsSummary[month_offset]) - 12 &&
+			        ResourceMonthlyCostsSummary[resource] = MAX(ResourceMonthlyCostsSummary[resource])
+			    )
+			)
+		formatString: \$#,0.###############;-\$#,0.###############;\$#,0.###############
+		lineageTag: 8b7a275a-894d-40c0-bbde-38e8af236642
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	measure 'Rolling Cost Upper Bound Monthly by Resource' = [(Parameter) Rolling Average Monthly Costs by Resource] + 1.5 * [Rolling StdDev Monthly Cost by Resource]
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		lineageTag: 036ceb35-75c3-4304-bae9-263d74a4705a
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	measure 'Rolling Cost Lower Bound Monthly by Resource' = [(Parameter) Rolling Average Monthly Costs by Resource] - 1.5 * [Rolling StdDev Monthly Cost by Resource]
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		lineageTag: 973ed35d-0e82-4201-bbeb-ad58eedaa961
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	measure 'Is Outlier Monthly by Resource' = ```
+			
+			IF(
+			    [Total Costs per Resource per Month] > [Rolling Cost Upper Bound Monthly by Resource] 
+			    || [Total Costs per Resource per Month] < [Rolling Cost Lower Bound Monthly by Resource],
+			    "Outlier",
+			    "Normal"
+			)
+			```
+		lineageTag: 41d3c3de-12ff-4206-babb-fdda9c023dc4
+
+	measure 'Conditional Formatting for Outliers' =
+			
+			IF(
+			    [Total Costs per Resource per Month] < [Rolling Cost Lower Bound Monthly by Resource] || SUM(fact_costs[total_costs]) < [Lower Bound Daily Cost], 1,
+			    IF(
+			        [Total Costs per Resource per Month] > [Rolling Cost Upper Bound Monthly by Resource] || SUM(fact_costs[total_costs]) > [Upper Bound Daily Cost], 2,
+			        0
+			    )
+			)
+		formatString: 0
+		lineageTag: a935d027-4c74-459a-be18-3e2913575506
+
+	column calendar_year_month
+		lineageTag: 59bec3e6-1640-4761-8266-cba53b9edec4
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: dim_date[calendar_year_month]
+
+		annotation SummarizationSetBy = Automatic
+
+	column resource
+		lineageTag: c5a603dd-5649-4ef2-8fdd-f53b5a4240b4
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: fact_costs[resource]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Total Costs'
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		lineageTag: a00759d5-0259-4862-bf4a-9522163f12a1
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Total Costs]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-NZ"}
+
+	column calendar_date
+		formatString: General Date
+		lineageTag: 65d2d004-24e7-4e46-be86-a90c3fe2c76b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [calendar_date]
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_resource_key
+		formatString: 0
+		lineageTag: 578df9a5-96c9-4832-8a9b-da354152b8b9
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: dim_resource[dim_resource_key]
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_offset
+		formatString: 0
+		lineageTag: 63815f38-5f7a-4a00-8231-638edff60705
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: dim_date[month_offset]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ResourceMonthlyCostsSummary = calculated
+		mode: import
+		source =
+				
+				SUMMARIZE(
+				    fact_costs,
+				    dim_date[calendar_year_month],
+				    fact_costs[resource],
+				    dim_resource[dim_resource_key],
+				    dim_date[month_offset],
+				    "calendar_date", MIN(dim_date[calendar_date]),
+				    "Total Costs", SUM(fact_costs[total_costs])
+				)
+
+	annotation PBI_Id = 6ecf6049bc4d435281c5571759119f0c
+

@@ -1,0 +1,87 @@
+table fact_etl_mismatch_counts
+	lineageTag: e552f056-d26a-46fc-8b5e-465d35b35439
+
+	column mismatches_id
+		dataType: int64
+		formatString: 0
+		lineageTag: 2ec0502d-298f-4d05-aebc-1e476c1ce679
+		summarizeBy: sum
+		sourceColumn: mismatches_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column mismatches_date
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: cdfd0bf1-9a48-40c6-90ce-ee2f53538c48
+		summarizeBy: none
+		sourceColumn: mismatches_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column table_name
+		dataType: string
+		lineageTag: 10042cdf-054a-491f-bc79-7c793f6d0bac
+		summarizeBy: none
+		sourceColumn: table_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column column_name
+		dataType: string
+		lineageTag: 4fcfb555-8039-4bd5-8ef1-ae2fdf48df13
+		summarizeBy: none
+		sourceColumn: column_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column mismatches_count
+		dataType: int64
+		formatString: 0
+		lineageTag: 97785892-24be-41f5-830d-bd2359881c4f
+		summarizeBy: sum
+		sourceColumn: mismatches_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column yesterdays_mismatches
+		dataType: int64
+		formatString: 0
+		lineageTag: 12f6aac0-4894-45a3-95f2-bf932190b822
+		summarizeBy: sum
+		sourceColumn: yesterdays_mismatches
+
+		annotation SummarizationSetBy = Automatic
+
+	column mismatch_reason
+		dataType: string
+		lineageTag: f78508d1-2699-4b22-bc89-b00a9a4b6f05
+		summarizeBy: none
+		sourceColumn: mismatch_reason
+
+		annotation SummarizationSetBy = Automatic
+
+	column examples
+		dataType: string
+		lineageTag: 9c8f8631-cacd-4ddf-82f8-2f630a5c8098
+		summarizeBy: none
+		sourceColumn: examples
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_etl_mismatch_counts = m
+		mode: import
+		queryGroup: Facts
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-manager", [Query="WITH rowNumberedMismatches#(lf)AS (#(lf)#(tab)SELECT mismatches_id#(lf)#(tab)#(tab),mm.table_name#(lf)#(tab)#(tab),mm.column_name#(lf)#(tab)#(tab),ROW_NUMBER() OVER (#(lf)#(tab)#(tab)#(tab)PARTITION BY schema_name#(lf)#(tab)#(tab)#(tab),mm.table_name#(lf)#(tab)#(tab)#(tab),mm.column_name#(lf)#(tab)#(tab)#(tab),CONVERT(CHAR(10), mismatches_date, 103) ORDER BY mismatches_date DESC#(lf)#(tab)#(tab)#(tab)) AS RN#(lf)#(tab)#(tab),CONVERT(CHAR(10), mismatches_date, 103) AS mismatches_date#(lf)#(tab)#(tab),mismatches_count#(lf)#(tab)#(tab),LAG(mismatches_count) OVER (#(lf)#(tab)#(tab)#(tab)PARTITION BY mm.table_name#(lf)#(tab)#(tab)#(tab),mm.column_name ORDER BY mismatches_date#(lf)#(tab)#(tab)#(tab)) AS yesterdays_mismatches#(lf)#(tab)#(tab),COALESCE(r.mismatch_reason, '') AS mismatch_reason#(lf)#(tab)#(tab),COALESCE(r.mismatch_business_data, '') AS examples#(lf)#(tab)FROM meta_data.mismatches mm#(lf)#(tab)LEFT JOIN meta_data.mismatch_reason r ON r.table_name = mm.table_name#(lf)#(tab)#(tab)AND r.column_name = mm.column_name#(lf)#(tab))#(lf)SELECT mismatches_id#(lf)#(tab),mismatches_date#(lf)#(tab),table_name#(lf)#(tab),column_name#(lf)#(tab),mismatches_count#(lf)#(tab),yesterdays_mismatches#(lf)#(tab),mismatch_reason#(lf)#(tab),examples#(lf)FROM rowNumberedMismatches#(lf)WHERE RN = 1#(lf)ORDER BY 4 DESC"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"mismatches_date", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

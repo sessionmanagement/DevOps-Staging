@@ -1,0 +1,152 @@
+table 'Dim Business Unit Hierarchy'
+	lineageTag: a1091de7-b821-471f-a46d-930f0706d7dc
+
+	column 'Business Unit ID'
+		dataType: string
+		lineageTag: b1108022-f167-4c1b-b766-a83b1300cfe7
+		summarizeBy: none
+		sourceColumn: Business Unit ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Business Unit Hierarchy Level1 Name'
+		dataType: string
+		lineageTag: 6fafcf79-3cbb-4da1-9527-f1b9c9dc0317
+		summarizeBy: none
+		sourceColumn: Business Unit Hierarchy Level1 Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Business Unit Hierarchy Level2 Name'
+		dataType: string
+		lineageTag: a3cfda29-3e8c-45a2-ba5f-76b3aac52ddc
+		summarizeBy: none
+		sourceColumn: Business Unit Hierarchy Level2 Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Business Unit Hierarchy Level3 Name'
+		dataType: string
+		lineageTag: dcf7abd1-9e05-4c64-af04-975dcfa08df2
+		summarizeBy: none
+		sourceColumn: Business Unit Hierarchy Level3 Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Business Unit Hierarchy Level4 Name'
+		dataType: string
+		lineageTag: 7992d7f6-4aa2-483c-9a8e-9e06991f95e2
+		summarizeBy: none
+		sourceColumn: Business Unit Hierarchy Level4 Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Business Unit Hierarchy Level5 Name'
+		dataType: string
+		lineageTag: 2db6b79e-5d1e-4126-92f5-87c792da8138
+		summarizeBy: none
+		sourceColumn: Business Unit Hierarchy Level5 Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Business Unit Hierarchy Level6 Name'
+		dataType: string
+		lineageTag: 96cc7158-b3a3-44b1-b9f4-53c404d05fb5
+		summarizeBy: none
+		sourceColumn: Business Unit Hierarchy Level6 Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Business Unit Hierarchy Level7 Name'
+		dataType: string
+		lineageTag: f3be86cf-9030-44dc-aa39-8f5f92e34b52
+		summarizeBy: none
+		sourceColumn: Business Unit Hierarchy Level7 Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Active Flag'
+		dataType: int64
+		formatString: 0
+		lineageTag: c3801d1f-5991-40f0-89d5-aca4b384828f
+		summarizeBy: none
+		sourceColumn: Is Active Flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Business Unit'
+		dataType: string
+		lineageTag: cd34cb11-c238-40f3-8b2e-d625c4fc1515
+		summarizeBy: none
+		sourceColumn: Business Unit
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Business Unit Hierarchy KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 5549ba7c-ed01-4b77-a231-400bdc315d11
+		summarizeBy: none
+		sourceColumn: Dim Business Unit Hierarchy KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'Business Unit Hierarchy'
+		lineageTag: f4b83170-3b7c-4fdb-9969-3983a03b7054
+
+		level Executive
+			lineageTag: 6aa7384b-3907-4361-82b9-9ebabbcd433a
+			column: 'Business Unit Hierarchy Level1 Name'
+
+		level 'Business Unit'
+			lineageTag: 610d3087-e4c3-4fe4-beda-44b524163873
+			column: 'Business Unit Hierarchy Level2 Name'
+
+		level Group
+			lineageTag: ecd409da-d378-4fb4-82a8-1f11222fbf2a
+			column: 'Business Unit Hierarchy Level3 Name'
+
+		level Unit
+			lineageTag: 2f458bdc-d291-4c8e-86a0-ea061dd40f6c
+			column: 'Business Unit Hierarchy Level4 Name'
+
+		level Department
+			lineageTag: 8703be0c-392b-4382-a3de-f19c781d5cd1
+			column: 'Business Unit Hierarchy Level5 Name'
+
+		level Team
+			lineageTag: 2007be4c-8883-47ae-93e1-0af97c78aa33
+			column: 'Business Unit Hierarchy Level6 Name'
+
+	partition 'Dim Business Unit Hierarchy' = m
+		mode: import
+		queryGroup: Dim
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT [dim_business_unit_hierarchy_key]#(lf)      ,[business_unit_id]#(lf)      ,[business_unit_name] AS 'Business Unit'#(lf)      ,[business_unit_hierarchy_level1_name]#(lf)      ,[business_unit_hierarchy_level2_name]#(lf)      ,[business_unit_hierarchy_level3_name]#(lf)      ,[business_unit_hierarchy_level4_name]#(lf)      ,[business_unit_hierarchy_level5_name]#(lf)      ,[business_unit_hierarchy_level6_name]#(lf)      ,[business_unit_hierarchy_level7_name]#(lf)      ,[is_active_flag]#(lf)  FROM [edw].[dim_business_unit_hierarchy]#(lf)  WHERE DWHDMLOperation <> 'D'#(lf)  AND is_active_flag = 1"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_))
+				in
+				    #"Transformed Column Names"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

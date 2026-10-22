@@ -1,0 +1,675 @@
+/// No action - retain. Only revisit if a report-reference sweep confirms zero usage across all reports.
+table 'Void Checklist'
+	lineageTag: e4add765-0838-429e-b7a9-3292316a711b
+
+	column 'Fact Void Checklist KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 079a6ff9-0a6a-48bf-aed4-e4d82875d0eb
+		summarizeBy: none
+		sourceColumn: Fact Void Checklist KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: e5709b0b-8317-47ff-bc11-9ee711ef1102
+		summarizeBy: none
+		sourceColumn: Dim Property KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property Tenancy KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: df4cb3f9-c026-4115-aff6-80619023594f
+		summarizeBy: none
+		sourceColumn: Dim Property Tenancy KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Void Checklist ID'
+		dataType: string
+		isHidden
+		lineageTag: c058f0a0-34d0-4a2d-89a0-a07c4f104f9c
+		summarizeBy: none
+		sourceColumn: Void Checklist ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Void Checklist Property ID'
+		dataType: string
+		isHidden
+		lineageTag: 79eca0fa-0b1a-4bf6-8bac-353f548684cd
+		summarizeBy: none
+		sourceColumn: Void Checklist Property ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Void Checklist Vacated Tenancy ID'
+		dataType: string
+		isHidden
+		lineageTag: 0f76e2b1-7cb0-4e1e-a59f-2ba15fc1db9c
+		summarizeBy: none
+		sourceColumn: Void Checklist Vacated Tenancy ID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Additional notes or context about the void category selection, used when standard categories need clarification or when special circumstances apply to this void.
+	column 'Void Category Comment'
+		dataType: string
+		lineageTag: 801d1588-87ce-40a0-8274-c88b5fbb81c2
+		summarizeBy: none
+		sourceColumn: Void Category Comment
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Full descriptive name of the void category explaining the type of void process being undertaken (e.g., 'New Property (Transitional)', 'Routine Turnover', 'Return to Landlord').
+	column 'Void Category Description'
+		dataType: string
+		lineageTag: 53faea1e-5c2b-4136-aaaf-51a7413c7bbe
+		summarizeBy: none
+		sourceColumn: Void Category Description
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Classification code for the type of void (turnaround) process for each void checklist record, sourced from edw.dim_void_category and paired with the plain-language text in Void Category Description. The codes present in the data are the routine turnovers ROUT (Routine Void) and ROTH (Routine Void Transitional Housing) - each of which also appears as an asterisk-suffixed variant (ROU*, ROT*) carrying the same meaning; the new-property onboarding family NEWS (Social Housing), NEWT (Transitional), NEWP (General), NEWR (Residential) and NEWC (Commercial); RTLL (Returned to Landlord); the damage codes MIND (Minor Damage) and MAJD (Major Damage); plus PROV (Provisional), INSR (Insurance), PIMP (Planned Improvement), MNGT (Management Void) and NATD (Natural Disaster). RTLL is routinely excluded from void and turnaround KPIs, and some measures group only the NEW*, ROUT and ROTH codes (including the asterisk variants), so the damage, provisional, insurance and other minor categories fall outside that grouping. A small number of records carry a blank code, with a correspondingly blank description.
+	column 'Void Category'
+		dataType: string
+		lineageTag: 87f62dd6-44d5-41af-93f1-e6a304513c31
+		summarizeBy: none
+		sourceColumn: Void Category
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Current workflow state of the void checklist (void_checklist_status_name). Values observed in the data: 'New Tenant Occupied' (terminal - property re-tenanted; the large majority of records), 'Tenant Vacated', 'Current' (active in-progress void), 'Void Category Change', 'NTV Rescinded', 'Reverted to Untenantable', 'Completed', plus a small number of blank rows. Note: measures determine open vs finished voids from the Void Completed Date (blank = open), NOT from this status field. (Earlier documentation referenced a 'Void' status value that does not occur in the data.)
+	column 'Void Status'
+		dataType: string
+		lineageTag: 56854b3a-3f1d-4cac-bc2d-fd4609af27f1
+		summarizeBy: none
+		sourceColumn: Void Status
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Free-text field for recording notes about checklist items that don't apply to this property, issues encountered during the void process, or any other relevant information. Required when checklist items are marked complete but weren't actually applicable.
+	column Comments
+		dataType: string
+		lineageTag: 2c4126f8-f85a-49ec-a63c-aa1349e82250
+		summarizeBy: none
+		sourceColumn: Comments
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The Waharoa system user (Property & Assets Manager) who owns and is responsible for progressing this void checklist to completion.
+	column Owner
+		dataType: string
+		lineageTag: e0ab5085-6ced-4ac5-8998-26d4c4bd1d10
+		summarizeBy: none
+		sourceColumn: Owner
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Reference to the tenancy record that was vacated, triggering this void process. Links to the previous tenant's tenancy agreement that ended. Null for new property onboarding voids.
+	column 'Vacated Tenancy'
+		dataType: string
+		lineageTag: 6e9333c8-c254-4fed-a119-2204cb2054f6
+		summarizeBy: none
+		sourceColumn: Vacated Tenancy
+
+		annotation SummarizationSetBy = Automatic
+
+	/// System-generated name for the void checklist record, typically combining the property address or identifier with the void category code for easy identification.
+	column Name
+		dataType: string
+		lineageTag: a57a7079-eaf7-4246-b8c3-029ae2981d27
+		summarizeBy: none
+		sourceColumn: Name
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Date and time when this void checklist record was created in Waharoa. Marks the start of the void period for tracking void duration KPIs.
+	column 'Created On'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: af327d8b-b612-4131-b4bc-d6ca85d9496b
+		summarizeBy: none
+		sourceColumn: Created On
+
+		variation Variation
+			isDefault
+			relationship: b460b4b4-377b-474d-9732-df04df44f037
+			defaultHierarchy: LocalDateTable_c83205a2-c08b-45c7-8088-7cdb08284ca5.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when all regulatory compliance issues (building code, healthy homes standards, safety requirements) were resolved and the property meets all legal requirements for tenancy.
+	column 'All Compliance Issues Completed'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 828bf77d-c743-4112-8a2e-89c524d9d64f
+		summarizeBy: none
+		sourceColumn: All Compliance Issues Completed
+
+		variation Variation
+			isDefault
+			relationship: da89e98b-ec9c-4693-8a33-838841b44e84
+			defaultHierarchy: LocalDateTable_aa37b539-53c9-442e-8fb7-fa19dec71371.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when initial property assessment was completed and scope of required works was understood. First step in evaluating what repairs, cleaning, or improvements are needed before the property can be re-let.
+	column 'Assessment And Scoping'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: fb972eb2-3100-4501-9cf3-8ad44cfff5b2
+		summarizeBy: none
+		sourceColumn: Assessment And Scoping
+
+		variation Variation
+			isDefault
+			relationship: 63fd6f67-1479-4479-9280-49ed7c9a753a
+			defaultHierarchy: LocalDateTable_f07369a3-4cc6-4a87-81c4-c69000c41602.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when bond recovery/return forms were completed. Documents any claims against the tenant's bond for damage or unpaid rent, or processes the bond return if no claims.
+	column 'Bond Recovery Forms Completed'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: daf967b3-9a83-4af5-82ba-7a2fd59872bc
+		summarizeBy: none
+		sourceColumn: Bond Recovery Forms Completed
+
+		variation Variation
+			isDefault
+			relationship: 70919b60-2af3-4d50-8a57-4c56da1ab90c
+			defaultHierarchy: LocalDateTable_bc410ffd-fbe4-41c0-b641-d8f8fb69fe1a.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when the vacancy was listed in the Business Operating System (BOS). Makes the property visible as available for allocation to new tenants through official housing channels.
+	column 'BOS Updated (Vacancy Listed)'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 720e5cc3-1327-47ae-ad26-203ba88fbd37
+		summarizeBy: none
+		sourceColumn: BOS Updated (Vacancy Listed)
+
+		variation Variation
+			isDefault
+			relationship: 8649cd3a-28d8-49cc-a505-2bddb4758982
+			defaultHierarchy: LocalDateTable_8bb84776-1f82-47f1-95d3-a57ea7d39a21.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when the Business Operating System (BOS) was updated with the vacate date. BOS is the housing registry system that tracks property availability for MSD and other stakeholders.
+	column 'BOS Updated (Vacate Date)'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 21e10647-cf0b-487f-95e4-7f413412aefd
+		summarizeBy: none
+		sourceColumn: BOS Updated (Vacate Date)
+
+		variation Variation
+			isDefault
+			relationship: 61778387-a113-450e-8688-478ef1ea2077
+			defaultHierarchy: LocalDateTable_f66cbea3-2498-41fe-be54-7e7618544cc0.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when car parking was allocated and provisioned for the property (if applicable). Relevant for properties with dedicated parking spaces that need assignment.
+	column 'Car Parking Provisioned'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 13bd7ba7-279d-49b9-abde-1c495b92e7cd
+		summarizeBy: none
+		sourceColumn: Car Parking Provisioned
+
+		variation Variation
+			isDefault
+			relationship: 75747b9b-5702-493e-a528-13d1eb9d321a
+			defaultHierarchy: LocalDateTable_59909133-2af6-4dc7-bec9-9c57964ed6fc.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when the new tenancy was confirmed as accepted in BOS. Final administrative step ensuring the housing registry reflects the new tenant allocation.
+	column 'Confirm Tenancy Has Been Accepted In BOS'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 292b0e6a-8268-4f72-bc94-3268e89bd7b2
+		summarizeBy: none
+		sourceColumn: Confirm Tenancy Has Been Accepted In BOS
+
+		variation Variation
+			isDefault
+			relationship: e228c14e-345d-406c-8031-ee20e9ad4a3a
+			defaultHierarchy: LocalDateTable_65f55e58-7b4e-4d5c-ab49-3b95342298a3.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when damage assessment was completed to evaluate any damage caused by the previous tenant. Used to determine bond recovery claims and required repairs before re-letting.
+	column 'Damage Assessment'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 6f53fa78-765c-4dd6-92e6-b3f783f87bc1
+		summarizeBy: none
+		sourceColumn: Damage Assessment
+
+		variation Variation
+			isDefault
+			relationship: c6a79857-01b9-415b-893c-fa9bc74440c5
+			defaultHierarchy: LocalDateTable_b279db3b-a09e-4559-90e6-91557e8c24e1.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when the physical door keys were received from the vacating tenant, marking the official handover of the property. This is the actual key (door key), not a database key.
+	column 'Date KEY Received From Tenant'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 2b5bd923-bb02-421d-a4e3-21652027dd39
+		summarizeBy: none
+		sourceColumn: Date KEY Received From Tenant
+
+		variation Variation
+			isDefault
+			relationship: b2ffedef-0a38-47dd-86e7-2fc23903c029
+			defaultHierarchy: LocalDateTable_f4f7fce8-13e2-49c5-821b-d15ab6c7881e.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// CRITICAL MILESTONE: Date when all checklist items were complete and property was converted to 'Vacant: Tenantable' status. This date becomes the property's Relettable Date. Once set, the checklist is locked and property status changes automatically. Final step before tenant can move in.
+	column 'Property Is Ready - Convert To Vacant: Tenantable'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: f7ad4e78-1a53-41c1-b3a3-776687f81b64
+		summarizeBy: none
+		sourceColumn: Property Is Ready - Convert To Vacant: Tenantable
+
+		variation Variation
+			isDefault
+			relationship: 547cba9f-c258-46ce-a421-9c0e214dbb79
+			defaultHierarchy: LocalDateTable_9eacffc3-ef06-421e-a06b-ad3eee23d85f.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when a tenant offer was confirmed as accepted. Marks the point where a specific tenant has agreed to take the tenancy and the property is no longer being offered to others.
+	column 'Date Offer Confirmed Accepted'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 5ac16b4f-d082-479e-86aa-899524645315
+		summarizeBy: none
+		sourceColumn: Date Offer Confirmed Accepted
+
+		variation Variation
+			isDefault
+			relationship: fecd1afa-2209-44aa-bde6-09986266e387
+			defaultHierarchy: LocalDateTable_bece4c8c-95d3-4ac0-9c78-96c4e7406802.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when the final inspection was completed after keys were received from tenant. Confirms property condition and identifies all work required before re-letting or return to landlord.
+	column 'Date Of Final Inspection'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 76fd6a5e-9e83-4000-bc63-84c5425cfc28
+		summarizeBy: none
+		sourceColumn: Date Of Final Inspection
+
+		variation Variation
+			isDefault
+			relationship: a7997bd3-dec9-4780-91d6-b11868f01817
+			defaultHierarchy: LocalDateTable_46df32ce-8a6c-404c-a362-424fcc9fe750.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when the pre-vacate inspection was conducted before the tenant moved out. Identifies any issues that need addressing and sets expectations for bond recovery.
+	column 'Date Of Pre-Vacate Inspection'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 28e5f2f5-3c49-4290-8719-68fde8232858
+		summarizeBy: none
+		sourceColumn: Date Of Pre-Vacate Inspection
+
+		variation Variation
+			isDefault
+			relationship: cad80dcd-62c2-4484-b49d-473f5dcf820f
+			defaultHierarchy: LocalDateTable_1dc8c99f-5082-4af7-b798-3fb903a48891.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Official date when the previous tenancy agreement ended. May differ from the date keys were received. Used for calculating void periods and tenancy duration metrics.
+	column 'Date Tenancy Terminated'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: de6ea82a-1564-4881-b137-eb837652dbf8
+		summarizeBy: none
+		sourceColumn: Date Tenancy Terminated
+
+		variation Variation
+			isDefault
+			relationship: b01f6448-113d-413f-9f00-bed6110eb95d
+			defaultHierarchy: LocalDateTable_574c6806-4448-4852-8109-f97fca7caf9f.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when property unit details were submitted to BOS and received approval. Ensures property configuration (bedrooms, facilities) is correctly recorded for matching with tenant needs.
+	column 'Property Units Submitted To BOS And Approved'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: eef3c649-7ea4-44cf-b986-ee1325b19d12
+		summarizeBy: none
+		sourceColumn: Property Units Submitted To BOS And Approved
+
+		variation Variation
+			isDefault
+			relationship: 9a90eb53-0aea-4ea5-bd9d-2d162b66a54c
+			defaultHierarchy: LocalDateTable_40e2fd28-e998-4ac9-9661-983ddca77996.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when any refurbishment or renovation work was completed. May include painting, carpet replacement, fixture upgrades, or other improvements beyond basic repairs.
+	column 'Refurbishment Completed'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 219fbf33-0b5a-44aa-b91d-b81162866f16
+		summarizeBy: none
+		sourceColumn: Refurbishment Completed
+
+		variation Variation
+			isDefault
+			relationship: 8ee60049-ad86-4e9b-a605-66c17f38a437
+			defaultHierarchy: LocalDateTable_759512a0-358a-4aa0-a8b3-5932e12523c2.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when all required repairs identified during assessment were completed. Includes fixing damage, maintenance issues, and any defects that would prevent the property being tenantable.
+	column 'Repairs Completed'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 52d70807-c856-433a-9ed3-cfa5b5734697
+		summarizeBy: none
+		sourceColumn: Repairs Completed
+
+		variation Variation
+			isDefault
+			relationship: 60cdaf31-3b26-4d98-8f71-19908eae2dbf
+			defaultHierarchy: LocalDateTable_5a233fa0-9b71-4451-bc04-ca6ec663003e.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when the Residential Tenancy Agreement (lease) was prepared for the incoming tenant. Document preparation step before signing.
+	column 'Residential Tenancy Agreement Prepared'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: ab76c1f5-b9d4-4e27-bdd5-74fb1bf8dbc0
+		summarizeBy: none
+		sourceColumn: Residential Tenancy Agreement Prepared
+
+		variation Variation
+			isDefault
+			relationship: 3b6b2e7c-e612-4df7-829c-445f789509f1
+			defaultHierarchy: LocalDateTable_1458f2c5-8933-4778-ab88-c033d2ceb6d8.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when all rubbish, debris, and equipment left by previous tenant was removed from the property. Essential step before repairs or refurbishment can begin.
+	column 'Rubbish And Equipment Removed'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 1e123acd-8ee5-4153-b556-55efb0ac3ab5
+		summarizeBy: none
+		sourceColumn: Rubbish And Equipment Removed
+
+		variation Variation
+			isDefault
+			relationship: 8fdf84b5-bcb0-42fc-8ab2-e81c32883e55
+			defaultHierarchy: LocalDateTable_923a00e5-89d4-446e-b94f-0dd0b164d9e6.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when safety compliance check was completed, ensuring the property meets all safety standards and regulations before being offered to a new tenant.
+	column 'Safety Check Completed'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: ef99e900-5262-4a1c-a663-2e17260c3fa4
+		summarizeBy: none
+		sourceColumn: Safety Check Completed
+
+		variation Variation
+			isDefault
+			relationship: 316a3035-ff6b-4d88-8a81-ebf85a43904d
+			defaultHierarchy: LocalDateTable_536c303e-1224-4594-a359-074c8268cbe7.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when a shortlist of potential tenants was created for this property. Part of the tenant allocation process where suitable candidates are identified based on property criteria and waiting lists.
+	column 'Shortlist Created'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: a1cbce9e-99e6-4607-bd54-2325f050253f
+		summarizeBy: none
+		sourceColumn: Shortlist Created
+
+		variation Variation
+			isDefault
+			relationship: 624bc46a-e18e-4d5a-8eca-b2d209c0c355
+			defaultHierarchy: LocalDateTable_54b2d5fc-1262-46e5-9673-d7a3213c6c56.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when the signed lease or tenancy agreement was received back from the tenant. Legally binding commitment establishing the new tenancy.
+	column 'Signed Lease Or Agreement Received'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: b51bdc73-26f0-4318-b6f4-53e518e8d1ca
+		summarizeBy: none
+		sourceColumn: Signed Lease Or Agreement Received
+
+		variation Variation
+			isDefault
+			relationship: 76829475-465a-4719-952c-cf6948258662
+			defaultHierarchy: LocalDateTable_973b968b-2790-42af-a828-67f9956d1b3b.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Target date to complete the 'Vacant' phase of the void process. Used for KPI tracking to measure performance against expected turnaround times for the vacancy portion of the workflow.
+	column 'Target Completion Date - Vacant'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: e0822d6c-ed6e-4858-8e3c-2b1768b62d90
+		summarizeBy: none
+		sourceColumn: Target Completion Date - Vacant
+
+		variation Variation
+			isDefault
+			relationship: e639677d-dc3b-4bb3-aebb-082f322a2596
+			defaultHierarchy: LocalDateTable_5de70b42-1fb0-4ce3-834d-e83d0aeb7818.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Target date to complete the entire void process end-to-end. Used for KPI tracking to measure overall void duration performance. Compare with Void Completed Date to assess if target was met.
+	column 'Target Completion Date - Void'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 36f3f16f-4b78-4f12-9e2d-17948a29488b
+		summarizeBy: none
+		sourceColumn: Target Completion Date - Void
+
+		variation Variation
+			isDefault
+			relationship: 35dc9bd2-9138-461b-b719-6361b22ae10e
+			defaultHierarchy: LocalDateTable_d2101927-d6ae-4c30-811e-1fc9a6322691.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when all tenancy matters were fully closed including bond processing, final rent reconciliation, and administrative closure of the tenancy record in Waharoa.
+	column 'Tenancy Resolved And Exited'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: bf7b8585-cfac-44ca-8d0f-944f3a7d6076
+		summarizeBy: none
+		sourceColumn: Tenancy Resolved And Exited
+
+		variation Variation
+			isDefault
+			relationship: 49885989-9c1b-4c21-b1a9-6b7e665e4a06
+			defaultHierarchy: LocalDateTable_fa6da43e-fbfe-4633-9958-0d1bdec2835b.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when any tenant-specific improvements or modifications were scoped and agreed with the incoming tenant. May include accessibility modifications or other customizations.
+	column 'Tenant Improvements Scoped And Agreed'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: e6c22ef5-c0bf-47ee-b97a-d9e8b49b9ed2
+		summarizeBy: none
+		sourceColumn: Tenant Improvements Scoped And Agreed
+
+		variation Variation
+			isDefault
+			relationship: cb2b9fde-e8c9-4cd6-98bc-4efb416900fd
+			defaultHierarchy: LocalDateTable_015e3902-47fb-43e6-9520-3f7fac4b7b54.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when future scheduled maintenance jobs were booked with contractors. Ensures ongoing maintenance requirements are planned even as the void process completes.
+	column 'Upcoming Maintenance Jobs Booked'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 1b6c00f2-a1bf-455c-8f08-55fb88878798
+		summarizeBy: none
+		sourceColumn: Upcoming Maintenance Jobs Booked
+
+		variation Variation
+			isDefault
+			relationship: ae7747af-974d-4fb2-81bc-6c23527363db
+			defaultHierarchy: LocalDateTable_73d51397-743f-4aeb-888c-1a9e4dcf5771.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when new utility connections were recorded and set up for the incoming tenant (if applicable). Some properties may have utilities included in rent or handled differently.
+	column 'Utilities Connections Recorded And Set Up [If Appl'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: a5da2cbf-fbe0-4977-8470-1be56d95fbad
+		summarizeBy: none
+		sourceColumn: Utilities Connections Recorded And Set Up [If Appl
+
+		variation Variation
+			isDefault
+			relationship: 4131a97b-e5fd-4669-824a-4b111eef2fc5
+			defaultHierarchy: LocalDateTable_05e46558-a946-4cd3-bc4e-a68145e668fd.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when utilities (power, gas, water) were disconnected from the previous tenant's account. Required before new tenant can establish their own utility connections.
+	column 'Utilities Disconnected'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: b0bf5d5b-ce37-48c5-a738-de13e3b33fc9
+		summarizeBy: none
+		sourceColumn: Utilities Disconnected
+
+		variation Variation
+			isDefault
+			relationship: d382f868-6531-45c6-b8a6-c485ba532635
+			defaultHierarchy: LocalDateTable_d1d29bd6-d5b0-4ba5-9f99-21a5d8129df0.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Date when the entire void checklist process was marked as complete. Used to calculate total void duration (Created On to Void Completed Date) for KPI reporting and performance analysis.
+	column 'Void Completed Date'
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 1bd72414-a2b2-42d1-aebe-2abd26c47164
+		summarizeBy: none
+		sourceColumn: Void Completed Date
+
+		variation Variation
+			isDefault
+			relationship: 4b243ce0-9352-4f3d-9a8b-be20c6cb11ea
+			defaultHierarchy: LocalDateTable_67160065-adcb-4d9e-a89e-8e20f04c597a.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition 'Void Checklist' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT [fact_void_checklist_key]#(lf)      ,[dim_property_key]#(lf)      ,[dim_property_tenancy_key]#(lf)      --,[dim_offered_property_key]#(lf)      --,[dim_void_category_key]#(lf)      ,[void_checklist_id]#(lf)      --,[void_checklist_status]#(lf)      --,[void_checklist_offered_property_id]#(lf)      --,[void_checklist_offered_property_entity_type]#(lf)      ,[void_checklist_property_id]#(lf)      --,[void_checklist_property_entity_type]#(lf)      ,[void_checklist_vacated_tenancy_id]#(lf)      --,[void_checklist_vacated_tenancy_entity_type]#(lf)      --,[void_checklist_void_category_id]#(lf)      --,[void_checklist_void_category_entity_type]#(lf)      ,vc.[void_category_comments] AS [Void Category Comment]#(lf)      ,vc.[void_category_description] AS [Void Category Description]#(lf)      --,vc.[void_category_name] AS [Void Category Code]#(lf)      ,[void_checklist_void_category_name] AS [Void Category]#(lf)      ,[void_checklist_status_name] AS [Void Status]#(lf)      --,[void_checklist_owner_id] AS [ownerid]#(lf)      --,[void_checklist_owner_entity_type]#(lf)      ,[void_checklist_crba8_comments] AS [Comments]#(lf)      ,[void_checklist_owner_id_name] AS [Owner]#(lf)      ,[void_checklist_vacated_tenancy_name] AS [Vacated Tenancy]#(lf)      ,[void_checklist_name] AS [Name]#(lf)      --,[void_checklist_property_name] AS [Property]#(lf)      ,[void_checklist_created_on] AS [Created On]#(lf)      ,[void_checklist_all_compliance_issues_completed] AS [All compliance issues completed]#(lf)      --,[void_checklist_assessment_completed_and_scope_of_works_understood]#(lf)      ,[void_checklist_assessment_scoping] AS [Assessment and scoping]#(lf)      ,[void_checklist_bond_recovery_forms_completed] AS [Bond recovery forms completed]#(lf)      --,[void_checklist_bos_msd_approved_property]#(lf)      ,[void_checklist_bos_updated_vacancy_listed] AS [BOS updated (vacancy listed)]#(lf)      ,[void_checklist_bos_updated_vacate_date] AS [BOS updated (vacate date)]#(lf)      ,[void_checklist_car_parking_provisioned] AS [Car parking provisioned]#(lf)      ,[void_checklist_confirm_tenancy_accepted_in_bos] AS [Confirm tenancy has been accepted in BOS]#(lf)      ,[void_checklist_damage_assessment] AS [Damage assessment]#(lf)      --,[void_checklist_date_bond_form_signed_given_to_agent_owner]#(lf)      --,[void_checklist_date_end_of_hold_for_property_redevelopment]#(lf)      --,[void_checklist_date_finance_notified_lease_property_handed_back]#(lf)      --,[void_checklist_date_first_offer_made]#(lf)      --,[void_checklist_date_hud_notified_of_tenancy_tribunal_application]#(lf)      ,[void_checklist_date_key_received_from_tenant] AS [Date Key Received from Tenant]#(lf)      --,[void_checklist_date_keys_returned_from_contractor]#(lf)      --,[void_checklist_date_keys_returned_from_specialist_contractor]#(lf)      --,[void_checklist_date_keys_sent_to_specialist_contractor]#(lf)      --,[void_checklist_date_keys_surrendered_to_agent_owner]#(lf)      --,[void_checklist_date_keys_to_contractor]#(lf)      --,[void_checklist_date_keys_to_loss_adjuster_insurance]#(lf)      --,[void_checklist_date_keys_to_property_team]#(lf)      ,[void_checklist_date_keys_to_tenancy_team_to_allocate] AS [Property is ready - convert to VACANT: Tenantable]#(lf)      --,[void_checklist_date_msd_notified_of_pending_termination]#(lf)      --,[void_checklist_date_notice_received]#(lf)      ,[void_checklist_date_offer_confirmed_accepted] AS [Date offer confirmed accepted]#(lf)      ,[void_checklist_date_of_final_inspection_after_keys_received] AS [Date of Final inspection]#(lf)      --,[void_checklist_date_of_handover]#(lf)      --,[void_checklist_date_possession_granted]#(lf)      --,[void_checklist_date_post_work_inspection_completed]#(lf)      ,[void_checklist_date_pre_vacate_inspection] AS [Date of Pre-Vacate inspection]#(lf)      --,[void_checklist_date_second_offer_made]#(lf)      --,[void_checklist_date_tam_gained_access_abandoned_property]#(lf)      ,[void_checklist_date_tenancy_terminated] AS [Date Tenancy Terminated]#(lf)      --,[void_checklist_date_work_scope_completed]#(lf)      --,[void_checklist_offered_property_name] AS [Offered Property]#(lf)      --,[void_checklist_property_to_be_redeveloped]#(lf)      ,[void_checklist_property_units_submitted_to_bos_approved] AS [Property units submitted to BOS and approved]#(lf)      ,[void_checklist_refurbishment_completed] AS [Refurbishment completed]#(lf)      ,[void_checklist_repairs_completed] AS [Repairs completed]#(lf)      ,[void_checklist_residential_tenancy_agreement_prepared] AS [Residential tenancy agreement prepared]#(lf)      ,[void_checklist_rubbish_and_equipment_removed] AS [Rubbish and equipment removed]#(lf)      --,[void_checklist_safety_check]#(lf)      ,[void_checklist_safety_check_completed] AS [Safety check completed]#(lf)      --,[void_checklist_service_name_has_been_entered_at_property]#(lf)      ,[void_checklist_shortlist_created] AS [Shortlist created]#(lf)      ,[void_checklist_signed_lease_or_agreement_received] AS [Signed lease or agreement received]#(lf)      --,[void_checklist_subprogram_program_entered_at_property]#(lf)      ,[void_checklist_target_completion_date_vacant] AS [Target completion date - Vacant]#(lf)      ,[void_checklist_target_completion_date_void] AS [Target completion date - Void]#(lf)      ,[void_checklist_tenancy_resolved_and_exited] AS [Tenancy resolved and exited]#(lf)      ,[void_checklist_tenant_improvements_scoped_and_agreed] AS [Tenant improvements scoped and agreed]#(lf)      ,[void_checklist_upcoming_maintenance_jobs_booked] AS [Upcoming Maintenance jobs booked]#(lf)      ,[void_checklist_utilities_connections_recorded_and_setup_if_applicable] AS [Utilities connections recorded and set up [if appl]#(lf)      ,[void_checklist_utilities_disconnected] AS [Utilities disconnected]#(lf)      --,[void_checklist_void_checklist_id] AS [Void Check list]#(lf)      ,[void_checklist_void_completed_date] AS [Void Completed Date]#(lf)      --dim_void_category columns#(lf)  FROM [edw].[fact_void_checklist] fc#(lf)  LEFT JOIN [edw].[dim_void_category] vc#(lf)    ON fc.[void_checklist_void_category_id] = vc.[void_category_id]#(lf)    AND vc.[DWHDMLOperation] <> 'D'#(lf)    AND vc.[DWHIsCurrent] = 1#(lf)    AND vc.[void_category_is_delete_flag] IS NULL#(lf)    AND vc.[void_category_id] IS NOT NULL#(lf)  WHERE fc.[DWHDMLOperation] <> 'D'#(lf)  AND fc.[void_checklist_is_delete_flag] IS NULL#(lf)  AND fc.[DWHIsCurrent] = 1"]),
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, fnApplyNamingConventions),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Transformed Column Names",{{"Created On", type date}, {"All Compliance Issues Completed", type date}, {"Assessment And Scoping", type date}, {"Bond Recovery Forms Completed", type date}, {"BOS Updated (Vacancy Listed)", type date}, {"BOS Updated (Vacate Date)", type date}, {"Car Parking Provisioned", type date}, {"Confirm Tenancy Has Been Accepted In BOS", type date}, {"Damage Assessment", type date}, {"Date KEY Received From Tenant", type date}, {"Property Is Ready - Convert To Vacant: Tenantable", type date}, {"Date Offer Confirmed Accepted", type date}, {"Date Of Final Inspection", type date}, {"Date Of Pre-Vacate Inspection", type date}, {"Date Tenancy Terminated", type date}, {"Property Units Submitted To BOS And Approved", type date}, {"Refurbishment Completed", type date}, {"Repairs Completed", type date}, {"Residential Tenancy Agreement Prepared", type date}, {"Rubbish And Equipment Removed", type date}, {"Safety Check Completed", type date}, {"Shortlist Created", type date}, {"Signed Lease Or Agreement Received", type date}, {"Target Completion Date - Vacant", type date}, {"Target Completion Date - Void", type date}, {"Tenancy Resolved And Exited", type date}, {"Tenant Improvements Scoped And Agreed", type date}, {"Upcoming Maintenance Jobs Booked", type date}, {"Utilities Connections Recorded And Set Up [If Appl", type date}, {"Utilities Disconnected", type date}, {"Void Completed Date", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

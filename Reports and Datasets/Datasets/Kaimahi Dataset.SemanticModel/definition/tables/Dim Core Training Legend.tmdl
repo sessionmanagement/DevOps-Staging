@@ -1,0 +1,41 @@
+table 'Dim Core Training Legend'
+	lineageTag: c44cc9d8-58e9-457f-b0d3-07ed3383b8a1
+
+	column Icon
+		dataType: string
+		lineageTag: d9f66cb8-bf2d-4148-9106-df9018b238dc
+		summarizeBy: none
+		sourceColumn: Icon
+
+		annotation SummarizationSetBy = Automatic
+
+	column Meaning
+		dataType: string
+		lineageTag: cf312262-afc5-4251-9d12-788170c1c5fd
+		summarizeBy: none
+		sourceColumn: Meaning
+
+		annotation SummarizationSetBy = Automatic
+
+	column Order
+		dataType: int64
+		formatString: 0
+		lineageTag: 242de6a3-cac4-433f-8421-28cee63bfd86
+		summarizeBy: sum
+		sourceColumn: Order
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Core Training Legend' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45Wcs/PSVEILkksUtJRMjQwUFVwzs8tyEktSQXxlWJ1gCqKUlPzFNxyEtOBQv5lqUUKFqjKjMDKglJTYIpC81IwVRkjGRaSmZwNFAopSszMy8xLR1ZmAjcMXZFffgmyQlOIeSDnuyQWZwBFQApcSkFyZmA5p5zEvGyoeFBqYWlmUWoKkGuuFBsLAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Icon = _t, Meaning = _t, Order = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Icon", type text}, {"Meaning", type text}, {"Order", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

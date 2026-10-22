@@ -1,0 +1,260 @@
+table fact_tenancy
+	lineageTag: 6c1a9620-1ce1-4574-a6c6-0805dd9016b3
+
+	column opportunityid
+		dataType: string
+		isNullable: false
+		sourceProviderType: nchar
+		lineageTag: 282b3933-30a9-4405-87c1-16e4f8b57c29
+		summarizeBy: none
+		sourceColumn: opportunityid
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_tenancystartdate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: febce337-42e8-4778-ab30-03bd3b14844e
+		summarizeBy: none
+		sourceColumn: zav_tenancystartdate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column zav_vacateddate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 46a538e9-c251-4b3e-b443-d0917fc93ed9
+		summarizeBy: none
+		sourceColumn: zav_vacateddate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Tenancy Length (Days)' =
+			
+			IF(
+			    ISBLANK(
+			        fact_tenancy[zav_vacateddate]),
+			        DATEDIFF(fact_tenancy[zav_tenancystartdate], TODAY(), DAY),
+			        DATEDIFF(fact_tenancy[zav_tenancystartdate], fact_tenancy[zav_vacateddate], DAY)
+			)
+		formatString: 0
+		lineageTag: 65bae975-8239-43e7-8f91-9ae159482494
+		summarizeBy: sum
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_property
+		dataType: string
+		lineageTag: 5bc7858e-ee9e-4947-b4d7-cac4a30fedf5
+		summarizeBy: none
+		sourceColumn: zav_property
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_propertyname
+		dataType: string
+		lineageTag: 9a1947f0-a6bc-4a69-91b6-17d46401b93d
+		summarizeBy: none
+		sourceColumn: zav_propertyname
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column name
+		dataType: string
+		lineageTag: d084aadd-65c1-429e-b3e4-af62886c337d
+		summarizeBy: none
+		sourceColumn: name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FullAddress = RELATED(dim_property[zav_fulladdress])
+		lineageTag: 0ee47787-92e0-4be6-b920-9dba708cde74
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_subprogram
+		dataType: string
+		lineageTag: b359ac45-b316-4341-ac37-913e5aa83a67
+		summarizeBy: none
+		sourceColumn: zav_subprogram
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column region_name
+		dataType: string
+		lineageTag: 105e1e5a-b9e7-4367-8647-48265326188b
+		summarizeBy: none
+		sourceColumn: region_name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column parentcontactid
+		dataType: string
+		lineageTag: 85fc1d77-28de-45c9-beda-38ce8f27d6d7
+		summarizeBy: none
+		sourceColumn: parentcontactid
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column fullname
+		dataType: string
+		lineageTag: fac769c5-8430-4131-9283-e463c6a303df
+		summarizeBy: none
+		sourceColumn: fullname
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_age
+		dataType: int64
+		formatString: 0
+		lineageTag: 637ed8e4-fdf4-45ea-9449-5367a3b29a7a
+		summarizeBy: sum
+		sourceColumn: zav_age
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_ethnicityname
+		dataType: string
+		lineageTag: 489e08af-1ece-48f7-809b-9601b4ef625c
+		summarizeBy: none
+		sourceColumn: zav_ethnicityname
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_gendername
+		dataType: string
+		lineageTag: 9ad3be36-c739-4a6c-aa7e-747293d17f08
+		summarizeBy: none
+		sourceColumn: zav_gendername
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column tenancy_has_unresolved_breach
+		dataType: string
+		lineageTag: 2fa3fd87-9c16-41cb-9c7e-927eede5c32c
+		summarizeBy: none
+		sourceColumn: tenancy_has_unresolved_breach
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column tenancy_has_open_tenancytribunal_dispute
+		dataType: string
+		lineageTag: 52b5e2cb-9717-4ada-9bc0-987234426691
+		summarizeBy: none
+		sourceColumn: tenancy_has_open_tenancytribunal_dispute
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column tenancy_has_open_breach_or_tribunal_action =
+			
+			IF(
+			    fact_tenancy[tenancy_has_open_tenancytribunal_dispute] = "Yes"
+			    || fact_tenancy[tenancy_has_unresolved_breach] = "Yes",
+			    "Yes",
+			    "No"
+			)
+		lineageTag: dea55f58-6e1f-4815-b2ae-cedf1576a602
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column tenancy_manager_name =
+			
+			RELATED(dim_tenancy_manager[fullname])
+		lineageTag: 394bbc7c-e80f-432b-95eb-98e6f258ec49
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_leavingreason
+		dataType: string
+		lineageTag: fa3dc797-2a44-4026-a29d-4a9dc6cb5e9f
+		summarizeBy: none
+		sourceColumn: zav_leavingreason
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column tenancymanagerid
+		dataType: string
+		lineageTag: 11c3e31d-573b-4554-9a91-c4dcc0e1ff6f
+		summarizeBy: none
+		sourceColumn: tenancymanagerid
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_tenancy-86a0de21-ed98-43c9-bb49-729f3ff2eee1 = m
+		mode: import
+		queryGroup: facts
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="WITH RecentSubprogram AS (#(lf)    SELECT#(lf)        fpt.property_tenancy_id,#(lf)        fpt.property_subprogram_id,#(lf)        ROW_NUMBER() OVER (#(lf)            PARTITION BY fpt.property_tenancy_id#(lf)            ORDER BY COALESCE(fpt.property_tenant_modified_datetime, fpt.DWHModifiedOn) DESC#(lf)        ) AS rn#(lf)    FROM [edw].[fact_property_tenant] fpt#(lf)    WHERE fpt.DWHDMLOperation <> 'D'#(lf)),#(lf)RecentOpportunities AS (#(lf)    SELECT#(lf)        dpt.property_tenancy_id AS opportunityid,#(lf)        dpt.property_tenancy_tenancy_name AS name,#(lf)        dpt.property_tenancy_primary_tenant_recordbaseid AS parentcontactid,#(lf)        dpt.property_tenancy_leaving_reason AS zav_leavingreason,#(lf)        dpt.property_id AS zav_property,#(lf)        rs.property_subprogram_id AS zav_subprogram,#(lf)        dpt.property_tenancy_tenancy_start_date AS zav_tenancystartdate,#(lf)        dpt.property_tenancy_vacated_date AS zav_vacateddate,#(lf)        dpt.property_tenancy_property_name AS zav_propertyname,#(lf)        dpt.property_tenancy_manager_email AS zav_tenancymanagerid,#(lf)        COALESCE(dpt.property_tenancy_modified_datetime, dpt.DWHEffectiveFrom) AS SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (#(lf)            PARTITION BY dpt.property_tenancy_id#(lf)            ORDER BY COALESCE(dpt.property_tenancy_modified_datetime, dpt.DWHEffectiveFrom) DESC#(lf)        ) AS rn#(lf)    FROM [edw].[dim_property_tenancy] dpt#(lf)    LEFT JOIN RecentSubprogram rs#(lf)        ON rs.property_tenancy_id = dpt.property_tenancy_id#(lf)       AND rs.rn = 1#(lf)    WHERE dpt.DWHDMLOperation <> 'D'#(lf)      AND (#(lf)            dpt.property_tenant_opportunity_status IS NULL#(lf)            OR UPPER(dpt.property_tenant_opportunity_status) NOT IN ('CANCELED', 'CANCELLED')#(lf)          )#(lf))#(lf)SELECT#(lf)    opportunityid,#(lf)    name,#(lf)    parentcontactid,#(lf)    zav_leavingreason,#(lf)    zav_property,#(lf)    zav_subprogram,#(lf)    zav_tenancystartdate,#(lf)    zav_vacateddate,#(lf)    zav_propertyname,#(lf)    zav_tenancymanagerid#(lf)FROM RecentOpportunities#(lf)WHERE rn = 1;"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"zav_tenancystartdate", type date}, {"zav_vacateddate", type date}, {"parentcontactid", type text}}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"zav_tenancymanagerid", "tenancymanagerid"}}),
+				    #"Merged Queries" = Table.NestedJoin(#"Renamed Columns", {"zav_property"}, dim_property, {"zav_propertyid"}, "dim_property", JoinKind.LeftOuter),
+				    #"Expanded dim_property" = Table.ExpandTableColumn(#"Merged Queries", "dim_property", {"new_postalregionname"}, {"dim_property.new_postalregionname"}),
+				    #"Renamed Columns1" = Table.RenameColumns(#"Expanded dim_property",{{"dim_property.new_postalregionname", "region_name"}}),
+				    #"Merged Queries1" = Table.NestedJoin(#"Renamed Columns1", {"parentcontactid"}, merged_primary_contact, {"contactid"}, "merged_primary_contact", JoinKind.LeftOuter),
+				    #"Expanded merged_primary_contact" = Table.ExpandTableColumn(#"Merged Queries1", "merged_primary_contact", {"fullname", "zav_age", "zav_ethnicityname", "zav_gendername"}, {"fullname", "zav_age", "zav_ethnicityname", "zav_gendername"}),
+				    #"Merged Queries2" = Table.NestedJoin(#"Expanded merged_primary_contact", {"opportunityid"}, work_open_tenancybreach, {"zav_tenancy"}, "work_open_tenancybreach", JoinKind.LeftOuter),
+				    #"Expanded work_open_tenancybreach" = Table.ExpandTableColumn(#"Merged Queries2", "work_open_tenancybreach", {"tenancy_has_unresolved_breach"}, {"tenancy_has_unresolved_breach"}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Expanded work_open_tenancybreach",null,"No",Replacer.ReplaceValue,{"tenancy_has_unresolved_breach"}),
+				    #"Merged Queries3" = Table.NestedJoin(#"Replaced Value", {"opportunityid"}, work_open_tenancytribunal, {"zav_tenancy"}, "work_open_tenancytribunal", JoinKind.LeftOuter),
+				    #"Expanded work_open_tenancytribunal" = Table.ExpandTableColumn(#"Merged Queries3", "work_open_tenancytribunal", {"tenancy_has_open_tenancytribunal_dispute"}, {"tenancy_has_open_tenancytribunal_dispute"}),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Expanded work_open_tenancytribunal",null,"No",Replacer.ReplaceValue,{"tenancy_has_open_tenancytribunal_dispute"}),
+				    #"Filtered Rows" = Table.SelectRows(#"Replaced Value1", each ([opportunityid] <> null))
+				in
+				    #"Filtered Rows"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

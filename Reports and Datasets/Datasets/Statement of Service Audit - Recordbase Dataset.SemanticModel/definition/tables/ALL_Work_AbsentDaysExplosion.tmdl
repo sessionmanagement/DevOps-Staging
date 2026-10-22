@@ -1,0 +1,169 @@
+table ALL_Work_AbsentDaysExplosion
+	isHidden
+	lineageTag: 3355916d-9b5e-4546-97f3-81cdff96740c
+
+	column PersonID
+		dataType: string
+		isHidden
+		lineageTag: 089bdbc3-b8d6-4585-a4b7-e0cece4a6ad1
+		summarizeBy: none
+		sourceColumn: PersonID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonStatusTypeID
+		dataType: string
+		isHidden
+		lineageTag: a916f16f-0ac4-4dc4-a84b-d6b3ed548992
+		summarizeBy: none
+		sourceColumn: PersonStatusTypeID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonStatusStartDate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: da5c39fb-4d0b-4752-ae0b-5ba98fe81f7c
+		summarizeBy: none
+		sourceColumn: PersonStatusStartDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column PersonStatusEndDate
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 94a742d3-8ab3-41c2-86ec-e1cd57195cc4
+		summarizeBy: none
+		sourceColumn: PersonStatusEndDate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Explosion
+		dataType: dateTime
+		isHidden
+		formatString: Long Date
+		lineageTag: 5c31cd4b-030a-4203-8e73-11e593928c08
+		summarizeBy: none
+		sourceColumn: Explosion
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column FinancialYear =
+			
+			RELATED(Work_DimDate[financial_year_num])
+		isHidden
+		lineageTag: cdbf2f21-9584-4ab2-99e8-cda64e10e2cf
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FYEnd =
+			
+			RELATED(Work_DimDate[financial_last_day_of_year_date])
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: 712cdd85-5fdb-40a7-b97b-ec59c7d3e177
+		summarizeBy: none
+
+		changedProperty = DataType
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column ReferralID
+		dataType: string
+		isHidden
+		lineageTag: e1344fca-dab1-4912-9c51-2783d927740d
+		summarizeBy: none
+		sourceColumn: ReferralID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamFunctionID
+		dataType: string
+		isHidden
+		lineageTag: bfa1a10a-466b-4eef-9213-7a50a459dad1
+		summarizeBy: none
+		sourceColumn: TeamFunctionID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamID
+		dataType: string
+		isHidden
+		lineageTag: a2c28264-4fd9-49d8-b162-956eb2612362
+		summarizeBy: none
+		sourceColumn: TeamID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column CompanyIdentifier
+		dataType: string
+		isHidden
+		lineageTag: 7fc9002c-8344-4f9a-823f-2b7a5042d9c5
+		summarizeBy: none
+		sourceColumn: CompanyIdentifier
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamKeyComposite
+		dataType: string
+		lineageTag: 3dc70e5e-f7b1-4b50-a0f5-b95a6d2c25ee
+		summarizeBy: none
+		sourceColumn: TeamKeyComposite
+
+		annotation SummarizationSetBy = Automatic
+
+	partition ALL_Work_AbsentDaysExplosion-51b183d2-76f5-4339-9c35-ceea5e3192cd = m
+		mode: import
+		queryGroup: 'All (Unioned Data)'
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT DISTINCT#(lf)'EAL' AS CompanyIdentifier,#(lf)CASE WHEN fr.PersonID IS NOT NULL THEN CONCAT('E',fr.PersonID) ELSE NULL END AS PersonID,#(lf)CASE WHEN fr.ID IS NOT NULL THEN CONCAT('E',fr.ID) ELSE NULL END AS ReferralID,#(lf)CASE WHEN dtf.TeamFunctionID IS NOT NULL THEN CONCAT('E',dtf.TeamFunctionID) ELSE NULL END AS TeamFunctionID,#(lf)CASE WHEN dt.TeamID IS NOT NULL THEN CONCAT('E',dt.TeamID) ELSE NULL END AS TeamID,#(lf)CASE WHEN PersonStatusTypeID IS NOT NULL THEN CONCAT('E',PersonStatusTypeID) ELSE NULL END AS PersonStatusTypeID,#(lf)--fr.AcceptedDate,#(lf)--fr.DischargeDate,#(lf)CAST(PersonStatusStartDate AS date) AS PersonStatusStartDate,#(lf)COALESCE(CAST(PersonStatusEndDate AS date),CAST(GETDATE() AS date)) AS PersonStatusEndDate#(lf)FROM #(lf)RBEAL.[dlFactPersonStatus] fps#(lf)INNER JOIN#(lf)RBEAL.[legacyFactReferral] fr ON fr.PersonID = fps.PersonID AND fps.PersonStatusStartDate BETWEEN fr.AcceptedDate AND COALESCE(fr.DischargeDate,GETDATE())#(lf)INNER JOIN RBEAL.[dlDimTeam] dt ON dt.TeamID = fr.TeamID#(lf)INNER JOIN RBEAL.[dlDimTeamFunction] dtf ON dtf.TeamFunctionID = dt.TeamFunctionID#(lf)WHERE PersonStatusTypeID IN (1,2)#(lf)AND fr.AcceptedDate IS NOT NULL#(lf)AND (dtf.TeamFunctionName LIKE '%Residential%' OR dtf.TeamFunctionName LIKE '%Respite%')"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"PersonStatusStartDate", Int64.Type}, {"PersonStatusEndDate", Int64.Type}}),
+				    #"Appended Query" = Table.Combine({#"Changed Type", MNB_Work_AbsentDaysExplosion}),
+				    #"Added Custom" = Table.AddColumn(#"Appended Query", "Explosion", each {[PersonStatusStartDate]..[PersonStatusEndDate]}),
+				    #"Expanded Explosion" = Table.ExpandListColumn(#"Added Custom", "Explosion"),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Expanded Explosion",{{"PersonStatusStartDate", type date}, {"PersonStatusEndDate", type date}, {"Explosion", type date}}),
+				    #"Inserted Merged Column" = Table.AddColumn(#"Changed Type1", "TeamKeyComposite", each Text.Combine({[TeamFunctionID], [TeamID]}), type text)
+				in
+				    #"Inserted Merged Column"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,454 @@
+table _Measures
+	lineageTag: ed0c1696-2b27-484e-aa11-546df4b7b894
+
+	measure 'Incident Count' =
+			
+			IF(
+			    ISBLANK(
+			        DISTINCTCOUNT(fact_incident[IncidentKey])),
+			        0,
+			        DISTINCTCOUNT(fact_incident[IncidentKey])
+			)
+		formatString: #,0
+		lineageTag: d48f80dc-cecc-4cb5-905a-c5cfc4bd9d5e
+
+	measure 'Incident Category Count' =
+			
+			CALCULATE(DISTINCTCOUNT(fact_incident_category[IncidentKey]),
+			        USERELATIONSHIP(dim_date[calendar_date],fact_incident_category[IncidentDate]))
+		formatString: #,0
+		lineageTag: 4f6fdb2a-ebe5-463b-a71a-2fae6303a389
+
+	measure 'Title - Incident Summary' = ```
+			
+			VAR SelectedMonths =
+			    VALUES ( dim_date[calendar_month_name_short] )
+			VAR NumMonths =
+			    CALCULATE ( COUNTROWS ( SelectedMonths ) )
+			VAR SelectedQuarters =
+			    VALUES ( dim_date[calendar_quarter_full] )
+			VAR NumQuarters =
+			    CALCULATE ( COUNTROWS ( SelectedQuarters ) )
+			RETURN
+			IFERROR(
+			    IF (
+			        NumMonths > 1,
+			        "Incident Summary | " & CONCATENATEX ( SelectedQuarters, VALUES ( dim_date[calendar_quarter_full] ) & " | " & CONCATENATEX ( SelectedMonths, dim_date[calendar_month_name_short], ", " ), "" ),
+			        IF (
+			            NumQuarters = 1,
+			            "Incident Summary | " & VALUES ( dim_date[calendar_quarter_full] ) & " | " & CONCATENATEX ( SelectedMonths, dim_date[calendar_month_name_short], ", " ),
+			            CONCATENATEX ( SelectedMonths, dim_date[calendar_month_name_short], ", " )
+			        )
+			    ),"Title"
+			)
+			
+			```
+		lineageTag: f6bb27f4-cefd-4ffd-ae0b-e1eab95d1963
+
+	measure NewFiltersApplied =
+			
+			VAR __Year = IF(ISFILTERED(dim_date[calendar_year]), CONCATENATEX(FILTERS(dim_date[calendar_year]), dim_date[calendar_year], ", "), BLANK())
+			VAR __Quarter = IF(ISFILTERED(dim_date[calendar_quarter_full]), CONCATENATEX(FILTERS(dim_date[calendar_quarter_full]), dim_date[calendar_quarter_full], ", "), BLANK())
+			VAR __Month = IF(ISFILTERED(dim_date[calendar_month_name_short]), CONCATENATEX(FILTERS(dim_date[calendar_month_name_short]), dim_date[calendar_month_name_short], ", "), BLANK())
+			
+			VAR __ParentAreas = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_team_area[AreaParentName]), NOT(ISBLANK(dim_team_area[AreaParentName]))), dim_team_area[AreaParentName], ASC),
+			    "AreaParentName_display", dim_team_area[AreaParentName]
+			)
+			VAR __ParentAreasCount = IF(ISFILTERED(dim_team_area[AreaParentName]), COUNTROWS(VALUES(dim_team_area[AreaParentName])), 0)
+			VAR __MoreParentAreas = IF(__ParentAreasCount > 10, " and " & (__ParentAreasCount - 10) & " more", "")
+			
+			VAR __Areas = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_team_area[AreaName]), NOT(ISBLANK(dim_team_area[AreaName]))), dim_team_area[AreaName], ASC),
+			    "AreaName_display", dim_team_area[AreaName]
+			)
+			VAR __AreasCount = IF(ISFILTERED(dim_team_area[AreaName]), COUNTROWS(VALUES(dim_team_area[AreaName])), 0)
+			VAR __MoreAreas = IF(__AreasCount > 10, " and " & (__AreasCount - 10) & " more", "")
+			
+			VAR __Services = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_team_area[TeamName]), NOT(ISBLANK(dim_team_area[TeamName]))), dim_team_area[TeamName], ASC),
+			    "TeamName_display", dim_team_area[TeamName]
+			)
+			VAR __ServicesCount = IF(ISFILTERED(dim_team_area[TeamName]), COUNTROWS(VALUES(dim_team_area[TeamName])), 0)
+			VAR __MoreServices = IF(__ServicesCount > 10, " and " & (__ServicesCount - 10) & " more", "")
+			
+			// Incident Categories Filter Summary
+			VAR __IncidentCategories = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_incident_category[IncidentCategoryFull]), NOT(ISBLANK(dim_incident_category[IncidentCategoryFull]))), dim_incident_category[IncidentCategoryFull], ASC),
+			    "IncidentCategory_display", dim_incident_category[IncidentCategoryFull]
+			)
+			VAR __IncidentCategoriesCount = IF(ISFILTERED(dim_incident_category[IncidentCategoryFull]), COUNTROWS(VALUES(dim_incident_category[IncidentCategoryFull])), 0)
+			VAR __MoreIncidentCategories = IF(__IncidentCategoriesCount > 10, " and " & (__IncidentCategoriesCount - 10) & " more", "")
+			
+			// Incident Severities Filter Summary
+			VAR __IncidentSeverities = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(dim_severity[IncidentSeverityText]), NOT(ISBLANK(dim_severity[IncidentSeverityText]))), dim_severity[IncidentSeverityText], ASC),
+			    "IncidentSeverity_display", dim_severity[IncidentSeverityText]
+			)
+			VAR __IncidentSeveritiesCount = IF(ISFILTERED(dim_severity[IncidentSeverityText]), COUNTROWS(VALUES(dim_severity[IncidentSeverityText])), 0)
+			VAR __MoreIncidentSeverities = IF(__IncidentSeveritiesCount > 10, " and " & (__IncidentSeveritiesCount - 10) & " more", "")
+			
+			
+			VAR _FC_Year = IF(ISBLANK(__Year), BLANK(), "| YEAR(S) CHOSEN: " & __Year)
+			VAR _FC_Quarter = IF(ISBLANK(__Quarter), BLANK(), "| QUARTER CHOSEN: " & __Quarter)
+			VAR _FC_Month = IF(ISBLANK(__Month), BLANK(), "| MONTH(S) CHOSEN: " & __Month)
+			VAR _FC_ParentAreas = IF(__ParentAreasCount > 0, "| PARENT AREAS CHOSEN: " & CONCATENATEX(__ParentAreas, [AreaParentName_display], ", "), BLANK())
+			VAR _FC_MoreParentAreas = IF(__ParentAreasCount > 10, " and " & (__ParentAreasCount - 10) & " more", "")
+			VAR _FC_Areas = IF(__AreasCount > 0, "| AREAS CHOSEN: " & CONCATENATEX(__Areas, [AreaName_display], ", "), BLANK())
+			VAR _FC_MoreAreas = IF(__AreasCount > 10, " and " & (__AreasCount - 10) & " more", "")
+			VAR _FC_Services = IF(__ServicesCount > 0, "| SERVICES CHOSEN: " & CONCATENATEX(__Services, [TeamName_display], ", "), BLANK())
+			VAR _FC_MoreServices = IF(__ServicesCount > 10, " and " & (__ServicesCount - 10) & " more", "")
+			VAR _FC_IncidentCategories = IF(__IncidentCategoriesCount > 0, "| INCIDENT CATEGORIES CHOSEN: " & CONCATENATEX(__IncidentCategories, [IncidentCategory_display], ", "), BLANK())
+			VAR _FC_MoreIncidentCategories = IF(__IncidentCategoriesCount > 10, " and " & (__IncidentCategoriesCount - 10) & " more", "")
+			VAR _FC_IncidentSeverities = IF(__IncidentSeveritiesCount > 0, "| INCIDENT SEVERITIES CHOSEN: " & CONCATENATEX(__IncidentSeverities, [IncidentSeverity_display], ", "), BLANK())
+			VAR _FC_MoreIncidentSeverities = IF(__IncidentSeveritiesCount > 10, " and " & (__IncidentSeveritiesCount - 10) & " more", "")
+			
+			
+			VAR _FirstDate = MIN(dim_date[calendar_date])
+			VAR _LastDate = MAX(dim_date[calendar_date])
+			RETURN
+			"Please note that all data shown is based on the following date range: " & FORMAT(_FirstDate, "dd/MM/YYYY") & " - " & FORMAT(_LastDate, "dd/MM/YYYY") & " " &
+			IF(
+			    ISBLANK(_FC_Year) && ISBLANK(_FC_Quarter) && ISBLANK(_FC_Month) && ISBLANK(_FC_ParentAreas) && ISBLANK(_FC_Areas) && ISBLANK(_FC_Services) && ISBLANK(_FC_IncidentCategories) && ISBLANK(_FC_IncidentSeverities),
+			    "",
+			    "-- Summary of filters applied to page: " & _FC_Year & " " & _FC_Quarter & " " & _FC_Month & " " & _FC_ParentAreas & _FC_MoreParentAreas & " " & _FC_Areas & _FC_MoreAreas & " " & _FC_Services & _FC_MoreServices & " " & _FC_IncidentCategories & _FC_MoreIncidentCategories & " " & _FC_IncidentSeverities & _FC_MoreIncidentSeverities
+			)
+		lineageTag: 81b969f3-c993-4b37-b0ec-b95d48d5eb74
+
+	measure TeamWithMaxIncidents = ```
+			
+			VAR SelectedPeriodIncidents =
+			    CALCULATETABLE (
+			        fact_incident,
+			        DATESBETWEEN (
+			            dim_date[calendar_date],
+			            MIN ( dim_date[calendar_date] ),
+			            MAX ( dim_date[calendar_date] )
+			        )
+			    )
+			VAR TeamIncidents =
+			    SUMMARIZE (
+			        SelectedPeriodIncidents,
+			        fact_incident[Dim_Client_Team_Unique_Key],
+			        "IncidentCount", COUNTROWS ( GROUPBY ( SelectedPeriodIncidents, fact_incident[IncidentKey] ) )
+			    )
+			VAR MaxIncidents =
+			    MAXX ( TeamIncidents, [IncidentCount] )
+			VAR TopTeamKey =
+			    CALCULATE ( SELECTEDVALUE ( fact_incident[Dim_Client_Team_Unique_Key] ), FILTER ( TeamIncidents, [IncidentCount] = MaxIncidents ) )
+			RETURN
+			    CALCULATE (
+			        SELECTEDVALUE ( dim_team_area[TeamName] ),
+			        dim_team_area[dim_client_team_unique_key] = TopTeamKey
+			    )
+			
+			```
+		lineageTag: a4d0b923-935c-4d51-bc12-11fa696a5a69
+
+	measure IncidentCountByTeam = ```
+			
+			VAR SelectedPeriodIncidents =
+			    CALCULATETABLE (
+			        fact_incident,
+			        DATESBETWEEN (
+			            dim_date[calendar_date],
+			            MIN ( dim_date[calendar_date] ),
+			            MAX ( dim_date[calendar_date] )
+			        )
+			    )
+			RETURN
+			    COUNTROWS (
+			        GROUPBY (
+			            FILTER ( SelectedPeriodIncidents, fact_incident[Dim_Client_Team_Unique_Key] = SELECTEDVALUE ( dim_team_area[dim_client_team_unique_key] ) ),
+			            fact_incident[IncidentKey]
+			        )
+			    )
+			
+			```
+		formatString: #,0
+		lineageTag: 7ada4c60-3e60-4a86-878a-d1ea691491b2
+
+	measure 'Incident Count LY' =
+			
+			CALCULATE(
+			    [Incident Count],
+			    SAMEPERIODLASTYEAR(dim_date[calendar_date])
+			)
+		formatString: #,0
+		lineageTag: 212683ec-38c2-4b73-8479-0341c50eacb3
+
+	measure 'Incident Category Count LY' =
+			
+			CALCULATE(
+			    [Incident Category Count],
+			    SAMEPERIODLASTYEAR(dim_date[calendar_date])
+			)
+		formatString: #,0
+		lineageTag: 12451e55-a53e-47db-97e1-c44e4d6a0f39
+
+	measure '% Change Incidents' = ```
+			
+			            DIVIDE(
+			                    [Incident Count] - [Incident Count LY],
+			                    [Incident Count LY]
+			            )
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 8d7a7db7-3ea5-4a5c-be35-21332b7aa141
+
+	measure '% Change Incidents by Type' =
+			
+			DIVIDE(
+			    [Incident Category Count] - [Incident Category Count LY],
+			    [Incident Category Count LY]
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 43a2b0cd-48f3-44b4-9b78-ec1f6f4d015d
+
+	measure 'Severe Incidents Card Formatting' =
+			
+			VAR _SevereIncidentNumber = CALCULATE([Incident Count],dim_severity[IncidentSeverityText] = "Severe")
+			RETURN
+			IF(
+			    _SevereIncidentNumber > 0,
+			    "#F1665A",
+			    "#478F8D"
+			)
+		lineageTag: 5edc80be-363e-458c-ad51-8d7c1578a46b
+
+	measure 'Formatting for Avg Days Open Card' =
+			
+			VAR _AvgDaysOpen = AVERAGE('fact_incident_open_time'[DaysOpen])
+			RETURN
+			IF(
+			    _AvgDaysOpen > 30,
+			    "#F1665A",
+			    "#478F8D"
+			)
+		lineageTag: 1ca362ed-3697-4128-a26f-82d38d386c1d
+
+	measure 'Formatting for Max Days Open Card' =
+			
+			VAR _MaxDaysOpen = MAX('fact_incident_open_time'[DaysOpen])
+			RETURN
+			IF(
+			    _MaxDaysOpen > 30,
+			    "#F1665A",
+			    "#478F8D"
+			)
+		lineageTag: e68960da-bc53-40af-b3f0-de73bfd4be27
+
+	measure 'Number Open Incidents' =
+			
+			CALCULATE(
+			    [Incident Count],
+			    dim_incident_status[IncidentStatusTypeText] <> "Completed"
+			)
+		formatString: #,0
+		lineageTag: fc91f59d-4df9-4f3e-897a-27dd0031d785
+
+	measure RefreshedAt_forDisplay = "Data Last Refreshed: " & FORMAT(LASTDATE(LastRefreshed[Date Last Refreshed]), "dd/MM/YYYY - hh:mm am/pm")
+		lineageTag: eaf4a4f3-e23f-4dce-991a-b0d52f5c53c8
+
+	measure 'Text Field for Yesterday''s Incidents Page' =
+			
+			CONCATENATE(
+			    "Please note that this page only shows corresponding incidents that were created yesterday in RecordBase (" &
+			    FORMAT(
+			        MAX(dim_date_created_date[calendar_date]),
+			        "DD/MM/YYYY"
+			    ),
+			    ") - also note that the incident may have occurred before the day it was created in RecordBase."
+			)
+		lineageTag: c8142fc4-7d6d-48b2-bfed-1a7dc75e0a1a
+
+	measure 'Filters Applied' =
+			
+			VAR _FC_dim_date_calendar_date = IF(ISFILTERED(dim_date[calendar_date]), "INCIDENT DATE RANGE: " & FORMAT(MIN(dim_date[calendar_date]), "dd/MM/yyyy") & " - " & FORMAT(MAX(dim_date[calendar_date]), "dd/MM/yyyy"), BLANK())
+			
+			VAR _dim_date_calendar_year = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES(dim_date[calendar_year]), NOT(ISBLANK(dim_date[calendar_year]))), dim_date[calendar_year], ASC),
+			    "calendar_year_display", dim_date[calendar_year]
+			)
+			VAR _dim_date_calendar_yearCount = IF(ISFILTERED(dim_date[calendar_year]), COUNTROWS(VALUES(dim_date[calendar_year])), 0)
+			VAR _More_dim_date_calendar_year = IF(_dim_date_calendar_yearCount > 5, " and " & (_dim_date_calendar_yearCount - 5) & " more", "")
+			VAR _FC_dim_date_calendar_year = IF(_dim_date_calendar_yearCount > 0, "CALENDAR YEARS CHOSEN: " & CONCATENATEX(_dim_date_calendar_year, [calendar_year_display], ", "), BLANK()) & _More_dim_date_calendar_year
+			
+			VAR _dim_date_calendar_quarter_full = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES(dim_date[calendar_quarter_full]), NOT(ISBLANK(dim_date[calendar_quarter_full]))), dim_date[calendar_quarter_full], ASC),
+			    "calendar_quarter_full_display", dim_date[calendar_quarter_full]
+			)
+			VAR _dim_date_calendar_quarter_fullCount = IF(ISFILTERED(dim_date[calendar_quarter_full]), COUNTROWS(VALUES(dim_date[calendar_quarter_full])), 0)
+			VAR _More_dim_date_calendar_quarter_full = IF(_dim_date_calendar_quarter_fullCount > 5, " and " & (_dim_date_calendar_quarter_fullCount - 5) & " more", "")
+			VAR _FC_dim_date_calendar_quarter_full = IF(_dim_date_calendar_quarter_fullCount > 0, "QUARTER CHOSEN: " & CONCATENATEX(_dim_date_calendar_quarter_full, [calendar_quarter_full_display], ", "), BLANK()) & _More_dim_date_calendar_quarter_full
+			
+			VAR _dim_date_calendar_month_name_short = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES(dim_date[calendar_month_name_short]), NOT(ISBLANK(dim_date[calendar_month_name_short]))), dim_date[calendar_month_name_short], ASC),
+			    "calendar_month_name_short_display", dim_date[calendar_month_name_short]
+			)
+			VAR _dim_date_calendar_month_name_shortCount = IF(ISFILTERED(dim_date[calendar_month_name_short]), COUNTROWS(VALUES(dim_date[calendar_month_name_short])), 0)
+			VAR _More_dim_date_calendar_month_name_short = IF(_dim_date_calendar_month_name_shortCount > 5, " and " & (_dim_date_calendar_month_name_shortCount - 5) & " more", "")
+			VAR _FC_dim_date_calendar_month_name_short = IF(_dim_date_calendar_month_name_shortCount > 0, "MONTHS CHOSEN: " & CONCATENATEX(_dim_date_calendar_month_name_short, [calendar_month_name_short_display], ", "), BLANK()) & _More_dim_date_calendar_month_name_short
+			
+			VAR _dim_team_area_Company = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES(dim_team_area[Company]), NOT(ISBLANK(dim_team_area[Company]))), dim_team_area[Company], ASC),
+			    "Company_display", dim_team_area[Company]
+			)
+			VAR _dim_team_area_CompanyCount = IF(ISFILTERED(dim_team_area[Company]), COUNTROWS(VALUES(dim_team_area[Company])), 0)
+			VAR _More_dim_team_area_Company = IF(_dim_team_area_CompanyCount > 5, " and " & (_dim_team_area_CompanyCount - 5) & " more", "")
+			VAR _FC_dim_team_area_Company = IF(_dim_team_area_CompanyCount > 0, "COMPANY CHOSEN: " & CONCATENATEX(_dim_team_area_Company, [Company_display], ", "), BLANK()) & _More_dim_team_area_Company
+			
+			VAR _dim_team_area_AreaParentName = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES(dim_team_area[AreaParentName]), NOT(ISBLANK(dim_team_area[AreaParentName]))), dim_team_area[AreaParentName], ASC),
+			    "AreaParentName_display", dim_team_area[AreaParentName]
+			)
+			VAR _dim_team_area_AreaParentNameCount = IF(ISFILTERED(dim_team_area[AreaParentName]), COUNTROWS(VALUES(dim_team_area[AreaParentName])), 0)
+			VAR _More_dim_team_area_AreaParentName = IF(_dim_team_area_AreaParentNameCount > 5, " and " & (_dim_team_area_AreaParentNameCount - 5) & " more", "")
+			VAR _FC_dim_team_area_AreaParentName = IF(_dim_team_area_AreaParentNameCount > 0, "RB PARENT AREAS CHOSEN: " & CONCATENATEX(_dim_team_area_AreaParentName, [AreaParentName_display], ", "), BLANK()) & _More_dim_team_area_AreaParentName
+			
+			VAR _dim_team_area_AreaName = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES(dim_team_area[AreaName]), NOT(ISBLANK(dim_team_area[AreaName]))), dim_team_area[AreaName], ASC),
+			    "AreaName_display", dim_team_area[AreaName]
+			)
+			VAR _dim_team_area_AreaNameCount = IF(ISFILTERED(dim_team_area[AreaName]), COUNTROWS(VALUES(dim_team_area[AreaName])), 0)
+			VAR _More_dim_team_area_AreaName = IF(_dim_team_area_AreaNameCount > 5, " and " & (_dim_team_area_AreaNameCount - 5) & " more", "")
+			VAR _FC_dim_team_area_AreaName = IF(_dim_team_area_AreaNameCount > 0, "RB AREAS CHOSEN: " & CONCATENATEX(_dim_team_area_AreaName, [AreaName_display], ", "), BLANK()) & _More_dim_team_area_AreaName
+			
+			VAR _dim_team_area_TeamName = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES(dim_team_area[TeamName]), NOT(ISBLANK(dim_team_area[TeamName]))), dim_team_area[TeamName], ASC),
+			    "TeamName_display", dim_team_area[TeamName]
+			)
+			VAR _dim_team_area_TeamNameCount = IF(ISFILTERED(dim_team_area[TeamName]), COUNTROWS(VALUES(dim_team_area[TeamName])), 0)
+			VAR _More_dim_team_area_TeamName = IF(_dim_team_area_TeamNameCount > 5, " and " & (_dim_team_area_TeamNameCount - 5) & " more", "")
+			VAR _FC_dim_team_area_TeamName = IF(_dim_team_area_TeamNameCount > 0, "RB SERVICES CHOSEN: " & CONCATENATEX(_dim_team_area_TeamName, [TeamName_display], ", "), BLANK()) & _More_dim_team_area_TeamName
+			
+			VAR _dim_team_area_bc_region_name = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES(dim_team_area[bc.region_name]), NOT(ISBLANK(dim_team_area[bc.region_name]))), dim_team_area[bc.region_name], ASC),
+			    "bc.region_name_display", dim_team_area[bc.region_name]
+			)
+			VAR _dim_team_area_bc_region_nameCount = IF(ISFILTERED(dim_team_area[bc.region_name]), COUNTROWS(VALUES(dim_team_area[bc.region_name])), 0)
+			VAR _More_dim_team_area_bc_region_name = IF(_dim_team_area_bc_region_nameCount > 5, " and " & (_dim_team_area_bc_region_nameCount - 5) & " more", "")
+			VAR _FC_dim_team_area_bc_region_name = IF(_dim_team_area_bc_region_nameCount > 0, "BC REGIONS CHOSEN: " & CONCATENATEX(_dim_team_area_bc_region_name, [bc.region_name_display], ", "), BLANK()) & _More_dim_team_area_bc_region_name
+			
+			VAR _dim_team_area_bc_district_name = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES(dim_team_area[bc.district_name]), NOT(ISBLANK(dim_team_area[bc.district_name]))), dim_team_area[bc.district_name], ASC),
+			    "bc.district_name_display", dim_team_area[bc.district_name]
+			)
+			VAR _dim_team_area_bc_district_nameCount = IF(ISFILTERED(dim_team_area[bc.district_name]), COUNTROWS(VALUES(dim_team_area[bc.district_name])), 0)
+			VAR _More_dim_team_area_bc_district_name = IF(_dim_team_area_bc_district_nameCount > 5, " and " & (_dim_team_area_bc_district_nameCount - 5) & " more", "")
+			VAR _FC_dim_team_area_bc_district_name = IF(_dim_team_area_bc_district_nameCount > 0, "BC DISTRICTS CHOSEN: " & CONCATENATEX(_dim_team_area_bc_district_name, [bc.district_name_display], ", "), BLANK()) & _More_dim_team_area_bc_district_name
+			
+			VAR _dim_team_area_bc_department_name = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES(dim_team_area[bc.department_name]), NOT(ISBLANK(dim_team_area[bc.department_name]))), dim_team_area[bc.department_name], ASC),
+			    "bc.department_name_display", dim_team_area[bc.department_name]
+			)
+			VAR _dim_team_area_bc_department_nameCount = IF(ISFILTERED(dim_team_area[bc.department_name]), COUNTROWS(VALUES(dim_team_area[bc.department_name])), 0)
+			VAR _More_dim_team_area_bc_department_name = IF(_dim_team_area_bc_department_nameCount > 5, " and " & (_dim_team_area_bc_department_nameCount - 5) & " more", "")
+			VAR _FC_dim_team_area_bc_department_name = IF(_dim_team_area_bc_department_nameCount > 0, "BC DEPARTMENTS CHOSEN: " & CONCATENATEX(_dim_team_area_bc_department_name, [bc.department_name_display], ", "), BLANK()) & _More_dim_team_area_bc_department_name
+			
+			VAR _dim_team_area_bc_service_name = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES(dim_team_area[bc.service_name]), NOT(ISBLANK(dim_team_area[bc.service_name]))), dim_team_area[bc.service_name], ASC),
+			    "bc.service_name_display", dim_team_area[bc.service_name]
+			)
+			VAR _dim_team_area_bc_service_nameCount = IF(ISFILTERED(dim_team_area[bc.service_name]), COUNTROWS(VALUES(dim_team_area[bc.service_name])), 0)
+			VAR _More_dim_team_area_bc_service_name = IF(_dim_team_area_bc_service_nameCount > 5, " and " & (_dim_team_area_bc_service_nameCount - 5) & " more", "")
+			VAR _FC_dim_team_area_bc_service_name = IF(_dim_team_area_bc_service_nameCount > 0, "BC SERVICES CHOSEN: " & CONCATENATEX(_dim_team_area_bc_service_name, [bc.service_name_display], ", "), BLANK()) & _More_dim_team_area_bc_service_name
+			
+			VAR _dim_team_area_bc_service_type_name = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES(dim_team_area[bc.service_type_name]), NOT(ISBLANK(dim_team_area[bc.service_type_name]))), dim_team_area[bc.service_type_name], ASC),
+			    "bc.service_type_name_display", dim_team_area[bc.service_type_name]
+			)
+			VAR _dim_team_area_bc_service_type_nameCount = IF(ISFILTERED(dim_team_area[bc.service_type_name]), COUNTROWS(VALUES(dim_team_area[bc.service_type_name])), 0)
+			VAR _More_dim_team_area_bc_service_type_name = IF(_dim_team_area_bc_service_type_nameCount > 5, " and " & (_dim_team_area_bc_service_type_nameCount - 5) & " more", "")
+			VAR _FC_dim_team_area_bc_service_type_name = IF(_dim_team_area_bc_service_type_nameCount > 0, "BC SERVICE TYPES CHOSEN: " & CONCATENATEX(_dim_team_area_bc_service_type_name, [bc.service_type_name_display], ", "), BLANK()) & _More_dim_team_area_bc_service_type_name
+			
+			VAR _dim_team_area_bc_client_team_name = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES(dim_team_area[bc.client_team_name]), NOT(ISBLANK(dim_team_area[bc.client_team_name]))), dim_team_area[bc.client_team_name], ASC),
+			    "bc.client_team_name_display", dim_team_area[bc.client_team_name]
+			)
+			VAR _dim_team_area_bc_client_team_nameCount = IF(ISFILTERED(dim_team_area[bc.client_team_name]), COUNTROWS(VALUES(dim_team_area[bc.client_team_name])), 0)
+			VAR _More_dim_team_area_bc_client_team_name = IF(_dim_team_area_bc_client_team_nameCount > 5, " and " & (_dim_team_area_bc_client_team_nameCount - 5) & " more", "")
+			VAR _FC_dim_team_area_bc_client_team_name = IF(_dim_team_area_bc_client_team_nameCount > 0, "BC CLIENT TEAMS CHOSEN: " & CONCATENATEX(_dim_team_area_bc_client_team_name, [bc.client_team_name_display], ", "), BLANK()) & _More_dim_team_area_bc_client_team_name
+			
+			VAR _dim_incident_category_IncidentCategoryFull = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES(dim_incident_category[IncidentCategoryFull]), NOT(ISBLANK(dim_incident_category[IncidentCategoryFull]))), dim_incident_category[IncidentCategoryFull], ASC),
+			    "IncidentCategoryFull_display", dim_incident_category[IncidentCategoryFull]
+			)
+			VAR _dim_incident_category_IncidentCategoryFullCount = IF(ISFILTERED(dim_incident_category[IncidentCategoryFull]), COUNTROWS(VALUES(dim_incident_category[IncidentCategoryFull])), 0)
+			VAR _More_dim_incident_category_IncidentCategoryFull = IF(_dim_incident_category_IncidentCategoryFullCount > 5, " and " & (_dim_incident_category_IncidentCategoryFullCount - 5) & " more", "")
+			VAR _FC_dim_incident_category_IncidentCategoryFull = IF(_dim_incident_category_IncidentCategoryFullCount > 0, "INCIDENT CATEGORIES CHOSEN: " & CONCATENATEX(_dim_incident_category_IncidentCategoryFull, [IncidentCategoryFull_display], ", "), BLANK()) & _More_dim_incident_category_IncidentCategoryFull
+			
+			VAR _dim_severity_IncidentSeverityText = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES(dim_severity[IncidentSeverityText]), NOT(ISBLANK(dim_severity[IncidentSeverityText]))), dim_severity[IncidentSeverityText], ASC),
+			    "IncidentSeverityText_display", dim_severity[IncidentSeverityText]
+			)
+			VAR _dim_severity_IncidentSeverityTextCount = IF(ISFILTERED(dim_severity[IncidentSeverityText]), COUNTROWS(VALUES(dim_severity[IncidentSeverityText])), 0)
+			VAR _More_dim_severity_IncidentSeverityText = IF(_dim_severity_IncidentSeverityTextCount > 5, " and " & (_dim_severity_IncidentSeverityTextCount - 5) & " more", "")
+			VAR _FC_dim_severity_IncidentSeverityText = IF(_dim_severity_IncidentSeverityTextCount > 0, "INCIDENT SEVERITIES CHOSEN: " & CONCATENATEX(_dim_severity_IncidentSeverityText, [IncidentSeverityText_display], ", "), BLANK()) & _More_dim_severity_IncidentSeverityText
+			
+			RETURN
+			IF(
+			    (ISBLANK(_FC_dim_date_calendar_date) || _FC_dim_date_calendar_date = "") && (ISBLANK(_FC_dim_date_calendar_year) || _FC_dim_date_calendar_year = "") && (ISBLANK(_FC_dim_date_calendar_quarter_full) || _FC_dim_date_calendar_quarter_full = "") && (ISBLANK(_FC_dim_date_calendar_month_name_short) || _FC_dim_date_calendar_month_name_short = "") && (ISBLANK(_FC_dim_team_area_Company) || _FC_dim_team_area_Company = "") && (ISBLANK(_FC_dim_team_area_AreaParentName) || _FC_dim_team_area_AreaParentName = "") && (ISBLANK(_FC_dim_team_area_AreaName) || _FC_dim_team_area_AreaName = "") && (ISBLANK(_FC_dim_team_area_TeamName) || _FC_dim_team_area_TeamName = "") && (ISBLANK(_FC_dim_team_area_bc_region_name) || _FC_dim_team_area_bc_region_name = "") && (ISBLANK(_FC_dim_team_area_bc_district_name) || _FC_dim_team_area_bc_district_name = "") && (ISBLANK(_FC_dim_team_area_bc_department_name) || _FC_dim_team_area_bc_department_name = "") && (ISBLANK(_FC_dim_team_area_bc_service_name) || _FC_dim_team_area_bc_service_name = "") && (ISBLANK(_FC_dim_team_area_bc_service_type_name) || _FC_dim_team_area_bc_service_type_name = "") && (ISBLANK(_FC_dim_team_area_bc_client_team_name) || _FC_dim_team_area_bc_client_team_name = "") && (ISBLANK(_FC_dim_incident_category_IncidentCategoryFull) || _FC_dim_incident_category_IncidentCategoryFull = "") && (ISBLANK(_FC_dim_severity_IncidentSeverityText) || _FC_dim_severity_IncidentSeverityText = ""),
+			    "No filters are currently applied to this page.",
+			    "Please note that the following filters are currently applied to this page: " &
+			    CONCATENATEX(FILTER({ _FC_dim_date_calendar_date, _FC_dim_date_calendar_year, _FC_dim_date_calendar_quarter_full, _FC_dim_date_calendar_month_name_short, _FC_dim_team_area_Company, _FC_dim_team_area_AreaParentName, _FC_dim_team_area_AreaName, _FC_dim_team_area_TeamName, _FC_dim_team_area_bc_region_name, _FC_dim_team_area_bc_district_name, _FC_dim_team_area_bc_department_name, _FC_dim_team_area_bc_service_name, _FC_dim_team_area_bc_service_type_name, _FC_dim_team_area_bc_client_team_name, _FC_dim_incident_category_IncidentCategoryFull, _FC_dim_severity_IncidentSeverityText }, [Value] <> BLANK()), [Value], " | ")
+			)
+		lineageTag: 325921a9-1fb6-43a4-94b3-2a0afd83b8d0
+
+	measure Incidents_closed_in_time = ```
+			
+			// This measure calculates the incidents closed in the selected period INCLUDING the open incidents. 
+			
+			VAR Allsevereincidents = CALCULATE(
+			        DISTINCTCOUNT(fact_incident[IncidentKey])
+			        ,fact_incident[Severity] IN {"SAC 2 - Harm causing major loss of function and/or requiring significant intervention", "SAC 1 - Death or harm causing severe loss of function and/or requiring lifesaving intervention", "Severe"}
+			        )
+			
+			
+			VAR SevereincidentsinTimeframe = CALCULATE(
+			        DISTINCTCOUNT(fact_incident[IncidentKey])
+			        ,fact_incident[Severity] IN {"SAC 2 - Harm causing major loss of function and/or requiring significant intervention", "SAC 1 - Death or harm causing severe loss of function and/or requiring lifesaving intervention", "Severe"}
+			        , fact_incident_open_time[DaysOpen] <= 40 
+			        )
+			
+			
+			RETURN
+			DIVIDE(SevereincidentsinTimeframe,Allsevereincidents)
+			```
+		formatString: 0%;-0%;0%
+		lineageTag: f2daa4da-c9bb-439d-933b-100f9dbbc70a
+
+	measure 'Incident Count - Label' =
+			
+			VAR Offset = SELECTEDVALUE('dim_date'[current_date_rolling_month_offset], BLANK())
+			RETURN
+			    IF (
+			        NOT ISBLANK(Offset) && Offset IN { -1, -2, -13 },
+			        [Incident Count],
+			        BLANK()
+			    )
+		formatString: #,0
+		lineageTag: a61abfb5-3d3e-4519-9105-a9a575a7b056
+
+	measure 'Maximum Latency' = MAX(fact_incident[Latency])
+		formatString: 0
+		lineageTag: 8e20f3d8-01a7-48cc-a88e-f5571b4ad419
+
+	measure 'Average Latency' = AVERAGE(fact_incident[Latency])
+		formatString: 0.0
+		lineageTag: 3b977502-ee44-48c7-a927-6b906c3aaf43
+
+	partition _Measures-0ee86b1b-a58d-4d7a-aaf2-e12618900831 = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

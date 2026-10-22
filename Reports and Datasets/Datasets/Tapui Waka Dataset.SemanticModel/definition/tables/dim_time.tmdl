@@ -1,0 +1,84 @@
+table dim_time
+	lineageTag: ea337208-5be5-41fa-a62f-77eaf236ef9d
+
+	column dim_time_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 28237e86-98eb-4a35-920c-c8d9edc385dd
+		summarizeBy: sum
+		sourceColumn: dim_time_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column time
+		dataType: dateTime
+		formatString: Long Time
+		lineageTag: acb531aa-8333-42a6-bef6-cdafdcdc681b
+		summarizeBy: none
+		sourceColumn: time
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Time
+
+	column hour12h
+		dataType: string
+		lineageTag: f74078ca-e0f9-4c9c-b7b3-54998799a42f
+		summarizeBy: none
+		sourceColumn: hour12h
+
+		annotation SummarizationSetBy = Automatic
+
+	column hour24h
+		dataType: string
+		lineageTag: abcded54-3b56-40ea-b146-881451198392
+		summarizeBy: none
+		sourceColumn: hour24h
+
+		annotation SummarizationSetBy = Automatic
+
+	column minute
+		dataType: string
+		lineageTag: 77b57b30-d701-4cb4-bd88-de7fd59547a1
+		summarizeBy: none
+		sourceColumn: minute
+
+		annotation SummarizationSetBy = Automatic
+
+	column second
+		dataType: string
+		lineageTag: 1bcddd39-aaf9-4a83-96b6-1a2011e244bf
+		summarizeBy: none
+		sourceColumn: second
+
+		annotation SummarizationSetBy = Automatic
+
+	column ampm
+		dataType: string
+		lineageTag: bff01482-1296-41c2-9fbc-324ee371a8f2
+		summarizeBy: none
+		sourceColumn: ampm
+
+		annotation SummarizationSetBy = Automatic
+
+	column standardtime
+		dataType: string
+		lineageTag: 4967628d-781a-4961-8581-39eaf36b0a0e
+		summarizeBy: none
+		sourceColumn: standardtime
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_time = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT [dim_time_key] as [dim_time_key]#(lf)      ,[time]#(lf)      ,[hour_12h] as [hour12h]#(lf)      ,[hour_24h] as [hour24h]#(lf)      ,[minute]#(lf)      ,[second]#(lf)      ,[am.pm] as [ampm]#(lf)      ,[standard_time] as [standardtime]#(lf)  FROM [edw].[vw_dim_time]"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,62 @@
+table fact_days_worked_by_month
+	lineageTag: 31feed88-e577-434f-81aa-ff4da05be076
+
+	column employee_id
+		dataType: string
+		lineageTag: 4962c947-19ee-436b-8900-97d40df2491a
+		summarizeBy: none
+		sourceColumn: employee_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_start_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: f82265e8-eebd-4f06-9fb2-7a2424e57796
+		summarizeBy: none
+		sourceColumn: month_start_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column day
+		dataType: int64
+		formatString: 0
+		lineageTag: 7a1625cc-7855-4120-9d99-f69aa2071465
+		summarizeBy: none
+		sourceColumn: day
+
+		annotation SummarizationSetBy = Automatic
+
+	column work_type_id
+		dataType: string
+		lineageTag: 5cec7e4e-6f4f-40b7-99a5-f11e0bfe9480
+		summarizeBy: none
+		sourceColumn: work_type_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column days_worked_on_day_of_week
+		dataType: int64
+		formatString: 0
+		lineageTag: c711ed12-eb8d-456a-a4a0-cd02dd5acc3b
+		summarizeBy: sum
+		sourceColumn: days_worked_on_day_of_week
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_unit_id = RELATED(dim_people[businessUnit_id])
+		lineageTag: 4b9a96f1-7c14-4955-9083-3bb10817e88f
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_days_worked_by_month = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="-- Days of week worked in month by employee#(lf)SELECT#(lf)t1.employee_id,#(lf)t1.month_start_date,#(lf)t1.[day],#(lf)work_type_id,#(lf)sum(t1.count) as days_worked_on_day_of_week#(lf)FROM#(lf)(#(lf)SELECT DISTINCT#(lf)employee_id,#(lf)start_date,#(lf)DATEPART(WEEKDAY,start_date) as day,#(lf)CAST(CAST(YEAR(start_date) AS VARCHAR(4)) #(lf)+ '/' + CAST(MONTH(start_date) AS VARCHAR(2)) + '/01' AS DATETIME) AS month_start_date,#(lf)--end_date,#(lf)work_type_id,#(lf)1 as [count]#(lf)FROM [EmpLive].[time_sheets_entries]#(lf)WHERE approval_status = 'APPROVED'#(lf)) t1#(lf)GROUP BY #(lf)t1.employee_id,#(lf)t1.month_start_date,#(lf)t1.[day],#(lf)work_type_id"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+

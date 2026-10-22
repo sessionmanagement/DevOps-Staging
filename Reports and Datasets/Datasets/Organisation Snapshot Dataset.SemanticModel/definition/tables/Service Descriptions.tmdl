@@ -1,0 +1,152 @@
+table 'Service Descriptions'
+	lineageTag: 163fdfd9-1ab0-408a-bc7d-11667f22a3ba
+
+	column Service
+		dataType: string
+		lineageTag: 53536362-faaf-4c05-845d-d72c00f79341
+		summarizeBy: none
+		sourceColumn: Service
+
+		annotation SummarizationSetBy = Automatic
+
+	column District
+		dataType: string
+		lineageTag: 07619c81-7fcf-4202-99bd-285fb6245794
+		summarizeBy: none
+		sourceColumn: District
+
+		annotation SummarizationSetBy = Automatic
+
+	column Region
+		dataType: string
+		lineageTag: 831eb4dd-30a9-410a-8659-7d4b04b07534
+		summarizeBy: none
+		sourceColumn: Region
+
+		annotation SummarizationSetBy = Automatic
+
+	column Manager
+		dataType: string
+		lineageTag: ffba691d-defb-47f8-8062-2befde58dcd7
+		summarizeBy: none
+		sourceColumn: Manager
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'One Up Manager'
+		dataType: string
+		lineageTag: cc50bcf0-a90f-41b0-8cf5-1afe3f37c6fe
+		summarizeBy: none
+		sourceColumn: One Up Manager
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Business Entity'
+		dataType: string
+		lineageTag: 851b9bf4-7883-43b0-a7e4-921dfbf89b95
+		summarizeBy: none
+		sourceColumn: Business Entity
+
+		annotation SummarizationSetBy = Automatic
+
+	column Location
+		dataType: string
+		lineageTag: e540dd54-8755-46a3-b1d8-9bac91262189
+		summarizeBy: none
+		sourceColumn: Location
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Phone Number'
+		dataType: string
+		lineageTag: ab47f59a-d484-4eb4-aaa1-0215cfe18fb5
+		summarizeBy: none
+		sourceColumn: Phone Number
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Type of Service'
+		dataType: string
+		lineageTag: 6fc81727-c325-4e39-83fb-c698f2423f03
+		summarizeBy: none
+		sourceColumn: Type of Service
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: 4632d6e5-a824-4e87-b2d9-f433f816dccf
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Does this service have an HP'
+		dataType: string
+		lineageTag: 7219a2d5-d1eb-47c6-a3b6-cb98a70d843a
+		summarizeBy: none
+		sourceColumn: Does this service have an HP
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Does this service have peer roles?'
+		dataType: string
+		lineageTag: 60b96735-0c1d-4173-966c-5299c6957a56
+		summarizeBy: none
+		sourceColumn: Does this service have peer roles?
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vetting Required (1)'
+		dataType: string
+		lineageTag: faea45f2-40bc-46f9-b008-a5a419b458be
+		summarizeBy: none
+		sourceColumn: Vetting Required (1)
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Vetting Required (2)'
+		dataType: string
+		lineageTag: 5be51348-2539-4218-98fa-f9f0c4d6ef36
+		summarizeBy: none
+		sourceColumn: Vetting Required (2)
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Self Referral (Yes/No)'
+		dataType: string
+		lineageTag: 1b9f0f00-44aa-4589-baf1-a5e8cd3cb0a2
+		summarizeBy: none
+		sourceColumn: Self Referral (Yes/No)
+
+		annotation SummarizationSetBy = Automatic
+
+	column Column16
+		dataType: string
+		lineageTag: 269a1173-d482-48d1-8817-1a01d8f5f59f
+		summarizeBy: none
+		sourceColumn: Column16
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Service Descriptions' = m
+		mode: import
+		source =
+				let
+				    Source = SharePoint.Files(
+				        "https://emergeaotearoaltd.sharepoint.com/sites/ITS2/", [ApiVersion = 15]
+				    ),
+				    #"Filtered Rows" = Table.SelectRows(Source, each Text.EndsWith([Name], "Service-Info.xlsx")),
+				    #"First File" = #"Filtered Rows"{0}[Content],
+				    #"Imported Excel" = Excel.Workbook(#"First File", null, true),
+				    #"All Services_Sheet" = #"Imported Excel"{[Item="All Services",Kind="Sheet"]}[Data],
+				    #"Promoted Headers" = Table.PromoteHeaders(#"All Services_Sheet", [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"Service", type text}, {"District", type any}, {"Region", type text}, {"Manager", type text}, {"One Up Manager", type text}, {"Business Entity", type text}, {"Location", type text}, {"Phone Number", type any}, {"Type of Service", type text}, {"Description", type text}, {"Does this service have an HP", type text}, {"Does this service have peer roles?", type text}, {"Vetting Required (1)", type text}, {"Vetting Required (2)", type text}, {"Self Referral (Yes/No)", type text}, {"Column16", type text}}),
+				    #"Filtered Rows1" = Table.SelectRows(#"Changed Type", each ([Description] <> null))
+				in
+				    #"Filtered Rows1"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Exception
+

@@ -1,0 +1,425 @@
+/// Central repository for all calculated measures in this semantic model. Use display folders to organize measures by functional area (e.g., '01. Sales', '02. Inventory'). This table contains no data rows - it exists solely to house measure definitions. Add your measures here using the DAX formula bar.
+table Measures​
+	lineageTag: 620dcdda-0015-4aff-a044-307090a82f49
+
+	/// Displays the date and time when this semantic model was last refreshed, formatted in NZ time. Useful for displaying data freshness on reports.
+	measure 'Last Refreshed' = VALUES(_LastRefresh[RefreshDateTime])
+		formatString: d/mm/yyyy hh:nn
+		displayFolder: _Utility
+		lineageTag: 51ac8ddb-95c0-426c-bf93-7c912ec6d0f0
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	/// Renders work item HTML description as a formatted SVG image. Use in an Image visual or column with Data Category = Image URL.
+	measure 'Formatted Description' =
+			VAR HtmlContent = SELECTEDVALUE(WorkItemDescriptions[Description])
+			VAR SafeHtml =
+			    SUBSTITUTE(
+			        SUBSTITUTE( HtmlContent, "<br>", "<br/>" ),
+			        "<hr>", "<hr/>"
+			    )
+			VAR SvgOutput =
+			    "data:image/svg+xml;utf8," &
+			    "<svg xmlns='http://www.w3.org/2000/svg' width='600' height='800' viewBox='0 0 600 800'>" &
+			    "<foreignObject width='100%' height='100%'>" &
+			    "<div xmlns='http://www.w3.org/1999/xhtml' style='font-family:Segoe UI,sans-serif;padding:10px;margin:0;font-size:12px;'>" &
+			    SafeHtml &
+			    "</div>" &
+			    "</foreignObject>" &
+			    "</svg>"
+			RETURN
+			    IF( NOT ISBLANK(HtmlContent), SvgOutput )
+		displayFolder: RPG
+		lineageTag: 7241e668-3af1-4b0f-95fc-ba55b682d5cd
+		dataCategory: ImageUrl
+
+	/// Returns the current version number from the Changelog table. Display this on reports to show which model version is deployed.
+	measure 'Latest Version' =
+			
+			VAR LatestChangeID =
+			    MAX ( 'Changelog'[Change ID] ) -- Get the highest Change ID
+			VAR LatestRow =
+			    CALCULATETABLE ( 'Changelog', 'Changelog'[Change ID] = LatestChangeID ) -- Get the row with the highest Change ID
+			VAR LatestVersion =
+			    MAXX ( LatestRow, 'Changelog'[Version] ) -- Extract the latest version
+			VAR LatestDatasetName =
+			    MAXX ( LatestRow, 'Changelog'[Dataset Name] ) -- Extract the latest Dataset Name
+			RETURN
+			    LatestDatasetName & " Semantic Model - v" & LatestVersion
+			-- Return the latest dataset name and version
+		displayFolder: _Utility
+		lineageTag: ad961283-3df3-4e5a-924e-ad2ef7384233
+
+		changedProperty = IsHidden
+
+	/// Count of work items in the current filter context.
+	measure 'Epics Count' = COUNTROWS(WorkItems)
+		formatString: 0
+		displayFolder: RPG
+		lineageTag: c3cc5237-965b-417a-8a67-9170ab3eada3
+
+	/// Count of work items without a MoSCoW classification (Must/Should/Could/Won't Have) in the current filter context.
+	measure 'No MoSCoW Count' = CALCULATE(COUNTROWS(WorkItems), ISBLANK(WorkItems[Custom_RPGMoSCoW]))
+		formatString: 0
+		displayFolder: RPG
+		lineageTag: f4467f1a-ea58-481b-a486-e2ab21394645
+
+	/// Average number of days since creation for work items.
+	measure 'Avg Days Waiting' = AVERAGEX(WorkItems, INT(TODAY() - WorkItems[CreatedDate]))
+		formatString: 0
+		displayFolder: RPG
+		lineageTag: e9c74f9a-434f-4d2a-b766-64be0990645b
+
+	/// Percentage of work items with all 4 RPG detail fields completed (Problem Statement, Proposed Solution, Expected Output, Benefit To Business). Indicates readiness for prioritization.
+	measure 'Ready Pct' =
+			VAR _total = COUNTROWS(WorkItems)
+			VAR _ready = CALCULATE(COUNTROWS(WorkItems), WorkItems[RPG Readiness] = 4)
+			RETURN IF(_total > 0, DIVIDE(_ready, _total))
+		formatString: 0%;-0%;0%
+		displayFolder: RPG
+		lineageTag: 13578064-aba7-4abd-af93-548e58a84bb7
+
+	/// Sum of duration days for board column periods. Used as the Duration data role in the Gantt visual.
+	measure 'Status Duration Days' = SUM(BoardColumnTimeline[DurationDays])
+		displayFolder: RPG
+		lineageTag: 0b79ba92-28d0-4ee0-a5a3-6ba542c4dd2a
+
+	/// Returns 1 when a single work item is selected (e.g. by clicking a row in a table), 0 otherwise. Use as a visual-level filter (= 1) to hide a visual until a selection is made.
+	measure 'Is Item Selected' = IF(HASONEVALUE(WorkItems[WorkItemId]), 1, 0)
+		formatString: 0
+		displayFolder: _Utility
+		lineageTag: f1123903-a9b0-434a-93e6-6e27054539f0
+
+	/// Displays a prompt message when no work item is selected. Use in a Card visual on pages where a selection is required to show detail.
+	measure 'Selection Prompt' =
+			IF(
+			    NOT HASONEVALUE(WorkItems[WorkItemId]),
+			    "Select an item to see its history"
+			)
+		displayFolder: _Utility
+		lineageTag: 1be25ed2-0171-4480-a1f5-e4ce6579d785
+
+	/// Returns today's date in NZ time (NZST/NZDT aware). Use this instead of TODAY() in all measures to ensure consistent results between Desktop and Service.
+	measure 'NZ Today' =
+			VAR _UTCNow = UTCNOW()
+			VAR _Year = YEAR(_UTCNow)
+			VAR _SeptLastSun = DATE(_Year, 9, 30) - WEEKDAY(DATE(_Year, 9, 30), 1) + 1
+			VAR _AprFirstSun = DATE(_Year, 4, 1) + (8 - WEEKDAY(DATE(_Year, 4, 1), 1)) - 7
+			VAR _NZOffset = IF(DATEVALUE(_UTCNow) >= _SeptLastSun || DATEVALUE(_UTCNow) < _AprFirstSun, 13, 12)
+			RETURN DATEVALUE(_UTCNow + _NZOffset/24)
+		formatString: dd/MM/yyyy
+		displayFolder: _Utility
+		lineageTag: 89de6635-5da8-4f9e-a109-960de87b6db5
+
+	/// Rank within Board Column and Area Path group, ordered by StackRank (lower = higher priority, nulls last). Restarts from 1 for each Board Column and each Area Path. Area Path partitioning is automatic via ALLSELECTED preserving cross-table filters.
+	measure 'Board Priority' =
+			IF(
+			    HASONEVALUE(WorkItems[WorkItemId])
+			        && NOT ISBLANK(SELECTEDVALUE(WorkItems[Board Column])),
+			    VAR _Rank = MIN(WorkItems[StackRank])
+			    VAR _Peers =
+			        FILTER(
+			            ALLSELECTED(WorkItems),
+			            WorkItems[Board Column] = SELECTEDVALUE(WorkItems[Board Column])
+			        )
+			    RETURN
+			        COUNTROWS(
+			            FILTER(
+			                _Peers,
+			                NOT ISBLANK(WorkItems[StackRank])
+			                    && (ISBLANK(_Rank) || WorkItems[StackRank] < _Rank)
+			            )
+			        ) + 1
+			)
+		formatString: 0
+		lineageTag: 39dbb67d-d8dc-4ed9-ab61-6980aebe697e
+
+	/// Date the work item most recently entered the 'New' board column.
+	measure 'Date Entered New Column' =
+			MAXX(
+			    FILTER(
+			        BoardColumnChangeHistory,
+			        BoardColumnChangeHistory[BoardColumn] = "New"
+			    ),
+			    BoardColumnChangeHistory[ChangeDate]
+			)
+		formatString: dd/MM/yyyy
+		displayFolder: Board Column Dates
+		lineageTag: 0bc2cb9b-eb7a-4753-ab55-71fb2b88d13c
+
+	/// Date the work item most recently entered the 'Prioritized' board column.
+	measure 'Date Entered Prioritized Column' =
+			MAXX(
+			    FILTER(
+			        BoardColumnChangeHistory,
+			        BoardColumnChangeHistory[BoardColumn] = "Prioritized"
+			    ),
+			    BoardColumnChangeHistory[ChangeDate]
+			)
+		formatString: dd/MM/yyyy
+		displayFolder: Board Column Dates
+		lineageTag: c167ac3e-2bfe-4323-8cd1-bce8d438f602
+
+	/// Date the work item most recently entered the 'Active' board column.
+	measure 'Date Entered Active Column' =
+			MAXX(
+			    FILTER(
+			        BoardColumnChangeHistory,
+			        BoardColumnChangeHistory[BoardColumn] = "Active"
+			    ),
+			    BoardColumnChangeHistory[ChangeDate]
+			)
+		formatString: dd/MM/yyyy
+		displayFolder: Board Column Dates
+		lineageTag: 9bc9ca25-ad9a-4670-a689-ea4558218ba1
+
+	/// Date the work item most recently entered the 'To Be Prioritized' board column (also matches legacy 'To Be Scoped' name).
+	measure 'Date Entered To Be Prioritized Column' =
+			MAXX(
+			    FILTER(
+			        BoardColumnChangeHistory,
+			        BoardColumnChangeHistory[BoardColumn] = "To Be Prioritized"
+			        || BoardColumnChangeHistory[BoardColumn] = "To Be Scoped"
+			    ),
+			    BoardColumnChangeHistory[ChangeDate]
+			)
+		formatString: dd/MM/yyyy
+		displayFolder: Board Column Dates
+		lineageTag: 19090b1f-5f45-4a9f-a613-032b28900326
+
+	/// Date the work item most recently entered the 'With Business' board column.
+	measure 'Date Entered With Business Column' =
+			MAXX(
+			    FILTER(
+			        BoardColumnChangeHistory,
+			        BoardColumnChangeHistory[BoardColumn] = "With Business"
+			    ),
+			    BoardColumnChangeHistory[ChangeDate]
+			)
+		formatString: dd/MM/yyyy
+		displayFolder: Board Column Dates
+		lineageTag: d621a0c7-5274-448b-9d84-378d4cbd3ab5
+
+	/// Date the work item most recently entered the 'Under Development' board column.
+	measure 'Date Entered Under Development Column' =
+			MAXX(
+			    FILTER(
+			        BoardColumnChangeHistory,
+			        BoardColumnChangeHistory[BoardColumn] = "Under Development"
+			    ),
+			    BoardColumnChangeHistory[ChangeDate]
+			)
+		formatString: dd/MM/yyyy
+		displayFolder: Board Column Dates
+		lineageTag: c839606b-4594-4425-b1cd-ee2e7bf27686
+
+	/// Date the work item most recently entered the 'Completed' board column.
+	measure 'Date Entered Completed Column' =
+			MAXX(
+			    FILTER(
+			        BoardColumnChangeHistory,
+			        BoardColumnChangeHistory[BoardColumn] = "Completed"
+			    ),
+			    BoardColumnChangeHistory[ChangeDate]
+			)
+		formatString: dd/MM/yyyy
+		displayFolder: Board Column Dates
+		lineageTag: 248c6834-ffdd-412a-ab9f-6fad529ed4e0
+
+	/// Date the work item most recently entered the 'Deprioritised' board column.
+	measure 'Date Entered Deprioritised Column' =
+			MAXX(
+			    FILTER(
+			        BoardColumnChangeHistory,
+			        BoardColumnChangeHistory[BoardColumn] = "Deprioritised"
+			    ),
+			    BoardColumnChangeHistory[ChangeDate]
+			)
+		formatString: dd/MM/yyyy
+		displayFolder: Board Column Dates
+		lineageTag: ea0fc742-c238-4b1c-859c-4b2e310a97eb
+
+	/// Number of days since the work item entered its current board column. Uses the most recent board column change date from BoardColumnChangeHistory.
+	measure 'Days in Current Column' =
+			VAR _LastChangeDate =
+			    MAXX(
+			        BoardColumnChangeHistory,
+			        DATEVALUE(BoardColumnChangeHistory[ChangeDate])
+			    )
+			RETURN
+			    IF(NOT ISBLANK(_LastChangeDate), DATEDIFF(_LastChangeDate, [NZ Today], DAY))
+		formatString: 0
+		displayFolder: Board Column Dates
+		lineageTag: 02720f03-f6e7-429b-9a37-02ffb8b02c22
+
+	/// Average number of days work items have been in their current board column.
+	measure 'Avg Days in Current Column' =
+			AVERAGEX(
+			    WorkItems,
+			    VAR _LastChangeDate =
+			        MAXX(
+			            BoardColumnChangeHistory,
+			            DATEVALUE(BoardColumnChangeHistory[ChangeDate])
+			        )
+			    RETURN
+			        IF(NOT ISBLANK(_LastChangeDate), DATEDIFF(_LastChangeDate, [NZ Today], DAY))
+			)
+		formatString: 0
+		displayFolder: Board Column Dates
+		lineageTag: 051d6a43-a009-45d8-8775-35002a4e9687
+
+	/// Board-driven delivery status label for each Epic. Use in row-level tables to show whether work has not started, is underway, or is complete.
+	measure 'Delivery Status' =
+			VAR _BoardColumn = SELECTEDVALUE(WorkItems[Board Column])
+			VAR _StartDate = SELECTEDVALUE(WorkItems[StartDate])
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        _BoardColumn = "Completed", "Completed",
+			        _BoardColumn = "With Business" || _BoardColumn = "Active" || _BoardColumn = "Under Development", "Started",
+			        _BoardColumn = "Prioritized" || _BoardColumn = "To Be Prioritized" || _BoardColumn = "To Be Scoped" || _BoardColumn = "New", "Not Started",
+			        _BoardColumn = "Deprioritised" || _BoardColumn = "Deprioritized", "Deprioritised",
+			        ISBLANK(_BoardColumn) && NOT ISBLANK(_StartDate), "Started",
+			        ISBLANK(_BoardColumn), "Not Classified",
+			        "Not Started"
+			    )
+		displayFolder: RPG Board
+		lineageTag: a4b8c5f1-9d2a-49ab-8a01-8f3f6ab63b10
+
+	/// Approximate delivery progress derived from the Epic board column. Use as a board-facing proxy for how far work has progressed.
+	measure 'Delivery Progress %' =
+			VAR _BoardColumn = SELECTEDVALUE(WorkItems[Board Column])
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        _BoardColumn = "New", 0,
+			        _BoardColumn = "To Be Prioritized" || _BoardColumn = "To Be Scoped", 0.1,
+			        _BoardColumn = "Prioritized", 0.25,
+			        _BoardColumn = "With Business", 0.45,
+			        _BoardColumn = "Active", 0.65,
+			        _BoardColumn = "Under Development", 0.85,
+			        _BoardColumn = "Completed", 1,
+			        BLANK()
+			    )
+		formatString: 0%;-0%;0%
+		displayFolder: RPG Board
+		lineageTag: 114ca520-1f09-43d7-aeef-c7cc2c3a8168
+
+	/// Count of Epics that are still queued and have not entered active delivery yet.
+	measure 'Not Started Epics Count' =
+			CALCULATE(
+			    COUNTROWS(WorkItems),
+			    KEEPFILTERS(
+			        WorkItems[Board Column] = "New"
+			            || WorkItems[Board Column] = "Prioritized"
+			            || WorkItems[Board Column] = "To Be Prioritized"
+			            || WorkItems[Board Column] = "To Be Scoped"
+			            || (ISBLANK(WorkItems[Board Column]) && ISBLANK(WorkItems[StartDate]))
+			    )
+			)
+		formatString: 0
+		displayFolder: RPG Board
+		lineageTag: 6632c0e7-2c8d-4202-bf7d-d1ed9f81fd12
+
+	/// Count of Epics that have started delivery but are not yet completed.
+	measure 'In Delivery Epics Count' =
+			CALCULATE(
+			    COUNTROWS(WorkItems),
+			    KEEPFILTERS(
+			        WorkItems[Board Column] = "With Business"
+			            || WorkItems[Board Column] = "Active"
+			            || WorkItems[Board Column] = "Under Development"
+			            || (ISBLANK(WorkItems[Board Column]) && NOT ISBLANK(WorkItems[StartDate]) && ISBLANK(WorkItems[CompletedDate]) && ISBLANK(WorkItems[ClosedDate]))
+			    )
+			)
+		formatString: 0
+		displayFolder: RPG Board
+		lineageTag: 9c8d5428-e0e1-4db6-b2bf-2702e4770a93
+
+	/// Count of Epics that have reached the Completed board column.
+	measure 'Completed Epics Count' =
+			CALCULATE(
+			    COUNTROWS(WorkItems),
+			    KEEPFILTERS(
+			        WorkItems[Board Column] = "Completed"
+			            || NOT ISBLANK(WorkItems[CompletedDate])
+			            || NOT ISBLANK(WorkItems[ClosedDate])
+			    )
+			)
+		formatString: 0
+		displayFolder: RPG Board
+		lineageTag: 73f3f539-0b89-4e4f-9980-ea5e653e719c
+
+	/// Unified queue rank across not-started Epic stages so the board can see what is next in line after the currently prioritized items.
+	measure 'Next Up Rank' =
+			IF(
+			    HASONEVALUE(WorkItems[WorkItemId]),
+			    VAR _BoardColumn = SELECTEDVALUE(WorkItems[Board Column])
+			    VAR _StageOrder =
+			        SWITCH(
+			            TRUE(),
+			            _BoardColumn = "Prioritized", 1,
+			            _BoardColumn = "To Be Prioritized" || _BoardColumn = "To Be Scoped", 2,
+			            _BoardColumn = "New", 3,
+			            BLANK()
+			        )
+			    VAR _CurrentRank = MIN(WorkItems[StackRank])
+			    VAR _Candidates =
+			        FILTER(
+			            ALLSELECTED(WorkItems),
+			            WorkItems[Board Column] = "Prioritized"
+			                || WorkItems[Board Column] = "To Be Prioritized"
+			                || WorkItems[Board Column] = "To Be Scoped"
+			                || WorkItems[Board Column] = "New"
+			        )
+			    RETURN
+			        IF(
+			            NOT ISBLANK(_StageOrder),
+			            COUNTROWS(
+			                FILTER(
+			                    _Candidates,
+			                    VAR _PeerStage =
+			                        SWITCH(
+			                            TRUE(),
+			                            WorkItems[Board Column] = "Prioritized", 1,
+			                            WorkItems[Board Column] = "To Be Prioritized" || WorkItems[Board Column] = "To Be Scoped", 2,
+			                            WorkItems[Board Column] = "New", 3,
+			                            9
+			                        )
+			                    VAR _PeerRank = WorkItems[StackRank]
+			                    RETURN
+			                        _PeerStage < _StageOrder
+			                            || (
+			                                _PeerStage = _StageOrder
+			                                    && (
+			                                        (NOT ISBLANK(_PeerRank) && ISBLANK(_CurrentRank))
+			                                            || (NOT ISBLANK(_PeerRank) && _PeerRank < _CurrentRank)
+			                                    )
+			                            )
+			                )
+			            ) + 1
+			        )
+			)
+		formatString: 0
+		displayFolder: RPG Board
+		lineageTag: 2bbad8c9-1f83-4121-8f74-1e31f96a8905
+
+	/// Conditional formatting flag for Portfolio view rows that have a non-blank Days in Stage value under 60 days.
+	measure 'Days in Stage Under 60 Flag' =
+			VAR _Days = [Days in Current Column]
+			RETURN IF(NOT ISBLANK(_Days) && _Days < 60, 1, 0)
+		formatString: 0
+		isHidden
+		displayFolder: RPG Board
+		lineageTag: 773c4e65-9398-4c83-89e7-69e9560a5ce2
+
+	column Placeholder
+		isHidden
+		lineageTag: 718c2249-0cb4-4ec8-87e7-7ef45e554703
+		isNameInferred
+		sourceColumn: [Placeholder]
+
+	partition Measure​ = calculated
+		mode: import
+		source = ROW("Placeholder", 0)
+

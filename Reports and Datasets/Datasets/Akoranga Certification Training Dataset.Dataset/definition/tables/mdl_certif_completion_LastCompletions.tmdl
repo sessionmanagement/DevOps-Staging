@@ -1,0 +1,106 @@
+table mdl_certif_completion_LastCompletions
+	lineageTag: 32411085-9f95-4d14-8262-925692a49db6
+
+	column userid
+		dataType: int64
+		formatString: 0
+		lineageTag: 50f4f314-f516-40c4-aefd-a6b41b921100
+		summarizeBy: none
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: mdl_certif_completion[userid]
+
+		annotation SummarizationSetBy = Automatic
+
+	column certifid
+		dataType: int64
+		formatString: 0
+		lineageTag: d860a019-4733-4a0c-a6c0-f08c827983a7
+		summarizeBy: none
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: mdl_certif_completion[certifid]
+
+		annotation SummarizationSetBy = Automatic
+
+	column ExpiringDate_Last
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: 7d8e9427-528f-423e-8583-dceba6e9fd88
+		summarizeBy: none
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: [ExpiringDate_Last]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column CompletedDate_Last
+		dataType: dateTime
+		formatString: d/mm/yyyy
+		lineageTag: bb8897e4-4cd5-4b5c-8177-4e367e2508bc
+		summarizeBy: none
+		isNameInferred
+		isDataTypeInferred
+		sourceColumn: [CompletedDate_Last]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column Count_CertificationExpired = SUMX(mdl_certif_completion_LastCompletions, IF(mdl_certif_completion_LastCompletions[ExpiringDate_Last] <= TODAY(), 1, 0) )
+		dataType: int64
+		formatString: 0
+		lineageTag: a097d0c9-9d5b-481f-81fa-13bddfe53735
+		summarizeBy: sum
+		isDataTypeInferred
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsCertificationExpired = IF(mdl_certif_completion_LastCompletions[ExpiringDate_Last] <= TODAY(), 1, 0)
+		dataType: int64
+		formatString: 0
+		lineageTag: 5db80f68-8521-4427-ba14-10d38776a04a
+		summarizeBy: sum
+		isDataTypeInferred
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	column IsCertificationNotExpired = IF(mdl_certif_completion_LastCompletions[ExpiringDate_Last] < TODAY(), 0, 1)
+		dataType: int64
+		formatString: 0
+		lineageTag: 4aeb9fc6-5ea1-43c5-9f78-0fab76613d9a
+		summarizeBy: sum
+		isDataTypeInferred
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	column 'Completed Date' = IF(mdl_certif_completion_LastCompletions[CompletedDate_Last] = DATE(1970, 01, 01), "Never Certified", FORMAT( mdl_certif_completion_LastCompletions[CompletedDate_Last], "dd/MM/yyyy") )
+		dataType: string
+		lineageTag: c5a14a98-e130-41f1-adb7-d2929c77081a
+		summarizeBy: none
+		isDataTypeInferred
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Expiry Date' = IF(mdl_certif_completion_LastCompletions[ExpiringDate_Last] = DATE(1970, 01, 01), "Never Certified", FORMAT( mdl_certif_completion_LastCompletions[ExpiringDate_Last], "dd/MM/yyyy") )
+		dataType: string
+		lineageTag: c5bc9066-cf7c-4fb6-bcec-25d10f52def0
+		summarizeBy: none
+		isDataTypeInferred
+
+		annotation SummarizationSetBy = Automatic
+
+	partition mdl_certif_completion_LastCompletions-5be3641a-23d2-4b0c-9e62-9adbeecb76eb = calculated
+		mode: import
+		source = SUMMARIZE(mdl_certif_completion, mdl_certif_completion[userid], mdl_certif_completion[certifid], "ExpiringDate_Last", LASTDATE(mdl_certif_completion[ExpiringDate]), "CompletedDate_Last", LASTDATE(mdl_certif_completion[CompletedDate]))
+

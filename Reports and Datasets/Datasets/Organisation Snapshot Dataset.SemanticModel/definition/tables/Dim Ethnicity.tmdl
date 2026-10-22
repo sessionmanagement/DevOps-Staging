@@ -1,0 +1,61 @@
+table 'Dim Ethnicity'
+	lineageTag: bef1b8b1-4586-4ad5-9511-73e9fc9a0d8d
+
+	column 'Original Ethnicity'
+		dataType: string
+		lineageTag: 73a6e265-86e1-4741-8bca-8de3e774760d
+		summarizeBy: none
+		sourceColumn: Original Ethnicity
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ethnicity Group'
+		dataType: string
+		lineageTag: b4a15c07-622a-4d10-b59d-1bebec1c6121
+		summarizeBy: none
+		sourceColumn: Ethnicity Group
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Ethnicity Sort Order'
+		dataType: int64
+		formatString: 0
+		lineageTag: 378fccde-b70c-4fa3-a980-7b09d17459f2
+		summarizeBy: sum
+		sourceColumn: Ethnicity Sort Order
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Ethnicity' = m
+		mode: import
+		queryGroup: Dims
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="WITH client_ethnicities AS (#(lf)    SELECT DISTINCT#(lf)        COALESCE(client_ethnicity_group, 'Unspecified') AS source_ethnicity,  -- Replace NULL#(lf)        'Client' AS source_table#(lf)    FROM edw.dim_client#(lf)    WHERE DWHDMLOperation <> 'D'#(lf)        AND DWHIsCurrent = 1#(lf)),#(lf)employee_ethnicities AS (#(lf)    SELECT DISTINCT#(lf)        COALESCE(primary_ethnicity_section, 'Unspecified') AS source_ethnicity,  -- Replace NULL#(lf)        'Employee' AS source_table#(lf)    FROM edw.vw_dim_employee#(lf)    WHERE DWHDMLOperation <> 'D'#(lf)        AND DWHIsCurrent = 1#(lf)),#(lf)all_ethnicities AS (#(lf)    SELECT * FROM client_ethnicities#(lf)    UNION#(lf)    SELECT * FROM employee_ethnicities#(lf))#(lf)SELECT DISTINCT#(lf)    source_ethnicity AS original_ethnicity,#(lf)    #(lf)    -- Standardized grouping#(lf)    CASE #(lf)        WHEN source_ethnicity = 'Unspecified' THEN 'Unspecified or Unknown'#(lf)        WHEN source_ethnicity = 'Pasifika' THEN 'Pacific Peoples'#(lf)        WHEN source_ethnicity = 'Residual Categories' THEN 'Unspecified or Unknown'#(lf)        WHEN source_ethnicity = 'Middle Eastern/Latin American/African' THEN 'MELAA'#(lf)        ELSE source_ethnicity#(lf)    END AS ethnicity_group,#(lf)    #(lf)    -- Sort order#(lf)    CASE #(lf)        WHEN source_ethnicity = 'Unspecified' THEN 0#(lf)        WHEN source_ethnicity = 'Residual Categories' THEN 0#(lf)        WHEN source_ethnicity = 'Māori' THEN 1#(lf)        WHEN source_ethnicity = 'Pasifika' THEN 2#(lf)        WHEN source_ethnicity = 'Pacific Peoples' THEN 2#(lf)        WHEN source_ethnicity = 'Asian' THEN 3#(lf)        WHEN source_ethnicity = 'Middle Eastern/Latin American/African' THEN 4#(lf)        WHEN source_ethnicity = 'European' THEN 5#(lf)        ELSE 99#(lf)    END AS ethnicity_sort_order#(lf)FROM all_ethnicities"]),
+				     ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(#"Source", each ApplyNamingConventions(_)),
+				    #"Replaced Value" = Table.ReplaceValue(#"Transformed Column Names","Maori","Māori",Replacer.ReplaceText,{"Ethnicity Group"})
+				in
+				    #"Replaced Value"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

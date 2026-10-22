@@ -1,0 +1,118 @@
+table 'Dim TW Referral Discharge Date'
+	excludeFromModelRefresh
+	lineageTag: eca0ced5-42a4-411e-9f8f-3ecce6d19a31
+
+	column 'Referral Discharge Dim Date KEY'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 119b47f9-5952-4e7a-aed8-082a106b6cf3
+		summarizeBy: none
+		sourceColumn: Referral Discharge Dim Date KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Discharge Calendar Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: d2b121e3-b5ba-418f-b870-b18c2c38481b
+		summarizeBy: none
+		sourceColumn: Referral Discharge Calendar Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Referral Discharge Calendar Day Name Full'
+		dataType: string
+		lineageTag: c59d281b-308b-4a3b-a3c3-b851ccf7b003
+		summarizeBy: none
+		sourceColumn: Referral Discharge Calendar Day Name Full
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Discharge Calendar Day Name Tereo'
+		dataType: string
+		lineageTag: 74169f8e-136e-4d1b-9f8c-099939465a59
+		summarizeBy: none
+		sourceColumn: Referral Discharge Calendar Day Name Tereo
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Discharge Calendar Month Name Long'
+		dataType: string
+		lineageTag: efdd13b1-8d71-4c2c-ace4-b960e9680722
+		summarizeBy: none
+		sourceColumn: Referral Discharge Calendar Month Name Long
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Discharge Calendar Month Name Tereo'
+		dataType: string
+		lineageTag: 46f8ca00-8334-4a61-af1e-cefedb6b6c19
+		summarizeBy: none
+		sourceColumn: Referral Discharge Calendar Month Name Tereo
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Discharge Calendar Day Num'
+		dataType: int64
+		formatString: 0
+		lineageTag: 215c57c1-3c01-427a-8520-21a6ecceb138
+		summarizeBy: none
+		sourceColumn: Referral Discharge Calendar Day Num
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Discharge Calendar Month Num'
+		dataType: int64
+		formatString: 0
+		lineageTag: 61a28266-9f09-4c08-965e-d168b25f23a0
+		summarizeBy: none
+		sourceColumn: Referral Discharge Calendar Month Num
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Discharge Calendar Year Month'
+		dataType: string
+		lineageTag: 9af1c562-7dc9-422d-86fd-3a2846bb2dfb
+		summarizeBy: none
+		sourceColumn: Referral Discharge Calendar Year Month
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Referral Discharge Financial Year Num'
+		dataType: int64
+		formatString: 0
+		lineageTag: 2beea3bb-3efb-4d2b-af17-07f3c7acebe7
+		summarizeBy: none
+		sourceColumn: Referral Discharge Financial Year Num
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim TW Referral Discharge Date' = m
+		mode: import
+		queryGroup: 'Role Playing Date Tables'
+		source =
+				let
+				    Source = Sql.Database(Server, Database),
+				    edw_dim_client_referral_discharge_date = Source{[Schema="edw",Item="dim_client_referral_discharge_date"]}[Data],
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            capitaliseWords = Text.Proper(replaceUnderscore),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY")
+				        in
+				            capitaliseKEY,
+				    #"Transformed Column Names" = Table.TransformColumnNames(edw_dim_client_referral_discharge_date, each ApplyNamingConventions(_)),
+				    #"Removed Other Columns" = Table.SelectColumns(#"Transformed Column Names",{"Referral Discharge Dim Date KEY", "Referral Discharge Calendar Date", "Referral Discharge Calendar Day Num", "Referral Discharge Calendar Day Name Full", "Referral Discharge Calendar Day Name Tereo", "Referral Discharge Calendar Month Num", "Referral Discharge Calendar Month Name Long", "Referral Discharge Calendar Month Name Tereo", "Referral Discharge Calendar Year Month", "Referral Discharge Financial Year Num"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Removed Other Columns",{{"Referral Discharge Financial Year Num", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

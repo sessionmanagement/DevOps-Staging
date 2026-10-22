@@ -1,0 +1,105 @@
+table dim_date
+	lineageTag: b29dd1ba-28a5-4329-aeeb-5bfe2db417ba
+
+	column calendar_date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 5a5b70d1-c04d-4cf0-9077-2e16c084e820
+		summarizeBy: none
+		sourceColumn: calendar_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column calendar_month_name_short
+		dataType: string
+		lineageTag: ed14bd95-a60a-4c92-9509-7b9b797f61ef
+		summarizeBy: none
+		sourceColumn: calendar_month_name_short
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_year_month
+		dataType: string
+		lineageTag: c133e78f-7caf-491d-ae1f-dd40d07058f3
+		summarizeBy: none
+		sourceColumn: calendar_year_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_year
+		dataType: int64
+		formatString: 0
+		lineageTag: ac2ab36e-5475-4b59-9f4c-5613a9d66dd1
+		summarizeBy: sum
+		sourceColumn: calendar_year
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_year_num
+		dataType: int64
+		formatString: 0
+		lineageTag: ab3b39b1-bfd8-4aca-a850-c5e8454f32cd
+		summarizeBy: sum
+		sourceColumn: financial_year_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_offset
+		dataType: int64
+		formatString: 0
+		lineageTag: 90f55d5a-a9d0-4083-bb9b-8eac2df4f2fb
+		summarizeBy: sum
+		sourceColumn: date_offset
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_offset
+		dataType: int64
+		formatString: 0
+		lineageTag: ee00a919-e55d-4a1f-aac3-33fd8178e84d
+		summarizeBy: sum
+		sourceColumn: month_offset
+
+		annotation SummarizationSetBy = Automatic
+
+	column year_offset
+		dataType: int64
+		formatString: 0
+		lineageTag: c533d27f-bd73-4fc4-aade-a789d0bc4cd2
+		summarizeBy: sum
+		sourceColumn: year_offset
+
+		annotation SummarizationSetBy = Automatic
+
+	column financial_year_offset
+		dataType: int64
+		formatString: 0
+		lineageTag: 92e9f69c-42b9-4057-af2a-d7eca5104899
+		summarizeBy: sum
+		sourceColumn: financial_year_offset
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_date = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="SELECT#(lf)calendar_date,#(lf)calendar_month_name_short,#(lf)calendar_year,#(lf)calendar_year_month,#(lf)financial_year_num,#(lf)current_date_rolling_financial_year_offset,#(lf)current_date_rolling_month_offset,#(lf)current_date_rolling_year_offset,#(lf)#(tab) DATEDIFF(#(lf)#(tab)#(tab)DAY,#(lf)#(tab)#(tab)CONVERT(datetime, SWITCHOFFSET(CONVERT(datetimeoffset, GETDATE()), DATEPART(TZOFFSET,GETDATE() AT TIME ZONE 'New Zealand Standard Time'))),#(lf)                calendar_date)#(lf)#(tab)#(tab)AS date_offset,#(lf) DATEDIFF(#(lf)        MONTH,#(lf)        CONVERT(datetime, SWITCHOFFSET(CONVERT(datetimeoffset, GETDATE()), DATEPART(TZOFFSET, GETDATE() AT TIME ZONE 'New Zealand Standard Time'))),#(lf)        calendar_date#(lf)    ) AS month_offset,#(lf)    DATEDIFF(#(lf)        YEAR,#(lf)        CONVERT(datetime, SWITCHOFFSET(CONVERT(datetimeoffset, GETDATE()), DATEPART(TZOFFSET, GETDATE() AT TIME ZONE 'New Zealand Standard Time'))),#(lf)        calendar_date#(lf)    ) AS year_offset,#(lf)    financial_year_num - (YEAR(GETDATE()) - CASE #(lf)        WHEN MONTH(GETDATE()) >= 7 THEN 1 #(lf)        ELSE 0 #(lf)    END) AS financial_year_offset#(lf) FROM edw.dim_date #(lf) WHERE dim_date_key <> 0#(lf)AND calendar_date > DATEADD(year, -90, GETDATE()) AND calendar_date < DATEADD(year, 9, GETDATE())"]),
+				    #"Changed Type" = Table.TransformColumnTypes(
+				    Source,
+				        {
+				            {"financial_year_num", Int64.Type},
+				            {"calendar_date", type date}
+				        }
+				    ),
+				#"Columns removed by Measure Killer"= Table.SelectColumns(#"Changed Type",{"financial_year_num","calendar_year_month","calendar_date","financial_year_offset","calendar_month_name_short","year_offset","calendar_year","month_offset","date_offset"})
+				in
+				#"Columns removed by Measure Killer"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

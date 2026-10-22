@@ -1,0 +1,2343 @@
+table 'Measures Table'
+	lineageTag: 8b33f859-573e-403c-816b-cab13343ff45
+
+	measure 'Kaimahi Completed All Training' =
+			
+			VAR KaimahiWithCourses =
+			    CALCULATETABLE (
+			        VALUES ( 'Den Kaimahi Core Training Progress'[Kaimahi ID] ),
+			        'Den Kaimahi Core Training Progress'[Trainingoverduestatus] = "Completed"
+			        ,'Den Kaimahi Core Training Progress'[Trainingoverduestatus] <> "Not Due"
+			    )
+			VAR KaimahiAllCourses =
+			    SUMMARIZE (
+			        'Den Kaimahi Core Training Progress',
+			        'Den Kaimahi Core Training Progress'[Kaimahi ID],
+			        "TotalTraining", COUNTROWS ( 'Den Kaimahi Core Training Progress'),
+			        "CompleteTraining",
+			            CALCULATE (
+			                COUNTROWS ( 'Den Kaimahi Core Training Progress'),
+			                'Den Kaimahi Core Training Progress'[Trainingoverduestatus] = "Completed"
+			                ,'Den Kaimahi Core Training Progress'[Trainingoverduestatus] <> "Not Due"
+			            )
+			    )
+			VAR KaimahiWithAllTraining =
+			    FILTER ( KaimahiAllCourses, [TotalTraining] = [CompleteTraining] )
+			RETURN
+			    IF (
+			        ISBLANK ( COUNTROWS ( KaimahiWithAllTraining ) ),
+			        0,
+			        COUNTROWS ( KaimahiWithAllTraining )
+			    )
+		formatString: #,0
+		displayFolder: Core Training
+		lineageTag: e3c4bb68-4152-49d5-9740-627ddc3bfaba
+
+	measure 'Number of Active Kaimahi with Training' = ```
+			
+			CALCULATE ( DISTINCTCOUNT ( 'Den Kaimahi Core Training Progress'[Kaimahi ID] ) )
+			
+			```
+		formatString: #,0
+		displayFolder: Core Training
+		lineageTag: 71ff3b1d-2ad3-43b3-a64d-05d505d97d68
+
+	measure 'Core Training FiltersApplied' = ```
+			
+			VAR __Companies =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            -- Show only the first 5 selected items
+			            FILTER (
+			                VALUES ( 'Dim Service'[Company Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[Company Name] ) )
+			            ),
+			            'Dim Service'[Company Name], ASC
+			        ),
+			        "CompanyName_display", 'Dim Service'[Company Name]
+			    )
+			VAR __CompaniesCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Company Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Company Name] ) ),
+			        0
+			    )
+			
+			// Core Training Filters, for Programs, Certifications and Courses
+			VAR __Courses =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            -- Show only the first 5 selected items
+			            FILTER (
+			                VALUES ( 'Den Kaimahi Core Training Progress'[Item Full Name] ),
+			                NOT ( ISBLANK ( 'Den Kaimahi Core Training Progress'[Item Full Name] ) )
+			            ),
+			            'Den Kaimahi Core Training Progress'[Item Full Name], ASC
+			        ),
+			        "CourseName_display", 'Den Kaimahi Core Training Progress'[Item Full Name]
+			    )
+			VAR __CoursesCount =
+			    IF (
+			        ISFILTERED ( 'Den Kaimahi Core Training Progress'[Item Full Name] ),
+			        COUNTROWS ( VALUES ( 'Den Kaimahi Core Training Progress'[Item Full Name] ) ),
+			        0
+			    )
+			VAR __MoreCourses =
+			    IF ( __CoursesCount > 5, " and " & ( __CoursesCount - 5 ) & " more", "" )
+			VAR _FC_Courses =
+			    IF (
+			        __CoursesCount > 0,
+			        "| Core Training: " & CONCATENATEX ( __Courses, [CourseName_display], ", " ) & __MoreCourses,
+			        BLANK ()
+			    )
+			// Training Type
+			
+			VAR __TrainingTypes =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            -- Show only the first 5 selected items
+			            FILTER (
+			                VALUES ( 'Den Kaimahi Core Training Progress'[Trainingtype] ),
+			                NOT ( ISBLANK ( 'Den Kaimahi Core Training Progress'[Trainingtype] ) )
+			            ),
+			            'Den Kaimahi Core Training Progress'[Trainingtype], ASC
+			        ),
+			        "TrainingType_display", 'Den Kaimahi Core Training Progress'[Trainingtype]
+			    )
+			VAR __TrainingTypeCount =
+			IF (
+			    ISFILTERED ( 'Den Kaimahi Core Training Progress'[Trainingtype] ),
+			    COUNTROWS ( VALUES ( 'Den Kaimahi Core Training Progress'[Trainingtype] ) ),
+			    0
+			)
+			VAR _FC_TrainingTypes =
+			    IF (
+			        __TrainingTypeCount > 0,
+			        "| Training Types: " & CONCATENATEX ( __TrainingTypes, [TrainingType_display], ", " ),
+			        BLANK ()
+			    )
+			
+			// Kaimahi Filters
+			VAR __Kaimahi =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            -- Show only the first 5 selected items
+			            FILTER (
+			                VALUES ( 'Dim Kaimahi'[Kaimahi Name] ),
+			                NOT ( ISBLANK ( 'Dim Kaimahi'[Kaimahi Name] ) )
+			            ),
+			            'Dim Kaimahi'[Kaimahi Name], ASC
+			        ),
+			        "KaimahiName_display", 'Dim Kaimahi'[Kaimahi Name]
+			    )
+			VAR __KaimahiCount =
+			    IF (
+			        ISFILTERED ( 'Dim Kaimahi'[Kaimahi Name]),
+			        DISTINCTCOUNT('Dim Kaimahi'[Kaimahi Name] ),
+			        0
+			    )
+			    /*VAR __KaimahiCount =
+			    IF (
+			        ISFILTERED ( 'Dim Kaimahi'[Kaimahi Name]),
+			        COUNTROWS ( VALUES ( 'Dim Kaimahi'[Kaimahi Name] ) ),
+			        0
+			    )*/
+			VAR __MoreKaimahi =
+			    IF ( __CoursesCount > 5, " and " & ( __KaimahiCount - 5 ) & " more", "" )
+			VAR _FC_Kaimahi =
+			    IF (
+			        __KaimahiCount > 0,
+			        "| Kaimahi: " & CONCATENATEX ( __Kaimahi, [KaimahiName_display], ", " ) & __MoreKaimahi,
+			        BLANK ()
+			    )
+			VAR _FC_MoreKaimahi =
+			    IF ( __KaimahiCount > 5, " and " & ( __KaimahiCount - 5 ) & " more", "" )
+			VAR __Services =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            FILTER (
+			                VALUES ( 'Dim Service'[Service Name]),
+			                NOT ( ISBLANK ( 'Dim Service'[Service Name]) )
+			            ),
+			            'Dim Service'[Service Name], ASC
+			        ),
+			        "ServiceName_display", 'Dim Service'[Service Name]
+			    )
+			VAR __ServicesCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Service Name]),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Service Name]) ),
+			        0
+			    )
+			VAR __MoreServices =
+			    IF ( __ServicesCount > 5, " and " & ( __ServicesCount - 5 ) & " more", "" )
+			VAR _FC_Companies =
+			    IF (
+			        __CompaniesCount > 0,
+			        "| Company: " & CONCATENATEX ( __Companies, [CompanyName_display], ", " ),
+			        BLANK ()
+			    )
+			VAR __ParentRegion =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            -- Show only the first 5 selected items
+			            FILTER (
+			                VALUES ( 'Dim Service'[Region Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[Region Name] ) )
+			            ),
+			            'Dim Service'[Region Name], ASC
+			        ),
+			        "AreaParentRegionName_display", 'Dim Service'[Region Name]
+			    )
+			VAR __ParentRegionCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[Region Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[Region Name] ) ),
+			        0
+			    )
+			VAR _FC_ParentRegion =
+			    IF (
+			        __ParentRegionCount > 0,
+			        "| Region: "
+			            & CONCATENATEX ( __ParentRegion, [AreaParentRegionName_display], ", " )
+			            & IF (
+			                __ParentRegionCount > 5,
+			                " and " & ( __ParentRegionCount - 5 ) & " more",
+			                ""
+			            ),
+			        BLANK ()
+			    )
+			VAR __ParentDistrict =
+			    ADDCOLUMNS (
+			        TOPN (
+			            5,
+			            -- Show only the first 5 selected items
+			            FILTER (
+			                VALUES ( 'Dim Service'[District Name] ),
+			                NOT ( ISBLANK ( 'Dim Service'[District Name] ) )
+			            ),
+			            'Dim Service'[District Name], ASC
+			        ),
+			        "AreaParentDistrictName_display", 'Dim Service'[District Name]
+			    )
+			VAR __ParentDistrictCount =
+			    IF (
+			        ISFILTERED ( 'Dim Service'[District Name] ),
+			        COUNTROWS ( VALUES ( 'Dim Service'[District Name] ) ),
+			        0
+			    )
+			VAR _FC_ParentDistrict =
+			    IF (
+			        __ParentDistrictCount > 0,
+			        "| District: "
+			            & CONCATENATEX ( __ParentDistrict, [AreaParentDistrictName_display], ", " )
+			            & IF (
+			                __ParentDistrictCount > 5,
+			                " and " & ( __ParentDistrictCount - 5 ) & " more",
+			                ""
+			            ),
+			        BLANK ()
+			    )
+			VAR _FC_Services =
+			    IF (
+			        __ServicesCount > 0,
+			        "| Services chosen: " & CONCATENATEX ( __Services, [Service Name], ", " ),
+			        BLANK ()
+			    )
+			VAR _FC_MoreServices =
+			    IF ( __ServicesCount > 5, " and " & ( __ServicesCount - 5 ) & " more", "" )
+			RETURN
+			    "Number of Active Kaimahi with Training: " & FORMAT([Number of Active Kaimahi with Training], "#,##0")
+			        & UNICHAR ( 10 )
+			        & UNICHAR ( 13 ) & " -- Summary of filters applied to page: " & _FC_TrainingTypes & " " & _FC_Courses & " " & _FC_Companies & " " & _FC_ParentRegion & " " & _FC_ParentDistrict & " " & _FC_Services & " " &  _FC_Kaimahi
+			        & UNICHAR ( 10 ) 
+			        & UNICHAR ( 13 )  & _FC_MoreServices & _FC_MoreKaimahi
+			```
+		displayFolder: Core Training\Filters
+		lineageTag: dfaa0056-7def-42ec-a0fc-bd4d167ffc31
+
+	measure RefreshedAt_forDisplay =
+			
+			"Data Last Refreshed: "
+			    & FORMAT (
+			        LASTDATE ( LastRefreshed[Date Last Refreshed] ),
+			        "dd/MM/YYYY - hh:mm AM/PM"
+			    )
+		displayFolder: Demographics
+		lineageTag: e6759229-2f43-4b2a-ba99-02e55082a86c
+
+	measure 'Certification Completion Percentage' =
+			
+			VAR MinDate =
+			    MIN ( 'Dim Date'[Calendar Date] )
+			VAR MaxDate =
+			    MAX ( 'Dim Date'[Calendar Date] )
+			VAR TotalCertifications =
+			    CALCULATE (
+			        COUNTROWS ( 'Den Kaimahi Core Training Progress' ),
+			        REMOVEFILTERS ( 'Den Kaimahi Core Training Progress'[Item Full Name] ),
+			        'Den Kaimahi Core Training Progress'[TrainingType] = "Certification",
+			        -- Keeping filter on Certification
+			        'Den Kaimahi Core Training Progress'[Trainingoverduestatus] <> "Not Due",
+			        'Den Kaimahi Core Training Progress'[Kaimahi Program Assigned Date] <= MaxDate,
+			        'Den Kaimahi Core Training Progress'[Kaimahi Program Assigned Date] >= MinDate
+			    )
+			VAR CompletedCertifications =
+			    CALCULATE (
+			        COUNTROWS ( 'Den Kaimahi Core Training Progress' ),
+			        REMOVEFILTERS ( 'Den Kaimahi Core Training Progress'[Item Full Name] ),
+			        'Den Kaimahi Core Training Progress'[Kaimahi Program Assigned Date] <= MaxDate,
+			        'Den Kaimahi Core Training Progress'[Kaimahi Program Assigned Date] >= MinDate,
+			        ( 'Den Kaimahi Core Training Progress'[Completed Date] <= MaxDate
+			            && 'Den Kaimahi Core Training Progress'[Completed Date] >= MinDate ),
+			            'Den Kaimahi Core Training Progress'[Trainingoverduestatus] <> "Not Due",
+			        'Den Kaimahi Core Training Progress'[Trainingoverduestatus] = "Completed",
+			        'Den Kaimahi Core Training Progress'[TrainingType] = "Certification" -- Keeping filter on Certification
+			    )
+			RETURN
+			    ROUND ( DIVIDE ( CompletedCertifications, TotalCertifications ), 2 )
+		formatString: 0%;-0%;0%
+		displayFolder: Core Training
+		lineageTag: 0d3e6805-8dc0-47aa-9916-1c2efcb8a784
+
+	measure 'Course Completion Percentage' =
+			
+			VAR MinDate =
+			    MIN ( 'Dim Date'[Calendar Date] )
+			VAR MaxDate =
+			    MAX ( 'Dim Date'[Calendar Date] )
+			VAR TotalCourses =
+			    CALCULATE (
+			        COUNTROWS ( 'Den Kaimahi Core Training Progress' ),
+			        REMOVEFILTERS ( 'Den Kaimahi Core Training Progress'[Item Full Name] ),
+			        'Den Kaimahi Core Training Progress'[TrainingType] = "Course",
+			        -- Keeping filter on Course
+			        'Den Kaimahi Core Training Progress'[Kaimahi Program Assigned Date] <= MaxDate,
+			        'Den Kaimahi Core Training Progress'[Kaimahi Program Assigned Date] >= MinDate,
+			        'Den Kaimahi Core Training Progress'[Trainingoverduestatus] <> "Not Due"
+			    )
+			VAR CompletedCourses =
+			    CALCULATE (
+			        COUNTROWS ( 'Den Kaimahi Core Training Progress' ),
+			        REMOVEFILTERS ( 'Den Kaimahi Core Training Progress'[Item Full Name] ),
+			        'Den Kaimahi Core Training Progress'[Kaimahi Program Assigned Date] <= MaxDate,
+			        'Den Kaimahi Core Training Progress'[Kaimahi Program Assigned Date] >= MinDate,
+			        ( 'Den Kaimahi Core Training Progress'[Completed Date] <= MaxDate
+			            && 'Den Kaimahi Core Training Progress'[Completed Date] >= MinDate ),
+			        'Den Kaimahi Core Training Progress'[Trainingoverduestatus] <> "Not Due",
+			        'Den Kaimahi Core Training Progress'[Trainingoverduestatus] = "Completed",
+			        'Den Kaimahi Core Training Progress'[TrainingType] = "Course" -- Keeping filter on Course
+			    )
+			RETURN
+			    ROUND ( DIVIDE ( CompletedCourses, TotalCourses ), 2 )
+		formatString: 0%;-0%;0%
+		displayFolder: Core Training
+		lineageTag: 36963b00-81db-4a12-a01b-f508812e36f9
+
+	measure 'Program Completion Percentage' =
+			
+			VAR MinDate =
+			    MIN ( 'Dim Date'[Calendar Date] )
+			VAR MaxDate =
+			    MAX ( 'Dim Date'[Calendar Date] )
+			VAR TotalPrograms =
+			    CALCULATE (
+			        COUNTROWS ( 'Den Kaimahi Core Training Progress' ),
+			        REMOVEFILTERS ( 'Den Kaimahi Core Training Progress'[Item Full Name] ),
+			        'Den Kaimahi Core Training Progress'[TrainingType] = "Program",
+			        'Den Kaimahi Core Training Progress'[Trainingoverduestatus] <> "Not Due",
+			        -- Keeping filter on Program
+			        'Den Kaimahi Core Training Progress'[Kaimahi Program Assigned Date] <= MaxDate,
+			        'Den Kaimahi Core Training Progress'[Kaimahi Program Assigned Date] >= MinDate
+			    )
+			VAR CompletedPrograms =
+			    CALCULATE (
+			        COUNTROWS ( 'Den Kaimahi Core Training Progress' ),
+			        REMOVEFILTERS ( 'Den Kaimahi Core Training Progress'[Item Full Name] ),
+			        'Den Kaimahi Core Training Progress'[Kaimahi Program Assigned Date] <= MaxDate,
+			        'Den Kaimahi Core Training Progress'[Kaimahi Program Assigned Date] >= MinDate,
+			        ( 'Den Kaimahi Core Training Progress'[Completed Date] <= MaxDate
+			            && 'Den Kaimahi Core Training Progress'[Completed Date] >= MinDate ),
+			            'Den Kaimahi Core Training Progress'[Trainingoverduestatus] <> "Not Due",
+			        'Den Kaimahi Core Training Progress'[Trainingoverduestatus] = "Completed",
+			        'Den Kaimahi Core Training Progress'[TrainingType] = "Program" -- Keeping filter on Program
+			    )
+			RETURN
+			    ROUND ( DIVIDE ( CompletedPrograms, TotalPrograms ), 2 )
+		formatString: 0%;-0%;0%
+		displayFolder: Core Training
+		lineageTag: f19e785f-764f-4f5f-9ec6-79e6464c0006
+
+	measure 'Overall Training Completion Percentage' =
+			
+			VAR CurrentDate = MAX ( 'Dim Date'[Calendar Date] )
+			VAR TotalAssignedTrainings =
+			    CALCULATE (
+			        COUNTROWS ( 'Den Kaimahi Core Training Progress' ),
+			        'Den Kaimahi Core Training Progress'[Kaimahi Program Assigned Date] <= CurrentDate,
+			        'Den Kaimahi Core Training Progress'[Trainingoverduestatus] <> "Not Due"
+			    )
+			VAR CompletedTrainings =
+			    CALCULATE (
+			        COUNTROWS ( 'Den Kaimahi Core Training Progress' ),
+			        'Den Kaimahi Core Training Progress'[Trainingoverduestatus] = "Completed",
+			        'Den Kaimahi Core Training Progress'[Trainingoverduestatus] <> "Not Due",
+			        'Den Kaimahi Core Training Progress'[Completed Date] <= CurrentDate
+			    )
+			RETURN
+			    IF (
+			        TotalAssignedTrainings = 0,
+			        BLANK (),
+			        DIVIDE ( CompletedTrainings, TotalAssignedTrainings, 0 )
+			    )
+		formatString: 0%;-0%;0%
+		displayFolder: Core Training
+		lineageTag: 0ecfdf93-4f94-441b-9f52-d61bb1af737e
+
+	measure 'Core Training Completion Target' =
+			
+			.8
+		displayFolder: Core Training
+		lineageTag: a757a94a-b948-4daf-abd0-371fcdeb1dbb
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Completed' = ```
+			
+			VAR MinDate =
+			    MIN ( 'Dim Date'[Calendar Date] )
+			VAR MaxDate =
+			    MAX ( 'Dim Date'[Calendar Date] )
+			VAR CompletedItems =
+			    CALCULATE (
+			        COUNTROWS ( 'Den Kaimahi Core Training Progress' ),
+			        'Den Kaimahi Core Training Progress'[Kaimahi Program Assigned Date] <= MaxDate,
+			        'Den Kaimahi Core Training Progress'[Kaimahi Program Assigned Date] >= MinDate,
+			        ( 'Den Kaimahi Core Training Progress'[Completed Date] <= MaxDate
+			            && 'Den Kaimahi Core Training Progress'[Completed Date] >= MinDate ),
+			        'Den Kaimahi Core Training Progress'[Trainingoverduestatus] = "Completed",
+			        'Den Kaimahi Core Training Progress'[Trainingoverduestatus] <> "Not Due"
+			    )
+			RETURN
+			    CompletedItems
+			
+			```
+		formatString: #,0
+		displayFolder: Core Training
+		lineageTag: 0500721c-181b-4cf6-8be5-9a8ee19ab9b2
+
+	measure 'Total Enrolments' = ```
+			
+			VAR MinDate =
+			    MIN ( 'Dim Date'[Calendar Date] )
+			VAR MaxDate =
+			    MAX ( 'Dim Date'[Calendar Date] )
+			VAR TotalItems =
+			    CALCULATE (
+			        COUNTROWS ( 'Den Kaimahi Core Training Progress' ),
+			        'Den Kaimahi Core Training Progress'[Kaimahi Program Assigned Date] <= MaxDate,
+			        'Den Kaimahi Core Training Progress'[Kaimahi Program Assigned Date] >= MinDate,
+			        'Den Kaimahi Core Training Progress'[Trainingoverduestatus] <> "Not Due"
+			    )
+			RETURN
+			    TotalItems
+			
+			```
+		formatString: #,0
+		displayFolder: Core Training
+		lineageTag: e9bed564-e9d2-410a-8c3f-113dca31a8ba
+
+	measure 'Number of Active Kaimahi' = CALCULATE(DISTINCTCOUNT('Dim Kaimahi'[Kaimahi ID]))
+		formatString: 0
+		displayFolder: Core Training
+		lineageTag: 645500cb-38f4-40a3-8551-40bee42b5022
+
+	measure 'Kaimahi Average Age' = CALCULATE(AVERAGE('Dim Kaimahi'[Kaimahi Age In Year]))
+		lineageTag: 19765547-dee5-4246-a403-b8c357b2704d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Kaimahi Average Tenure Years' = CALCULATE(AVERAGE('Dim Kaimahi'[TenureYears]))
+		lineageTag: e9a928dc-21b3-475f-9df4-c2783f5da33f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Kaimahi Vetting with Take Action' = CALCULATE(DISTINCTCOUNT('Fact Kaimahi Vetting'[Kaimahi ID]), FILTER('Fact Kaimahi Vetting', 'Fact Kaimahi Vetting'[Kpi Status] = 1))
+		formatString: 0
+		displayFolder: Kaimahi Vetting
+		lineageTag: 549c3e94-0911-4221-8721-e5c642593efe
+
+	measure 'Total Kaimahi with Vetting' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT('Fact Kaimahi Vetting'[Kaimahi ID]), // Replace [KaimahiID] with your actual key column
+			    'Fact Kaimahi Vetting'[Overall Status] > 0
+			)
+		formatString: 0
+		displayFolder: Kaimahi Vetting
+		lineageTag: f9bd33bf-c4cf-42ab-a9be-ce7de2ef56eb
+
+	/// Total hours across all pay components
+	measure 'Total Hours' = CALCULATE(SUM(fact_pay_run[Total_Hours]) ) //, fact_pay_run[pay_component_name] IN {"Ordinary Pay","Addtional Hours"} ))
+		formatString: #,##0.00
+		displayFolder: Payrun
+		lineageTag: 1b6deeb5-da5e-4c10-bca6-20bd410b1da1
+
+	/// Total FTE
+	measure 'Total FTE' = DIVIDE(DIVIDE([Total Hours],80),[Unique Pay Periods])
+		formatString: #,##0.00
+		displayFolder: Payrun
+		lineageTag: 17c0faaa-1777-44e9-8f9d-e6bd562c65fa
+
+	/// The most recent pay period end date in the data
+	measure 'Latest Pay Period End' = MAX(fact_pay_run[pay_period_end_date])
+		formatString: dd/mm/yyyy
+		displayFolder: Payrun
+		lineageTag: 0d4429c8-8891-4625-8c5b-57c099f232c9
+
+	/// The start date of the most recent pay period
+	measure 'Latest Pay Period Start' = ```
+			CALCULATE( MIN(fact_pay_run[pay_period_start_date])
+			//, fact_pay_run[pay_period_end_date] = [Latest Pay Period End] 
+			)
+			```
+		formatString: dd/mm/yyyy
+		displayFolder: Payrun
+		lineageTag: 900f0ded-080f-48ea-a90a-524ab5265aa4
+
+	/// Number of distinct casual employees active in the selected pay periods and selected service hierarchy
+	measure 'Casual Employee Count' =
+			VAR SelectedPayPeriodEndDates =
+			    CALCULATETABLE ( VALUES ( fact_pay_run[pay_period_end_date] ), REMOVEFILTERS ( 'Dim Kaimahi' ) )
+			RETURN
+			    COUNTROWS (
+			        FILTER (
+			            CALCULATETABLE (
+			                VALUES ( 'Dim Kaimahi'[Kaimahi ID] ),
+			                KEEPFILTERS ( 'Dim Kaimahi'[Kaimahi Work Type] = "Temporary/Casual" )
+			            ),
+			            VAR EmployeeStartDate =
+			                CALCULATE ( MIN ( 'Dim Kaimahi'[Kaimahi Company Start Date] ) )
+			            VAR EmployeeEndDate =
+			                CALCULATE ( MAX ( 'Dim Kaimahi'[Kaimahi Company End Date] ) )
+			            RETURN
+			                [Employee Matches Selected Service Filter] = 1
+			                    && COUNTROWS (
+			                        FILTER (
+			                            SelectedPayPeriodEndDates,
+			                            fact_pay_run[pay_period_end_date] >= EmployeeStartDate
+			                                && (
+			                                    ISBLANK ( EmployeeEndDate )
+			                                        || fact_pay_run[pay_period_end_date] <= EmployeeEndDate
+			                                )
+			                        )
+			                    ) > 0
+			        )
+			    )
+		displayFolder: Casual Analysis
+		lineageTag: 0eb52513-8e63-4144-bf41-b62044330000
+
+	/// Number of active casual employees with no hours in the selected pay periods and selected service hierarchy
+	measure 'Casuals Not Worked' =
+			VAR SelectedPayPeriodEndDates =
+			    CALCULATETABLE ( VALUES ( fact_pay_run[pay_period_end_date] ) )
+			VAR ActiveCasualEmployees =
+			    FILTER (
+			        CALCULATETABLE (
+			            VALUES ( 'Dim Kaimahi'[Kaimahi ID] ),
+			            KEEPFILTERS ( 'Dim Kaimahi'[Kaimahi Work Type] = "Temporary/Casual" )
+			        ),
+			        VAR EmployeeStartDate =
+			            CALCULATE ( MIN ( 'Dim Kaimahi'[Kaimahi Company Start Date] ) )
+			        VAR EmployeeEndDate =
+			            CALCULATE ( MAX ( 'Dim Kaimahi'[Kaimahi Company End Date] ) )
+			        RETURN
+			            [Employee Matches Selected Service Filter] = 1
+			                && COUNTROWS (
+			                    FILTER (
+			                        SelectedPayPeriodEndDates,
+			                        fact_pay_run[pay_period_end_date] >= EmployeeStartDate
+			                            && (
+			                                ISBLANK ( EmployeeEndDate )
+			                                    || fact_pay_run[pay_period_end_date] <= EmployeeEndDate
+			                            )
+			                    )
+			                ) > 0
+			    )
+			VAR WorkedCasualEmployees =
+			    FILTER (
+			        ActiveCasualEmployees,
+			        CALCULATE ( [Employee Hours] ) > 0
+			    )
+			RETURN
+			    COALESCE ( COUNTROWS ( EXCEPT ( ActiveCasualEmployees, WorkedCasualEmployees ) ), 0 )
+		displayFolder: Casual Analysis
+		lineageTag: c92dcfbe-7e4d-455b-baf4-b853fa9116df
+
+	/// Number of active casual employees who worked in the selected pay periods and selected service hierarchy
+	measure 'Casuals Worked' =
+			VAR SelectedPayPeriodEndDates =
+			    CALCULATETABLE ( VALUES ( fact_pay_run[pay_period_end_date] ) )
+			VAR ActiveCasualEmployees =
+			    FILTER (
+			        CALCULATETABLE (
+			            VALUES ( 'Dim Kaimahi'[Kaimahi ID] ),
+			            KEEPFILTERS ( 'Dim Kaimahi'[Kaimahi Work Type] = "Temporary/Casual" )
+			        ),
+			        VAR EmployeeStartDate =
+			            CALCULATE ( MIN ( 'Dim Kaimahi'[Kaimahi Company Start Date] ) )
+			        VAR EmployeeEndDate =
+			            CALCULATE ( MAX ( 'Dim Kaimahi'[Kaimahi Company End Date] ) )
+			        RETURN
+			            [Employee Matches Selected Service Filter] = 1
+			                && COUNTROWS (
+			                    FILTER (
+			                        SelectedPayPeriodEndDates,
+			                        fact_pay_run[pay_period_end_date] >= EmployeeStartDate
+			                            && (
+			                                ISBLANK ( EmployeeEndDate )
+			                                    || fact_pay_run[pay_period_end_date] <= EmployeeEndDate
+			                            )
+			                    )
+			                ) > 0
+			    )
+			RETURN
+			    COUNTROWS (
+			        FILTER (
+			            ActiveCasualEmployees,
+			            CALCULATE ( [Employee Hours] ) > 0
+			        )
+			    )
+		formatString: #,##0
+		displayFolder: Casual Analysis
+		lineageTag: 290fb897-0fa6-4673-9fd8-f54463ce2d4f
+
+	/// Count of distinct employees whose longest fortnight worked in the selected period is 96 hours or more
+	measure 'Employees Over 96 Hours' =
+			COUNTROWS (
+			    FILTER (
+			        VALUES ( 'Dim Kaimahi'[Kaimahi ID] ),
+			        [Longest Fortnight Worked] >= 96
+			    )
+			)
+		formatString: #,##0
+		displayFolder: Hours Compliance
+		lineageTag: 1d16a0e2-c5e0-4ce0-9136-f00d818d80df
+
+	/// Average total hours per employee in the current filter context
+	measure 'Avg Hours Per Employee' = DIVIDE( [Total Hours], [Employees Worked], 0 )
+		formatString: #,##0.0
+		displayFolder: Payrun
+		lineageTag: 080fc1c3-0cc5-4b73-8dc1-c0188bb1a739
+
+	/// Maximum hours worked by any single employee in the current filter context
+	measure 'Max Hours by Employee' =
+			
+			MAXX (
+			    SUMMARIZE (
+			        fact_pay_run,
+			        fact_pay_run[pay_period_start_date],
+			        fact_pay_run[employee_id],
+			        "TotalHoursWorked",
+			        SUM(fact_pay_run[Total_Hours])
+			    ),
+			    [TotalHoursWorked]
+			)
+			//MAXX(
+			//     VALUES(fact_pay_run[employee_id]),
+			//     CALCULATE( SUM(fact_pay_run[Hours]) )
+			// ))
+		formatString: #,##0.00
+		displayFolder: Hours Compliance
+		lineageTag: 6bddd5fd-894a-4bb9-9588-7756b7931df7
+
+	/// Count of distinct employees whose longest fortnight worked in the selected period is more than 88 hours and less than 96 hours
+	measure 'Employees Over 88 Hours' =
+			COUNTROWS (
+			    FILTER (
+			        VALUES ( 'Dim Kaimahi'[Kaimahi ID] ),
+			        [Longest Fortnight Worked] >= 88
+			            && [Longest Fortnight Worked] < 96
+			    )
+			)
+		formatString: #,##0
+		displayFolder: Hours Compliance
+		lineageTag: 8eb18ec0-4360-4c19-a6b9-4fb061325961
+
+	/// Count of distinct pay periods in the current filter context
+	measure 'Unique Pay Periods' = DISTINCTCOUNT(fact_pay_run[pay_period_end_date])
+		formatString: #,##0
+		displayFolder: Payrun
+		lineageTag: 9c088e97-bc4a-4e48-8bf6-977ad4d1e1b8
+
+	/// Percentage of workforce that are casual employees in the selected pay periods
+	measure 'Casual % of Workforce' =
+			VAR SelectedPayPeriodEndDates =
+			    CALCULATETABLE ( VALUES ( fact_pay_run[pay_period_end_date] ), REMOVEFILTERS ( 'Dim Kaimahi' ) )
+			VAR ActiveEmployees =
+			    COUNTROWS (
+			        FILTER (
+			            VALUES ( 'Dim Kaimahi'[Kaimahi ID] ),
+			            VAR EmployeeStartDate =
+			                CALCULATE ( MIN ( 'Dim Kaimahi'[Kaimahi Company Start Date] ) )
+			            VAR EmployeeEndDate =
+			                CALCULATE ( MAX ( 'Dim Kaimahi'[Kaimahi Company End Date] ) )
+			            RETURN
+			                [Employee Matches Selected Service Filter] = 1
+			                    && COUNTROWS (
+			                    FILTER (
+			                        SelectedPayPeriodEndDates,
+			                        fact_pay_run[pay_period_end_date] >= EmployeeStartDate
+			                            && (
+			                                ISBLANK ( EmployeeEndDate )
+			                                    || fact_pay_run[pay_period_end_date] <= EmployeeEndDate
+			                            )
+			                    )
+			                ) > 0
+			        )
+			    )
+			RETURN
+			    DIVIDE ( [Casual Employee Count], ActiveEmployees, 0 )
+		formatString: 0.0%
+		displayFolder: Casual Analysis
+		lineageTag: 45bf2ab9-fcef-4dd5-90c9-437209c79a9c
+
+	/// Count of distinct employees who worked in the latest pay period
+	measure 'Employees Worked' =
+			CALCULATE(
+			    DISTINCTCOUNT(fact_pay_run[employee_id]))
+		formatString: #,##0
+		displayFolder: Payrun
+		lineageTag: e0c08a62-31d4-4f0f-9367-e6b286fac8d1
+
+	/// Total hours for each employee in the latest pay period. Use in table visuals.
+	measure 'Employee Hours' = ```
+			
+			   
+			CALCULATE(
+			        SUM(fact_pay_run[Total_Hours]))
+			   
+			```
+		formatString: #,##0.00
+		displayFolder: Hours Compliance
+		lineageTag: bc30d50a-db2c-40d4-ac12-3de26affe7d7
+
+	/// Flag for employees who exceeded 96 hours in the latest fortnight
+	measure 'Is Over 96 Hours Flag' = IF( [Longest Fortnight Worked] >= 96, 1, 0 )
+		formatString: #,##0
+		displayFolder: Hours Compliance
+		lineageTag: 41cda58f-0eee-4ba9-b974-f9f6cc1adefb
+
+	/// Total rostered/budgeted FTE from position roster
+	measure 'Rostered FTE' = ```
+			[Rostered FTE_Manager] + [Rostered FTE_NON-Manager] 
+			
+			```
+		formatString: #,##0.00
+		displayFolder: Rostered vs Actual
+		lineageTag: 705441ab-ab0e-4900-9c7e-43ae4df6b13f
+
+	/// Total rostered hours per week from position roster
+	measure 'Rostered Hours PW' = SUMX( 'Fact Position Roster', VALUE( 'Fact Position Roster'[hours_pw] ) )
+		formatString: #,##0.00
+		displayFolder: Rostered vs Actual
+		lineageTag: eb08bab6-7654-450f-bc2e-8e90fbefd2de
+
+	/// Count of rostered positions
+	measure 'Rostered Positions' = COUNTROWS( 'Fact Position Roster' )
+		formatString: #,##0
+		displayFolder: Rostered vs Actual
+		lineageTag: 32a897c2-8cf7-4daf-a757-7a9ce2c64d09
+
+	/// Total actual FTE from the most recent pay period
+	measure 'Actual FTE' =
+			CALCULATE( [Total FTE]
+			//, fact_pay_run[pay_period_end_date] = [Latest Pay Period End]
+			 )
+		formatString: #,##0.00
+		displayFolder: Rostered vs Actual
+		lineageTag: 049aeeb0-f030-4a09-88cd-8a9f1b532cce
+
+	/// Total actual hours from the most recent pay period
+	measure 'Actual Hours (Latest Period)' =
+			CALCULATE( [Total Hours]
+			//, fact_pay_run[pay_period_end_date] = CALCULATE( MAX( fact_pay_run[pay_period_end_date] ), REMOVEFILTERS() )
+			 )
+		formatString: #,##0.00
+		displayFolder: Rostered vs Actual
+		lineageTag: 2abcda84-b804-4f97-86ba-153eb4a0078e
+
+	/// Difference between actual FTE (latest period) and rostered FTE. Positive = overstaffed, Negative = understaffed
+	measure 'FTE Variance' = [Actual FTE] - [Rostered FTE]
+		formatString: +#,##0.00;-#,##0.00;0.00
+		displayFolder: Rostered vs Actual
+		lineageTag: 032fd644-7764-4ea9-93f0-9c5bac2e56e8
+
+	/// Percentage of rostered FTE positions filled (Actual / Rostered)
+	measure 'FTE Fill Rate %' = DIVIDE( [Actual FTE], [Rostered FTE], 0 )
+		formatString: 0.0%
+		displayFolder: Rostered vs Actual
+		lineageTag: 0c510471-2022-4204-a61e-f1d73541c52f
+
+	/// Actual hours per week from latest fortnightly pay period (Total / 2)
+	measure 'Actual Hours PW (Latest Period)' = ```
+			[Total Hours] 
+			
+			//DIVIDE( [Actual Hours (Latest Period)], 2, 0 )
+			```
+		formatString: #,##0.00
+		displayFolder: Rostered vs Actual
+		lineageTag: c860e93d-7f22-408c-9be8-ba88547730fc
+
+	/// Difference between actual weekly hours and rostered weekly hours. Positive = over-utilised, Negative = under-utilised
+	measure 'Hours Variance PW' = [Actual Hours PW (Latest Period)] - [Rostered Hours PW]
+		formatString: +#,##0.00;-#,##0.00;0.00
+		displayFolder: Rostered vs Actual
+		lineageTag: b0f0f19b-1af1-43b7-9c63-e85b1bce4d7f
+
+	/// Percentage of rostered hours utilised (Actual weekly / Rostered weekly)
+	measure 'Hours Utilisation %' = DIVIDE( [Actual Hours PW (Latest Period)], [Rostered Hours PW], 0 )
+		formatString: 0.0%
+		displayFolder: Rostered vs Actual
+		lineageTag: aba1c376-7827-48c3-905f-4066845d81e5
+
+	measure 'Rostered FTE_Manager' =
+			
+			CALCULATE(
+			    DIVIDE(SUMX(
+			        'Fact Position Roster',
+			        VALUE('Fact Position Roster'[hours_pw])
+			    ),40),
+			    FILTER(
+			        'Fact Position Roster',
+			        CONTAINSSTRING('Fact Position Roster'[position_description], "Manager")
+			    )
+			)
+		displayFolder: Rostered vs Actual
+		lineageTag: c659c749-e141-4ce2-a3b5-8816132493a5
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Rostered FTE_NON-Manager' =
+			
+			CALCULATE(
+			    SUMX(
+			        'Fact Position Roster',
+			        VALUE('Fact Position Roster'[fte_pa])
+			    ),
+			    FILTER(
+			        'Fact Roster',
+			        CONTAINSSTRING('Fact Roster'[roster_shifts], "Total")
+			    )
+			)
+		displayFolder: Rostered vs Actual
+		lineageTag: f405dec9-6293-48ab-98e3-7f207cf7249f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Count of employee fortnights in the selected period where worked hours were 96 or more
+	measure 'Number of 96+ hour fortnights' =
+			VAR SummaryTable =
+			    SUMMARIZE (
+			        fact_pay_run,
+			        fact_pay_run[pay_period_start_date],
+			        fact_pay_run[employee_id],
+			        "TotalHoursWorked",
+			            CALCULATE (
+			                SUM ( fact_pay_run[Total_Hours] ),
+			                fact_pay_run[pay_component_name] IN {
+			                    "Ordinary Pay",
+			                    "Addtional Hours",
+			                    "Overtime"
+			                }
+			            )
+			    )
+			RETURN
+			    COUNTROWS ( FILTER ( SummaryTable, [TotalHoursWorked] >= 96 ) )
+		formatString: 0
+		displayFolder: Hours Compliance
+		lineageTag: d20b3beb-dcd1-4840-baf7-2873e97e7bb4
+
+	measure 'Longest Fortnight Worked' = ```
+			
+			MAXX (
+			    SUMMARIZE (
+			        fact_pay_run,
+			        fact_pay_run[pay_period_start_date],
+			        fact_pay_run[employee_id],
+			        "TotalHoursWorked",
+			        CALCULATE (
+			                    SUM ( fact_pay_run[Total_Hours] ),
+			                    fact_pay_run[pay_component_name] IN {
+			                        "Ordinary Pay",
+			                        "Addtional Hours",
+			                        "Overtime"
+			                    }
+			                )
+			    ),
+			    [TotalHoursWorked]
+			)
+			
+			
+			```
+		formatString: 0.0
+		displayFolder: Hours Compliance
+		lineageTag: 3a47b5a0-4a79-4c5c-95f2-73756efc9517
+
+	measure 'Casual worked Flag' = IF( [Employee Hours] > 0, 1, 0 )
+		formatString: 0
+		displayFolder: Casual Analysis
+		lineageTag: ec2b1532-d749-45b3-804b-4ae16006dbc2
+
+	/// Count of active casual employees associated with the current service who worked in the selected pay periods
+	measure 'Casuals Worked by Service' =
+			VAR SelectedPayPeriodEndDates =
+			    CALCULATETABLE ( VALUES ( fact_pay_run[pay_period_end_date] ), REMOVEFILTERS ( 'Dim Kaimahi' ) )
+			VAR ActiveCasualEmployeesInDept =
+			    FILTER (
+			        CALCULATETABLE (
+			            VALUES ( 'Dim Kaimahi'[Kaimahi ID] ),
+			            KEEPFILTERS ( 'Dim Kaimahi'[Kaimahi Work Type] = "Temporary/Casual" )
+			        ),
+			        VAR EmployeeStartDate =
+			            CALCULATE ( MIN ( 'Dim Kaimahi'[Kaimahi Company Start Date] ) )
+			        VAR EmployeeEndDate =
+			            CALCULATE ( MAX ( 'Dim Kaimahi'[Kaimahi Company End Date] ) )
+			        RETURN
+			            CALCULATE ( [Employee Matches Selected Service Filter] ) = 1
+			                && COUNTROWS (
+			                    FILTER (
+			                        SelectedPayPeriodEndDates,
+			                        fact_pay_run[pay_period_end_date] >= EmployeeStartDate
+			                            && (
+			                                ISBLANK ( EmployeeEndDate )
+			                                    || fact_pay_run[pay_period_end_date] <= EmployeeEndDate
+			                            )
+			                    )
+			                ) > 0
+			    )
+			VAR WorkedCasualEmployeesInDept =
+			    FILTER (
+			        ActiveCasualEmployeesInDept,
+			        CALCULATE ( [Employee Hours] ) > 0
+			    )
+			RETURN
+			    COALESCE ( COUNTROWS ( WorkedCasualEmployeesInDept ), 0 )
+		formatString: #,##0
+		displayFolder: Casual Analysis
+		lineageTag: 11069bf5-0129-41f0-a0f9-88539565fe9f
+
+	/// Count of active casual employees associated with the current service who did not work in the selected pay periods
+	measure 'Casuals Not Worked by Service' =
+			VAR SelectedPayPeriodEndDates =
+			    CALCULATETABLE ( VALUES ( fact_pay_run[pay_period_end_date] ), REMOVEFILTERS ( 'Dim Kaimahi' ) )
+			VAR ActiveCasualEmployeesInDept =
+			    FILTER (
+			        CALCULATETABLE (
+			            VALUES ( 'Dim Kaimahi'[Kaimahi ID] ),
+			            KEEPFILTERS ( 'Dim Kaimahi'[Kaimahi Work Type] = "Temporary/Casual" )
+			        ),
+			        VAR EmployeeStartDate =
+			            CALCULATE ( MIN ( 'Dim Kaimahi'[Kaimahi Company Start Date] ) )
+			        VAR EmployeeEndDate =
+			            CALCULATE ( MAX ( 'Dim Kaimahi'[Kaimahi Company End Date] ) )
+			        RETURN
+			            CALCULATE ( [Employee Matches Selected Service Filter] ) = 1
+			                && COUNTROWS (
+			                    FILTER (
+			                        SelectedPayPeriodEndDates,
+			                        fact_pay_run[pay_period_end_date] >= EmployeeStartDate
+			                            && (
+			                                ISBLANK ( EmployeeEndDate )
+			                                    || fact_pay_run[pay_period_end_date] <= EmployeeEndDate
+			                            )
+			                    )
+			                ) > 0
+			    )
+			VAR WorkedCasualEmployeesInDept =
+			    FILTER (
+			        ActiveCasualEmployeesInDept,
+			        CALCULATE ( [Employee Hours] ) > 0
+			    )
+			RETURN
+			    COALESCE ( COUNTROWS ( EXCEPT ( ActiveCasualEmployeesInDept, WorkedCasualEmployeesInDept ) ), 0 )
+		formatString: #,##0
+		displayFolder: Casual Analysis
+		lineageTag: 2225c460-b344-401c-bab1-7434e0daee3f
+
+	measure 'Casual hours worked' =
+			VAR SelectedBusinessUnits =
+			    CALCULATETABLE (
+			        VALUES ( 'Dim Kaimahi'[Kaimahi Business Unit Name] ),
+			        ALLSELECTED ( 'Dim Kaimahi'[Kaimahi Business Unit Name] ),
+			        REMOVEFILTERS ( 'Dim Kaimahi'[Kaimahi ID] ),
+			        REMOVEFILTERS ( 'Dim Kaimahi'[Kaimahi Name] ),
+			        REMOVEFILTERS ( 'Dim Kaimahi'[Kaimahi Job Name] )
+			    )
+			VAR AllBusinessUnitsInContext =
+			    CALCULATETABLE (
+			        VALUES ( 'Dim Kaimahi'[Kaimahi Business Unit Name] ),
+			        REMOVEFILTERS ( 'Dim Kaimahi'[Kaimahi Business Unit Name] ),
+			        REMOVEFILTERS ( 'Dim Kaimahi'[Kaimahi ID] ),
+			        REMOVEFILTERS ( 'Dim Kaimahi'[Kaimahi Name] ),
+			        REMOVEFILTERS ( 'Dim Kaimahi'[Kaimahi Job Name] )
+			    )
+			VAR HasBusinessUnitSelection =
+			    COUNTROWS ( EXCEPT ( SelectedBusinessUnits, AllBusinessUnitsInContext ) ) > 0
+			        || COUNTROWS ( EXCEPT ( AllBusinessUnitsInContext, SelectedBusinessUnits ) ) > 0
+			RETURN
+			    IF (
+			        HasBusinessUnitSelection,
+			        COALESCE (
+			            CALCULATE (
+			                SUM ( fact_pay_run[Total_Hours] ),
+			                REMOVEFILTERS ( 'Dim Service' ),
+			                REMOVEFILTERS ( 'Dim Kaimahi'[Kaimahi Business Unit Name] ),
+			                REMOVEFILTERS ( fact_pay_run[sub_department] ),
+			                REMOVEFILTERS ( fact_pay_run[sub_department_code] ),
+			                TREATAS ( SelectedBusinessUnits, fact_pay_run[sub_department] )
+			            ),
+			            0
+			        ),
+			        COALESCE (
+			            CALCULATE (
+			                SUM ( fact_pay_run[Total_Hours] ),
+			                REMOVEFILTERS ( 'Dim Service' ),
+			                REMOVEFILTERS ( 'Dim Kaimahi'[Kaimahi Business Unit Name] ),
+			                REMOVEFILTERS ( fact_pay_run[sub_department] ),
+			                REMOVEFILTERS ( fact_pay_run[sub_department_code] )
+			            ),
+			            0
+			        )
+			    )
+		displayFolder: Casual Analysis
+		lineageTag: 606b9768-151c-437f-b916-92f25aabf890
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Last Shift Worked' =
+			CALCULATE(
+			    MAX(fact_pay_run[pay_period_end_date]),
+			    REMOVEFILTERS('Dim Date'),
+			    REMOVEFILTERS(fact_pay_run[pay_period_end_date]),
+			    REMOVEFILTERS(fact_pay_run[pay_period_start_date]),
+			    fact_pay_run[Total_Hours] > 0
+			)
+		formatString: Short Date
+		displayFolder: Casual Analysis
+		lineageTag: 1e89799f-2406-4a6f-b1c9-89a2d1af7dd7
+
+	/// Visual filter helper for employee rows to match the selected Dim_Service hierarchy
+	measure 'Employee Matches Selected Service Filter' =
+			VAR CurrentEmployeeServiceName =
+			    SELECTEDVALUE ( 'Dim Kaimahi'[Kaimahi Business Unit Name] )
+			VAR HasServiceSelection =
+			    ISCROSSFILTERED ( 'Dim Service'[Department Name] )
+			        || ISCROSSFILTERED ( 'Dim Service'[Region Name] )
+			        || ISCROSSFILTERED ( 'Dim Service'[District Name] )
+			        || ISCROSSFILTERED ( 'Dim Service'[Service Name] )
+			RETURN
+			    IF (
+			        NOT HasServiceSelection,
+			        1,
+			        INT (
+			            NOT ISBLANK ( CurrentEmployeeServiceName )
+			                && CONTAINS (
+			                    VALUES ( 'Dim Service'[Service Name] ),
+			                    'Dim Service'[Service Name], CurrentEmployeeServiceName
+			                )
+			        )
+			    )
+		formatString: 0
+		displayFolder: Casual Analysis
+		lineageTag: d4b3981d-7820-432c-a6f6-dfef2058964e
+
+	measure 'Number of 88+ hour fortnights' =
+			VAR SummaryTable =
+			    SUMMARIZE (
+			        fact_pay_run,
+			        fact_pay_run[pay_period_start_date],
+			        fact_pay_run[employee_id],
+			        "TotalHoursWorked",
+			            CALCULATE (
+			                SUM ( fact_pay_run[Total_Hours] ),
+			                fact_pay_run[pay_component_name] IN {
+			                    "Ordinary Pay",
+			                    "Addtional Hours",
+			                    "Overtime"
+			                }
+			            )
+			    )
+			RETURN
+			    COUNTROWS ( FILTER ( SummaryTable, [TotalHoursWorked] >= 88 && [TotalHoursWorked] < 96 ) )
+		formatString: 0
+		displayFolder: Hours Compliance
+		lineageTag: dbac4cd2-dbb2-4a3e-ab1f-5744f76b27cd
+
+	/// Total hours worked for the active casual employee set in the current service/sub-department context
+	measure 'Casual Hours Worked by Sub Department' =
+			VAR SelectedPayPeriodEndDates =
+			    CALCULATETABLE ( VALUES ( fact_pay_run[pay_period_end_date] ), REMOVEFILTERS ( 'Dim Kaimahi' ) )
+			VAR ActiveCasualEmployees =
+			    FILTER (
+			        CALCULATETABLE (
+			            VALUES ( 'Dim Kaimahi'[Kaimahi ID] ),
+			            KEEPFILTERS ( 'Dim Kaimahi'[Kaimahi Work Type] = "Temporary/Casual" )
+			        ),
+			        VAR EmployeeStartDate =
+			            CALCULATE ( MIN ( 'Dim Kaimahi'[Kaimahi Company Start Date] ) )
+			        VAR EmployeeEndDate =
+			            CALCULATE ( MAX ( 'Dim Kaimahi'[Kaimahi Company End Date] ) )
+			        RETURN
+			            [Employee Matches Selected Service Filter] = 1
+			                && COUNTROWS (
+			                    FILTER (
+			                        SelectedPayPeriodEndDates,
+			                        fact_pay_run[pay_period_end_date] >= EmployeeStartDate
+			                            && (
+			                                ISBLANK ( EmployeeEndDate )
+			                                    || fact_pay_run[pay_period_end_date] <= EmployeeEndDate
+			                            )
+			                    )
+			                ) > 0
+			    )
+			VAR ActiveCasualEmployeeIds =
+			    SELECTCOLUMNS ( ActiveCasualEmployees, "employee_id", 'Dim Kaimahi'[Kaimahi ID] )
+			RETURN
+			    COALESCE (
+			        CALCULATE (
+			            SUM ( fact_pay_run[Total_Hours] ),
+			            TREATAS ( ActiveCasualEmployeeIds, fact_pay_run[employee_id] )
+			        ),
+			        0
+			    )
+		formatString: #,##0.0
+		displayFolder: Casual Analysis
+		lineageTag: 10b67d84-bbd1-4bf9-a957-fbdc8be1f9ef
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'All business unit hours worked' =
+			COALESCE (
+			    CALCULATE (
+			        SUM ( fact_pay_run[Total_Hours] ),
+			        REMOVEFILTERS ( 'Dim Service' ),
+			        REMOVEFILTERS ( fact_pay_run[sub_department] ),
+			        REMOVEFILTERS ( fact_pay_run[sub_department_code] )
+			    ),
+			    0
+			)
+		formatString: #,##0.00
+		displayFolder: Casual Analysis
+		lineageTag: 7fa7f0e1-5f04-4152-98eb-b8c7d433aedc
+
+	measure 'Avg weekly hours' =
+			
+			VAR _num_days = NETWORKDAYS(MIN('fact_pay_run'[pay_period_start_date]), MAX( 'fact_pay_run'[pay_period_end_date]), 1)
+			
+			RETURN
+			DIVIDE(SUM('fact_pay_run'[Total_Hours]), _num_days) * 5
+		displayFolder: Hours Compliance
+		lineageTag: c10ac947-9700-4050-97a0-c39a7863c3f4
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Avg weekly FTE' =
+			
+			VAR _num_days = NETWORKDAYS(MIN('fact_pay_run'[pay_period_start_date]), MAX('fact_pay_run'[pay_period_end_date]), 1)
+			VAR _hours = DIVIDE(SUM('fact_pay_run'[Total_Hours]), _num_days) * 5
+			RETURN
+			
+			DIVIDE(_hours, 40)
+		displayFolder: Payrun
+		lineageTag: c2f5d4e1-645f-4d71-816c-45a2eecb57aa
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure FiltersApplied_PayRun = ```
+			
+			VAR __Year = IF(ISFILTERED('Dim Date'[Calendar Year]), CONCATENATEX(FILTERS('Dim Date'[Calendar Year]), 'Dim Date'[Calendar Year], ", "), BLANK())
+			VAR __Month = IF(ISFILTERED('Dim Date'[Calendar Month Name Short]), CONCATENATEX(FILTERS('Dim Date'[Calendar Month Name Short]), 'Dim Date'[Calendar Month Name Short], ", "), BLANK())
+			
+			VAR __ContractType = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES('Dim Kaimahi'[Kaimahi Work Type]), NOT(ISBLANK('Dim Kaimahi'[Kaimahi Work Type]))), 'Dim Kaimahi'[Kaimahi Work Type], ASC),
+			    "ContractType_Display", 'Dim Kaimahi'[Kaimahi Work Type]
+			)
+			
+			
+			VAR __ContractTypeCount = IF(ISFILTERED('Dim Kaimahi'[Kaimahi Work Type]), COUNTROWS(VALUES('Dim Kaimahi'[Kaimahi Work Type])), 0)
+			
+			VAR __ComponentType = ADDCOLUMNS(
+			    TOPN(5, FILTER(VALUES(fact_pay_run[pay_component_name]), NOT(ISBLANK(fact_pay_run[pay_component_name]))), fact_pay_run[pay_component_name], ASC),
+			    "ComponentType_Display", fact_pay_run[pay_component_name]
+			)
+			
+			VAR __ComponentTypeCount = IF(ISFILTERED(fact_pay_run[pay_component_name]), COUNTROWS(VALUES(fact_pay_run[pay_component_name])), 0)
+			
+			VAR __PayPeriods = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES(fact_pay_run[pay_period_start_date]), NOT(ISBLANK(fact_pay_run[pay_period_start_date]))), fact_pay_run[pay_period_start_date], ASC),
+			    "PayPeriods_Display", fact_pay_run[pay_period_start_date]
+			)
+			VAR __PayPeriodCount = IF(ISFILTERED(fact_pay_run[pay_period_start_date]), COUNTROWS(VALUES(fact_pay_run[pay_period_start_date])), 0)
+			
+			
+			VAR __Region = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES('Dim Service'[Region Name]), NOT(ISBLANK('Dim Service'[Region Name]))), 'Dim Service'[Region Name], ASC),
+			    "Region_display", 'Dim Service'[Region Name]
+			)
+			
+			VAR __RegionCount = IF(ISFILTERED('Dim Service'[Region Name]), COUNTROWS(VALUES('Dim Service'[Region Name])), 0)
+			
+			VAR __District = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES('Dim Service'[District Name]), NOT(ISBLANK('Dim Service'[District Name]))), 'Dim Service'[District Name], ASC),
+			    "District_display", 'Dim Service'[District Name]
+			)
+			
+			VAR __DistrictCount = IF(ISFILTERED('Dim Service'[District Name]), COUNTROWS(VALUES('Dim Service'[District Name])), 0)
+			
+			VAR __Services = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES('Dim Service'[Service Name]), NOT(ISBLANK('Dim Service'[Service Name]))), 'Dim Service'[Service Name], ASC),
+			    "Service_display", 'Dim Service'[Service Name]
+			)
+			
+			VAR __ServiceCount = IF(ISFILTERED('Dim Service'[Service Name]), COUNTROWS(VALUES('Dim Service'[Service Name])), 0)
+			
+			
+			VAR _FC_Year = IF(ISBLANK(__Year), BLANK(), "| YEAR(S) CHOSEN: " & __Year)
+			VAR _FC_Month = IF(ISBLANK(__Month), BLANK(), "| MONTH(S) CHOSEN: " & __Month)
+			
+			VAR _FC_Regions = IF(__RegionCount > 0, "| REGIONS CHOSEN: " & CONCATENATEX(__Region, [Region_display], ", "), BLANK())
+			VAR _FC_MoreRegions = IF(__RegionCount > 10, " and " & (__RegionCount - 10) & " more", "")
+			
+			VAR _FC_Districts = IF(__DistrictCount > 0, "| DISTRICTS CHOSEN: " & CONCATENATEX(__District, [District_display], ", "), BLANK())
+			VAR _FC_MoreDistricts = IF(__DistrictCount > 10, " and " & (__DistrictCount - 10) & " more", "")
+			
+			VAR _FC_Services = IF(__ServiceCount > 0, "| SERVICES CHOSEN: " & CONCATENATEX(__Services, [Service_display], ", "), BLANK())
+			VAR _FC_MoreServices = IF(__ServiceCount > 10, " and " & (__ServiceCount - 10) & " more", "")
+			
+			VAR _FC_ContractType = IF(__ContractTypeCount > 0, "| CONTRACT TYPES CHOSEN: " & CONCATENATEX(__ContractType, [ContractType_Display], ", "), BLANK())
+			
+			VAR _FC_ComponentType = IF(__ComponentTypeCount > 0, "| PAY COMPONENTS CHOSEN: " & CONCATENATEX(__ComponentType, [ComponentType_Display], ", "), BLANK())
+			VAR _FC_MoreComponents= IF(__ComponentTypeCount > 5, " and " & (__ComponentTypeCount - 5) & " more", "")
+			
+			VAR _FC_PayPeriods = IF(__PayPeriodCount > 0, "| PAY PERIODS CHOSEN: " & CONCATENATEX(__PayPeriods, [PayPeriods_Display], ", "), BLANK())
+			VAR _FC_MorePayPeriods = IF(__PayPeriodCount > 7, " and " & (__PayPeriodCount - 7) & " more", "")
+			
+			
+			VAR _FirstDate = MIN('Dim Date'[Calendar Date])
+			VAR _LastDate = MAX('Dim Date'[Calendar Date])
+			
+			RETURN
+			 "Please note that all data shown is based on the following date range: " & FORMAT(_FirstDate, "dd/MM/YYYY") & " - " & FORMAT(_LastDate, "dd/MM/YYYY") 
+			& " " &
+			IF(
+			    ISBLANK(_FC_Year) && ISBLANK(_FC_Month) && ISBLANK(_FC_Regions) && ISBLANK(_FC_Districts) && ISBLANK(_FC_Services),
+			    "",
+			    "-- Summary of filters applied to page: " & " " & _FC_Year & " " & _FC_Month & " " & _FC_Regions & _FC_MoreRegions & " " & _FC_Districts & _FC_MoreDistricts & " " & _FC_Services & _FC_MoreServices
+			) & _FC_PayPeriods & _FC_MorePayPeriods & " " & _FC_ContractType & _FC_ComponentType & _FC_MoreComponents
+			
+			```
+		displayFolder: Payrun
+		lineageTag: 24f15127-fa80-4f90-bca0-efe6c56caec5
+
+	measure '% Female' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT( 'Fact Jobs'[Kaimahi ID] ),
+			    'Dim Kaimahi'[Kaimahi Gender] = "Female",
+			    ALLCROSSFILTERED('Dim Date')
+			)
+			    / CALCULATE(
+			        DISTINCTCOUNT( 'Fact Jobs'[Kaimahi ID] ),
+			        ALLCROSSFILTERED('Dim Date')
+			    ) + 0
+		formatString: 0.0%
+		displayFolder: Demographics
+		lineageTag: 20906d0b-dc0a-4f31-b611-de73c59c3f29
+
+	measure '% Male' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT( 'Fact Jobs'[Kaimahi ID] ),
+			    'Dim Kaimahi'[Kaimahi Gender] = "Male",
+			    ALLCROSSFILTERED('Dim Date')
+			)
+			    / CALCULATE(
+			        DISTINCTCOUNT( 'Fact Jobs'[Kaimahi ID] ),
+			        ALLCROSSFILTERED('Dim Date')
+			    ) + 0
+		formatString: 0.0%
+		displayFolder: Demographics
+		lineageTag: 3013447d-fa54-467a-a040-41256cfcbd14
+
+	measure '% Another' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT( 'Fact Jobs'[Kaimahi ID] ),
+			    'Dim Kaimahi'[Kaimahi Gender] = "Other"
+			            || 'Dim Kaimahi'[Kaimahi Gender] = "Non-binary",
+			    ALLCROSSFILTERED('Dim Date')
+			)
+			    / CALCULATE(
+			        DISTINCTCOUNT( 'Fact Jobs'[Kaimahi ID] ),
+			        ALLCROSSFILTERED('Dim Date')
+			    ) + 0
+		formatString: 0.0%
+		displayFolder: Demographics
+		lineageTag: b7adeb73-0086-4713-b425-9899b1754ad3
+
+	measure '% Undisclosed' =
+			CALCULATE(
+			    DISTINCTCOUNT( 'Fact Jobs'[Kaimahi ID] ),
+			    'Dim Kaimahi'[Kaimahi Gender] = "Undisclosed",
+			    ALLCROSSFILTERED('Dim Date')
+			)
+			    / CALCULATE(
+			        DISTINCTCOUNT( 'Fact Jobs'[Kaimahi ID] ),
+			        ALLCROSSFILTERED('Dim Date')
+			    ) + 0
+		formatString: 0.0%
+		displayFolder: Demographics
+		lineageTag: 171d1021-c4c0-4f1e-a6d0-a90f0cf400d9
+
+	measure Seps = CALCULATE([_TotalStaff], FILTER('Fact Jobs', NOT(ISBLANK('Fact Jobs'[endDate]))))
+		formatString: 0
+		displayFolder: Demographics
+		lineageTag: ec66f20c-dc3c-4e4b-80d1-4efdacdf31a9
+
+	measure _TotalStaff =
+			
+			CALCULATE (
+			    COUNTROWS ( 'Fact Jobs' )
+			    ,'Fact Jobs'[companyStartDate] < TODAY ()
+			    ,ALLCROSSFILTERED('Dim Date')
+			)
+		formatString: #,0
+		displayFolder: Demographics
+		lineageTag: 9365181e-9c69-4083-adf7-5367c6f94479
+
+	measure _CurrentStaff = ```
+			
+			VAR Currentdate =
+			    MAX( 'Dim Date'[Calendar Date] )
+			VAR MinDate =
+			    MIN( 'Dim Date'[Calendar Date] )
+			RETURN
+			    CALCULATE(
+			        SUMX(
+			            'Fact Jobs',
+			            IF(
+			                'Fact Jobs'[companyStartDate] <= Currentdate
+			                    && OR(
+			                        'Fact Jobs'[companyEndDate] >= MinDate,
+			                        ISBLANK( 'Fact Jobs'[companyEndDate] )
+			                    ),
+			                1,
+			                BLANK()
+			            )
+			        ),
+			        ALLCROSSFILTERED( 'Dim Date' )
+			    )
+			
+			```
+		formatString: #,0
+		displayFolder: Demographics
+		lineageTag: 85368f9e-b00e-4f69-8755-f83d07f1acbd
+
+	measure SelectedDate = FORMAT(FIRSTDATE('Dim Date'[Calendar Date]), "dd/MM/YYYY") & " - " & FORMAT(LASTDATE('Dim Date'[Calendar Date]), "dd/MM/YYYY")
+		displayFolder: Demographics
+		lineageTag: cc0db02f-36ae-4a01-a501-01f1d01e1ddc
+
+	measure PreviousYearStaff = CALCULATE([_CurrentStaff], SAMEPERIODLASTYEAR('Dim Date'[Calendar Date]))
+		formatString: #,0
+		displayFolder: Demographics
+		lineageTag: fbe892ef-b0ab-45e0-883d-fb4060335c47
+
+	measure _ActiveStaffEOM = ```
+			
+			VAR Currentdate =
+			    MAX( 'Dim Date'[Calendar Date] )
+			RETURN
+			    CALCULATE(
+			        SUMX(
+			            'Fact Jobs',
+			            IF(
+			                'Fact Jobs'[companyStartDate] <= Currentdate
+			                    && OR(
+			                        'Fact Jobs'[companyEndDate] >= Currentdate,
+			                        ISBLANK( 'Fact Jobs'[companyEndDate] )
+			                    ),
+			                1,
+			                BLANK()
+			            )
+			        ),
+			        ALLCROSSFILTERED( 'Dim Date' )
+			    )
+			
+			```
+		formatString: #,0
+		displayFolder: Demographics
+		lineageTag: 3535ec5f-f802-4be6-840b-87b8937152e0
+
+	measure _ActiveStaffSOM = ```
+			
+			VAR Currentdate =
+			    MIN( 'Dim Date'[Calendar Date] )
+			RETURN
+			    CALCULATE(
+			        SUMX(
+			            'Fact Jobs',
+			            IF(
+			                'Fact Jobs'[companyStartDate] <= Currentdate
+			                    && OR(
+			                        'Fact Jobs'[companyEndDate] >= Currentdate,
+			                        ISBLANK( 'Fact Jobs'[companyEndDate] )
+			                    ),
+			                1,
+			                BLANK()
+			            )
+			        ),
+			        ALLCROSSFILTERED( 'Dim Date' )
+			    )
+			
+			```
+		formatString: #,0
+		displayFolder: Demographics
+		lineageTag: 4981d83a-9264-4213-8ae0-386c3d91d1d2
+
+	measure 'Attrition Rate' = DIVIDE([_ActiveStaffSOM]+[_ActiveStaffEOM],2,0)
+		displayFolder: Demographics
+		lineageTag: 35154e81-ce31-4cff-bdf8-4297db6a1019
+
+	measure EndedDuringMonth = [StaffEntering] - [StaffLeaving]
+		formatString: 0
+		displayFolder: Demographics
+		lineageTag: c8039b86-9b33-42b8-8ac9-95c788705449
+
+	measure _MonthlyAttritionPercentage =
+			
+			DIVIDE(
+			    CALCULATE(
+			        [StaffLeaving]
+			    ),
+			    [Attrition Rate],
+			    0
+			)
+		displayFolder: Demographics
+		lineageTag: 7e0e0523-6eab-44d9-b132-6061a6cf95dd
+
+	measure TotalJobTitle =
+			
+			CALCULATE(
+			    COUNT( 'Fact Jobs'[Job Title] ),
+			    ALLCROSSFILTERED( 'Dim Date' )
+			)
+		formatString: #,0
+		displayFolder: Demographics
+		lineageTag: 99fe0433-2545-4bc4-9a4a-46babea07083
+
+	measure StaffLeaving = ```
+			
+			CALCULATE (
+			    DISTINCTCOUNT('Fact Jobs'[Kaimahi ID]),
+			    USERELATIONSHIP ('Dim Date'[Calendar Date], 'Fact Jobs'[companyEndDate])
+			   ,FILTER('Fact Jobs', 
+			        'Fact Jobs'[LatestJobRank] = 1
+			        )
+			)
+			```
+		displayFolder: Demographics
+		lineageTag: 27c46cd6-0377-4752-bf39-6c3107225821
+
+	measure StaffEntering =
+			
+			CALCULATE (
+			    COUNTA('Fact Jobs'[Kaimahi Name]),
+			    USERELATIONSHIP ( 'Dim Date'[Calendar Date], 'Fact Jobs'[companyStartDate] )
+			)
+		displayFolder: Demographics
+		lineageTag: 72c0bd90-6c9d-44dc-9ec5-1483754008a7
+
+	measure StaffLeavingNegative =
+			
+			CALCULATE (
+			   [_TotalStaff],
+			    USERELATIONSHIP ( 'Dim Date'[Calendar Date], 'Fact Jobs'[companyEndDate] ),
+			    FILTER ( 'Fact Jobs', 'Fact Jobs'[companyEndDate] >= MIN ( 'Dim Date'[Calendar Date] ) )
+			) * -1
+		displayFolder: Demographics
+		lineageTag: 58fb44da-091c-4bd5-92c6-84d76f2ce1f9
+
+	measure 'Annual Turnover Rate' =
+			
+			VAR sd =
+			    LASTDATE(
+			        DATEADD(
+			            'Dim Date'[Calendar Date],
+			            -1,
+			            YEAR
+			        )
+			    )
+			RETURN
+			    CALCULATE(
+			        SUMX(
+			            SUMMARIZE(
+			                'Fact Jobs',
+			                "AnnualAttrition", [_MonthlyAttritionPercentage]
+			            ),
+			            [_MonthlyAttritionPercentage]
+			        ),
+			        FILTER(
+			            ALL( 'Dim Date' ),
+			            'Dim Date'[Calendar Date] > sd
+			                && 'Dim Date'[Calendar Date]
+			                    <= MAX( 'Dim Date'[Calendar Date] )
+			        )
+			    )
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Demographics
+		lineageTag: d480063e-a6e1-4042-a739-b8a34d90e6f0
+
+	measure _HeadCount = ```
+			
+			CALCULATE (
+			    COUNTROWS ( 'Fact Jobs' ),
+			    FILTER (
+			        'Fact Jobs',
+			        'Fact Jobs'[companyStartDate] < TODAY ()
+			    ),ALLCROSSFILTERED('Dim Date')
+			)
+			
+			```
+		formatString: #,0
+		displayFolder: Demographics
+		lineageTag: 1681d428-3df2-47d3-a099-57cd4da9a55e
+
+	measure 'Turnover Weighted Average' = [_TotalStaff] * [_MonthlyAttritionPercentage]/100
+		formatString: 0%;-0%;0%
+		displayFolder: Demographics
+		lineageTag: 44eece12-98ea-41ac-a819-889b68915636
+
+	measure AverageTenureYears = ```
+			
+			 CALCULATE(
+			    AVERAGE('Fact Jobs'[Tenure Years]), 'Fact Jobs'[Isprimaryjob]=1
+			)
+			```
+		formatString: 0.00
+		displayFolder: Demographics
+		lineageTag: 6c8dd121-6028-434b-b60a-d67aabd94979
+
+	measure TotalFTE =
+			
+			CALCULATE(
+			    SUM( 'Fact Jobs'[fte] ),
+			    ALLCROSSFILTERED( 'Dim Date' )
+			)
+		formatString: #,0.00
+		displayFolder: Demographics
+		lineageTag: 8df6e296-b75c-47e9-909a-851766a13c78
+
+	measure AverageAge =
+			
+			VAR SelectedKaimahiCount = DISTINCTCOUNT('Dim Kaimahi'[Kaimahi ID])
+			VAR MinimumKaimahiCount = [Minimum Kaimahi Count Value]
+			RETURN
+			IF(
+			    SelectedKaimahiCount >= MinimumKaimahiCount,
+			    CALCULATE(
+			        AVERAGE('Fact Jobs'[Age]), 'Fact Jobs'[Isprimaryjob]=1
+			    ),
+			    BLANK()
+			)
+		formatString: 0
+		displayFolder: Demographics
+		lineageTag: 1289d9d7-ce8a-4450-93b9-a32009838997
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure TurnoverNote = "All numbers exclude Involuntary, Unpaid/Student and Casual Separations by default and are based around the timeframe set for Company Start Dates and End Dates on the front page ( " & [SelectedDate] & ")"
+		displayFolder: Demographics
+		lineageTag: c0ea1741-2791-40d8-a811-36daddb0c131
+
+	measure DemographicsNote = "All demographics numbers are based on current kaimahi only and are not affected by the date range ( " & [SelectedDate] & " )"
+		displayFolder: Demographics
+		lineageTag: 05067948-204a-4099-a3f0-f0899844a477
+
+	measure TotalStaffDemographics =
+			
+			CALCULATE (
+			    COUNTROWS ( 'Fact Jobs' )
+			    ,'Fact Jobs'[companyStartDate] < TODAY ()
+			         && 'Fact Jobs'[Job Status] = "Current Job"
+			         || 'Fact Jobs'[Job Status] = "Ending Job"
+			    ,ALLCROSSFILTERED('Dim Date')
+			)
+		formatString: #,0
+		displayFolder: Demographics
+		lineageTag: 96d18dea-6e1d-4efc-a818-a076aab21269
+
+	measure dummyStaffLeaving =
+			
+			VAR AllStaff = [_TotalStaff]
+			RETURN
+			    AllStaff
+		formatString: 0
+		displayFolder: Demographics
+		lineageTag: 43821258-2d49-4ecc-9971-1f5f01cfdd5b
+
+	measure StaffLeaving2 = ```
+			
+			CALCULATE (
+			    DISTINCTCOUNT('Fact Jobs'[Kaimahi ID]),
+			    USERELATIONSHIP ( 'Dim Date'[Calendar Date], 'Fact Jobs'[companyEndDate]),
+			    FILTER('Fact Jobs',
+			    'Fact Jobs'[NewRank] = 1
+			    )
+			    
+			)
+			```
+		displayFolder: Demographics
+		lineageTag: 40d48b67-b859-4425-8226-f3778ec52d1a
+
+	measure AverageAgeDisplay =
+			
+			VAR SelectedKaimahiCount = DISTINCTCOUNT('Dim Kaimahi'[Kaimahi ID])
+			VAR MinimumKaimahiCount = [Minimum Kaimahi Count Value]
+			RETURN
+			IF(
+			    SelectedKaimahiCount >= MinimumKaimahiCount,
+			    FORMAT([AverageAge], "0.0"),
+			    "n<" & FORMAT(MinimumKaimahiCount, "0")
+			)
+		displayFolder: Demographics
+		lineageTag: 40553e0e-a7a5-4bf2-af53-cb7f0f927d99
+
+	measure 'Minimum Kaimahi Count Value' = SELECTEDVALUE('Minimum Kaimahi Count'[Minimum Kaimahi Count], 6)
+		formatString: 0
+		displayFolder: Demographics
+		lineageTag: 426920f3-1aa0-4671-99d5-994ca5ea66d0
+
+	measure 'Accrual (Hours)' = ```
+			
+			    CALCULATE(
+			        SUM(FactLeaveBalance[Accrualatannivesary]),
+			        FILTER(
+			            FactLeaveBalance,
+			            FactLeaveBalance[Leave Name] = "Annual Leave"
+			        )
+			    )
+			```
+		displayFolder: Leave Liability
+		lineageTag: 7c0101db-cf95-4980-969e-f7907a6281bf
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Percentage of Kaimahi 160-200' = ```
+			
+			VAR Total160to200 = 
+			    CALCULATE (
+			        COUNTROWS ( 
+			            FILTER (
+			                SUMMARIZE (
+			                    FactLeaveBalance,
+			                    FactLeaveBalance[Kaimahi ID],
+			                    "Total Leave", [Total Leave]
+			                ),
+			                [Total Leave] > 160
+			                &&
+			                [Total Leave] < 200
+			            )
+			        )
+			    )
+			VAR TotalKaimahi = 
+			    DISTINCTCOUNT(FactLeaveBalance[Kaimahi ID])
+			VAR Total160to200Percentage =
+			    DIVIDE ( Total160to200, TotalKaimahi )
+			RETURN
+			    IF (
+			        ISBLANK ( TotalKaimahi ) || ISBLANK ( Total160to200 ),
+			        BLANK(),
+			        Total160to200Percentage
+			    )
+			
+			```
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Leave Liability
+		lineageTag: f0a0949d-26ff-4bf4-b60c-b18e84e0050f
+
+	measure 'All % of staff over 160' =
+			
+			0.15
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Leave Liability
+		lineageTag: 70a246f3-5bd8-4cd9-82b5-5431dec7f068
+
+	measure 'All % of staff over 200' =
+			
+			0.0
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Leave Liability
+		lineageTag: 1e70c107-4a4e-4088-9528-54cc324ac582
+
+	measure 'Percentage of Kaimahi Over 200' = ```
+			
+			VAR TotalOver200 =
+			    CALCULATE (
+			        COUNTROWS (
+			            FILTER (
+			                SUMMARIZE (
+			                    FactLeaveBalance,
+			                    FactLeaveBalance[Kaimahi ID],
+			                    "Total Leave", [Total Leave]
+			                ),
+			                [Total Leave] > 200
+			            )
+			        )
+			    )
+			VAR TotalKaimahi =
+			    DISTINCTCOUNT ( FactLeaveBalance[Kaimahi ID] )
+			VAR TotalOver200Percentage =
+			    DIVIDE ( TotalOver200, TotalKaimahi )
+			RETURN
+			    IF (
+			        ISBLANK ( TotalKaimahi ) || ISBLANK ( TotalOver200 ),
+			        BLANK (),
+			        TotalOver200Percentage
+			    )
+			
+			```
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Leave Liability
+		lineageTag: aea96b6a-72a6-4a5f-8168-28fb893cf982
+
+	measure 'Annual Leave Balance' = ```
+			
+			CALCULATE (
+			    SUM ( FactLeaveBalance[Hourly Balance] ),
+			    FILTER ( 
+			        FactLeaveBalance,
+			        FactLeaveBalance[Leave Name] = "Annual Leave"
+			    )
+			)
+			
+			```
+		formatString: #,0.0
+		displayFolder: Leave Liability
+		lineageTag: e093a9c2-46f6-4454-a1ba-724a688c55c2
+
+	measure 'Sick Leave Balance' =
+			CALCULATE(
+			                            SUM(FactLeaveBalance[Hourly Balance]),
+			                                FILTER(FactLeaveBalance,
+			                                    FactLeaveBalance[Leave Name] = "Sick Leave"
+			                                )
+			                            )
+		formatString: #,0.0
+		displayFolder: Leave Liability
+		lineageTag: c58b1896-de76-4e86-816e-c5c737630580
+
+	measure 'Wellbeing Leave Balance' =
+			CALCULATE(
+			                            SUM(FactLeaveBalance[Hourly Balance]),
+			                                FILTER(FactLeaveBalance,
+			                                    FactLeaveBalance[Leave Name] = "Well Being Leave"
+			                                )
+			                            )
+		formatString: #,0.0
+		displayFolder: Leave Liability
+		lineageTag: c1914fe6-89f4-40fa-98a6-de9b78951b3c
+
+	measure 'Alt Leave Balance' = ```
+			
+			CALCULATE (
+			    SUM ( FactLeaveBalance[Hourly Balance] ),
+			    FILTER ( FactLeaveBalance, FactLeaveBalance[Leave Name] = "Alternative Holidays" )
+			)
+			
+			```
+		formatString: #,0.0
+		displayFolder: Leave Liability
+		lineageTag: aeeca1a3-7a2c-4095-a455-d5bb0064aaeb
+
+	measure 'Long Service Leave Balance' =
+			CALCULATE(
+			                            SUM(FactLeaveBalance[Balance]),
+			                                FILTER(FactLeaveBalance,
+			                                    FactLeaveBalance[Leave Name] = "Long Service Leave"
+			                                )
+			                            )
+		formatString: #,0.0
+		displayFolder: Leave Liability
+		lineageTag: e9b3b2b4-1b03-4da9-bdcf-ae56351ae3d2
+
+	measure 'Kaimahi 160-200 hrs' = ```
+			
+			CALCULATE (
+			        COUNTROWS ( 
+			            FILTER (
+			                SUMMARIZE (
+			                    FactLeaveBalance,
+			                    FactLeaveBalance[Dim Kaimahi KEY],
+			                    "Total Leave", [Total Leave]
+			                ),
+			                [Total Leave] > 160
+			                &&
+			                [Total Leave] < 200
+			            )
+			        )
+			    )
+			```
+		formatString: 0
+		displayFolder: Leave Liability
+		lineageTag: fda8f3af-338d-4b7e-8cfa-04d7eb3886fb
+
+	measure 'Kaimahi Over 200 hrs' = ```
+			
+			CALCULATE (
+			        COUNTROWS ( 
+			            FILTER (
+			                SUMMARIZE (
+			                    FactLeaveBalance,
+			                    FactLeaveBalance[Dim Kaimahi KEY],
+			                    "Total Leave", [Total Leave]
+			                ),
+			                [Total Leave] > 200
+			            )
+			        )
+			    )
+			```
+		formatString: 0
+		displayFolder: Leave Liability
+		lineageTag: 337a1948-5cb0-49a1-82e3-3838c66960af
+
+	measure 'Future Annual Leave Balance' = ([Annual Leave Balance] + [Accrual (Hours)])
+		formatString: 0.0
+		displayFolder: Leave Liability
+		lineageTag: eccf897c-b89c-4886-9152-38a63c3fbfcb
+
+	measure 'Entitled Annual Leave Balance' = ```
+			
+			    VAR EntitledBalance = CALCULATE(
+			        SUMX(
+			            FILTER(
+			                FactLeaveBalance,
+			                FactLeaveBalance[Leave Name] = "Annual Leave" &&
+			                FactLeaveBalance[Hourly Entitled Balance] >= 0
+			            ),
+			            FactLeaveBalance[Hourly Entitled Balance]
+			        )
+			    )
+			    RETURN
+			        IF(EntitledBalance < 0, BLANK(), EntitledBalance)
+			
+			```
+		formatString: #,0.0
+		displayFolder: Leave Liability
+		lineageTag: e7fed848-1fc4-4d3c-b714-2dfaf4cf4150
+
+	measure 'Average Sick Leave' = ```
+			
+			/* What is the average balance of sick leave */ 
+			
+			DIVIDE(
+			    CALCULATE(
+			        SUM('FactLeaveBalance'[Hourly Balance]),
+			        FILTER(FactLeaveBalance,
+			            FactLeaveBalance[Leave Name] = "Sick Leave"
+			        )
+			    ),
+			    CALCULATE(
+			        COUNTROWS('FactLeaveBalance'),
+			        FILTER(
+			            FactLeaveBalance,
+			            FactLeaveBalance[Leave Name] = "Sick Leave"
+			        )
+			    )
+			)
+			
+			```
+		formatString: 0.0
+		displayFolder: Leave Liability
+		lineageTag: aab90c64-13de-43f3-b142-b62d941526fc
+
+	measure 'Average Annual Leave' = ```
+			
+			/* What is the average balance of annual leave */ 
+			
+			DIVIDE(
+			    CALCULATE(
+			        SUM('FactLeaveBalance'[Hourly Balance]),
+			        FILTER(FactLeaveBalance,
+			            FactLeaveBalance[Leave Name] = "Annual Leave"
+			        )
+			    ),
+			    CALCULATE(
+			        COUNTROWS('FactLeaveBalance'),
+			        FILTER(
+			            FactLeaveBalance,
+			            FactLeaveBalance[Leave Name] = "Annual Leave"
+			        )
+			    )
+			)
+			
+			```
+		formatString: 0.0
+		displayFolder: Leave Liability
+		lineageTag: 983671b7-9cd9-4810-a277-103f975979a3
+
+	measure 'Average Well Being Leave' = ```
+			
+			/* What is the average balance of annual leave */ 
+			
+			DIVIDE(
+			    CALCULATE(
+			        SUM('FactLeaveBalance'[Hourly Balance]),
+			        FILTER(FactLeaveBalance,
+			            FactLeaveBalance[Leave Name] = "Well Being Leave"
+			        )
+			    ),
+			    CALCULATE(
+			        COUNTROWS('FactLeaveBalance'),
+			        FILTER(
+			            FactLeaveBalance,
+			            FactLeaveBalance[Leave Name] = "Well Being Leave"
+			        )
+			    )
+			)
+			
+			```
+		formatString: 0.0
+		displayFolder: Leave Liability
+		lineageTag: 894b9c31-3f7b-4086-a91d-a6dae1e32805
+
+	measure 'Leave Anniversary' = ```
+			
+			VAR SelectedLeave = "Annual Leave"
+			RETURN
+			    FORMAT(
+			        CALCULATE(
+			            MAX(FactLeaveBalance[Anniversary]),
+			            FactLeaveBalance[Leave Name] = SelectedLeave
+			        ),
+			        "dd/mm/yyyy"
+			    )
+			
+			```
+		displayFolder: Leave Liability
+		lineageTag: 2ff0ca1a-6c4a-4cce-a815-404a5bfe4d28
+
+	measure 'Average Entitled Annual Leave' = ```
+			
+			/* What is the average balance of annual leave */ 
+			
+			DIVIDE(
+			    CALCULATE(
+			        SUM('FactLeaveBalance'[Hourly Entitled Balance]),
+			        FILTER(FactLeaveBalance,
+			            FactLeaveBalance[Leave Name] = "Annual Leave"
+			        )
+			    ),
+			    CALCULATE(
+			        COUNTROWS('FactLeaveBalance'),
+			        FILTER(FactLeaveBalance,
+			            FactLeaveBalance[Leave Name] = "Annual Leave"
+			        )
+			    )
+			)
+			
+			```
+		formatString: 0.0
+		displayFolder: Leave Liability
+		lineageTag: f5cc89a3-e3b4-460a-a105-518c84e00c41
+
+	measure 'Average Long Service Leave' = ```
+			
+			/* What is the average balance of sick leave */ 
+			
+			DIVIDE(
+			    CALCULATE(
+			        SUM('FactLeaveBalance'[Hourly Balance]),
+			        FILTER(FactLeaveBalance,
+			            FactLeaveBalance[Leave Name] = "Long Service Leave"
+			        )
+			    ),
+			    CALCULATE(
+			        COUNTROWS('FactLeaveBalance'),
+			        FILTER(
+			            FactLeaveBalance,
+			            FactLeaveBalance[Leave Name] = "Long Service Leave"
+			        )
+			    )
+			)
+			
+			```
+		formatString: 0.0
+		displayFolder: Leave Liability
+		lineageTag: a4d5c651-87e7-42d5-9fb1-1a1b6d8686cc
+
+	measure 'Average Alt Holidays Leave' = ```
+			
+			/* What is the average balance of alt holiday leave */ 
+			
+			DIVIDE(
+			    CALCULATE(
+			        SUM('FactLeaveBalance'[Hourly Balance]),
+			        FILTER(FactLeaveBalance,
+			            FactLeaveBalance[Leave Name] = "Alternative Holidays"
+			        )
+			    ),
+			    CALCULATE(
+			        COUNTROWS('FactLeaveBalance'),
+			        FILTER(
+			            FactLeaveBalance,
+			            FactLeaveBalance[Leave Name] = "Alternative Holidays"
+			        )
+			    )
+			)
+			```
+		formatString: 0.0
+		displayFolder: Leave Liability
+		lineageTag: a67b4a43-5c8c-49a5-8d07-2dcf78e79b62
+
+	measure 'Kaimahi Under 160 hrs' = ```
+			
+			CALCULATE (
+			        COUNTROWS ( 
+			            FILTER (
+			                SUMMARIZE (
+			                    FactLeaveBalance,
+			                    FactLeaveBalance[Dim Kaimahi KEY],
+			                    "Total Leave", [Total Leave]
+			                ),
+			                [Total Leave] < 160
+			            )
+			        )
+			    )
+			```
+		formatString: 0
+		displayFolder: Leave Liability
+		lineageTag: 79a62635-20ca-47b6-965c-97752919c683
+
+	measure 'Percentage of Kaimahi Under 160' = ```
+			
+			DIVIDE(
+			    CALCULATE(
+			        COUNTROWS('FactLeaveBalance'),
+			        FILTER(FactLeaveBalance,
+			        FactLeaveBalance[Leave Name] = "Annual Leave"
+			                && [Hourly Balance] < 160
+			        )
+			    ),
+			    CALCULATE(
+			        COUNTROWS('FactLeaveBalance'),
+			        FILTER(FactLeaveBalance,
+			            FactLeaveBalance[Leave Name] = "Annual Leave"
+			        )
+			    ) 
+			)
+			```
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Leave Liability
+		lineageTag: 317334a9-ead3-43a9-a237-09b23dc05d75
+
+	measure NewFiltersApplied =
+			
+			VAR __LeaveTypesCount = IF(ISFILTERED(FactLeaveBalance[Leave Name]), COUNTROWS(VALUES(FactLeaveBalance[Leave Name])), 0)
+			VAR __LeaveType = IF(__LeaveTypesCount > 0, "| LEAVE TYPES CHOSEN: " & CONCATENATEX(FILTERS(FactLeaveBalance[Leave Name]), FactLeaveBalance[Leave Name], ", "), BLANK())
+			
+			VAR __BusinessEntityCount = IF(ISFILTERED('Dim Service Company Mapping'[Company Name]), COUNTROWS(VALUES('Dim Service Company Mapping'[Company Name])), 0)
+			VAR __BusinessEntity = IF(__BusinessEntityCount > 0, "| BUSINESS ENTITIES CHOSEN: " & CONCATENATEX(FILTERS('Dim Service Company Mapping'[Company Name]), 'Dim Service Company Mapping'[Company Name], ", "), BLANK())
+			
+			VAR __KaimahiNames = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES('Dim Kaimahi'[Kaimahi Name]), NOT(ISBLANK('Dim Kaimahi'[Kaimahi Name]))), 'Dim Kaimahi'[Kaimahi Name], ASC),
+			    "KaimahiName_Display", 'Dim Kaimahi'[Kaimahi Name]
+			)
+			VAR __KaimahiCount = IF(ISFILTERED('Dim Kaimahi'[Kaimahi Name]), COUNTROWS(VALUES('Dim Kaimahi'[Kaimahi Name])), 0)
+			
+			VAR __ParentAreas = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES('Dim Business Unit Hierarchy'[Business Unit Hierarchy Level1 Name]), NOT(ISBLANK('Dim Business Unit Hierarchy'[Business Unit Hierarchy Level1 Name]))), 'Dim Business Unit Hierarchy'[Business Unit Hierarchy Level1 Name], ASC),
+			    "AreaParentName_display", 'Dim Business Unit Hierarchy'[Business Unit Hierarchy Level1 Name]
+			)
+			VAR __ParentAreasCount = IF(ISFILTERED('Dim Business Unit Hierarchy'[Business Unit Hierarchy Level1 Name]), COUNTROWS(VALUES('Dim Business Unit Hierarchy'[Business Unit Hierarchy Level1 Name])), 0)
+			VAR __MoreParentAreas = IF(__ParentAreasCount > 10, " and " & (__ParentAreasCount - 10) & " more", "")
+			
+			VAR __Areas = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES('Dim Business Unit Hierarchy'[Business Unit Hierarchy Level2 Name]), NOT(ISBLANK('Dim Business Unit Hierarchy'[Business Unit Hierarchy Level2 Name]))), 'Dim Business Unit Hierarchy'[Business Unit Hierarchy Level2 Name], ASC),
+			    "AreaName_display", 'Dim Business Unit Hierarchy'[Business Unit Hierarchy Level2 Name]
+			)
+			VAR __AreasCount = IF(ISFILTERED('Dim Business Unit Hierarchy'[Business Unit Hierarchy Level2 Name]), COUNTROWS(VALUES('Dim Business Unit Hierarchy'[Business Unit Hierarchy Level2 Name])), 0)
+			VAR __MoreAreas = IF(__AreasCount > 10, " and " & (__AreasCount - 10) & " more", "")
+			
+			VAR __Services = ADDCOLUMNS(
+			    TOPN(10, FILTER(VALUES('Dim Business Unit Hierarchy'[Business Unit Hierarchy Level3 Name]), NOT(ISBLANK('Dim Business Unit Hierarchy'[Business Unit Hierarchy Level3 Name]))), 'Dim Business Unit Hierarchy'[Business Unit Hierarchy Level3 Name], ASC),
+			    "TeamName_display", 'Dim Business Unit Hierarchy'[Business Unit Hierarchy Level3 Name]
+			)
+			VAR __ServicesCount = IF(ISFILTERED('Dim Business Unit Hierarchy'[Business Unit Hierarchy Level3 Name]), COUNTROWS(VALUES('Dim Business Unit Hierarchy'[Business Unit Hierarchy Level3 Name])), 0)
+			VAR __MoreServices = IF(__ServicesCount > 10, " and " & (__ServicesCount - 10) & " more", "")
+			
+			VAR _FC_ParentAreas = IF(__ParentAreasCount > 0, "| PARENT AREAS CHOSEN: " & CONCATENATEX(__ParentAreas, [AreaParentName_display], ", "), BLANK())
+			VAR _FC_MoreParentAreas = IF(__ParentAreasCount > 10, " and " & (__ParentAreasCount - 10) & " more", "")
+			VAR _FC_Areas = IF(__AreasCount > 0, "| AREAS CHOSEN: " & CONCATENATEX(__Areas, [AreaName_display], ", "), BLANK())
+			VAR _FC_MoreAreas = IF(__AreasCount > 10, " and " & (__AreasCount - 10) & " more", "")
+			VAR _FC_Services = IF(__ServicesCount > 0, "| SERVICES CHOSEN: " & CONCATENATEX(__Services, [TeamName_display], ", "), BLANK())
+			VAR _FC_MoreServices = IF(__ServicesCount > 10, " and " & (__ServicesCount - 10) & " more", "")
+			VAR _FC_KaimahiNames = IF(__KaimahiCount > 0, "| KAIMAHI CHOSEN: " & CONCATENATEX(__KaimahiNames, [KaimahiName_Display], ", "), BLANK())
+			VAR _FC_MoreKaimahiNames = IF(__KaimahiCount > 10, " and " & (__KaimahiCount - 10) & " more", "")
+			
+			RETURN
+			IF(
+			    ISBLANK(_FC_ParentAreas) && ISBLANK(_FC_Areas) && ISBLANK(_FC_Services) && ISBLANK(__BusinessEntity) && ISBLANK(__LeaveType),
+			    "",
+			    "-- Summary of filters applied to page: " & _FC_ParentAreas & _FC_MoreParentAreas & _FC_Areas & _FC_MoreAreas & _FC_Services & _FC_MoreServices
+			) &__BusinessEntity  & __LeaveType & _FC_KaimahiNames & _FC_MoreKaimahiNames
+		displayFolder: Leave Liability
+		lineageTag: 5c2a9653-dda8-4cba-8264-018e1797f927
+
+	measure FactRowCount = COUNTROWS(FactLeaveBalance)
+		formatString: 0
+		displayFolder: Leave Liability
+		lineageTag: 528e4e95-b6fe-4399-aa25-a8bccf4723e1
+
+	measure 'Total Leave' = ```
+			
+			CALCULATE (
+			    SUM ( FactLeaveBalance[Hourly Balance] ),
+			    FILTER ( 
+			        FactLeaveBalance,
+			        FactLeaveBalance[Leave Name] = "Annual Leave"
+			        ||
+			        FactLeaveBalance[Leave Name] = "Long Service Leave"
+			        ||
+			        FactLeaveBalance[Leave Name] = "Alternative Holidays"
+			    )
+			)
+			
+			```
+		formatString: #,0.0
+		displayFolder: Leave Liability
+		lineageTag: 09283c5f-7ecf-4b40-945a-0b3089bc8f55
+
+	measure 'Annual Leave Not Yet Entitled' = [Annual Leave Balance] - [Entitled Annual Leave Balance]
+		formatString: 0.0
+		displayFolder: Leave Liability
+		lineageTag: bd7c72a6-bd7a-4751-9d10-6998d36b6aa7
+
+	measure 'Leave Liability RefreshedAt_forDisplay' = "Data Last Refreshed: " & FORMAT( LASTDATE( 'LastRefreshed'[Date Last Refreshed]), "dd/MM/YYYY - hh:mm AM/PM"  )
+		displayFolder: Leave Liability
+		lineageTag: e933d34b-e77e-499a-98ec-c1c8fafab4c3
+
+	measure 'Number of 24+ hour shifts' =
+			
+			VAR SummaryTable =
+			    SUMMARIZE (
+			        fact_approved_shifts_non_leave,
+			        fact_approved_shifts_non_leave[Group ID],
+			        fact_approved_shifts_non_leave[Kaimahi ID],
+			        "LongestShift",
+			        MAX(fact_approved_shifts_non_leave[Shift Length Cumulative])
+			    )
+			RETURN
+			    CALCULATE (
+			        COUNTROWS(FILTER(SummaryTable, [LongestShift] >= 24))
+			    )
+		formatString: 0
+		displayFolder: 24 Hour Shifts
+		lineageTag: fd100766-160e-4ec5-a7f6-21698e959431
+
+	measure 'Number of Kaimahi with 24+ hour shifts' = ```
+			
+			CALCULATE (
+			    DISTINCTCOUNT ('Dim Kaimahi'[Kaimahi ID]), 
+			        FILTER('Dim Kaimahi',
+			            [Number of 24+ hour shifts]
+			        )
+			)
+			```
+		formatString: 0
+		displayFolder: 24 Hour Shifts
+		lineageTag: ad13ad8a-e4fb-415b-93b9-b457c2601a9f
+
+	measure 'Percentage Kaimahi worked 24+ hour shifts' = ```
+			
+			IF (
+			    //If the result of the measures is blank, return 0, otherwise return the result
+			    ISBLANK ( DIVIDE ( [Number of Kaimahi with 24+ hour shifts], [Total Kaimahi] ) ),
+			    0,
+			    //Didivd the number of staff who have worked a 24+ hour shift by the total number of Kaimahi (taking into account filters)
+			    DIVIDE ( [Number of Kaimahi with 24+ hour shifts], [Total Kaimahi] )
+			)
+			
+			```
+		displayFolder: 24 Hour Shifts
+		lineageTag: 7a2b3525-2c3a-4d78-881d-f208aee420f4
+
+	measure 'Total Kaimahi' = ```
+			
+			CALCULATE (
+			    DISTINCTCOUNT ('Dim Kaimahi'[Kaimahi ID] ),
+			    FILTER (
+			        ALLSELECTED('Dim Kaimahi'),
+			        'Dim Kaimahi'[Kaimahi Is Primary Job Flag] = 1 && 'Dim Kaimahi'[Kaimahi is Active Flag] = 1
+			    )
+			)
+			
+			```
+		formatString: 0
+		displayFolder: 24 Hour Shifts
+		lineageTag: ee29cfa6-6377-4f72-8c90-a564d08c7291
+
+	measure 'Percentage Kaimahi with 96+ hours' =
+			
+			IF (
+			    ISBLANK (
+			        DIVIDE ( [Employees Over 96 Hours], [Total Kaimahi] )
+			    ),
+			    0,
+			    DIVIDE ( [Employees Over 96 Hours], [Total Kaimahi] )
+			)
+		displayFolder: Hours Compliance
+		lineageTag: 1145f0ec-44b8-484c-993b-721c4d40add0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '96+hr Target' = 0
+		formatString: 0
+		displayFolder: Hours Compliance
+		lineageTag: 79417500-7de0-4f54-89c1-99b3de1b0f83
+
+	measure '# of Females' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT( 'Fact Jobs'[Kaimahi ID] ),
+			    'Dim Kaimahi'[Kaimahi Gender] = "Female",
+			    ALLCROSSFILTERED('Dim Date')
+			)
+		formatString: 0
+		displayFolder: Demographics
+		lineageTag: 27048b59-ceca-468b-94e7-279f2454b7fe
+
+	measure '# of Males' =
+			
+			CALCULATE(
+			    DISTINCTCOUNT( 'Fact Jobs'[Kaimahi ID] ),
+			    'Dim Kaimahi'[Kaimahi Gender] = "Male",
+			    ALLCROSSFILTERED('Dim Date')
+			)
+		formatString: 0
+		displayFolder: Demographics
+		lineageTag: 07843c76-da1f-41fe-8ca5-5504fb2fae62
+
+	measure 'Average Gender Pay Gap' = ```
+			
+			// Threshold for how many employees need to count for each Gender for the Pay Gap calculation to matter - i.e if only 1 employee then there's no point and if only 2, grain is too small
+			VAR Threshold = [PayGapThreshold] // How many males are in the selected population
+			VAR TotalMales = [# of Males]
+			     // How many females are in the selected population
+			VAR TotalFemales = [# of Females]
+			    // Calculate Gender Pay Gap
+			VAR GenderPayGap =
+			    IF (
+			        // Calculate the Gender Pay gap only if the amount of males or females exceeds the threshold set by the PX team
+			        TotalMales < Threshold
+			            || TotalFemales < Threshold,
+			        0,
+			        ( [Average Hourly Male Pay] - [Average Hourly Female Pay] )
+			            / [Average Hourly Male Pay]
+			    )
+			RETURN
+			    GenderPayGap
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Gender Pay Gap
+		lineageTag: 953b2764-ae3d-4304-8e2b-908b57bb60f4
+
+	measure 'Average Hourly Female Pay' = CALCULATE(AVERAGE('Fact Jobs'[Calculated Hourly Rate]), 'Dim Kaimahi'[Kaimahi Gender] = "Female", 'Fact Jobs'[Isprimaryjob]=1)
+		displayFolder: Gender Pay Gap
+		lineageTag: 5b6b8493-c1c0-4c2e-96a7-271c5f3786bb
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Average Hourly Male Pay' = CALCULATE(AVERAGE('Fact Jobs'[Calculated Hourly Rate]), 'Dim Kaimahi'[Kaimahi Gender] = "Male", 'Fact Jobs'[Isprimaryjob]=1)
+		displayFolder: Gender Pay Gap
+		lineageTag: f1ac9ec3-16eb-419d-a737-2a79bd52a292
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure PayGapThreshold = 5
+		formatString: 0
+		displayFolder: Gender Pay Gap
+		lineageTag: 8812da95-e989-4848-860c-13bc4d39d6f0
+
+	measure 'Median Gender Pay Gap' = ```
+			
+			// Threshold for how many employees need to count for each Gender for the Pay Gap calculation to matter - i.e if only 1 employee then there's no point and if only 2, grain is too small
+			VAR Threshold = [PayGapThreshold] // How many males are in the selected population
+			VAR TotalMales = [# of Males]
+			     // How many females are in the selected population
+			VAR TotalFemales = [# of Females] // Calculate Gender Pay Gap
+			VAR GenderPayGap =
+			    IF (
+			        // Calculate the Gender Pay gap only if the amount of males or females exceeds the threshold set by the PX team
+			        TotalMales < Threshold
+			            || TotalFemales < Threshold,
+			        0,
+			       ( [Median Male Pay Ratio] - [Median Female Pay Ratio])
+			       / [Median Male Pay Ratio]
+			
+			    )
+			RETURN
+			    GenderPayGap
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Gender Pay Gap
+		lineageTag: a2c96866-884f-47a3-aa37-b44c219b5571
+
+	measure 'Median Female Pay Ratio' = CALCULATE(MEDIAN('Fact Jobs'[Calculated Hourly Rate]), 'Dim Kaimahi'[Kaimahi Gender] ="Female", 'Fact Jobs'[Isprimaryjob]=1)
+		displayFolder: Gender Pay Gap
+		lineageTag: 3b77e20e-979c-47ce-832b-7ff2ef50e109
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Median Male Pay Ratio' = CALCULATE(MEDIAN('Fact Jobs'[Calculated Hourly Rate]), 'Dim Kaimahi'[Kaimahi Gender] = "Male", 'Fact Jobs'[Isprimaryjob]=1)
+		displayFolder: Gender Pay Gap
+		lineageTag: 9fe3c7fc-99a7-4da1-913a-d14c8f8ccb9f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Jobs by Job Title' = ```
+			
+			DIVIDE(
+			    COUNTROWS('Fact Jobs'),
+			    CALCULATE(
+			        COUNTROWS('Fact Jobs'),
+			        REMOVEFILTERS('Fact Jobs'[Job Title])
+			    ),
+			    0
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: Demographics
+		lineageTag: 50e98709-2804-4b48-a7a0-9c94366311c5
+
+	partition 'Measures Table' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+

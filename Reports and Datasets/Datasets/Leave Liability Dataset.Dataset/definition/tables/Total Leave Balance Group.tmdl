@@ -1,0 +1,78 @@
+table 'Total Leave Balance Group'
+	lineageTag: dedbf53f-b1a2-40d2-b92c-e3cb024bec8c
+
+	column Index
+		dataType: int64
+		formatString: 0
+		lineageTag: 2f3c5c4f-f2b7-4c15-8da1-fbeb75a6d554
+		summarizeBy: none
+		sourceColumn: Index
+
+		annotation SummarizationSetBy = Automatic
+
+	column Group
+		dataType: string
+		lineageTag: c6fb5b7a-a92c-4307-9788-199f1a4f2d1c
+		summarizeBy: none
+		sourceColumn: Group
+		sortByColumn: Index
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation __PBI_SemanticLinks = [{"LinkTarget":{"TableName":"Total Leave Balance Group","TableItemName":"Total Leave Group","ObjectType":4},"LinkType":"UsedInGroup"}]
+
+	column 'Total Leave Group' =
+			SWITCH(
+				TRUE,
+				ISBLANK('Total Leave Balance Group'[Group]),
+				"(Blank)",
+				'Total Leave Balance Group'[Group] IN {"0-50 Hours",
+					"51-100 Hours",
+					"101-130 Hours",
+					"131-160 Hours"},
+				"0-160 Hours",
+				'Total Leave Balance Group'[Group] IN {"161-200 Hours"},
+				"161-200 Hours",
+				'Total Leave Balance Group'[Group] IN {"200+ Hours"},
+				"200+ Hours",
+				'Total Leave Balance Group'[Group]
+			)
+		lineageTag: e9c6a7b0-ad87-4043-a5a7-622618b0de54
+		summarizeBy: none
+
+		extendedProperty GroupingMetadata =
+				{
+				  "groupedColumns": [
+				    {
+				      "Column": {
+				        "Expression": {
+				          "SourceRef": {
+				            "Entity": "Total Leave Balance Group"
+				          }
+				        },
+				        "Property": "Group"
+				      }
+				    }
+				  ],
+				  "version": 0
+				}
+
+		annotation GroupingDesignState = {"Version":0,"Sources":[{"Name":"a","Entity":"Total Leave Balance Group"}],"GroupedColumns":[{"Column":{"Expression":{"SourceRef":{"Source":"a"}},"Property":"Group"}}],"GroupItems":[{"DisplayName":"(Blank)","BlankDefaultPlaceholder":true},{"DisplayName":"0-160 Hours","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"a"}},"Property":"Group"}}],"Values":[[{"Literal":{"Value":"'0-50 Hours'"}}],[{"Literal":{"Value":"'51-100 Hours'"}}],[{"Literal":{"Value":"'101-130 Hours'"}}],[{"Literal":{"Value":"'131-160 Hours'"}}]]}}},{"DisplayName":"161-200 Hours","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"a"}},"Property":"Group"}}],"Values":[[{"Literal":{"Value":"'161-200 Hours'"}}]]}}},{"DisplayName":"200+ Hours","Expression":{"In":{"Expressions":[{"Column":{"Expression":{"SourceRef":{"Source":"a"}},"Property":"Group"}}],"Values":[[{"Literal":{"Value":"'200+ Hours'"}}]]}}}]}
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Total Leave Balance Group-3536122f-51ed-4320-a424-1ccaa80f94e8' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WMlTSUTLQNTVQ8MgvLSpWitWJVjICCpka6hoaIAsaAwUNDYCixsiiJiBRY6CoGbKoKUjUzFDXCMUEM6AoUEQbJhQLAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Index = _t, Group = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Index", Int64.Type}, {"Group", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

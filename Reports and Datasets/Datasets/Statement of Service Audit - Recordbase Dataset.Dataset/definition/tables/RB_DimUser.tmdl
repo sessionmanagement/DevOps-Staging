@@ -1,0 +1,99 @@
+table RB_DimUser
+	lineageTag: 03751e23-1a28-4754-9c3f-c31f0fe64b24
+
+	column UserID
+		dataType: int64
+		formatString: 0
+		lineageTag: 9c31b579-1646-404d-89a6-72a77c7be7b5
+		summarizeBy: count
+		sourceColumn: UserID
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserUsername
+		dataType: string
+		lineageTag: eaf4eed8-fc68-4cc1-8754-7d508f80ac3e
+		summarizeBy: none
+		sourceColumn: UserUsername
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserFirstName
+		dataType: string
+		lineageTag: 69c79a6c-fdeb-49a3-94b0-e5bd85f71c93
+		summarizeBy: none
+		sourceColumn: UserFirstName
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserLastName
+		dataType: string
+		lineageTag: ab44dd69-2db1-4b39-aeac-149a5b1cc3e7
+		summarizeBy: none
+		sourceColumn: UserLastName
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserPreferredName
+		dataType: string
+		lineageTag: 756d0289-6db4-4e56-84e6-21e35e812196
+		summarizeBy: none
+		sourceColumn: UserPreferredName
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserPosition
+		dataType: string
+		lineageTag: 4bba7fe8-9c6e-40f2-85ae-b297af5b2465
+		summarizeBy: none
+		sourceColumn: UserPosition
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReportsToUserID
+		dataType: int64
+		formatString: 0
+		lineageTag: dcda77f2-f8da-4449-ac02-f1fb41e255c5
+		summarizeBy: count
+		sourceColumn: ReportsToUserID
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserEmployeeNumber
+		dataType: string
+		lineageTag: 8647ab2f-12d8-43bc-9119-42e78c555f93
+		summarizeBy: none
+		sourceColumn: UserEmployeeNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserDisabledDate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: e7f41e3b-7a4a-4568-9c70-02257a4ec14f
+		summarizeBy: none
+		sourceColumn: UserDisabledDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserEmailAddress
+		dataType: string
+		lineageTag: bb86dae6-acf1-4be5-8b21-6835e26e0856
+		summarizeBy: none
+		sourceColumn: UserEmailAddress
+
+		annotation SummarizationSetBy = Automatic
+
+	partition RB_DimUser = m
+		mode: import
+		queryGroup: RLS
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT [UserID], [UserUsername], [UserFirstName], [UserLastName], [UserPreferredName], [UserPosition], [ReportsToUserID], [UserEmployeeNumber], [UserDisabledDate], UPPER([UserEmailAddress]) AS [UserEmailAddress] FROM RBEAL.dlDimUser WHERE [UserDisabledDate] IS NULL AND [UserEmailAddress] IS NOT NULL AND UPPER([UserEmailAddress]) <> 'DUMMY@DUMMY.COM' AND [UserID] > 1000 UNION ALL SELECT [UserID], [UserUsername], [UserFirstName], [UserLastName], [UserPreferredName], [UserPosition], [ReportsToUserID], [UserEmployeeNumber], [UserDisabledDate], UPPER([UserEmailAddress]) AS [UserEmailAddress] FROM RBMNB.dlDimUser WHERE [UserDisabledDate] IS NULL AND [UserEmailAddress] IS NOT NULL AND UPPER([UserEmailAddress]) <> 'DUMMY@DUMMY.COM' AND [UserID] > 1000"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

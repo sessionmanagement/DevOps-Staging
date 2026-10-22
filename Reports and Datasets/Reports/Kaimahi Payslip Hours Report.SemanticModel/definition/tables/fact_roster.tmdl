@@ -1,0 +1,181 @@
+table fact_roster
+	lineageTag: 0a57334e-fc42-448f-96e5-55bab453dee1
+
+	column fact_sixdegree_roster_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 7990bd4e-6162-42e2-a6fb-25af10adc111
+		summarizeBy: sum
+		sourceColumn: fact_sixdegree_roster_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_service_key
+		dataType: int64
+		formatString: 0
+		lineageTag: ec3415d2-ae5f-46c8-b512-6e5de92a6522
+		summarizeBy: none
+		sourceColumn: dim_service_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column entity_code
+		dataType: string
+		lineageTag: 2d9e7700-b284-4b7d-b180-27f120fe65d5
+		summarizeBy: none
+		sourceColumn: entity_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column entity_parent_code
+		dataType: string
+		lineageTag: 5eb64553-f473-4133-8482-8fca472c6f7b
+		summarizeBy: none
+		sourceColumn: entity_parent_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column roster_shifts
+		dataType: string
+		lineageTag: badd8b81-4991-431a-8f3b-d45913e042e3
+		summarizeBy: none
+		sourceColumn: roster_shifts
+
+		annotation SummarizationSetBy = Automatic
+
+	column monday
+		dataType: string
+		lineageTag: d597fea1-32bd-407d-87d0-3bc73ff5a002
+		summarizeBy: none
+		sourceColumn: monday
+
+		annotation SummarizationSetBy = Automatic
+
+	column tuesday
+		dataType: string
+		lineageTag: bb737ed2-7374-445c-9d62-71dd8fc85272
+		summarizeBy: none
+		sourceColumn: tuesday
+
+		annotation SummarizationSetBy = Automatic
+
+	column wednesday
+		dataType: string
+		lineageTag: 567f2ac2-0275-492d-8fa8-aabd2d6b5820
+		summarizeBy: none
+		sourceColumn: wednesday
+
+		annotation SummarizationSetBy = Automatic
+
+	column thursday
+		dataType: string
+		lineageTag: 8c9b2986-3eac-4347-aa4c-d17e302c57e5
+		summarizeBy: none
+		sourceColumn: thursday
+
+		annotation SummarizationSetBy = Automatic
+
+	column friday
+		dataType: string
+		lineageTag: d70cc2e5-a21a-4f28-bcc4-a6cb7eeb3cfc
+		summarizeBy: none
+		sourceColumn: friday
+
+		annotation SummarizationSetBy = Automatic
+
+	column saturday
+		dataType: string
+		lineageTag: 7c76538b-390a-4ec3-be54-b21290ce5631
+		summarizeBy: none
+		sourceColumn: saturday
+
+		annotation SummarizationSetBy = Automatic
+
+	column sunday
+		dataType: string
+		lineageTag: 557ca5dc-16cc-44c6-b27a-3efdb00a9b5a
+		summarizeBy: none
+		sourceColumn: sunday
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'total shift/week'
+		dataType: string
+		lineageTag: e4d5906c-7b3b-44ec-b075-82a14a1dfd47
+		summarizeBy: none
+		sourceColumn: total shift/week
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'roster - fte/week'
+		dataType: string
+		lineageTag: 21fcd193-46cb-459a-957e-f3e0d271266f
+		summarizeBy: none
+		sourceColumn: roster - fte/week
+
+		annotation SummarizationSetBy = Automatic
+
+	column DWHBatchId
+		dataType: int64
+		formatString: 0
+		lineageTag: 3337ef24-962e-4468-8643-9b7e6a582b5e
+		summarizeBy: count
+		sourceColumn: DWHBatchId
+
+		annotation SummarizationSetBy = Automatic
+
+	column DWHEffectiveFrom
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 56f04f67-d0a7-4b90-a9dd-8b213716bae8
+		summarizeBy: none
+		sourceColumn: DWHEffectiveFrom
+
+		annotation SummarizationSetBy = Automatic
+
+	column DWHEffectiveTo
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 71c2d75d-03a2-4cc8-a156-aef2744f1af8
+		summarizeBy: none
+		sourceColumn: DWHEffectiveTo
+
+		annotation SummarizationSetBy = Automatic
+
+	column DWHDMLOperation
+		dataType: string
+		lineageTag: f8fef5b5-d57e-489f-a7cc-6a8f47567742
+		summarizeBy: none
+		sourceColumn: DWHDMLOperation
+
+		annotation SummarizationSetBy = Automatic
+
+	column DWHIsCurrent
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: c2987b6e-c3d8-4cc7-8a9a-837768f198dc
+		summarizeBy: none
+		sourceColumn: DWHIsCurrent
+
+		annotation SummarizationSetBy = Automatic
+
+	column DWHSourceSystem
+		dataType: string
+		lineageTag: c6a5fa12-d165-4385-a2ec-b6450e224db7
+		summarizeBy: none
+		sourceColumn: DWHSourceSystem
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_roster = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT [fact_sixdegree_roster_key]#(lf)      ,[dim_service_key]#(lf)      ,[entity_code]#(lf)      ,[entity_parent_code]#(lf)      ,[roster_shifts]#(lf)      ,[monday]#(lf)      ,[tuesday]#(lf)      ,[wednesday]#(lf)      ,[thursday]#(lf)      ,[friday]#(lf)      ,[saturday]#(lf)      ,[sunday]#(lf)      ,[total shift/week]#(lf)      ,[roster - fte/week]#(lf)      ,[DWHBatchId]#(lf)      ,[DWHEffectiveFrom]#(lf)      ,[DWHEffectiveTo]#(lf)      ,[DWHDMLOperation]#(lf)      ,[DWHIsCurrent]#(lf)      ,[DWHSourceSystem]#(lf)  FROM [edw].[fact_sixdegree_roster]#(lf)"])
+				in
+				    Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

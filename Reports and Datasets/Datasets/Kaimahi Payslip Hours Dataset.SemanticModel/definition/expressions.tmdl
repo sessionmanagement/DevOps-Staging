@@ -1,0 +1,37 @@
+expression IntelliPeople =
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT [people_id]#(lf)      ,[displayName]#(lf)      ,[dateOfBirth]#(lf)      ,[gender]#(lf)      ,[employeeNumber]#(lf)      ,[primaryEmailAddress_email]#(lf)      ,[employmentStatus]#(lf)  FROM [IntelliHR].[people]#(lf)  WHERE ODSIsCurrent = 1"])
+		in
+		    Source
+	lineageTag: 929ac737-3317-46c9-aeaa-ce2e8b64fac1
+	queryGroup: 'Working Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression IntelliJobs =
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT [jobs_id]#(lf)      ,[person_id]#(lf)      ,[location_id]#(lf)      ,[payGrade_id]#(lf)      ,[businessUnit_id]#(lf)      ,[businessEntity_id]#(lf)      ,[supervisorPerson_displayName]#(lf)      ,[workType]#(lf)      ,[workClass]#(lf)      ,[isPrimaryJob]#(lf)      ,[jobStatus]#(lf)      ,[name] AS 'Job Title'#(lf)      ,[fte]#(lf)      ,[companyStartDate]#(lf)      ,[companyEndDate]#(lf)  FROM [IntelliHR].[jobs]#(lf)  WHERE ODSiscurrent = 1"])
+		in
+		    Source
+	lineageTag: 106fcbaf-646e-4ba3-b8a3-2e4fd0183c83
+	queryGroup: 'Working Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression EmpLiveEmployees =
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT [id]#(lf)      ,[reference_number]#(lf)      ,[is_active]#(lf)      ,[terminal_reference_number]#(lf)      ,[default_service_id]#(lf)      ,[default_service_name_id]#(lf)      ,[employment_type]#(lf)      ,[max_hours_per_period]#(lf)      ,[max_hours_per_day]#(lf)      ,[contract_hours_per_cycle]#(lf)      ,[pay_level_id]#(lf)  FROM [EmpLive].[employees]#(lf)WHERE reference_number NOT LIKE 'z%'#(lf)  AND ODSIsCurrent = 1"]),
+		    #"Changed Type" = Table.TransformColumnTypes(Source,{{"reference_number", Int64.Type}})
+		in
+		    #"Changed Type"
+	lineageTag: a79a9bb6-c678-4b6f-91ed-7c56c9ded6a8
+	queryGroup: 'Working Tables'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

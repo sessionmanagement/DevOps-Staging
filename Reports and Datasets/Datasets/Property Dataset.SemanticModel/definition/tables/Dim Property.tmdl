@@ -1,0 +1,205 @@
+table 'Dim Property'
+	lineageTag: 5790f4e0-e289-4341-ac1f-b84bd4152d21
+
+	column 'Dim Property KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: b3706ef1-0a2c-4293-82ba-724d1bd1e652
+		summarizeBy: none
+		sourceColumn: Dim Property KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property ID'
+		dataType: string
+		lineageTag: 3e7bde48-f7a7-4cd3-b318-5b8d02e9a5e3
+		summarizeBy: none
+		sourceColumn: Property ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Acquired Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 855ca953-345e-4f3d-8551-626e3a0d09a1
+		summarizeBy: none
+		sourceColumn: Property Acquired Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Bc Service Name'
+		dataType: string
+		lineageTag: 5f348292-b84e-44fe-8240-83716226785d
+		summarizeBy: none
+		sourceColumn: Property Bc Service Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Confirmed Disposal Date'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: d674a415-00ab-4aee-80d8-799a4a8fc6a7
+		summarizeBy: none
+		sourceColumn: Property Confirmed Disposal Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property District'
+		dataType: string
+		lineageTag: e0713408-3785-49aa-8b59-0a89e2573083
+		summarizeBy: none
+		sourceColumn: Property District
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Name'
+		dataType: string
+		lineageTag: c01e4c59-3c77-4435-b8fd-3a16ba817ab2
+		summarizeBy: none
+		sourceColumn: Property Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Postal Region'
+		dataType: string
+		lineageTag: be7ec266-df54-411b-98fe-9318e7134859
+		summarizeBy: none
+		sourceColumn: Property Postal Region
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Program'
+		dataType: string
+		lineageTag: 39ef18dc-e87b-4d8a-a970-307f55d2eafc
+		summarizeBy: none
+		sourceColumn: Property Program
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Sub Program'
+		dataType: string
+		lineageTag: 4f849157-b498-4e72-9262-6663fa60131a
+		summarizeBy: none
+		sourceColumn: Property Sub Program
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Assigned Tenancy Manager'
+		dataType: string
+		lineageTag: e6d85d67-e5dc-43b1-ab35-39201f41caa8
+		summarizeBy: none
+		sourceColumn: Property Assigned Tenancy Manager
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Property Latest Assigned Tenancy Manager'
+		dataType: string
+		lineageTag: 7a427206-cee7-444f-aeb5-5aa222d08d50
+		summarizeBy: none
+		sourceColumn: Property Latest Assigned Tenancy Manager
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Property' = m
+		mode: import
+		queryGroup: 'Dim Tables'
+		source = ```
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)    [dim_property_key],#(lf)    [property_id],#(lf)    [property_acquired_date],#(lf)    [property_bc_service_name],#(lf)    [property_assigned_tenancy_manager],#(lf)    [property_confirmed_disposal_date],#(lf)    [property_district],#(lf)    [property_name],#(lf)    [property_postal_region],#(lf)    [property_program],#(lf)    [property_sub_program]#(lf)FROM [edw].[vw_dim_property]"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH      
+				  Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				    // Step to remove columns that start with "DWH" if needed
+				    RemoveDWHColumns = Table.RemoveColumns(
+				        #"Transformed Column Names",
+				        List.Select(Table.ColumnNames(#"Transformed Column Names"), each Text.StartsWith(_, "DWH"))
+				    ),
+				    // Add new column with latest manager per Property ID
+				    LatestManagerLookup =
+				        let
+				            // Create lookup table with latest manager per Property ID
+				            GroupedByPropertyID = Table.Group(
+				                RemoveDWHColumns,
+				                {"Property ID"},
+				                {{"MaxKey", each List.Max([#"Dim Property KEY"]), type nullable number}}
+				            ),
+				            JoinedForManager = Table.NestedJoin(
+				                GroupedByPropertyID,
+				                {"Property ID", "MaxKey"},
+				                RemoveDWHColumns,
+				                {"Property ID", "Dim Property KEY"},
+				                "LatestRecord",
+				                JoinKind.Inner
+				            ),
+				            ExpandedManager = Table.ExpandTableColumn(
+				                JoinedForManager, "LatestRecord", {"Property Assigned Tenancy Manager"}, {"Latest Manager"}
+				            ),
+				            LookupTable = Table.SelectColumns(ExpandedManager, {"Property ID", "Latest Manager"})
+				        in
+				            LookupTable,
+				    // Join the lookup table to add latest manager column
+				    JoinedWithLatest = Table.NestedJoin(
+				        RemoveDWHColumns, {"Property ID"}, LatestManagerLookup, {"Property ID"}, "LatestManagerTemp",
+				        JoinKind.LeftOuter
+				    ),
+				    // Expand to create new column
+				    AddedLatestManagerColumn = Table.ExpandTableColumn(
+				        JoinedWithLatest, "LatestManagerTemp", {"Latest Manager"}, {"Property Latest Assigned Tenancy Manager"}
+				    )
+				in
+				    AddedLatestManagerColumn
+				
+				/*let
+				    Source = Sql.Database(Server, Database),
+				    edw_dim_company = Source{[Schema="edw",Item="vw_dim_property"]}[Data],
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(edw_dim_company, each ApplyNamingConventions(_)),
+				    
+				    // Step to remove columns that start with "DWH" if needed
+				    RemoveDWHColumns = Table.RemoveColumns(
+				        #"Transformed Column Names",
+				        List.Select(Table.ColumnNames(#"Transformed Column Names"), each Text.StartsWith(_, "DWH"))
+				    )
+				in
+				    RemoveDWHColumns
+				*/
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

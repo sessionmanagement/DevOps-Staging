@@ -1,0 +1,70 @@
+table 'Dim Location'
+	lineageTag: c2562be7-5aaf-4633-983c-a0ea17b5e02d
+
+	column 'Intellihr Location ID'
+		dataType: string
+		lineageTag: 9e96423a-e449-4445-8077-516a363b6380
+		summarizeBy: none
+		sourceColumn: Intellihr Location ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Location KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 273a4936-1bdb-4d5b-9191-1b85e8000d45
+		summarizeBy: none
+		sourceColumn: Dim Location KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Location Name'
+		dataType: string
+		lineageTag: c9a5c7ab-fe25-4708-ae5f-ae64bb84c262
+		summarizeBy: none
+		sourceColumn: Location Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Parent Location Name'
+		dataType: string
+		lineageTag: ce93f316-df7d-4f7c-96f2-fb55cfbbc783
+		summarizeBy: none
+		sourceColumn: Parent Location Name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Location' = m
+		mode: import
+		queryGroup: Dims
+		source = ```
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT [dim_location_key], [intellihr_location_id], parent_location_name, [intelliHR_location_name] AS 'Location Name'#(lf)FROM [edw].dim_location_new #(lf)WHERE exists_in_intelliHR = 1"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_))
+				in
+				    #"Transformed Column Names"
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

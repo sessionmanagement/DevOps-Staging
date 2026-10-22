@@ -1,0 +1,128 @@
+/// [AUDIT - safe to delete] Every Transitional Housing tenancy with its chain assignment, start/vacated dates, leaving reason and exit point. Chain identity = Chain ID + Tangata Whaiora ID + Chain Start Date (matching the measures). [Is Last Tenancy In Chain] marks the tenancy the FIXED exit logic uses; [Is Max-Vacated Tenancy In Chain] marks the one the ORIGINAL logic used. Where these are different rows, the original exit logic was wrong. [Tangata Whaiora ID Is Blank] flags rows where chain identity is unreliable (no client link). Supporting evidence for 'Chain Exit Audit'.
+table 'Chain Exit Audit Tenancies'
+	isHidden
+	lineageTag: aac00002-0000-4000-8000-000000000000
+
+	column 'Chain ID'
+		isHidden
+		lineageTag: aac00002-0000-4000-8000-000000000101
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Chain ID]
+
+	column 'Tangata Whaiora ID'
+		isHidden
+		lineageTag: aac00002-0000-4000-8000-000000000102
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tangata Whaiora ID]
+
+	column 'Tenancy ID'
+		isHidden
+		lineageTag: aac00002-0000-4000-8000-000000000103
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tenancy ID]
+
+	column 'Chain Start Date'
+		isHidden
+		formatString: d/mm/yyyy
+		lineageTag: aac00002-0000-4000-8000-000000000104
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Chain Start Date]
+
+	column 'Tenancy Start Date'
+		isHidden
+		formatString: d/mm/yyyy
+		lineageTag: aac00002-0000-4000-8000-000000000105
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tenancy Start Date]
+
+	column 'Vacated Date'
+		isHidden
+		formatString: d/mm/yyyy
+		lineageTag: aac00002-0000-4000-8000-000000000106
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Vacated Date]
+
+	column 'Tenancy Status'
+		isHidden
+		lineageTag: aac00002-0000-4000-8000-000000000107
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tenancy Status]
+
+	column 'Leaving Reason'
+		isHidden
+		lineageTag: aac00002-0000-4000-8000-000000000108
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Leaving Reason]
+
+	column 'Exit Point'
+		isHidden
+		lineageTag: aac00002-0000-4000-8000-000000000109
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Exit Point]
+
+	column 'Is Last Tenancy In Chain'
+		isHidden
+		lineageTag: aac00002-0000-4000-8000-00000000010a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Is Last Tenancy In Chain]
+
+	column 'Is Max-Vacated Tenancy In Chain'
+		isHidden
+		lineageTag: aac00002-0000-4000-8000-00000000010b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Is Max-Vacated Tenancy In Chain]
+
+	column 'Tangata Whaiora ID Is Blank'
+		isHidden
+		lineageTag: aac00002-0000-4000-8000-00000000010c
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tangata Whaiora ID Is Blank]
+
+	partition 'Chain Exit Audit Tenancies' = calculated
+		mode: import
+		source =
+				VAR _TH =
+				    FILTER('Tenancy', RELATED('Property'[Program]) = "Transitional Housing")
+				RETURN
+				    ADDCOLUMNS(
+				        SELECTCOLUMNS(
+				            _TH,
+				            "Chain ID", 'Tenancy'[Chain ID],
+				            "Tangata Whaiora ID", 'Tenancy'[Tangata Whaiora ID],
+				            "Tangata Whaiora ID Is Blank", ISBLANK('Tenancy'[Tangata Whaiora ID]),
+				            "Tenancy ID", 'Tenancy'[Tenancy ID],
+				            "Chain Start Date", 'Tenancy'[Chain Start Date],
+				            "Tenancy Start Date", 'Tenancy'[Tenancy Start Date],
+				            "Vacated Date", 'Tenancy'[Vacated Date],
+				            "Tenancy Status", 'Tenancy'[Tenancy Status],
+				            "Leaving Reason", 'Tenancy'[Leaving Reason],
+				            "Exit Point", 'Tenancy'[Exit Point]
+				        ),
+				        "Is Last Tenancy In Chain",
+				            VAR _c = [Chain ID]
+				            VAR _t = [Tangata Whaiora ID]
+				            VAR _cs = [Chain Start Date]
+				            VAR _s = [Tenancy Start Date]
+				            RETURN IF(_s = MAXX(FILTER(_TH, 'Tenancy'[Chain ID] = _c && 'Tenancy'[Tangata Whaiora ID] = _t && 'Tenancy'[Chain Start Date] = _cs), 'Tenancy'[Tenancy Start Date]), TRUE, FALSE),
+				        "Is Max-Vacated Tenancy In Chain",
+				            VAR _c = [Chain ID]
+				            VAR _t = [Tangata Whaiora ID]
+				            VAR _cs = [Chain Start Date]
+				            VAR _v = [Vacated Date]
+				            RETURN IF(NOT ISBLANK(_v) && _v = MAXX(FILTER(_TH, 'Tenancy'[Chain ID] = _c && 'Tenancy'[Tangata Whaiora ID] = _t && 'Tenancy'[Chain Start Date] = _cs), 'Tenancy'[Vacated Date]), TRUE, FALSE)
+				    )
+
+	annotation PBI_ResultType = Table
+

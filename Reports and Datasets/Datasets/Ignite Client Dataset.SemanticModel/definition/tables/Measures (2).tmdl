@@ -1,0 +1,637 @@
+table 'Measures (2)'
+	lineageTag: 8c2df8b3-27fe-4e33-95b8-381048057087
+
+	measure 'Max Date' = MAX('Wellbeing Data'[Date])
+		formatString: General Date
+		lineageTag: 95210750-f29c-49ae-8cb2-04457af499e4
+
+	measure 'Min Date' = MIN('Wellbeing Data'[Date])
+		formatString: General Date
+		lineageTag: 3f0f9029-5c35-4d9b-a058-9c25ee3b9785
+
+	measure 'Selected Month' = Format([Max Date],"Mmmm YYYY")
+		displayFolder: Selected Values
+		lineageTag: db5cb4b8-7368-4de3-b2fc-f410a03a265f
+
+	measure 'Selected Organisation' = SELECTEDVALUE('Dim Organisation'[Organisation],"More than one Organisation is selected")
+		displayFolder: Selected Values
+		lineageTag: 03219d46-2868-42df-83b6-f723eecf6479
+
+	measure 'Page Header - Users - Org' = [Selected Organisation] & " summary data"
+		displayFolder: Page Headers
+		lineageTag: bdb53eb5-c010-4040-b565-2474b55a2b53
+
+	measure 'Page Header - Users - Date Banner' = UPPER([Selected Month]) & " REPORT DATA"
+		displayFolder: Page Headers
+		lineageTag: 37e22b93-3961-4e60-95a3-d0717b41945d
+
+	measure 'Active Users %' = ```
+			
+			VAR __Total = 
+			    DIVIDE (
+			        SUM ('Ignite Data'[Active Users] ),
+			        SUM ('Ignite Data'[Total Users])
+			        )
+			VAR __IfErr = IF(ISBLANK(SUM('Ignite Data'[Total Users])),
+			    0,
+			    __Total
+			    )
+			RETURN
+			__Total
+			```
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Active Users
+		lineageTag: 99cbde29-e4bb-4bd3-958e-c0e817a4972e
+
+	measure 'Bookings Same Period Last Year' = ```
+			
+			CALCULATE(
+			    SUM('Ignite Data'[New Bookings]), 
+			    SAMEPERIODLASTYEAR(Dates[Date])
+			)
+			```
+		formatString: 0
+		lineageTag: 1327f487-ecbc-4e8a-b44a-efd9f4137a42
+
+	measure 'Current Quarter Average Rating' =
+			
+			CALCULATE(AVERAGE('Wellbeing Data'[Rating])
+			            ,Dates[Current Quarter]=1)
+		formatString: 0.0
+		displayFolder: Wellbeing Domains
+		lineageTag: ca4a4b8e-1805-44d4-a958-f94f704376a6
+
+	measure 'Previous Quarter Average Rating' =
+			
+			CALCULATE(AVERAGE('Wellbeing Data'[Rating])
+			            ,Dates[Q-1]=1)
+		formatString: 0.0
+		displayFolder: Wellbeing Domains
+		lineageTag: 7f3d4e82-a0bf-4631-82e0-3d3d2a478ad9
+
+	measure 'Three Quarters Ago Average Rating' =
+			
+			CALCULATE(AVERAGE('Wellbeing Data'[Rating])
+			            ,Dates[Q-3]=1)
+		formatString: 0.0
+		displayFolder: Wellbeing Domains
+		lineageTag: 5e501d06-1fea-4fb8-afa4-bca837e24016
+
+	measure 'Two Quarter Ago Average Rating' =
+			
+			CALCULATE(AVERAGE('Wellbeing Data'[Rating])
+			            ,Dates[Q-2]=1)
+		formatString: 0.0
+		displayFolder: Wellbeing Domains
+		lineageTag: 61901b50-79c3-48f9-926d-0cf4ca3be5ce
+
+	measure 'Highest Rated Domain' = ```
+			
+			VAR __Tbl = SUMMARIZE (FILTER('Wellbeing Data',RELATED(Dates[Current Quarter])=1)
+			                        ,'Wellbeing Data'[Wellbeing Domains]
+			                        ,"Average", Average ( 'Wellbeing Data'[Rating] )
+			                        )
+			VAR __TOP1 = MAXX (TOPN ( 1
+			                        ,__Tbl
+			                         ,[Average], DESC
+			                         ),
+			                         'Wellbeing Data'[Wellbeing Domains]
+			                        )   
+			VAR __NoData = "Latest Quarter Data Unavailable"
+			RETURN
+			
+			IF(ISBLANK(__TOP1),__NoData,__TOP1)
+			/* Commented out by CN 2022-03-08
+			CALCULATE(
+			    FIRSTNONBLANK('Wellbeing Data'[Domain],1) 
+			        ,'Wellbeing Data'[Rating] = MAX('Wellbeing Data'[Rating])
+			        ,Dates[Current Quarter] = 1
+			)
+			CALCULATE(
+			    FIRSTNONBLANK('Wellbeing Data'[Domain],1) 
+			    ,[Current Quarter Average Rating] = MAX([Current Quarter Average Rating])
+			    ,Dates[Current Quarter] = 1
+			)
+			*/
+			```
+		displayFolder: Wellbeing Domains
+		lineageTag: 7a0b77a4-e01f-4086-a7b2-db58cdd08c0c
+
+	measure 'Highest Rated Image' = ```
+			Switch([Highest Rated Domain],     
+			 "Beliefs",
+			        "https://i.ibb.co/fxw2VVB/Beliefs.png",
+			    "Body",
+			        "https://i.ibb.co/pyqT6Y0/Body.png",
+			    "Connectedness",
+			        "https://i.ibb.co/7gBRh3Y/Connectedness.png",
+			    "Culture",
+			        "https://i.ibb.co/7p88Lnh/Culture.png",
+			    "Finances",
+			        "https://i.ibb.co/87nRFP6/Finances.png",
+			    "Habits",
+			        "https://i.ibb.co/nc8fh2k/Habits.png",
+			    "Home",
+			        "https://i.ibb.co/fXD7BwT/Home.png",
+			    "Identity",
+			        "https://i.ibb.co/TbdQhbh/Identity.png",
+			    "Mind",
+			        "https://i.ibb.co/hF2361J/Mind.png",
+			    "Recreation",
+			        "https://i.ibb.co/TWSxsnf/Recreation.png",
+			    "Relationships",
+			        "https://i.ibb.co/dPgzMB6/Relationships.png",
+			    "Occupation",
+			        "https://i.ibb.co/x30KmK3/Work.png"
+			)
+			
+			```
+		displayFolder: Wellbeing Domains
+		lineageTag: c60d9905-2ef7-4f1f-8942-291a53ab840a
+		dataCategory: ImageUrl
+
+	measure 'Lowest Rated Domain' = ```
+			
+			VAR __Tbl = SUMMARIZE (FILTER('Wellbeing Data',RELATED(Dates[Current Quarter])=1)
+			                        ,'Wellbeing Data'[Wellbeing Domains]
+			                        ,"Average", Average ( 'Wellbeing Data'[Rating] )
+			                        )
+			VAR __TOP1 = MAXX (TOPN ( 1
+			                        ,__Tbl
+			                         ,[Average], ASC
+			                         ),
+			                         'Wellbeing Data'[Wellbeing Domains]
+			                        )   
+			VAR __NoData = "Latest Quarter Data Unavailable"
+			RETURN
+			
+			IF(ISBLANK(__TOP1),__NoData,__TOP1)
+			/* Commented out by CN 2022-03-08
+			CALCULATE(
+			    FIRSTNONBLANK('Wellbeing Data'[Domain],1) 
+			        ,'Wellbeing Data'[Rating] = MIN('Wellbeing Data'[Rating])
+			        ,'Wellbeing Data'[Date] = MAX('Wellbeing Data'[Date])
+			)
+			*/
+			```
+		displayFolder: Wellbeing Domains
+		lineageTag: 712538cc-f60e-4ac9-9938-8d4ee0f4c842
+
+	measure 'Lowest Rated Image' = ```
+			
+			SWITCH (
+			    [Lowest Rated Domain],
+			        "Beliefs",
+			        "https://i.ibb.co/fxw2VVB/Beliefs.png",
+			    "Body",
+			        "https://i.ibb.co/pyqT6Y0/Body.png",
+			    "Connectedness",
+			        "https://i.ibb.co/7gBRh3Y/Connectedness.png",
+			    "Culture",
+			        "https://i.ibb.co/7p88Lnh/Culture.png",
+			    "Finances",
+			        "https://i.ibb.co/87nRFP6/Finances.png",
+			    "Habits",
+			        "https://i.ibb.co/nc8fh2k/Habits.png",
+			    "Home",
+			        "https://i.ibb.co/fXD7BwT/Home.png",
+			    "Identity",
+			        "https://i.ibb.co/TbdQhbh/Identity.png",
+			    "Mind",
+			        "https://i.ibb.co/hF2361J/Mind.png",
+			    "Recreation",
+			        "https://i.ibb.co/TWSxsnf/Recreation.png",
+			    "Relationships",
+			        "https://i.ibb.co/dPgzMB6/Relationships.png",
+			    "Occupation",
+			        "https://i.ibb.co/x30KmK3/Work.png"
+			
+			)
+			
+			```
+		displayFolder: Wellbeing Domains
+		lineageTag: 02e9ed69-1f53-4b11-b198-58f241216ba2
+		dataCategory: ImageUrl
+
+	measure 'DV - Template 1 - Average across all organisations' =
+			
+			SWITCH(
+			    SELECTEDVALUE(Template_1[ID])
+			    ,1, FORMAT([Active Users Ratio - Average Across All Organisation],"0.0%")
+			    ,2, FORMAT([Mood Diary Usage Ratio - Average Across All Organisations],"0.0%")
+			    ,3, FORMAT([Wellbeing Utilization Ratio - Average Across All Organisations],"0.0%")
+			    ,4, [Average Wellbeing Per Domain Ratio - Average Across All Organisations]
+			)
+		displayFolder: Template 1 Measures
+		lineageTag: bcf50684-62ff-4655-9ab8-a3b7a8564060
+
+	measure 'DV - Template 1 - Average across industry' =
+			
+			VAR __ChosenSector = SELECTEDVALUE('Dim Organisation'[Sector])
+			
+			RETURN
+			SWITCH(
+			    SELECTEDVALUE(Template_1[ID])
+			    ,1, FORMAT(CALCULATE([Active Users Ratio - Sector],'Dim Organisation'[Sector]=__ChosenSector),"0.0%")
+			    ,2, FORMAT(CALCULATE([Mood Diary Usage Ratio - Sector],'Dim Organisation'[Sector]=__ChosenSector),"0.0%")
+			    ,3, FORMAT(CALCULATE([Wellbeing Utilization Ratio - Sector],'Dim Organisation'[Sector]=__ChosenSector),"0.0%")
+			    ,4, CALCULATE([Average Wellbeing Per Domain Ratio - Sector],'Dim Organisation'[Sector]=__ChosenSector)
+			)
+		displayFolder: Template 1 Measures
+		lineageTag: 64413737-2688-42e7-b160-da6c0e793f45
+
+	measure 'DV - Template 1 - Average for this organisation' =
+			
+			VAR __ChosenOrganisation = SELECTEDVALUE('Dim Organisation'[Organisation])
+			RETURN
+			SWITCH(
+			    SELECTEDVALUE(Template_1[ID])
+			    ,1, FORMAT([Active Users %],"0.0%")
+			    ,2, FORMAT([Mood Diary Usage %],"0.0%")
+			    ,3, FORMAT([Wellbeing Utilization %],"0.0%")
+			    ,4, CALCULATE(AVERAGE('Ignite Data'[Average Wellbeing per domain]),'Dim Organisation'[Organisation]=__ChosenOrganisation)
+			)
+		displayFolder: Template 1 Measures
+		lineageTag: 57c96ad2-6bdd-4a14-ad40-93d00a6a613a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Active Users Ratio - Average Across All Organisation' = ```
+			
+			CALCULATE([Active Users % - Average]
+			            ,ALLEXCEPT('Dim Organisation', 'Dim Organisation'[Exclude from Any Comparative Measures])
+			            )
+			
+			```
+		displayFolder: Active Users
+		lineageTag: 64e5cbc0-5a5b-4336-b231-41eb85f48c7f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Mood Diary Usage %' = ```
+			
+			    IF(ISBLANK(SUM('Ignite Data'[Mood User Utilisation])),
+			    0,
+			    DIVIDE (
+			        SUM ('Ignite Data'[Mood User Utilisation] ),
+			        SUM ('Ignite Data'[Active Users])
+			        )
+			    )
+			```
+		displayFolder: Mood Diary
+		lineageTag: ff03daef-50b5-4d2d-a900-9a76902101f5
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Mood Diary Usage Ratio - Average Across All Organisations' =
+			
+			CALCULATE([Mood Diary Usage %]
+			            ,ALLEXCEPT('Dim Organisation', 'Dim Organisation'[Exclude from Any Comparative Measures])
+			            )
+		displayFolder: Mood Diary
+		lineageTag: 3a5ea989-ad05-4fef-a0b4-3876aa1305d8
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Wellbeing Utilization %' = ```
+			
+			    IF(ISBLANK(SUM('Ignite Data'[Wellbeing Test User Utilisation])),
+			    0,
+			    DIVIDE (
+			        SUM ('Ignite Data'[Wellbeing Test User Utilisation] ),
+			        SUM ('Ignite Data'[Active Users])
+			        )
+			    )
+			```
+		displayFolder: Wellbeing Domains
+		lineageTag: f71a1baf-1564-4673-b13f-fa9f70f5ed68
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Wellbeing Utilization Ratio - Average Across All Organisations' =
+			
+			CALCULATE([Wellbeing Utilization %]
+			            ,ALLEXCEPT('Dim Organisation', 'Dim Organisation'[Exclude from Any Comparative Measures])
+			            )
+		displayFolder: Wellbeing Domains
+		lineageTag: 696917ae-73d7-40a7-a652-43b284b64125
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Average Wellbeing Per Domain Ratio - Average Across All Organisations' =
+			
+			CALCULATE(AVERAGE('Ignite Data'[Average Wellbeing per domain])
+			            ,ALLEXCEPT('Dim Organisation', 'Dim Organisation'[Exclude from Any Comparative Measures])
+			            )
+		displayFolder: Wellbeing Domains
+		lineageTag: fb75f174-178a-4dab-ad29-7c7fa59ab718
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Active Users Ratio - Sector' = ```
+			
+			VAR __SUM = CALCULATE([Active Users % - Average]
+			                        ,ALLEXCEPT('Dim Organisation', 'Dim Organisation'[Sector],'Dim Organisation'[Exclude from Any Comparative Measures])
+			                    )
+			VAR __CALC = IF(ISBLANK([Active Users % - Average]),
+			                0,
+			                DIVIDE([Active Users % - Average],
+			                       __SUM
+			                        )   
+			                -1)
+			RETURN
+			__SUM
+			```
+		displayFolder: Active Users
+		lineageTag: c8cef21e-31c1-427e-af06-b046029b9fe5
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Mood Diary Usage Ratio - Sector' = ```
+			
+			VAR __SUM = CALCULATE([Mood Diary Usage %]
+			                        ,ALLEXCEPT('Dim Organisation', 'Dim Organisation'[Sector],'Dim Organisation'[Exclude from Any Comparative Measures])
+			                    )
+			VAR __CALC = IF(ISBLANK([Mood Diary Usage %]),
+			                0,
+			                DIVIDE([Mood Diary Usage %],
+			                       __SUM
+			                        )   
+			                -1)
+			RETURN
+			__SUM
+			```
+		displayFolder: Mood Diary
+		lineageTag: 1c9be837-c6bd-4865-b8dd-91b5d06b64fd
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Wellbeing Utilization Ratio - Sector' = ```
+			
+			VAR __SUM = CALCULATE([Wellbeing Utilization %]
+			                        ,ALLEXCEPT('Dim Organisation', 'Dim Organisation'[Sector],'Dim Organisation'[Exclude from Any Comparative Measures])
+			                    )
+			VAR __CALC = IF(ISBLANK([Wellbeing Utilization %]),
+			                0,
+			                DIVIDE([Wellbeing Utilization %],
+			                       __SUM
+			                        )   
+			                -1)
+			RETURN
+			__SUM
+			```
+		displayFolder: Wellbeing Domains
+		lineageTag: 2ab5ce7b-0a85-48c5-ad63-dcdbfe3b3d44
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Average Wellbeing Per Domain Ratio - Sector' = ```
+			
+			VAR __Value = AVERAGE('Ignite Data'[Average Wellbeing per domain])
+			VAR __SUM = CALCULATE(AVERAGE('Ignite Data'[Average Wellbeing per domain])
+			                        ,ALLEXCEPT('Dim Organisation', 'Dim Organisation'[Sector],'Dim Organisation'[Exclude from Any Comparative Measures])
+			                    )
+			VAR __CALC = IF(ISBLANK(__Value),
+			                0,
+			                DIVIDE(__Value,
+			                       __SUM
+			                        )   
+			                -1)
+			RETURN
+			__SUM
+			```
+		displayFolder: Wellbeing Domains
+		lineageTag: 33b51b7d-db83-4bc7-a7d8-98a4d3740c57
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'DV - Template 2 - Average across all organisations' =
+			
+			VAR __AllExcept = ALLEXCEPT('Dim Organisation', 'Dim Organisation'[Exclude from Any Comparative Measures])
+			RETURN
+			SWITCH(
+			    SELECTEDVALUE(Template_2[ID])
+			    ,1, CALCULATE(AVERAGE('Ignite Data'[Mind]),__AllExcept)
+			    ,2, CALCULATE(AVERAGE('Ignite Data'[Body]),__AllExcept)
+			    ,3, CALCULATE(AVERAGE('Ignite Data'[Habits]),__AllExcept)
+			    ,4, CALCULATE(AVERAGE('Ignite Data'[Home]),__AllExcept)
+			    ,5, CALCULATE(AVERAGE('Ignite Data'[Relationships]),__AllExcept)
+			    ,6, CALCULATE(AVERAGE('Ignite Data'[Occupation]),__AllExcept)
+			    ,7, CALCULATE(AVERAGE('Ignite Data'[Finances]),__AllExcept)
+			    ,8, CALCULATE(AVERAGE('Ignite Data'[Recreation]),__AllExcept)
+			    ,9, CALCULATE(AVERAGE('Ignite Data'[Identity]),__AllExcept)
+			    ,10, CALCULATE(AVERAGE('Ignite Data'[Beliefs]),__AllExcept)
+			    ,11, CALCULATE(AVERAGE('Ignite Data'[Culture]),__AllExcept)
+			    ,12, CALCULATE(AVERAGE('Ignite Data'[Connectedness]),__AllExcept)
+			)
+		displayFolder: Template 2 Measures
+		lineageTag: 3fdbf5c4-0caa-4216-9cc9-16b4581af947
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'DV - Template 2 - Average across industry' =
+			
+			VAR __AllExcept = ALLEXCEPT('Dim Organisation', 'Dim Organisation'[Sector],'Dim Organisation'[Exclude from Any Comparative Measures])
+			VAR __ChosenSector = SELECTEDVALUE('Dim Organisation'[Sector])
+			
+			RETURN
+			SWITCH(
+			    SELECTEDVALUE(Template_2[ID])
+			    ,1, CALCULATE(AVERAGE('Ignite Data'[Mind]),__AllExcept,'Dim Organisation'[Sector]=__ChosenSector)
+			    ,2, CALCULATE(AVERAGE('Ignite Data'[Body]),__AllExcept,'Dim Organisation'[Sector]=__ChosenSector)
+			    ,3, CALCULATE(AVERAGE('Ignite Data'[Habits]),__AllExcept,'Dim Organisation'[Sector]=__ChosenSector)
+			    ,4, CALCULATE(AVERAGE('Ignite Data'[Home]),__AllExcept,'Dim Organisation'[Sector]=__ChosenSector)
+			    ,5, CALCULATE(AVERAGE('Ignite Data'[Relationships]),__AllExcept,'Dim Organisation'[Sector]=__ChosenSector)
+			    ,6, CALCULATE(AVERAGE('Ignite Data'[Occupation]),__AllExcept,'Dim Organisation'[Sector]=__ChosenSector)
+			    ,7, CALCULATE(AVERAGE('Ignite Data'[Finances]),__AllExcept,'Dim Organisation'[Sector]=__ChosenSector)
+			    ,8, CALCULATE(AVERAGE('Ignite Data'[Recreation]),__AllExcept,'Dim Organisation'[Sector]=__ChosenSector)
+			    ,9, CALCULATE(AVERAGE('Ignite Data'[Identity]),__AllExcept,'Dim Organisation'[Sector]=__ChosenSector)
+			    ,10, CALCULATE(AVERAGE('Ignite Data'[Beliefs]),__AllExcept,'Dim Organisation'[Sector]=__ChosenSector)
+			    ,11, CALCULATE(AVERAGE('Ignite Data'[Culture]),__AllExcept,'Dim Organisation'[Sector]=__ChosenSector)
+			    ,12, CALCULATE(AVERAGE('Ignite Data'[Connectedness]),__AllExcept,'Dim Organisation'[Sector]=__ChosenSector)
+			)
+		displayFolder: Template 2 Measures
+		lineageTag: b634e4dc-7ba6-4e42-9bf3-ab1c2f268ebb
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'DV - Template 2 - Average for this organisation' =
+			
+			VAR __ChosenOrganisation = SELECTEDVALUE('Dim Organisation'[Organisation])
+			
+			RETURN
+			SWITCH(
+			    SELECTEDVALUE(Template_2[ID])
+			    ,1, CALCULATE(AVERAGE('Ignite Data'[Mind]),'Dim Organisation'[Organisation]=__ChosenOrganisation)
+			    ,2, CALCULATE(AVERAGE('Ignite Data'[Body]),'Dim Organisation'[Organisation]=__ChosenOrganisation)
+			    ,3, CALCULATE(AVERAGE('Ignite Data'[Habits]),'Dim Organisation'[Organisation]=__ChosenOrganisation)
+			    ,4, CALCULATE(AVERAGE('Ignite Data'[Home]),'Dim Organisation'[Organisation]=__ChosenOrganisation)
+			    ,5, CALCULATE(AVERAGE('Ignite Data'[Relationships]),'Dim Organisation'[Organisation]=__ChosenOrganisation)
+			    ,6, CALCULATE(AVERAGE('Ignite Data'[Occupation]),'Dim Organisation'[Organisation]=__ChosenOrganisation)
+			    ,7, CALCULATE(AVERAGE('Ignite Data'[Finances]),'Dim Organisation'[Organisation]=__ChosenOrganisation)
+			    ,8, CALCULATE(AVERAGE('Ignite Data'[Recreation]),'Dim Organisation'[Organisation]=__ChosenOrganisation)
+			    ,9, CALCULATE(AVERAGE('Ignite Data'[Identity]),'Dim Organisation'[Organisation]=__ChosenOrganisation)
+			    ,10, CALCULATE(AVERAGE('Ignite Data'[Beliefs]),'Dim Organisation'[Organisation]=__ChosenOrganisation)
+			    ,11, CALCULATE(AVERAGE('Ignite Data'[Culture]),'Dim Organisation'[Organisation]=__ChosenOrganisation)
+			    ,12, CALCULATE(AVERAGE('Ignite Data'[Connectedness]),'Dim Organisation'[Organisation]=__ChosenOrganisation)
+			)
+		displayFolder: Template 2 Measures
+		lineageTag: 633f8447-94bf-487b-8560-2386e2599955
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Active Users Ratio - Sector - Selected' =
+			
+			VAR __ChosenSector = SELECTEDVALUE('Dim Organisation'[Sector])
+			
+			RETURN
+			CALCULATE([Active Users Ratio - Sector],'Dim Organisation'[Sector]=__ChosenSector)
+			// CALCULATE([Mood Diary Usage Ratio - Sector],'Dim Organisation'[Sector]=__ChosenSector)
+			// CALCULATE([Wellbeing Utilization Ratio - Sector],'Dim Organisation'[Sector]=__ChosenSector)
+			// CALCULATE([Average Wellbeing Per Domain Ratio - Sector],'Dim Organisation'[Sector]=__ChosenSector)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 6b9de76d-1ef8-4788-97ac-bb32ad755a67
+
+	measure 'Active Users Ratio - All Orgs - Selected' =
+			
+			VAR __ChosenSector = SELECTEDVALUE('Dim Organisation'[Sector])
+			
+			RETURN
+			CALCULATE([Active Users Ratio - Sector],'Dim Organisation'[Sector]=__ChosenSector)
+			// CALCULATE([Mood Diary Usage Ratio - Sector],'Dim Organisation'[Sector]=__ChosenSector)
+			// CALCULATE([Wellbeing Utilization Ratio - Sector],'Dim Organisation'[Sector]=__ChosenSector)
+			// CALCULATE([Average Wellbeing Per Domain Ratio - Sector],'Dim Organisation'[Sector]=__ChosenSector)
+		lineageTag: 4046d9e9-7950-400e-a89b-361030d96608
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Page Header - Comparison - Org' = [Selected Organisation] & " comparison data"
+		lineageTag: d6db2c5a-be71-4fb1-8209-3f94bb6419d6
+
+	measure 'Average Wellbeing Scores for this Organisation' = ```
+			
+			VAR __ChosenOrganisation = SELECTEDVALUE('Dim Organisation'[Organisation])
+			RETURN
+			CALCULATE(AVERAGE('Ignite Data'[Average Wellbeing per domain]),'Dim Organisation'[Organisation]=__ChosenOrganisation)
+			
+			```
+		lineageTag: 0e3bc60d-821f-42ec-9a0c-36b3bf05a211
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Active Users % - Average' =
+			
+			average('Ignite Data'[Active Users % (Calculated Column)])
+		lineageTag: a4305b82-0264-4261-8f97-4bd530dcdc62
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Active Users Ratio - Similar Size' = ```
+			
+			VAR __SUM = CALCULATE([Active Users % - Average]
+			                        ,ALLEXCEPT('Dim Organisation', 'Dim Organisation'[Size of Organisation],'Dim Organisation'[Exclude from Any Comparative Measures])
+			                    )
+			VAR __CALC = IF(ISBLANK([Active Users % - Average]),
+			                0,
+			                DIVIDE([Active Users % - Average],
+			                       __SUM
+			                        )   
+			                -1)
+			RETURN
+			__SUM
+			```
+		lineageTag: 799a47d6-2793-4ea4-aacc-4bbe81d62017
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Mood Diary Usage Ratio - Similar Size' = ```
+			
+			VAR __SUM = CALCULATE([Mood Diary Usage %]
+			                        ,ALLEXCEPT('Dim Organisation', 'Dim Organisation'[Size of Organisation],'Dim Organisation'[Exclude from Any Comparative Measures])
+			                    )
+			VAR __CALC = IF(ISBLANK([Mood Diary Usage %]),
+			                0,
+			                DIVIDE([Mood Diary Usage %],
+			                       __SUM
+			                        )   
+			                -1)
+			RETURN
+			__SUM
+			```
+		lineageTag: 206196d3-54e2-4c58-8792-0b8509754f9b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Average Wellbeing Per Domain Ratio - Similar Size' = ```
+			
+			VAR __Value = AVERAGE('Ignite Data'[Average Wellbeing per domain])
+			VAR __SUM = CALCULATE(AVERAGE('Ignite Data'[Average Wellbeing per domain])
+			                        ,ALLEXCEPT('Dim Organisation', 'Dim Organisation'[Size of Organisation],'Dim Organisation'[Exclude from Any Comparative Measures])
+			                    )
+			VAR __CALC = IF(ISBLANK(__Value),
+			                0,
+			                DIVIDE(__Value,
+			                       __SUM
+			                        )   
+			                -1)
+			RETURN
+			__SUM
+			```
+		lineageTag: 75db9821-c3d8-440c-b54a-fd32f6dc0879
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'DV - Template 2 - Average across Similar Size Organisation' = ```
+			
+			VAR __AllExcept = ALLEXCEPT('Dim Organisation', 'Dim Organisation'[Size of Organisation],'Dim Organisation'[Exclude from Any Comparative Measures])
+			VAR __ChosenSizeOfOrg = SELECTEDVALUE('Dim Organisation'[Size of Organisation])
+			
+			RETURN
+			SWITCH(
+			    SELECTEDVALUE(Template_2[ID])
+			    ,1, CALCULATE(AVERAGE('Ignite Data'[Mind]),__AllExcept,'Dim Organisation'[Size of Organisation]=__ChosenSizeOfOrg)
+			    ,2, CALCULATE(AVERAGE('Ignite Data'[Body]),__AllExcept,'Dim Organisation'[Size of Organisation]=__ChosenSizeOfOrg)
+			    ,3, CALCULATE(AVERAGE('Ignite Data'[Habits]),__AllExcept,'Dim Organisation'[Size of Organisation]=__ChosenSizeOfOrg)
+			    ,4, CALCULATE(AVERAGE('Ignite Data'[Home]),__AllExcept,'Dim Organisation'[Size of Organisation]=__ChosenSizeOfOrg)
+			    ,5, CALCULATE(AVERAGE('Ignite Data'[Relationships]),__AllExcept,'Dim Organisation'[Size of Organisation]=__ChosenSizeOfOrg)
+			    ,6, CALCULATE(AVERAGE('Ignite Data'[Occupation]),__AllExcept,'Dim Organisation'[Size of Organisation]=__ChosenSizeOfOrg)
+			    ,7, CALCULATE(AVERAGE('Ignite Data'[Finances]),__AllExcept,'Dim Organisation'[Size of Organisation]=__ChosenSizeOfOrg)
+			    ,8, CALCULATE(AVERAGE('Ignite Data'[Recreation]),__AllExcept,'Dim Organisation'[Size of Organisation]=__ChosenSizeOfOrg)
+			    ,9, CALCULATE(AVERAGE('Ignite Data'[Identity]),__AllExcept,'Dim Organisation'[Size of Organisation]=__ChosenSizeOfOrg)
+			    ,10, CALCULATE(AVERAGE('Ignite Data'[Beliefs]),__AllExcept,'Dim Organisation'[Size of Organisation]=__ChosenSizeOfOrg)
+			    ,11, CALCULATE(AVERAGE('Ignite Data'[Culture]),__AllExcept,'Dim Organisation'[Size of Organisation]=__ChosenSizeOfOrg)
+			    ,12, CALCULATE(AVERAGE('Ignite Data'[Connectedness]),__AllExcept,'Dim Organisation'[Size of Organisation]=__ChosenSizeOfOrg)
+			)   
+			```
+		lineageTag: 19d64b41-2138-4f5c-b61c-1d8954c3cad1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'DV - Template 1 - Average across similar sized organisations' =
+			
+			VAR __ChosenSizeOfOrg = SELECTEDVALUE('Dim Organisation'[Size of Organisation])
+			
+			RETURN
+			SWITCH(
+			    SELECTEDVALUE(Template_1[ID])
+			    ,1, FORMAT(CALCULATE([Active Users Ratio - Similar Size],'Dim Organisation'[Size of Organisation]=__ChosenSizeOfOrg),"0.0%")
+			    ,2, FORMAT(CALCULATE([Mood Diary Usage Ratio - Similar Size],'Dim Organisation'[Size of Organisation]=__ChosenSizeOfOrg),"0.0%")
+			    ,3, FORMAT(CALCULATE([Wellbeing Utilization Ratio - Similar Size],'Dim Organisation'[Size of Organisation]=__ChosenSizeOfOrg),"0.0%")
+			    ,4, CALCULATE([Average Wellbeing Per Domain Ratio - Similar Size],'Dim Organisation'[Size of Organisation]=__ChosenSizeOfOrg)
+			)
+		lineageTag: 472d3b12-b2c9-4734-aa11-01279ffc4341
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Measures (2)-85b79887-228d-491c-81e0-af58c7608e0a' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+

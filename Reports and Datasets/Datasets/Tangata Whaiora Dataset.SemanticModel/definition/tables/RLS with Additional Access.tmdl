@@ -1,0 +1,199 @@
+table 'RLS with Additional Access'
+	lineageTag: 715fb2f2-d54a-463c-bbfa-0bdb507faf79
+
+	column 'Hierarchy Number'
+		dataType: int64
+		formatString: 0
+		lineageTag: 9ecc0576-e4af-49ce-8201-49800ad2f63c
+		summarizeBy: sum
+		sourceColumn: Hierarchy Number
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Name'
+		dataType: string
+		lineageTag: 990b7438-0d6f-4d35-b804-364645696532
+		summarizeBy: none
+		sourceColumn: Service Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Employee KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 0c17d438-e5c9-4da2-afa1-b521eb95f09e
+		summarizeBy: sum
+		sourceColumn: Dim Employee KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 33b90a9f-c9ce-44c1-bf34-ef6ee9e543e4
+		summarizeBy: count
+		sourceColumn: Employee ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Company
+		dataType: string
+		lineageTag: 55728d8c-7b3c-4abd-b7a2-65d14c5dfcf8
+		summarizeBy: none
+		sourceColumn: Company
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Region Name'
+		dataType: string
+		lineageTag: 1f2e0075-ce49-4260-b7ed-45ef7f39bde4
+		summarizeBy: none
+		sourceColumn: Region Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'District Name'
+		dataType: string
+		lineageTag: 8897af96-6e7e-443b-8474-7cfb7a1983d7
+		summarizeBy: none
+		sourceColumn: District Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Department Name'
+		dataType: string
+		lineageTag: 31bb2e63-a8d2-42ae-a427-0a865ca82df7
+		summarizeBy: none
+		sourceColumn: Department Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Job Name'
+		dataType: string
+		lineageTag: 368724b3-5608-43d3-b4e7-82a39f2adefb
+		summarizeBy: none
+		sourceColumn: Employee Job Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 25bdfcd2-823b-402a-b170-f1c27c1a8b94
+		summarizeBy: count
+		sourceColumn: Service ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 59d1988a-9361-4c8e-b582-6ce243374a5a
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Team ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team Name'
+		dataType: string
+		lineageTag: c10a076f-367a-4188-8a49-de7fcdec566e
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Team Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'User Principal Name'
+		dataType: string
+		lineageTag: 75a53fb4-9326-44a9-8dc5-bfbf71bc7e7c
+		summarizeBy: none
+		sourceColumn: User Principal Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Service KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 17e3bfcf-b73c-4620-b05f-37e809e7dcf1
+		summarizeBy: sum
+		sourceColumn: Dim Service KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team Area'
+		dataType: string
+		lineageTag: a16a5ce4-cb23-4d4e-9ab5-a89becda99b6
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Team Area
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team Function'
+		dataType: string
+		lineageTag: 2344334e-de4b-4c1d-b30e-283533962664
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Team Function
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Tangata Whaiora Team Unique KEY'
+		dataType: string
+		lineageTag: f0df1403-195a-46b5-9e59-3301950f6f60
+		summarizeBy: none
+		sourceColumn: Dim Tangata Whaiora Team Unique KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'RLS with Additional Access' = m
+		mode: import
+		queryGroup: 'Row Level Security\New RLS for RB'
+		source =
+				let
+				    // Load both tables
+				    RowLevelSecurity = @#"RLS - New RB Structure ALL services",
+				    AdditionalAccess = #"Additional Access",
+				    PBI_Service_RLS_Impersonation = #"PBI Service RLS Impersonation",
+				
+				    // Join tables
+				    JoinedTable = Table.Join(
+				        AdditionalAccess, "Person to Impersonate Email", RowLevelSecurity, "User Principal Name", JoinKind.RightOuter
+				    ),
+				
+				    #"Added Conditional Column" = Table.AddColumn(
+				        JoinedTable, "Custom", each if [Requester Email] = null then [User Principal Name] else [Requester Email]
+				    ),
+				
+				    #"Removed Columns" = Table.RemoveColumns(
+				        #"Added Conditional Column",
+				        {
+				            "Report",
+				            "Requester Email",
+				            "Person to Impersonate Email",
+				            "Expiry Date",
+				            "Access Reason",
+				            "Approved By Email",
+				            "Approved Date",
+				            "Modified",
+				            "Created",
+				            "Created By Email",
+				            "Modified By Email",
+				            "Version",
+				            "User Principal Name"
+				        }
+				    ),
+				
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns", {{"Custom", "User Principal Name"}}),
+				
+				    #"Reordered Columns" = Table.ReorderColumns(
+				        #"Renamed Columns", {"User Principal Name"}
+				    ),
+				
+				    #"Changed Type" = Table.TransformColumnTypes(#"Reordered Columns", {{"User Principal Name", type text}}),
+				    #"Appended Query" = Table.Combine({#"Changed Type", #"RLS - New RB Structure ALL services"}),
+				    #"Removed Duplicates" = Table.Distinct(#"Appended Query")
+				in
+				    #"Removed Duplicates"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

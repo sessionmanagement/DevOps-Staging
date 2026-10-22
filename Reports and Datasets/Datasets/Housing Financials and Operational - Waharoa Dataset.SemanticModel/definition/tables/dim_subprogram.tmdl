@@ -1,0 +1,67 @@
+table dim_subprogram
+	lineageTag: cd0c9173-a594-423e-85d3-ed0564608def
+
+	column subprogramid
+		dataType: string
+		isHidden
+		lineageTag: 7a021db6-ad86-4023-86f4-ec0a0e104e17
+		summarizeBy: none
+		sourceColumn: zav_subprogramid
+
+		changedProperty = Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column commercial_yn
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d23c0055-a23b-4c65-8b1f-b595b4d2dc44
+		summarizeBy: none
+		sourceColumn: commercial_yn
+
+		annotation SummarizationSetBy = Automatic
+
+	column subprogram_name
+		dataType: string
+		lineageTag: 819c597d-26c0-4187-a709-4e1862cf3b3c
+		summarizeBy: none
+		sourceColumn: subprogram_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column program_name
+		dataType: string
+		lineageTag: db597f9e-adb4-4dec-859c-2e1cd97ece8b
+		summarizeBy: none
+		sourceColumn: program_name
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'Program Hierarchy'
+		lineageTag: d7aef5cf-4459-4d1b-9576-6c3d8e9d2fa1
+
+		level Program
+			lineageTag: a26a30a8-2563-4cae-84f3-1b96d801cd9f
+			column: program_name
+
+		level Subprogram
+			lineageTag: 216120ae-9127-4764-af79-fcc275882cb7
+			column: subprogram_name
+
+	partition dim_subprogram-7a345b4d-81ba-44ca-b9df-ce8a500788bf = m
+		mode: import
+		queryGroup: dimensions
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query=" SELECT#(lf)        dpp.property_subprogram_id   AS zav_subprogramid,#(lf)        dpp.property_subprogram_name AS subprogram_name,#(lf)           dpp.property_program_id AS zav_program,#(lf)       #(lf)        dpp.property_program_name    AS program_name#(lf)        #(lf)     #(lf)        #(lf)    FROM [edw].[dim_property_program] dpp#(lf)    WHERE dpp.property_subprogram_id IS NOT NULL#(lf)      AND dpp.DWHDMLOperation <> 'D'#(lf)      AND DWHIsCurrent = 1#(lf)      AND dpp.property_program_name <> 'Unknown'"]),
+				    #"Added Conditional Column" = Table.AddColumn(Source, "commercial_yn", each if Text.Contains([program_name], "Commercial") then 1 else 0),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Added Conditional Column",{{"commercial_yn", Int64.Type}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"zav_program"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

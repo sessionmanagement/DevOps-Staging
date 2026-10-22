@@ -1,0 +1,73 @@
+/// CI/CD pipeline definitions including name, folder path, and configuration. Source: OData Pipelines entity.
+table Pipelines
+	lineageTag: 6929ac76-086e-4b2c-8759-a5703e11db52
+
+	/// Surrogate key linking to the Projects dimension table
+	column ProjectSK
+		dataType: string
+		isHidden
+		lineageTag: bdf926be-dc93-4d27-92eb-cb20ab81747b
+		summarizeBy: none
+		sourceColumn: ProjectSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Surrogate key uniquely identifying the pipeline definition
+	column PipelineSK
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 5ea38763-f2db-4e4a-a38f-e528391c1fd6
+		summarizeBy: none
+		sourceColumn: PipelineSK
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unique numeric identifier for the pipeline
+	column PipelineId
+		dataType: int64
+		formatString: 0
+		lineageTag: 08115239-ed65-4bd5-99b3-c880a63b21a1
+		summarizeBy: count
+		sourceColumn: PipelineId
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Display name of the pipeline definition
+	column PipelineName
+		dataType: string
+		lineageTag: 14aa03c0-8334-4afc-9897-1901803940cf
+		summarizeBy: none
+		sourceColumn: PipelineName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Current version number of the pipeline definition
+	column PipelineVersion
+		dataType: int64
+		formatString: 0
+		lineageTag: 0c8d4992-d7a7-4d98-a30a-bdfd93c784e0
+		summarizeBy: sum
+		sourceColumn: PipelineVersion
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Type of pipeline process (e.g., Designer, YAML)
+	column PipelineProcessType
+		dataType: string
+		lineageTag: 886e6352-7955-4d87-b3eb-07e1648baeec
+		summarizeBy: none
+		sourceColumn: PipelineProcessType
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Pipelines = m
+		mode: import
+		queryGroup: 'DevOps Tables'
+		source =
+				let
+				    Source = OData.Feed("https://analytics.dev.azure.com/EmergeAotearoa/Data%20and%20Analytics/_odata/v3.0-preview/", null, [Implementation="2.0",OmitValues = ODataOmitValues.Nulls,ODataVersion = 4, Headers=[Authorization=fnGetToken()]]),
+				    Pipelines_table = Source{[Name="Pipelines",Signature="table"]}[Data]
+				in
+				    Pipelines_table
+

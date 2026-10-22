@@ -1,0 +1,104 @@
+table dim_incident_category
+	lineageTag: 2e0bc483-8638-46a9-8634-327ca876d575
+
+	column IncidentCategoryParent
+		dataType: string
+		lineageTag: b19e8f2b-f0fb-49ca-82ff-9083867ac390
+		summarizeBy: none
+		sourceColumn: IncidentCategoryParent
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentCategory
+		dataType: string
+		lineageTag: 55096ffc-a4ed-48b2-96dc-f858e9508c8e
+		summarizeBy: none
+		sourceColumn: IncidentCategory
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentCategoryTypeKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 3f1b9358-6075-4f03-a838-8035136a7439
+		summarizeBy: none
+		sourceColumn: IncidentCategoryTypeKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentCategoryID
+		dataType: int64
+		formatString: 0
+		lineageTag: 1d171b5c-3df5-4ade-be88-22173b165a6d
+		summarizeBy: none
+		sourceColumn: IncidentCategoryID
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentCategoryParentID
+		dataType: int64
+		formatString: 0
+		lineageTag: 5aa389bb-7395-4682-9706-8b27833531a0
+		summarizeBy: none
+		sourceColumn: IncidentCategoryParentID
+
+		annotation SummarizationSetBy = Automatic
+
+	column CriticalIncidentYN
+		dataType: string
+		lineageTag: 270a2266-48df-4bb6-a9d1-9ce2352d4603
+		summarizeBy: none
+		sourceColumn: CriticalIncidentYN
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentCategoryFull
+		dataType: string
+		lineageTag: afb12300-35af-4c76-94fb-a44ab706eb3b
+		summarizeBy: none
+		sourceColumn: IncidentCategoryFull
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentCategoryPrimaryCalc
+		dataType: string
+		lineageTag: ab3ebe5e-c601-4bd3-85c3-67a49bbc6c14
+		summarizeBy: none
+		sourceColumn: IncidentCategoryPrimaryCalc
+
+		annotation SummarizationSetBy = Automatic
+
+	column IncidentCategoryGroup
+		dataType: string
+		lineageTag: 4e0b3654-59c4-440f-bab3-aaac02f87da5
+		summarizeBy: none
+		sourceColumn: IncidentCategoryGroup
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'Incident Category Hierarchy'
+		lineageTag: fa2378ad-30c4-4b0f-9ad0-87eae8f0ec99
+
+		level Category
+			lineageTag: b7759475-a2bb-4351-897d-a74f2b5f2721
+			column: IncidentCategoryParent
+
+		level 'Sub Category'
+			lineageTag: eac21228-dd9c-4066-b285-b7c99536dfc4
+			column: IncidentCategory
+
+	partition dim_incident_category-89d6e09a-08ba-4849-8576-3f7f9c4905b3 = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="Select#(tab)#(tab)dcict.dim_client_incident_company_key_category_type_id_key As IncidentCategoryTypeKey,#(lf)#(tab)#(tab)#(tab)dcict.incident_category_type_id As IncidentCategoryID,#(lf)#(tab)#(tab)#(tab)dcict.incident_category_type_text As IncidentCategory,#(lf)#(tab)#(tab)#(tab)dcict.incident_category_type_parent_Id As IncidentCategoryParentID,#(lf)#(tab)#(tab)#(tab)dcict.incident_category_type_parent_text As IncidentCategoryParent,#(lf)#(tab)#(tab)#(tab)IIf(dcict.incident_category_type_parent_text = 'Death'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)Or dcict.incident_category_type_parent_text = 'Abuse or Neglect'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)Or dcict.incident_category_type_text = 'Restraint',#(lf)#(tab)#(tab)#(tab)#(tab)'Yes',#(lf)#(tab)#(tab)#(tab)#(tab)'No') As CriticalIncidentYN,#(lf)#(tab)#(tab)#(tab)IIf(IsNull(dcict.incident_category_type_parent_text, 'N/A') In ('N/A', 'Unknown'),#(lf)#(tab)#(tab)#(tab)#(tab)dcict.incident_category_type_text,#(lf)#(tab)#(tab)#(tab)#(tab)dcict.incident_category_type_parent_text + ' - ' + dcict.incident_category_type_text) As IncidentCategoryFull,#(lf)#(tab)#(tab)#(tab)IIf(IsNull(dcict.incident_category_type_parent_text, 'N/A') In ('N/A', 'Unknown'),#(lf)#(tab)#(tab)#(tab)#(tab)dcict.incident_category_type_text,#(lf)#(tab)#(tab)#(tab)#(tab)dcict.incident_category_type_parent_text) As IncidentCategoryPrimaryCalc,#(lf)#(tab)#(tab)#(tab)Case When dcict.incident_category_type_parent_text In ('Abuse or Neglect', 'Verbal Abuse / Aggression')#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)Or dcict.incident_category_type_text In ('Abuse or Neglect', 'Verbal Abuse / Aggression')#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)Then 'Abuse'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)When dcict.incident_category_type_text = 'Death'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)Or (dcict.incident_category_type_text = 'Expected'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)And dcict.incident_category_type_parent_text = 'Death')#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)Then 'Death - Expected'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)When dcict.incident_category_type_text = 'Death/Suicide'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)Or (dcict.incident_category_type_text = 'Unexpected'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)And dcict.incident_category_type_parent_text = 'Death')#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)Then 'Death - Unexpected'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)When dcict.incident_category_type_text = 'Restraint'#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)Then 'Restraint'#(tab)-- Ignores the Restraint that is already grouped in Abuse#(lf)#(tab)#(tab)#(tab)#(tab)Else 'Other'#(lf)#(tab)#(tab)#(tab)#(tab)End As IncidentCategoryGroup#(lf)From#(tab)#(tab)edw.vw_dim_client_incident_category_type dcict#(lf)"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

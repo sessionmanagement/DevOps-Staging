@@ -1,0 +1,125 @@
+table Changelog
+	isHidden
+	lineageTag: e2058b05-9dc2-4aea-94a0-0ceef89ed122
+
+	measure 'Latest Version' =
+			
+			VAR LatestChangeID =
+			    MAX ( 'Changelog'[Change ID] )
+			VAR LatestVersion =
+			    MAXX (
+			        FILTER ( 'Changelog', 'Changelog'[Change ID] = LatestChangeID ),
+			        'Changelog'[Version]
+			    )
+			RETURN
+			    "Organisational Performance KPI Dataset - v" & LatestVersion
+		isHidden
+		lineageTag: 8b4c620b-0da9-4f9f-99c4-ab1fa26427a5
+
+		changedProperty = IsHidden
+
+	column 'Change ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 91ade21c-1666-4d03-ad04-cc1600a8fe78
+		summarizeBy: count
+		sourceColumn: Change ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Version
+		dataType: string
+		isHidden
+		lineageTag: e09a294d-1d56-464d-852d-e4e2b072e21c
+		summarizeBy: none
+		sourceColumn: Version
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Change Date'
+		dataType: string
+		isHidden
+		lineageTag: a11c8d8c-9570-4115-9149-5bd1d78b4ad6
+		summarizeBy: none
+		sourceColumn: Change Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Changed By'
+		dataType: string
+		isHidden
+		lineageTag: 954cbf77-3be0-4e2c-82bb-548abe80d82b
+		summarizeBy: none
+		sourceColumn: Changed By
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'User Story ID'
+		dataType: string
+		isHidden
+		lineageTag: cedbc267-1eb1-4aaa-b6ad-059d6386defd
+		summarizeBy: none
+		sourceColumn: User Story ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		isHidden
+		lineageTag: 454feb59-d469-48fb-932f-fec7d4d982a8
+		summarizeBy: none
+		sourceColumn: Description
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Changelog = m
+		mode: import
+		queryGroup: ChangeLog
+		source =
+				let
+				    // Define the table schema without the ChangeID column
+				    InitialTable = #table(
+				        {"Version", "Change Date", "Changed By", "User Story ID", "Description"},
+				        {
+				            {
+				                "1.0.0", /* Version */
+				                #date(2024, 7, 25),  /* Date */
+				                "Mike",  /* Changed By */
+				                "N/A",  /* User Story */
+				                "Development Start."  /* Description */
+				            },
+				            {
+				                "1.0.1", /* Version */
+				                #date(2024, 7, 26),  /* Date */
+				                "Mike",  /* Changed By */
+				                "N/A",  /* User Story */
+				                "Development continuation."  /* Description */
+				            }
+				        }
+				    ),
+				
+				    // Add an Index column to generate incremental numbers
+				    TableWithIndex = Table.AddIndexColumn(InitialTable, "Change ID", 1, 1, Int64.Type),
+				
+				    // Reorder the columns to place ChangeID first
+				    ReorderedColumns = Table.ReorderColumns(TableWithIndex, {"Change ID", "Version", "Change Date", "Changed By", "User Story ID", "Description"})
+				in
+				    ReorderedColumns
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+

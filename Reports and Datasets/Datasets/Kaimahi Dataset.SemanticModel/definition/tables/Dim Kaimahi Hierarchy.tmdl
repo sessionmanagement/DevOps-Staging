@@ -1,0 +1,165 @@
+table 'Dim Kaimahi Hierarchy'
+	lineageTag: f5dac5e8-4dde-4eee-88d3-85c183d1578d
+
+	column 'Dim Kaimahi KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: f1c5efaa-95e0-453d-aab1-56317dcbc7c7
+		summarizeBy: sum
+		sourceColumn: Dim Kaimahi KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Kaimahi ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: c40b24b9-72bd-4d76-807b-082eed4a281f
+		summarizeBy: none
+		sourceColumn: Kaimahi ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Kaimahi People Leader Business Unit Name Level 1'
+		dataType: string
+		lineageTag: f54489fc-4904-45ba-a3ec-fd94e8ed92fb
+		summarizeBy: none
+		sourceColumn: Kaimahi People Leader Business Unit Name Level 1
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Kaimahi People Leader Business Unit Name Level 2'
+		dataType: string
+		lineageTag: a1bcbe7f-4524-4670-9177-b35308621f26
+		summarizeBy: none
+		sourceColumn: Kaimahi People Leader Business Unit Name Level 2
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Kaimahi People Leader Business Unit Name Level 3'
+		dataType: string
+		lineageTag: b5158f1d-d969-461b-aba6-4849f10811ee
+		summarizeBy: none
+		sourceColumn: Kaimahi People Leader Business Unit Name Level 3
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Kaimahi People Leader Business Unit Name Level 4'
+		dataType: string
+		lineageTag: 05a06283-2888-48be-bd2b-edcb2e1de133
+		summarizeBy: none
+		sourceColumn: Kaimahi People Leader Business Unit Name Level 4
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Kaimahi People Leader Business Unit Name Level 5'
+		dataType: string
+		lineageTag: d9b0030c-d433-4013-be54-4e0459fcebba
+		summarizeBy: none
+		sourceColumn: Kaimahi People Leader Business Unit Name Level 5
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Kaimahi People Leader Business Unit Name Level 6'
+		dataType: string
+		lineageTag: 7e124242-2726-4e6e-bae4-58be002365c8
+		summarizeBy: none
+		sourceColumn: Kaimahi People Leader Business Unit Name Level 6
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Effective From'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 01e40ef9-8345-4c79-ab93-fa1a7042f525
+		summarizeBy: none
+		sourceColumn: DWH Effective From
+
+		variation Variation
+			isDefault
+			relationship: 1806c36b-1883-45a0-ac21-70aecaab1df5
+			defaultHierarchy: LocalDateTable_b9ee5b24-88d5-41f0-9b52-63510c49dbf5.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'DWH Effective To'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 0240526f-8a99-4e37-b013-4dffbb9c0a2b
+		summarizeBy: none
+		sourceColumn: DWH Effective To
+
+		variation Variation
+			isDefault
+			relationship: e9d4377b-22eb-4852-837a-6f710541e17d
+			defaultHierarchy: LocalDateTable_b9b7c005-7b47-457d-a165-509bbe087332.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Supervisor Name'
+		dataType: string
+		lineageTag: 3767855e-a6cc-43f4-8700-06f6f4de74a4
+		summarizeBy: none
+		sourceColumn: Supervisor Name
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'Kaimahi Business Unit Hierarchy'
+		lineageTag: 0db72315-63bd-442e-9039-c4ba6a941a6f
+
+		level Executive
+			lineageTag: 5b05988c-cd7a-47b3-87fa-8d3559caec24
+			column: 'Kaimahi People Leader Business Unit Name Level 1'
+
+		level 'Business Unit'
+			lineageTag: caa1e0ac-52fd-4ce3-a30d-8c67e46d992b
+			column: 'Kaimahi People Leader Business Unit Name Level 2'
+
+		level Group
+			lineageTag: 92184c93-df21-4ba1-aab8-4d0873885846
+			column: 'Kaimahi People Leader Business Unit Name Level 3'
+
+		level Unit
+			lineageTag: 275650ed-afb3-4694-8760-50c9e00ff70c
+			column: 'Kaimahi People Leader Business Unit Name Level 4'
+
+		level Department
+			lineageTag: 18a17f66-e4fd-4d57-b2c9-4e4747fe9384
+			column: 'Kaimahi People Leader Business Unit Name Level 5'
+
+		level Team
+			lineageTag: 799c2e97-5e50-487c-a554-82590e2c0196
+			column: 'Kaimahi People Leader Business Unit Name Level 6'
+
+	partition 'Dim Kaimahi Hierarchy' = m
+		mode: import
+		queryGroup: Dim
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="SELECT#(lf)    [dim_employee_key],#(lf)    [employee_id],#(lf)    [employee_people_leader_business_unit_name_level_1],#(lf)    [employee_people_leader_business_unit_name_level_2],#(lf)    [employee_people_leader_business_unit_name_level_3],#(lf)    [employee_people_leader_business_unit_name_level_4],#(lf)    [employee_people_leader_business_unit_name_level_5],#(lf)    [employee_people_leader_business_unit_name_level_6],#(lf)#(lf)    CASE#(lf)        WHEN [employee_primary_email_address] = [employee_people_leader_email_level_2]#(lf)            THEN [employee_people_leader_person_display_name_level_1]#(lf)#(lf)        WHEN [employee_primary_email_address] = [employee_people_leader_email_level_3]#(lf)            THEN [employee_people_leader_person_display_name_level_2]#(lf)#(lf)        WHEN [employee_primary_email_address] = [employee_people_leader_email_level_4]#(lf)            THEN [employee_people_leader_person_display_name_level_3]#(lf)#(lf)        WHEN [employee_primary_email_address] = [employee_people_leader_email_level_5]#(lf)            THEN [employee_people_leader_person_display_name_level_4]#(lf)#(lf)        WHEN [employee_primary_email_address] = [employee_people_leader_email_level_6]#(lf)            THEN [employee_people_leader_person_display_name_level_5]#(lf)#(lf)        WHEN [employee_primary_email_address] = [employee_people_leader_email_level_7]#(lf)            THEN [employee_people_leader_person_display_name_level_6]#(lf)#(lf)        WHEN [employee_primary_email_address] = [employee_people_leader_email_level_8]#(lf)            THEN [employee_people_leader_person_display_name_level_7]#(lf)#(lf)        WHEN [employee_primary_email_address] = [employee_people_leader_email_level_9]#(lf)            THEN [employee_people_leader_person_display_name_level_8]#(lf)#(lf)        ELSE NULL#(lf)    END AS [Supervisor Name],#(lf)#(lf)    [DWHEffectiveFrom],#(lf)    [DWHEffectiveTo]#(lf)#(lf)FROM [edw].[vw_dim_employee_hierarchy]#(lf)#(lf)WHERE [DWHIsCurrent] = 1#(lf)  AND [dim_employee_key] IS NOT NULL;"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceKaimahi = Text.Replace(columnName, "employee_", "Kaimahi_"),
+				            replaceClient = Text.Replace(replaceKaimahi, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_))
+				in
+				    #"Transformed Column Names"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

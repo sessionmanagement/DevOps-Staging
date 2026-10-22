@@ -1,0 +1,71 @@
+table dim_smoking_status
+	lineageTag: b273dc3c-fb37-45ce-a1ee-363566d0d3a5
+
+	column DimSmokingStatusKey
+		dataType: string
+		lineageTag: 5415a7d7-e7f8-40df-a52e-b3a3ce4c3cd1
+		summarizeBy: none
+		sourceColumn: DimSmokingStatusKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column SmokingStatusValue
+		dataType: string
+		lineageTag: 4083e75c-2b4c-4c83-97a8-633497ef58e3
+		summarizeBy: none
+		sourceColumn: SmokingStatusValue
+		sortByColumn: ValueRank
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column SmokingStatusText
+		dataType: string
+		lineageTag: ebaa603c-14c7-4b63-984d-f405dbe6d25e
+		summarizeBy: none
+		sourceColumn: SmokingStatusText
+		sortByColumn: Rank
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Rank
+		dataType: int64
+		formatString: 0
+		lineageTag: f651ab91-1114-4f24-bf97-eaf41bec04b8
+		summarizeBy: sum
+		sourceColumn: Rank
+
+		annotation SummarizationSetBy = Automatic
+
+	column Index
+		dataType: int64
+		formatString: 0
+		lineageTag: eb290057-5118-4252-9ef6-a409cc986cb8
+		summarizeBy: sum
+		sourceColumn: Index
+
+		annotation SummarizationSetBy = Automatic
+
+	column ValueRank
+		dataType: int64
+		formatString: 0
+		lineageTag: f6d24e45-371c-40b4-9e27-f11e5631eeb3
+		summarizeBy: sum
+		sourceColumn: ValueRank
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_smoking_status-7339d02d-bf2d-42d6-be4e-fff11e258c9f = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT#(lf)CONCAT('E',SmokingStatusID) AS DimSmokingStatusKey,#(lf)SmokingStatusValue,#(lf)CAST(SmokingStatusText AS varchar(100)) AS SmokingStatusText,#(lf)CASE #(lf)WHEN SmokingStatusID = 12308 THEN 0#(lf)WHEN SmokingStatusID = 12522 THEN 1#(lf)WHEN SmokingStatusID = 12307 THEN 2#(lf)WHEN SmokingStatusID = 12306 THEN 3#(lf)WHEN SmokingStatusID = 11555 THEN 4#(lf)WHEN SmokingStatusID = 11556 THEN 5#(lf)WHEN SmokingStatusID = 11557 THEN 6#(lf)WHEN SmokingStatusID = 11558 THEN 7#(lf)WHEN SmokingStatusID = 11559 THEN 8#(lf)ELSE NULL END AS Rank,#(lf)CASE #(lf)WHEN SmokingStatusValue = 'NS' THEN 1#(lf)WHEN SmokingStatusValue = 'ES' THEN 2#(lf)WHEN SmokingStatusValue = 'CS' THEN 3#(lf)ELSE NULL END AS ValueRank#(lf)FROM [RBEAL].[dlDimSmokingStatus]#(lf)WHERE SmokingStatusIsActive = 1#(lf)#(lf)UNION #(lf)#(lf)SELECT#(lf)CONCAT('M',SmokingStatusID) AS DimSmokingStatusKey,#(lf)SmokingStatusValue,#(lf)CAST(SmokingStatusText AS varchar(100)) AS SmokingStatusText,#(lf)CASE #(lf)WHEN SmokingStatusID = 12308 THEN 0#(lf)WHEN SmokingStatusID = 12307 THEN 1#(lf)WHEN SmokingStatusID = 12525 THEN 2#(lf)WHEN SmokingStatusID = 12306 THEN 3#(lf)WHEN SmokingStatusID = 11555 THEN 4#(lf)WHEN SmokingStatusID = 11556 THEN 5#(lf)WHEN SmokingStatusID = 11557 THEN 6#(lf)WHEN SmokingStatusID = 11558 THEN 7#(lf)WHEN SmokingStatusID = 11559 THEN 8#(lf)ELSE NULL END AS Rank,#(lf)CASE #(lf)WHEN SmokingStatusValue = 'NS' THEN 1#(lf)WHEN SmokingStatusValue = 'ES' THEN 2#(lf)WHEN SmokingStatusValue = 'CS' THEN 3#(lf)ELSE NULL END AS ValueRank#(lf)FROM [RBMNB].[dlDimSmokingStatus]#(lf)WHERE SmokingStatusIsActive = 1#(lf)ORDER BY RANK"]),
+				    #"Added Index" = Table.AddIndexColumn(Source, "Index", 0, 1, Int64.Type)
+				in
+				    #"Added Index"
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,67 @@
+table working_longest_approved_shifts
+	lineageTag: 3d3d29f6-0a33-438b-916c-fd22eaa3aa60
+
+	column LongestShift
+		dataType: double
+		lineageTag: 15860bbf-60cc-43c5-80ad-3ef7824f454b
+		summarizeBy: none
+		sourceColumn: LongestShift
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Group Unique ID'
+		dataType: string
+		lineageTag: 61075ff1-bbd7-4cb3-b886-92ecebcab672
+		summarizeBy: none
+		sourceColumn: Group Unique ID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition working_longest_approved_shifts = m
+		mode: import
+		source = ```
+				let
+				    Source = Sql.Database(Server, Database, [Query="WITH fact_candidates AS#(lf)(#(lf)    SELECT#(lf)        eh.time_sheet_entry_id AS timesheet_id,#(lf)#(lf)        -- EDW does not retain the original is_leave or role_id fields.#(lf)        CAST(0 AS BIT) AS is_leave,#(lf)        CAST(NULL AS NVARCHAR(36)) AS role_id,#(lf)        eh.fact_hours_worked_role AS role_name,#(lf)#(lf)        eh.fact_hours_worked_approval_status AS approval_status,#(lf)#(lf)        -- Closest EDW business identifier for the EmpLive employee.#(lf)        eh.fact_hours_worked_employee_number AS employee_id,#(lf)#(lf)        -- Closest available substitute for EmpLive work_type_id.#(lf)        eh.fact_hours_worked_payroll_category_id AS work_type_id,#(lf)        pc.payroll_category_name AS work_type_name,#(lf)#(lf)        start_date.calendar_date AS start_date,#(lf)        end_date.calendar_date AS end_date,#(lf)#(lf)        CASE#(lf)            WHEN start_date.calendar_date IS NOT NULL#(lf)             AND start_time.[time] IS NOT NULL#(lf)            THEN DATEADD(#(lf)                SECOND,#(lf)                DATEDIFF(#(lf)                    SECOND,#(lf)                    CAST('00:00:00' AS TIME),#(lf)                    start_time.[time]#(lf)                ),#(lf)                CAST(start_date.calendar_date AS DATETIME2)#(lf)            )#(lf)        END AS start_datetime,#(lf)#(lf)        CASE#(lf)            WHEN end_date.calendar_date IS NOT NULL#(lf)             AND end_time.[time] IS NOT NULL#(lf)            THEN DATEADD(#(lf)                SECOND,#(lf)                DATEDIFF(#(lf)                    SECOND,#(lf)                    CAST('00:00:00' AS TIME),#(lf)                    end_time.[time]#(lf)                ),#(lf)                CAST(end_date.calendar_date AS DATETIME2)#(lf)            )#(lf)        END AS end_datetime,#(lf)#(lf)        MAX(#(lf)            CASE#(lf)                WHEN pc.payroll_category_hours_worked_flag = 1#(lf)                THEN 1#(lf)                ELSE 0#(lf)            END#(lf)        ) OVER#(lf)        (#(lf)            PARTITION BY eh.time_sheet_entry_id#(lf)        ) AS has_hours_worked_category,#(lf)#(lf)        ROW_NUMBER() OVER#(lf)        (#(lf)            PARTITION BY eh.time_sheet_entry_id#(lf)            ORDER BY#(lf)                CASE#(lf)                    WHEN pc.payroll_category_hours_worked_flag = 1#(lf)                    THEN 0#(lf)                    ELSE 1#(lf)                END,#(lf)                eh.fact_hours_worked_total_duration DESC,#(lf)                eh.fact_employee_hours_worked_key#(lf)        ) AS category_rank#(lf)    FROM [edw].[fact_employee_hours_worked] AS eh#(lf)    LEFT JOIN [edw].[dim_payroll_category] AS pc#(lf)        ON pc.dim_payroll_category_key =#(lf)           eh.dim_payroll_category_key#(lf)       AND pc.DWHDMLOperation <> 'D'#(lf)    LEFT JOIN [edw].[dim_date] AS start_date#(lf)        ON start_date.dim_date_key =#(lf)           eh.dim_shift_start_date_key#(lf)    LEFT JOIN [edw].[dim_date] AS end_date#(lf)        ON end_date.dim_date_key =#(lf)           eh.dim_shift_end_date_key#(lf)    LEFT JOIN [edw].[dim_time] AS start_time#(lf)        ON start_time.dim_time_key =#(lf)           eh.dim_shift_start_time_key#(lf)    LEFT JOIN [edw].[dim_time] AS end_time#(lf)        ON end_time.dim_time_key =#(lf)           eh.dim_shift_end_time_key#(lf)    WHERE eh.DWHIsCurrent = 1#(lf)      AND eh.DWHDMLOperation <> 'D'#(lf)      AND eh.fact_hours_worked_approval_status = 'APPROVED'#(lf)      AND#(lf)      (#(lf)          eh.fact_hours_worked_role NOT LIKE 'On Call%'#(lf)          OR eh.fact_hours_worked_role IS NULL#(lf)      )#(lf)      AND#(lf)      (#(lf)          eh.fact_hours_worked_role NOT LIKE 'Test'#(lf)          OR eh.fact_hours_worked_role IS NULL#(lf)      )#(lf)),#(lf)t1 AS#(lf)(#(lf)    SELECT#(lf)        timesheet_id,#(lf)        is_leave,#(lf)        role_id,#(lf)        role_name,#(lf)        approval_status,#(lf)        employee_id,#(lf)        work_type_id,#(lf)        work_type_name,#(lf)        start_date,#(lf)        end_date,#(lf)        start_datetime,#(lf)        end_datetime#(lf)    FROM fact_candidates#(lf)    WHERE category_rank = 1#(lf)      AND has_hours_worked_category = 1#(lf)),#(lf)t2 AS#(lf)(#(lf)    SELECT#(lf)        t1.*,#(lf)#(lf)        DATEDIFF(#(lf)            MINUTE,#(lf)            t1.start_datetime,#(lf)            t1.end_datetime#(lf)        ) AS shift_length_mins,#(lf)#(lf)        DATEDIFF(#(lf)            MINUTE,#(lf)            LAG(t1.end_datetime) OVER#(lf)            (#(lf)                PARTITION BY employee_id, work_type_id#(lf)                ORDER BY start_datetime, timesheet_id#(lf)            ),#(lf)            t1.start_datetime#(lf)        ) AS time_since_last_shift_mins,#(lf)#(lf)        LAG(t1.end_datetime) OVER#(lf)        (#(lf)            PARTITION BY employee_id, work_type_id#(lf)            ORDER BY start_datetime, timesheet_id#(lf)        ) AS prev_end_datetime,#(lf)#(lf)        CEILING(#(lf)            CAST(#(lf)                DATEDIFF(#(lf)                    MINUTE,#(lf)                    t1.start_datetime,#(lf)                    t1.end_datetime#(lf)                ) AS FLOAT#(lf)            ) / 60#(lf)        ) AS shift_length_hours,#(lf)#(lf)        DATEDIFF(#(lf)            HOUR,#(lf)            LAG(t1.end_datetime) OVER#(lf)            (#(lf)                PARTITION BY employee_id, work_type_id#(lf)                ORDER BY start_date, start_datetime, timesheet_id#(lf)            ),#(lf)            t1.start_datetime#(lf)        ) AS time_since_last_shift_hours,#(lf)#(lf)        DATEPART(WEEKDAY, t1.start_date) AS [day],#(lf)        1 AS [count]#(lf)    FROM t1#(lf)),#(lf)t3 AS#(lf)(#(lf)    SELECT#(lf)        t2.*,#(lf)        CASE#(lf)            WHEN t2.time_since_last_shift_hours >= 2#(lf)            THEN 1#(lf)            ELSE 0#(lf)        END AS new_group_flag#(lf)    FROM t2#(lf)),#(lf)t4_base AS#(lf)(#(lf)    SELECT#(lf)        t3.*,#(lf)#(lf)        SUM(t3.new_group_flag) OVER#(lf)        (#(lf)            PARTITION BY#(lf)                t3.employee_id,#(lf)                t3.work_type_id#(lf)            ORDER BY#(lf)                t3.start_datetime,#(lf)                t3.timesheet_id#(lf)            ROWS BETWEEN UNBOUNDED PRECEDING#(lf)                     AND CURRENT ROW#(lf)        ) AS group_id#(lf)    FROM t3#(lf)),#(lf)t4 AS#(lf)(#(lf)    SELECT#(lf)        t4_base.*,#(lf)#(lf)        CAST(t4_base.employee_id AS VARCHAR(20))#(lf)        + '-'#(lf)        + CAST(t4_base.work_type_id AS VARCHAR(36))#(lf)        + '-'#(lf)        + CAST(t4_base.group_id AS VARCHAR(20))#(lf)            AS group_unique_id#(lf)    FROM t4_base#(lf))#(lf)SELECT#(lf)    t4.*,#(lf)#(lf)    SUM(#(lf)        CASE#(lf)            WHEN t4.time_since_last_shift_hours < 2#(lf)              OR t4.new_group_flag = 1#(lf)            THEN t4.shift_length_hours#(lf)            ELSE 0#(lf)        END#(lf)    ) OVER#(lf)    (#(lf)        PARTITION BY#(lf)            t4.employee_id,#(lf)            t4.work_type_id,#(lf)            t4.group_id#(lf)        ORDER BY#(lf)            t4.start_datetime,#(lf)            t4.timesheet_id#(lf)        ROWS BETWEEN UNBOUNDED PRECEDING#(lf)                 AND CURRENT ROW#(lf)    ) AS shift_length_cumulative,#(lf)#(lf)    (#(lf)        SUM(#(lf)            CASE#(lf)                WHEN t4.time_since_last_shift_hours < 2#(lf)                THEN t4.[count]#(lf)                ELSE 0#(lf)            END#(lf)        ) OVER#(lf)        (#(lf)            PARTITION BY#(lf)                t4.employee_id,#(lf)                t4.work_type_id,#(lf)                t4.group_id#(lf)            ORDER BY#(lf)                t4.start_datetime,#(lf)                t4.timesheet_id#(lf)            ROWS BETWEEN UNBOUNDED PRECEDING#(lf)                     AND CURRENT ROW#(lf)        )#(lf)    ) + 1 AS number_of_shifts_in_cumulative_sum#(lf)FROM t4#(lf)ORDER BY#(lf)    group_id,#(lf)    employee_id,#(lf)    start_datetime;"])
+				, ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceKaimahi = Text.Replace(columnName, "employee_", "Kaimahi_"),
+				            replaceClient = Text.Replace(replaceKaimahi, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHisCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, " Id", " ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_))
+				,
+				    #"Added Custom" = Table.AddColumn(
+				    #"Transformed Column Names", 
+				    "Start Date & Time", 
+				    each DateTime.ToText([Start Datetime], "ddd dd MMM, yyyy (h:mm tt)", "en-US")
+				),
+				    #"Added Custom1" = Table.AddColumn(
+				    #"Added Custom", 
+				    "End Date Time", 
+				    each DateTime.ToText([End Datetime], "ddd dd MMM, yyyy (h:mm tt)", "en-US")
+				),
+				    #"Removed Other Columns" = Table.SelectColumns(#"Added Custom1",{"Shift Length Cumulative", "Group Unique ID"}),
+				    #"Grouped Rows" = Table.Group(#"Removed Other Columns", {"Group Unique ID"}, {{"LongestShift", each List.Max([Shift Length Cumulative]), type nullable number}})
+				in
+				    #"Grouped Rows"
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

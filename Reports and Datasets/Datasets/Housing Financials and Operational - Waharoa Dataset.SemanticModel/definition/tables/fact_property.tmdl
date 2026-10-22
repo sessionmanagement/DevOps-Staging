@@ -1,0 +1,131 @@
+table fact_property
+	lineageTag: d4d29a22-ac0b-44f6-b28f-408a41ad745f
+
+	column zav_propertyid
+		dataType: string
+		lineageTag: 2b426d8b-a496-4243-adc1-0d6233cce003
+		summarizeBy: none
+		sourceColumn: zav_propertyid
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column length_of_ownership_days =
+			
+			IF(
+			    ISBLANK(RELATED(dim_property[zav_confirmeddisposaldate])),
+			        DATEDIFF(RELATED(dim_property[zav_acquireddate]),TODAY(),DAY),
+			        DATEDIFF(RELATED(dim_property[zav_acquireddate]),RELATED(dim_property[zav_confirmeddisposaldate]),DAY)
+			)
+		formatString: 0
+		lineageTag: 7ad5ec9c-4f0c-4eb6-9351-bf1e01e7b911
+		summarizeBy: sum
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column approx_build_date =
+			
+			IF(
+			    ISBLANK(RELATED(dim_property[new_yearbuilt])),
+			    BLANK(),
+			    DATE(RELATED(dim_property[new_yearbuilt]),06,01)
+			)
+		formatString: Short Date
+		lineageTag: 4bda149d-b10f-48d4-8be0-a558df4a9e7e
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column house_age_days =
+			
+			IF(
+			    ISBLANK(fact_property[approx_build_date]),
+			        BLANK(),
+			        DATEDIFF(fact_property[approx_build_date],TODAY(),DAY)
+			)
+		formatString: 0
+		lineageTag: 20dbab1f-5839-4f73-8ece-7350016d18ea
+		summarizeBy: sum
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column statuscode
+		dataType: string
+		lineageTag: 119a09eb-019b-4300-b565-26f78a108e5c
+		summarizeBy: none
+		sourceColumn: statuscode
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_acquireddate
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 91efcec0-d5c5-47c7-a982-8d93e0b519e3
+		summarizeBy: none
+		sourceColumn: zav_acquireddate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column zav_confirmeddisposaldate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 8a1a1cc5-84cd-436f-ae8b-52ae140928d1
+		summarizeBy: none
+		sourceColumn: zav_confirmeddisposaldate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column new_yearbuilt
+		dataType: string
+		lineageTag: 288a8f01-09b4-427e-bb44-54eae4a67854
+		summarizeBy: none
+		sourceColumn: new_yearbuilt
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column zav_disposaldate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 63809ff7-bee5-426c-b3c4-23307d1a74b7
+		summarizeBy: none
+		sourceColumn: zav_disposaldate
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_property-9a8d6aeb-2156-48d0-8f14-c4b5e27e168a = m
+		mode: import
+		queryGroup: facts
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="WITH RankedProperties AS (#(lf)    SELECT#(lf)        dp.property_id AS zav_propertyid,#(lf)        dp.property_statuscode AS statuscode,#(lf)        dp.property_year_built AS new_yearbuilt,#(lf)        dp.property_acquired_date AS zav_acquireddate,#(lf)        dp.property_disposal_date AS zav_disposaldate,#(lf)        dp.property_confirmed_disposal_date AS zav_confirmeddisposaldate,#(lf)        COALESCE(dp.synapse_link_sink_modified_on, dp.DWHEffectiveFrom) AS SinkModifiedOn,#(lf)        ROW_NUMBER() OVER (#(lf)            PARTITION BY dp.property_id#(lf)            ORDER BY COALESCE(dp.synapse_link_sink_modified_on, dp.DWHEffectiveFrom) DESC#(lf)        ) AS rn#(lf)    FROM edw.dim_property dp#(lf)    WHERE dp.property_id IS NOT NULL#(lf)      AND dp.DWHDMLOperation <> 'D'#(lf))#(lf)SELECT#(lf)    zav_propertyid,#(lf)    statuscode,#(lf)    new_yearbuilt,#(lf)    zav_acquireddate,#(lf)    zav_disposaldate,#(lf)    zav_confirmeddisposaldate#(lf)FROM RankedProperties#(lf)WHERE rn = 1;"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"zav_acquireddate", type date}, {"zav_confirmeddisposaldate", type date}})
+				in
+				    #"Changed Type"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Exception
+
+	annotation PBI_NavigationStepName = Navigation
+

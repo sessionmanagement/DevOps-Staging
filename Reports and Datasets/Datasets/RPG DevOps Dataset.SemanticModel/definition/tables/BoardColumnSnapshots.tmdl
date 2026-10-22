@@ -1,0 +1,41 @@
+/// Daily snapshots of work item board column placement on the Epics board. Loads full history from WorkItemBoardSnapshot OData entity to enable change detection.
+table BoardColumnSnapshots
+	lineageTag: d6267322-0e4a-4886-840e-a238f6bc7af3
+
+	column DateValue
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 53c41911-9ad5-43a6-b63b-beed4244a42e
+		summarizeBy: none
+		sourceColumn: DateValue
+
+	column WorkItemId
+		dataType: int64
+		lineageTag: e30ef98f-e095-4fed-9787-4beef8c1aca8
+		summarizeBy: none
+		sourceColumn: WorkItemId
+
+	column ColumnName
+		dataType: string
+		lineageTag: a7962514-5b89-4618-b212-9c4f6a304178
+		sourceColumn: ColumnName
+
+	partition BoardColumnSnapshots = m
+		mode: import
+		source = ```
+				let
+				   Source = OData.Feed ("https://analytics.dev.azure.com/EmergeAotearoa/Data%20and%20Analytics/_odata/V3.0-preview/WorkItemBoardSnapshot?"
+				        &"$apply=filter( "
+				            &"Team/TeamName eq 'Data and Analytics Team'  "
+				            &"and BoardName eq 'Epics'  "
+				        &") "
+				        &"/groupby ((DateValue,WorkItemId,ColumnName)) "
+				    ,null, [Implementation="2.0",OmitValues = ODataOmitValues.Nulls,ODataVersion = 4, Headers=[Authorization=fnGetToken()]]) 
+				in
+				    Source
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

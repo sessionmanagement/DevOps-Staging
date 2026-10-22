@@ -1,0 +1,159 @@
+table dim_team_area
+	lineageTag: aad67657-477e-4a54-ba26-fc76c03fd498
+
+	column AreaParentName
+		dataType: string
+		lineageTag: 726d39ba-f1e0-41ed-a68a-bd2a45da4545
+		summarizeBy: none
+		sourceColumn: AreaParentName
+
+		annotation SummarizationSetBy = Automatic
+
+	column AreaName
+		dataType: string
+		lineageTag: 6195e6f3-6304-4cc3-b7a3-0f103e9b2965
+		summarizeBy: none
+		sourceColumn: AreaName
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamName
+		dataType: string
+		lineageTag: 9511d2b8-8f7f-4631-95f9-93052bc8ffb6
+		summarizeBy: none
+		sourceColumn: TeamName
+
+		annotation SummarizationSetBy = Automatic
+
+	column Company
+		dataType: string
+		lineageTag: 2bba3b56-1c8c-4d74-96cf-b9a9e659fd76
+		summarizeBy: none
+		sourceColumn: Company
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'bc.region_name'
+		dataType: string
+		lineageTag: bcbf1526-f921-4501-9967-f7981cfb3e20
+		summarizeBy: none
+		sourceColumn: bc.region_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'bc.district_name'
+		dataType: string
+		lineageTag: 1c4a77cf-bf0f-4b9b-92d6-a9574fbde10d
+		summarizeBy: none
+		sourceColumn: bc.district_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'bc.department_name'
+		dataType: string
+		lineageTag: 4ab9cb4c-21e7-4505-a6da-c3d6286be3ed
+		summarizeBy: none
+		sourceColumn: bc.department_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'bc.service_name'
+		dataType: string
+		lineageTag: 83807b44-db66-4fff-9da0-1f5b9635afaa
+		summarizeBy: none
+		sourceColumn: bc.service_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'bc.service_type_name'
+		dataType: string
+		lineageTag: 0e6ecd3e-eb76-4742-899b-0bd3054245bb
+		summarizeBy: none
+		sourceColumn: bc.service_type_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'bc.client_team_name'
+		dataType: string
+		lineageTag: 80ee0f08-3770-4323-9f53-ece24a337b9a
+		summarizeBy: none
+		sourceColumn: bc.client_team_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column AreaGrandParentName
+		dataType: string
+		lineageTag: 2e0755da-9eae-44cd-a67c-4fab8a8105ab
+		summarizeBy: none
+		sourceColumn: AreaGrandParentName
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_client_team_unique_key
+		dataType: int64
+		formatString: 0
+		lineageTag: bfb04f15-244e-41ef-aa21-e5ec3926fd4e
+		summarizeBy: none
+		sourceColumn: dim_client_team_unique_key
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'AreaParentName Hierarchy'
+		lineageTag: a16a262f-4d31-4356-ac39-94cc8962dec9
+
+		level 'Area Parent Name'
+			lineageTag: 33363d38-a974-48c6-98dd-bde2343af0b7
+			column: AreaParentName
+
+		level 'Area Name'
+			lineageTag: 93e1b608-0fb8-484d-b50c-019c972512d8
+			column: AreaName
+
+		level 'Team Name'
+			lineageTag: 93d5798e-f0b7-4aa7-b92c-20347164ec0e
+			column: TeamName
+
+	hierarchy 'Business Central Hierarchy'
+		lineageTag: b8121f28-628c-42b8-bbe0-2dd80132fa07
+
+		level Company
+			lineageTag: 4a40214c-7f3f-46e9-a157-ee74e4d02ec1
+			column: Company
+
+		level 'bc.region_name'
+			lineageTag: 8dbe1b04-c7b7-455a-8a6b-aebf4b0c509e
+			column: 'bc.region_name'
+
+		level 'bc.district_name'
+			lineageTag: b31b4e2a-10a7-45a5-ad46-66aae34e4359
+			column: 'bc.district_name'
+
+		level 'bc.department_name'
+			lineageTag: 073fb7a9-3aaf-4165-bea5-98c95fa8e659
+			column: 'bc.department_name'
+
+		level 'bc.service_name'
+			lineageTag: 37b03620-dc05-4b62-b859-4a66f15b39cd
+			column: 'bc.service_name'
+
+		level 'bc.service_type_name'
+			lineageTag: 415a8568-40f4-4f73-88c1-c944ea33f781
+			column: 'bc.service_type_name'
+
+		level 'bc.client_team_name'
+			lineageTag: 5c76ed0f-023b-482f-b74b-2fbfa6556f89
+			column: 'bc.client_team_name'
+
+	partition dim_team_area-6617e109-e2b0-4fb7-8fe5-a9d43c11598a = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="Select#(tab)#(tab)dc.company_short_code As Company,#(lf)#(tab)#(tab)#(tab)dct.client_team_name As TeamName,#(lf)#(tab)#(tab)#(tab)Case When dct.dim_client_team_key <= 0#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)Then client_team_grand_parent_area#(lf)#(tab)#(tab)#(tab)#(tab)When dct.client_team_grand_parent_area Is Null#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)And dct.client_team_parent_area Is Null#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)Then IsNull(dct.dim_client_team_area, 'Not Available')#(lf)#(tab)#(tab)#(tab)#(tab)When dct.client_team_grand_parent_area Is Null#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)And dct.client_team_parent_area Is Not Null#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)Then client_team_parent_area#(lf)#(tab)#(tab)#(tab)#(tab)When dct.client_team_grand_parent_area Is Not Null#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)And dct.client_team_parent_area Is Not Null#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)Then client_team_grand_parent_area#(lf)#(tab)#(tab)#(tab)End As AreaGrandParentName,#(lf)#(tab)#(tab)#(tab)Case When dct.dim_client_team_key <= 0#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)Then dct.client_team_parent_area#(lf)#(tab)#(tab)#(tab)#(tab)When client_team_grand_parent_area Is Not Null#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)#(tab)And dct.client_team_parent_area Is Not Null#(lf)#(tab)#(tab)#(tab)#(tab)#(tab)Then dct.client_team_parent_area#(lf)#(tab)#(tab)#(tab)Else 'Not Available'#(lf)#(tab)#(tab)#(tab)End As AreaParentName,#(lf)#(tab)#(tab)#(tab)dct.dim_client_team_area As AreaName,#(lf)#(tab)#(tab)#(tab)dct.dim_client_team_key As dim_client_team_unique_key,#(lf)#(tab)#(tab)#(tab)ds.region_name As [bc.region_name],#(lf)#(tab)#(tab)#(tab)ds.district_name As [bc.district_name],#(lf)#(tab)#(tab)#(tab)ds.department_name As [bc.department_name],#(lf)#(tab)#(tab)#(tab)ds.service_name As [bc.service_name],#(lf)#(tab)#(tab)#(tab)ds.service_type_name As [bc.service_type_name],#(lf)#(tab)#(tab)#(tab)dct.client_team_name As [bc.client_team_name]#(lf)From#(tab)#(tab)edw.vw_dim_client_team dct#(lf)#(tab)Inner Join#(tab)edw.vw_dim_company dc#(lf)#(tab)#(tab)On#(tab)#(tab)dct.company_id = dc.company_id#(lf)#(tab)#(tab)And#(tab)#(tab)dc.DWHIsCurrent = 1 #(lf)#(tab)#(tab)And#(tab)#(tab)dc.DWHDMLOperation <> 'd'#(lf)#(tab)Left Join#(tab)edw.vw_dim_service_current ds#(lf)#(tab)#(tab)On#(tab)#(tab)dct.service_id = ds.service_code#(lf)#(tab)#(tab)And#(tab)#(tab)dct.company_id = ds.dim_company_key#(lf)"])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

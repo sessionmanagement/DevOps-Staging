@@ -1,0 +1,392 @@
+table PersonReferralAssessments
+	lineageTag: b7f6e38e-fe0d-4dc8-9c6f-aa6b84779637
+
+	measure QuestionsFirst = calculate(average(PersonReferralAssessments[Response Answer Selected Value]),PersonReferralAssessments[Assessment Performed Type]="First Assessment"&&PersonReferralAssessments[Assessment Status]="")
+		formatString: 0.00
+		lineageTag: c6581f4d-31ef-45a4-bc03-47e5537fc51d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure QuestionsLast = calculate(average(PersonReferralAssessments[Response Answer Selected Value]),PersonReferralAssessments[Assessment Performed Type]="Last Assessment"&&PersonReferralAssessments[Assessment Status]="")
+		formatString: 0.00
+		lineageTag: a670fc04-2e55-4d24-a6ed-9ce9920ea2dc
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure QuestionsPrevious = calculate(average(PersonReferralAssessments[Response Answer Selected Value]),PersonReferralAssessments[Assessment Performed Type]="Previous Assessment"&&PersonReferralAssessments[Assessment Status]="")
+		lineageTag: 165c55fa-bd93-46e0-9d18-1516e6b3111d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Number of last assessments' = calculate(DISTINCTCOUNT(PersonReferralAssessments[Assessment ID Key]),PersonReferralAssessments[order_desc]=1&&PersonReferralAssessments[order_asc]>1,PersonReferralAssessments[Question Text]="Total")
+		formatString: 0
+		lineageTag: 00baf3e0-b540-4e9f-b0be-833f51664358
+
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Previous avg total' = calculate(average(PersonReferralAssessments[Response Answer Selected Value]),PersonReferralAssessments[order_desc]=2&&PersonReferralAssessments[order_asc]>1,PersonReferralAssessments[Question Text]="Total")
+		formatString: 0.0
+		lineageTag: 4ab2e2f4-79ec-4bc4-9f0d-8346364d3ba9
+
+	measure 'First avg total' =
+			calculate(average(PersonReferralAssessments[Response Answer Selected Value]),PersonReferralAssessments[Assessment Performed Type]="First Assessment"&&PersonReferralAssessments[Assessment Status] =""
+			&&PersonReferralAssessments[Outcome Tool Question ID]<>"Score1"&&PersonReferralAssessments[Outcome Tool Question ID]<>"Score2"&&PersonReferralAssessments[Outcome Tool Question ID]<>"Score3"&&PersonReferralAssessments[Outcome Tool Question ID]<>"Score4"
+			,PersonReferralAssessments[Question Text]="Total")
+		formatString: 0.0
+		lineageTag: 1a2b14b0-5905-4d8c-b4ed-1974673e9f8e
+
+	measure '%Diff Latest to First' = if(isblank([QuestionsFirst])||[QuestionsFirst]=0,blank(), divide([QuestionsLast],[QuestionsFirst])-1)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 076bb877-ca42-4726-ada3-a096c35ef1fd
+
+	measure '%Diff Latest to Previous' = if(isblank([QuestionsPrevious])||[QuestionsPrevious]=0,blank(), divide([QuestionsLast],[QuestionsPrevious])-1)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 2e0d2e82-8b0d-4ddf-9fb3-e4334ebc9b29
+
+	measure 'Last avg total' =
+			calculate(average(PersonReferralAssessments[Response Answer Selected Value]),PersonReferralAssessments[Assessment Performed Type]="Last Assessment"
+			&&PersonReferralAssessments[Outcome Tool Question ID]<>"Score1"&&PersonReferralAssessments[Outcome Tool Question ID]<>"Score2"&&PersonReferralAssessments[Outcome Tool Question ID]<>"Score3"&&PersonReferralAssessments[Outcome Tool Question ID]<>"Score4"
+			,PersonReferralAssessments[Question Text]="Total")
+		formatString: 0.0
+		lineageTag: e2d86da9-b215-48ca-bf85-25dd995f2e7d
+
+	measure '%Diff Latest to First Avg' = if(isblank([First avg total])||[First avg total]=0,blank(), divide([Last avg total],[First avg total])-1)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: d90ce3ad-bf33-4c01-a57f-11fee3bc58b7
+
+	measure '%Diff Latest to Previous Avg' = if(isblank([Previous avg total])||[Previous avg total]=0,blank(), divide([Last avg total],[Previous avg total])-1)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 95698c47-67e4-401c-85fa-aab24bb75513
+
+	measure 'Change first to last type' = if([%Diff Latest to First Avg]<0,"Lower","")
+		lineageTag: 9d7620db-7295-446a-b998-4e7893466917
+
+	measure 'Number latest assessments' = calculate(DISTINCTCOUNT(PersonReferralAssessments[Assessment ID Key]),PersonReferralAssessments[order_desc]=1&&PersonReferralAssessments[order_asc]>1,PersonReferralAssessments[Question Text]="Total")
+		formatString: 0
+		lineageTag: 0750694e-7155-47a2-abbb-c244ddb85c1f
+
+	measure 'Previous avg total_HuaO' = calculate(average(PersonReferralAssessments[Response Answer Selected Value]),PersonReferralAssessments[order_desc]=2&&PersonReferralAssessments[order_asc]>1&&PersonReferralAssessments[Outcome Tool Title]="Hua Oranga - Primary Care"&&(PersonReferralAssessments[Outcome Tool Question ID]="Score1"||PersonReferralAssessments[Outcome Tool Question ID]="Score2"||PersonReferralAssessments[Outcome Tool Question ID]="Score3"||PersonReferralAssessments[Outcome Tool Question ID]="Score4"))
+		formatString: 0.0
+		lineageTag: 6f1a2b3c-4d5e-4f6a-8b7c-9d0e1f2a3b4c
+
+	measure 'First avg total_HuaO' =
+			calculate(average(PersonReferralAssessments[Response Answer Selected Value]),PersonReferralAssessments[Assessment Performed Type]="First Assessment"&&PersonReferralAssessments[Assessment Status]=""
+			&&PersonReferralAssessments[Outcome Tool Title]="Hua Oranga - Primary Care"
+			&&(PersonReferralAssessments[Outcome Tool Question ID]="Score1"||PersonReferralAssessments[Outcome Tool Question ID]="Score2"||PersonReferralAssessments[Outcome Tool Question ID]="Score3"||PersonReferralAssessments[Outcome Tool Question ID]="Score4"))
+		formatString: 0.0
+		lineageTag: 7a2b3c4d-5e6f-4a7b-9c8d-0e1f2a3b4c5d
+
+	measure 'Last avg total_HuaO' =
+			calculate(average(PersonReferralAssessments[Response Answer Selected Value]),PersonReferralAssessments[Assessment Performed Type]="Last Assessment"
+			&&PersonReferralAssessments[Outcome Tool Title]="Hua Oranga - Primary Care"
+			&&(PersonReferralAssessments[Outcome Tool Question ID]="Score1"||PersonReferralAssessments[Outcome Tool Question ID]="Score2"||PersonReferralAssessments[Outcome Tool Question ID]="Score3"||PersonReferralAssessments[Outcome Tool Question ID]="Score4"))
+		formatString: 0.0
+		lineageTag: 8b3c4d5e-6f7a-4b8c-ad9e-1f2a3b4c5d6e
+
+	measure '%Diff Latest to First Avg_HuaO' = if(isblank([First avg total_HuaO])||[First avg total_HuaO]=0,blank(), divide([Last avg total_HuaO],[First avg total_HuaO])-1)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 9c4d5e6f-7a8b-4c9d-8e0f-2a3b4c5d6e7f
+
+	measure '%Diff Latest to Previous Avg_HuaO' = if(isblank([Previous avg total_HuaO])||[Previous avg total_HuaO]=0,blank(), divide([Last avg total_HuaO],[Previous avg total_HuaO])-1)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: ad5e6f7a-8b9c-4dae-9f1a-3b4c5d6e7f8a
+
+	measure 'Change first to last type_HuaO' = if([%Diff Latest to First Avg_HuaO]<0,"Lower","")
+		lineageTag: be6f7a8b-9c0d-4eaf-af2b-4c5d6e7f8a9b
+
+	column order_asc
+		dataType: int64
+		formatString: 0
+		lineageTag: 45786175-9c3e-449b-af17-a7cbca9f8e76
+		summarizeBy: sum
+		sourceColumn: order_asc
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_desc
+		dataType: int64
+		formatString: 0
+		lineageTag: ae32f2ff-465e-49f6-a663-52cad10ba63b
+		summarizeBy: sum
+		sourceColumn: order_desc
+
+		annotation SummarizationSetBy = Automatic
+
+	column PersonID
+		dataType: int64
+		formatString: 0
+		lineageTag: 79d49b40-1bae-46bd-a2da-9a1c2c9829b7
+		summarizeBy: count
+		sourceColumn: PersonID
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReferralID
+		dataType: int64
+		formatString: 0
+		lineageTag: 4c234344-d289-4c9e-93a8-2f869d72c8d7
+		summarizeBy: count
+		sourceColumn: ReferralID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Assessment ID Key'
+		dataType: string
+		lineageTag: 7ec8c37d-5a0c-4b2c-9ed3-991c1fee6ecb
+		summarizeBy: none
+		sourceColumn: Assessment ID Key
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Response Created Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 849f8f04-6acd-431f-b6cd-7925ffd879c0
+		summarizeBy: none
+		sourceColumn: Response Created Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column TeamIDKey
+		dataType: string
+		lineageTag: 9112a550-3246-493c-8411-f195bffdaab8
+		summarizeBy: none
+		sourceColumn: TeamIDKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamID
+		dataType: int64
+		formatString: 0
+		lineageTag: 181901ed-ea02-4b06-af87-0c65cafce63f
+		summarizeBy: count
+		sourceColumn: TeamID
+
+		annotation SummarizationSetBy = Automatic
+
+	column TeamName
+		dataType: string
+		lineageTag: 7256ab62-56ed-4011-868c-4cd6e1fc8ed4
+		summarizeBy: none
+		sourceColumn: TeamName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ethnicitygroup
+		dataType: string
+		lineageTag: 7494ddd0-3f98-4c0d-b2b2-477caaade578
+		summarizeBy: none
+		sourceColumn: ethnicitygroup
+
+		annotation SummarizationSetBy = Automatic
+
+	column gendertext
+		dataType: string
+		lineageTag: af346442-c046-46ae-869f-b59f51049c63
+		summarizeBy: none
+		sourceColumn: gendertext
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Outcome Tool Title'
+		dataType: string
+		lineageTag: 1a3a876f-1454-4f0d-9622-396743cb8fc9
+		summarizeBy: none
+		sourceColumn: Outcome Tool Title
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Outcome Tool Question ID'
+		dataType: string
+		lineageTag: 132c21ca-b9f8-4a5a-aa89-789ef9b86d26
+		summarizeBy: none
+		sourceColumn: Outcome Tool Question ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Question Text'
+		dataType: string
+		lineageTag: 91402718-12fa-4dc7-ac7b-5db31a846921
+		summarizeBy: none
+		sourceColumn: Question Text
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Response Answer Selected Value'
+		dataType: int64
+		formatString: 0
+		lineageTag: 1a2d48dd-b729-471e-a8b4-8b8ab996f211
+		summarizeBy: sum
+		sourceColumn: Response Answer Selected Value
+
+		annotation SummarizationSetBy = Automatic
+
+	column age_response
+		dataType: double
+		lineageTag: f5e78bf4-d060-4afb-870b-d1754d5b6528
+		summarizeBy: none
+		sourceColumn: age_response
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column date_last_assessment
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 553488d6-93d9-4ee2-a15b-11d46d67b95d
+		summarizeBy: none
+		sourceColumn: date_last_assessment
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Questions = SWITCH(PersonReferralAssessments[Outcome Tool Question ID],"Q1","Q 1","Q2","Q 2","Q3","Q 3","Q4","Q 4","Q5","Q 5","Q6","Q 6","Q7","Q 7","Q8","Q 8","Q9","Q 9",PersonReferralAssessments[Outcome Tool Question ID])
+		lineageTag: 10feb517-9961-440d-a925-c927b682fbc9
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Assessment Performed Type'
+		dataType: string
+		lineageTag: c2ac4d6f-fd24-44f2-b76d-5bdfc15e4efc
+		summarizeBy: none
+		sourceColumn: Assessment Performed Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column assessment_count
+		dataType: int64
+		formatString: 0
+		lineageTag: 78cf9b39-439b-48f7-aad1-667e0414679c
+		summarizeBy: sum
+		sourceColumn: assessment_count
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Assessment Status'
+		dataType: string
+		lineageTag: 40a2012c-d953-4097-af0f-f0835b1fa3cf
+		summarizeBy: none
+		sourceColumn: Assessment Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column question
+		dataType: string
+		lineageTag: ce2ead02-41a7-4da4-a2fe-d34cfe6b9c7b
+		summarizeBy: none
+		sourceColumn: question
+
+		annotation SummarizationSetBy = Automatic
+
+	column dim_client_team_unique_key
+		dataType: string
+		lineageTag: 3da8a0f3-ec23-4cae-a06f-c2ca47152bd1
+		summarizeBy: none
+		sourceColumn: dim_client_team_unique_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column AssessmentID
+		dataType: int64
+		formatString: 0
+		lineageTag: fec90c5f-5914-4f24-b741-fa85a09461f5
+		summarizeBy: count
+		sourceColumn: AssessmentID
+
+		annotation SummarizationSetBy = Automatic
+
+	column personidkey
+		dataType: string
+		lineageTag: 3f2a296c-16e6-4aed-a6dc-0a0234c0cbda
+		summarizeBy: none
+		sourceColumn: personidkey
+
+		annotation SummarizationSetBy = Automatic
+
+	column referralassessmentidkey
+		dataType: string
+		lineageTag: b5bec99e-a674-4612-a7ef-0cad5408f9b4
+		summarizeBy: none
+		sourceColumn: referralassessmentidkey
+
+		annotation SummarizationSetBy = Automatic
+
+	column referralidkey
+		dataType: string
+		lineageTag: 0fa297ac-6d69-41f7-b431-8edb58080580
+		summarizeBy: none
+		sourceColumn: referralidkey
+
+		annotation SummarizationSetBy = Automatic
+
+	column company
+		dataType: string
+		lineageTag: 5f93de05-ee12-4165-844c-5582b707a9ab
+		summarizeBy: none
+		sourceColumn: company
+
+		annotation SummarizationSetBy = Automatic
+
+	column referralstatus
+		dataType: string
+		lineageTag: a2afec01-48b8-4416-a7e8-7f319cc7ab74
+		summarizeBy: none
+		sourceColumn: referralstatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column persondateofbirth
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 1ccfc7dc-318a-4b88-a1b0-34c4a41d1ada
+		summarizeBy: none
+		sourceColumn: persondateofbirth
+
+		annotation SummarizationSetBy = Automatic
+
+	column maori_indicator
+		dataType: int64
+		formatString: 0
+		lineageTag: da3e0f80-1dc2-4b7a-a71c-029a3bfe2f1e
+		summarizeBy: sum
+		sourceColumn: maori_indicator
+
+		annotation SummarizationSetBy = Automatic
+
+	column pasifika_indicator
+		dataType: int64
+		formatString: 0
+		lineageTag: fa700774-61e9-46f3-9941-a6efd59b9fc9
+		summarizeBy: sum
+		sourceColumn: pasifika_indicator
+
+		annotation SummarizationSetBy = Automatic
+
+	column last_team_id
+		dataType: string
+		lineageTag: 2d3ac895-0fd7-4201-adf3-cc2138caee80
+		summarizeBy: none
+		sourceColumn: last_team_id
+
+		annotation SummarizationSetBy = Automatic
+
+	partition PersonReferralAssessments = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("Synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="-- ============================================================#(lf)-- Model:  Outcome Assessment Dataset#(lf)-- Table:  PersonReferralAssessments#(lf)-- Source: native query (complex CTE/window) - emitted in full#(lf)-- Used columns: 19 (mapped 19, unmapped 0)  [full query, not trimmed]#(lf)-- Auto-generated from pbi_complete_dump.csv + model M + EDW/ODS schema.#(lf)-- Review before use; verify joins/filters against the model.#(lf)-- ============================================================#(lf)-- USED model columns: Assessment ID Key; Assessment Performed Type; Assessment Status; Outcome Tool Question ID; Outcome Tool Title; PersonID; Question Text; Questions; Response Answer Selected Value; Response Created Date; age_response; assessment_count; date_last_assessment; dim_client_team_unique_key; ethnicitygroup; gendertext; order_asc; order_desc; question#(lf)#(lf)WITH People AS (#(lf)    SELECT#(lf)       'EAL' as company,#(lf)        dlDimPerson.Personid,#(lf)        dlDimPerson.PersonFirstName,#(lf)        dlDimPerson.PersonLastName,#(lf)        dlDimPerson.PersonDateOfBirth,#(lf)        dlDimPerson.PersonDeceasedDate , --ISNULL(dlDimGenderIdentity.GenderIdentityText, 'Unspecified or Unknown') as GenderIdentityText#(lf)        ISNULL(dlDimGender.GenderText, 'Unspecified or Unknown') AS GenderText,#(lf)        concat(#(lf)            eth1.ethnicitytext,#(lf)            ',',#(lf)            ethp1.ethnicitytext,#(lf)            ',',#(lf)            eth2.ethnicitytext,#(lf)            ',',#(lf)            ethp2.ethnicitytext,#(lf)            ',',#(lf)            eth3.ethnicitytext,#(lf)            ',',#(lf)            ethp3.ethnicitytext#(lf)        ) AS ethnicitytextall,#(lf)        concat(#(lf)            eth1.ethnicityvalue,#(lf)            ',',#(lf)            ethp1.ethnicityvalue,#(lf)            ',',#(lf)            eth2.ethnicityvalue,#(lf)            ',',#(lf)            ethp2.ethnicityvalue,#(lf)            ',',#(lf)            eth3.ethnicityvalue,#(lf)            ',',#(lf)            ethp3.ethnicityvalue#(lf)        ) AS ethnicityvalueall#(lf)    FROM#(lf)        RBEAL.dldimperson#(lf)        LEFT JOIN rbeal.dlDimGender ON dlDimPerson.GenderID = dlDimGender.GenderID#(lf)        LEFT JOIN rbeal.dlDimEthnicity AS eth1 ON dlDimPerson.Ethnicity1ID = eth1.EthnicityID#(lf)        LEFT JOIN rbeal.dlDimEthnicity AS ethp1 ON eth1.ethnicityparentid = ethp1.ethnicityid#(lf)        LEFT JOIN rbeal.dlDimEthnicity AS eth2 ON dlDimPerson.Ethnicity2ID = eth2.EthnicityID#(lf)        LEFT JOIN rbeal.dlDimEthnicity AS ethp2 ON eth2.ethnicityparentid = ethp2.ethnicityid#(lf)        LEFT JOIN rbeal.dlDimEthnicity AS eth3 ON dlDimPerson.Ethnicity3ID = eth3.EthnicityID#(lf)        LEFT JOIN rbeal.dlDimEthnicity AS ethp3 ON eth3.ethnicityparentid = ethp3.ethnicityid#(lf)       Union All#(lf)    SELECT#(lf)#(tab)#(tab) 'MNB' as company,#(lf)        dlDimPerson.Personid,#(lf)        dlDimPerson.PersonFirstName,#(lf)        dlDimPerson.PersonLastName,#(lf)        dlDimPerson.PersonDateOfBirth,#(lf)        dlDimPerson.PersonDeceasedDate , --ISNULL(dlDimGenderIdentity.GenderIdentityText, 'Unspecified or Unknown') as GenderIdentityText#(lf)        ISNULL(dlDimGender.GenderText, 'Unspecified or Unknown') AS GenderText,#(lf)        concat(#(lf)            eth1.ethnicitytext,#(lf)            ',',#(lf)            ethp1.ethnicitytext,#(lf)            ',',#(lf)            eth2.ethnicitytext,#(lf)            ',',#(lf)            ethp2.ethnicitytext,#(lf)            ',',#(lf)            eth3.ethnicitytext,#(lf)            ',',#(lf)            ethp3.ethnicitytext#(lf)        ) AS ethnicitytextall,#(lf)        concat(#(lf)            eth1.ethnicityvalue,#(lf)            ',',#(lf)            ethp1.ethnicityvalue,#(lf)            ',',#(lf)            eth2.ethnicityvalue,#(lf)            ',',#(lf)            ethp2.ethnicityvalue,#(lf)            ',',#(lf)            eth3.ethnicityvalue,#(lf)            ',',#(lf)            ethp3.ethnicityvalue#(lf)        ) AS ethnicityvalueall#(lf)    FROM#(lf)        RBMNB.dlDimPerson#(lf)        LEFT JOIN rbmnb.dlDimEthnicity ON dlDimPerson.Ethnicity1ID = dlDimEthnicity.EthnicityID --LEFT JOIN rbeal.dlDimGenderIdentity#(tab)ON DimPerson.GenderIdentityId#(tab)= dlDimGenderIdentity.GenderIdentityID#(lf)        LEFT JOIN rbmnb.dlDimGender ON dlDimPerson.GenderID = dlDimGender.GenderID#(lf)        LEFT JOIN rbmnb.dlDimEthnicity AS eth1 ON dlDimPerson.Ethnicity1ID = eth1.EthnicityID#(lf)        LEFT JOIN rbmnb.dlDimEthnicity AS ethp1 ON eth1.ethnicityparentid = ethp1.ethnicityid#(lf)        LEFT JOIN rbmnb.dlDimEthnicity AS eth2 ON dlDimPerson.Ethnicity2ID = eth2.EthnicityID#(lf)        LEFT JOIN rbmnb.dlDimEthnicity AS ethp2 ON eth2.ethnicityparentid = ethp2.ethnicityid#(lf)        LEFT JOIN rbmnb.dlDimEthnicity AS eth3 ON dlDimPerson.Ethnicity3ID = eth3.EthnicityID#(lf)        LEFT JOIN rbmnb.dlDimEthnicity AS ethp3 ON eth3.ethnicityparentid = ethp3.ethnicityid#(lf)      #(lf))#(lf),#(lf)PeoplewithEthnicityGroup as#(lf)(#(lf)select #(lf)Company+','+cast(Personid as nvarchar) as personidkey,#(lf)* ,#(lf)CASE#(lf)            WHEN ethnicityvalueall LIKE '%,21,%'#(lf)            OR ethnicityvalueall LIKE '21,%'#(lf)            OR ethnicityvalueall LIKE '%,21' THEN 'Maori'#(lf)            WHEN ethnicityvalueall LIKE '31,%'#(lf)            OR ethnicityvalueall LIKE '%,31,%' THEN 'Pasifika'#(lf)            WHEN ethnicityvalueall LIKE '32,%'#(lf)            OR ethnicityvalueall LIKE '33,%'#(lf)            OR ethnicityvalueall LIKE '34,%'#(lf)            OR ethnicityvalueall LIKE '35,%'#(lf)            OR ethnicityvalueall LIKE '36,%'#(lf)            OR ethnicityvalueall LIKE '37,%' THEN 'Pasifika'#(lf)            WHEN ethnicityvalueall LIKE '%,32,%'#(lf)            OR ethnicityvalueall LIKE '%,33,%'#(lf)            OR ethnicityvalueall LIKE '%,34,%'#(lf)            OR ethnicityvalueall LIKE '%,35,%'#(lf)            OR ethnicityvalueall LIKE '%,36,%'#(lf)            OR ethnicityvalueall LIKE '%,37,%' THEN 'Pasifika'#(lf)            WHEN ethnicityvalueall LIKE '%,32%'#(lf)            OR ethnicityvalueall LIKE '%,33%'#(lf)            OR ethnicityvalueall LIKE '%,34%'#(lf)            OR ethnicityvalueall LIKE '%,35%'#(lf)            OR ethnicityvalueall LIKE '%,36%'#(lf)            OR ethnicityvalueall LIKE '%,37%'#(lf)            OR ethnicityvalueall LIKE '%,30%'#(lf)            OR ethnicityvalueall LIKE '30,%' THEN 'Pasifika'#(lf)            WHEN ethnicityvalueall LIKE '40,%'#(lf)            OR ethnicityvalueall LIKE '%,40,%' THEN 'Asian'#(lf)            WHEN ethnicityvalueall LIKE '41,%'#(lf)            OR ethnicityvalueall LIKE '%,41,%' THEN 'Asian'#(lf)            WHEN ethnicityvalueall LIKE '42,%'#(lf)            OR ethnicityvalueall LIKE '43,%'#(lf)            OR ethnicityvalueall LIKE '44,%'#(lf)            OR ethnicityvalueall LIKE '45,%'#(lf)            OR ethnicityvalueall LIKE '46,%'#(lf)            OR ethnicityvalueall LIKE '47,%' THEN 'Asian'#(lf)            WHEN ethnicityvalueall LIKE '%,42,%'#(lf)            OR ethnicityvalueall LIKE '%,43,%'#(lf)            OR ethnicityvalueall LIKE '%,44,%'#(lf)            OR ethnicityvalueall LIKE '%,45,%'#(lf)            OR ethnicityvalueall LIKE '%,46,%'#(lf)            OR ethnicityvalueall LIKE '%,47,%' THEN 'Asian'#(lf)            WHEN ethnicityvalueall LIKE '%,42%'#(lf)            OR ethnicityvalueall LIKE '%,43%'#(lf)            OR ethnicityvalueall LIKE '%,44%'#(lf)            OR ethnicityvalueall LIKE '%,45%'#(lf)            OR ethnicityvalueall LIKE '%,46%'#(lf)            OR ethnicityvalueall LIKE '%,47%' THEN 'Asian'#(lf)            WHEN ethnicitytextall LIKE '%Japanese%'#(lf)            OR ethnicitytextall LIKE '%Korean%'#(lf)            OR ethnicitytextall LIKE '%Cambodian%'#(lf)            OR ethnicitytextall LIKE '%chinese%'#(lf)            OR ethnicitytextall LIKE '%Filipino%'#(lf)            OR ethnicitytextall LIKE '%Sri Lankan%'#(lf)            OR ethnicitytextall LIKE '%Asian%'#(lf)            OR ethnicitytextall LIKE '%vietnamese%' THEN 'Asian'#(lf)            WHEN ethnicityvalueall LIKE '50,%'#(lf)            OR ethnicityvalueall LIKE '%,50,%' THEN 'Middle Eastern, Latin American, African'#(lf)            WHEN ethnicityvalueall LIKE '51,%'#(lf)            OR ethnicityvalueall LIKE '%,51,%' THEN 'Middle Eastern, Latin American, African'#(lf)            WHEN ethnicityvalueall LIKE '52,%'#(lf)            OR ethnicityvalueall LIKE '53,%' THEN 'Middle Eastern, Latin American, African'#(lf)            WHEN ethnicityvalueall LIKE '%,52,%'#(lf)            OR ethnicityvalueall LIKE '%,53,%' THEN 'Middle Eastern, Latin American, African'#(lf)            WHEN ethnicityvalueall LIKE '%,52%'#(lf)            OR ethnicityvalueall LIKE '%,53%' THEN 'Middle Eastern, Latin American, African'#(lf)            WHEN ethnicityvalueall LIKE '10,%'#(lf)            OR ethnicityvalueall LIKE '%,10,%'#(lf)            OR ethnicityvalueall LIKE '11,%'#(lf)            OR ethnicityvalueall LIKE '%,11,%'#(lf)            OR ethnicityvalueall LIKE '12,%'#(lf)            OR ethnicityvalueall LIKE '%,12,%' THEN 'European'#(lf)            WHEN ethnicitytextall LIKE 'australian%'#(lf)            OR ethnicitytextall LIKE 'british%'#(lf)            OR ethnicitytextall LIKE 'dutch%'#(lf)            OR ethnicitytextall LIKE 'german%'#(lf)            OR ethnicitytextall LIKE 'italian%'#(lf)            OR ethnicitytextall LIKE 'greek%'#(lf)            OR ethnicitytextall LIKE 'polish%'#(lf)            OR ethnicitytextall LIKE '%european%'#(lf)            OR ethnicitytextall LIKE '%slav%' THEN 'European'#(lf)            WHEN ethnicityvalueall LIKE '%,54,%'#(lf)            OR ethnicityvalueall LIKE '%,54%'#(lf)            OR ethnicityvalueall LIKE '54,%' THEN 'Other'#(lf)            ELSE 'Unknown'#(lf)        END AS ethnicitygroup,#(lf)        CASE#(lf)            WHEN ethnicityvalueall LIKE '%,21,%'#(lf)            OR ethnicityvalueall LIKE '21,%'#(lf)            OR ethnicityvalueall LIKE '%,21' THEN 1#(lf)            ELSE 0#(lf)        END AS Maori_Indicator,#(lf)        CASE#(lf)            WHEN ethnicityvalueall LIKE '31,%'#(lf)            OR ethnicityvalueall LIKE '%,31,%' THEN 1#(lf)            WHEN ethnicityvalueall LIKE '32,%'#(lf)            OR ethnicityvalueall LIKE '33,%'#(lf)            OR ethnicityvalueall LIKE '34,%'#(lf)            OR ethnicityvalueall LIKE '35,%'#(lf)            OR ethnicityvalueall LIKE '36,%'#(lf)            OR ethnicityvalueall LIKE '37,%' THEN 1#(lf)            WHEN ethnicityvalueall LIKE '%,32,%'#(lf)            OR ethnicityvalueall LIKE '%,33,%'#(lf)            OR ethnicityvalueall LIKE '%,34,%'#(lf)            OR ethnicityvalueall LIKE '%,35,%'#(lf)            OR ethnicityvalueall LIKE '%,36,%'#(lf)            OR ethnicityvalueall LIKE '%,37,%' THEN 1#(lf)            WHEN ethnicityvalueall LIKE '%,32%'#(lf)            OR ethnicityvalueall LIKE '%,33%'#(lf)            OR ethnicityvalueall LIKE '%,34%'#(lf)            OR ethnicityvalueall LIKE '%,35%'#(lf)            OR ethnicityvalueall LIKE '%,36%'#(lf)            OR ethnicityvalueall LIKE '%,37%'#(lf)            OR ethnicityvalueall LIKE '%,30%'#(lf)            OR ethnicityvalueall LIKE '30,%' THEN 1#(lf)            ELSE 0#(lf)        END AS Pasifika_Indicator#(lf)#(tab)from people #(lf)#(tab)),#(lf)#(tab)ReferralDataEAL AS (#(lf)    SELECT#(lf)#(tab)#(tab)'EAL' as company,#(lf)        LegacyFactReferral.PersonID,#(lf)        LegacyFactReferral.ID AS ReferralID,#(lf)        LegacyFactReferral.ServiceStartDate,#(lf)        isnull(LegacyFactReferral.ServiceEndDate,cast(getdate() as date)) AS ServiceEndDate,#(lf)        LegacyFactReferral.ReceivedDate,#(lf)        LegacyFactReferral.CreatedDate,#(lf)        LegacyFactReferral.AcceptedDate,#(lf)        LegacyFactReferral.DischargeDate,#(lf)        ISNULL(LegacyFactReferral.DischargeDate, cast(getdate() as date)) AS ProxyEndDate,#(lf)        'EAL,'+cast(dlDimTeam.TeamID as varchar) as TeamIDKey,#(lf)#(tab)#(tab) concat(dlDimTeam.teamid,'_1')   as dim_client_team_unique_key,#(lf)#(tab)#(tab)dlDimTeam.TeamID,#(lf)        dlDimTeam.TeamName,#(lf)        dlDimTeamfunction.TeamFunctionName#(lf)        #(lf)    FROM#(lf)        RBEAL.LegacyFactReferral#(lf)        LEFT JOIN rbeal.dlDimTeam ON LegacyFactReferral.TeamID = dlDimTeam.Teamid#(lf)        LEFT JOIN rbeal.dlDimTeamfunction ON dlDimTeam.TeamFunctionID = dlDimTeamFunction.TeamFunctionID#(lf)        LEFT JOIN rbeal.dlDimContract ON dlDimTeam.ContractID = dlDimContract.ContractID#(lf)       #(lf)    WHERE#(lf)        #(lf)#(tab)#(tab)AcceptedDate IS NOT NULL and isinbound = 1#(lf)      Union All#(lf)    SELECT#(lf)#(tab)#(tab)'MNB' as company,#(lf)        LegacyFactReferral.PersonID,#(lf)        LegacyFactReferral.ID AS ReferralID,#(lf)        LegacyFactReferral.ServiceStartDate,#(lf)        isnull(LegacyFactReferral.ServiceEndDate, cast(GETDATE() AS DATE)) AS ServiceEndDate,#(lf)        LegacyFactReferral.ReceivedDate,#(lf)        LegacyFactReferral.CreatedDate,#(lf)        LegacyFactReferral.AcceptedDate,#(lf)        LegacyFactReferral.DischargeDate,#(lf)        ISNULL(LegacyFactReferral.DischargeDate, '2099-12-31') AS ProxyEndDate,#(lf)          'MNB,'+cast(dlDimTeam.TeamID as varchar) as TeamIDKey,#(lf)#(tab)#(tab)     case when cast(getdate() as date) < '2025-03-22' then #(lf)#(tab)   concat(dlDimTeam.teamid, '_15')#(lf)#(tab)   else concat(dlDimTeam.teamid,'_5')#(lf)#(tab)   end as dim_client_team_unique_key,#(lf)#(tab)   dlDimTeam.TeamID,#(lf)#(tab)    dlDimTeam.TeamName,#(lf)        dlDimTeamfunction.TeamFunctionName#(lf)        FROM#(lf)        RBMNB.LegacyFactReferral#(lf)       #(lf)        LEFT JOIN rbmnb.dlDimTeam ON LegacyFactReferral.TeamID = dlDimTeam.Teamid#(lf)        LEFT JOIN rbmnb.dlDimTeamfunction ON dlDimTeam.TeamFunctionID = dlDimTeamFunction.TeamFunctionID#(lf)        LEFT JOIN rbmnb.dlDimContract ON dlDimTeam.ContractID = dlDimContract.ContractID#(lf)         WHERE#(lf)        --CAST(LegacyFactReferral.ReceivedDate AS DATE) >= '2010-01-01'#(lf)        --AND #(lf)#(tab)#(tab)AcceptedDate IS NOT NULL and isinbound = 1#(lf)),#(lf)Referraldata0 AS (#(lf)    SELECT#(lf)     #(lf)        'EAL,' + CAST(Personid AS varchar(12)) AS PersonidKey,#(lf)        'EAL,' + CAST(Referralid AS varchar(12)) AS ReferralIDKey,#(lf)        *#(lf)    FROM#(lf)        referraldataeal where company = 'eal'#(lf)    UNION ALL#(lf)    SELECT#(lf)   #(lf)        'MNB,' + CAST(Personid AS varchar(12)) AS PersonidKey,#(lf)        'MNB,' + CAST(Referralid AS varchar(12)) AS ReferralIDKey,#(lf)        *#(lf)    FROM#(lf)        ReferralDataEAL where company = 'MNB'#(lf)) --=====================#(lf),#(lf)------=====================================================================#(lf)datablock1 AS (#(lf)    SELECT#(lf)        'EAL' + ',' + CAST(otFactoutcomeToolResponse.PersonID AS varchar(10)) AS personidkey,#(lf)        'EAL' + ',' + CAST(#(lf)            otFactOutcomeToolResponse.OutcomeToolResponseID AS varchar(20)#(lf)        ) AS assessmentidkey,#(lf)        'EAL' + ',' + CAST(#(lf)            otFactOutcomeToolResponse.ReferralID AS varchar(20)#(lf)        ) AS referralassessmentidkey,#(lf)        otFactoutcomeToolResponse.PersonID,#(lf)        cast(otFactOutcomeToolResponse.ResponseCreatedDate as date) as Responsecreateddate,#(lf)       -- dlDimUser.UserUsername AS AssessmentCompletedBy,#(lf)        otFactOutcomeToolResponse.OutcomeToolResponseID AS AssessmentId,#(lf)        otFactOutcomeToolResponse.ReferralID,#(lf)        otFactOutcomeToolResponseAnswer.OutcomeToolQuestionID,#(lf)#(tab)#(tab)otdimoutcometoolTemplate.questiontext,#(lf)        OutcomeToolTitle,#(lf)       -- iSNULL(responseAnswerSelectedValue , 0) AS ResponseAnswerSelectedValue#(lf)#(tab)#(tab)cast(isnull(responseAnswerSelectedValue,0) as int) as responseanswerselectedvalue#(lf)    FROM#(lf)        rbeal.otFactOutcomeToolResponse#(lf)        INNER JOIN rbeal.otDimOutcomeToolTemplate ON otFactOutcomeToolResponse.OutcomeToolTemplateID = otDimOutcomeToolTemplate.OutcomeToolTemplateID#(lf)        AND otdimoutcometooltemplate.OutcomeToolQuestionID IN (#(lf)            'q1',#(lf)            'q2',#(lf)            'q3',#(lf)            'q4',#(lf)            'q5',#(lf)            'q6',#(lf)            'q7',#(lf)            'q8',#(lf)            'q9',#(lf)            'q10',#(lf)            'q11',#(lf)            'q12',#(lf)            'q1A',#(lf)            'q2A',#(lf)            'q3A',#(lf)            'q4A',#(lf)            'q1B',#(lf)            'q2B',#(lf)            'q3B',#(lf)            'q4B',#(lf)            'q1C',#(lf)            'q2C',#(lf)            'q3C',#(lf)            'q4C',#(lf)            'q1D',#(lf)            'q2D',#(lf)            'q3D',#(lf)            'q4D',#(lf)#(tab)#(tab)#(tab)'score1',#(lf)#(tab)#(tab)#(tab)'score2',#(lf)#(tab)#(tab)#(tab)'score3',#(lf)#(tab)#(tab)#(tab)'score4'#(lf)        )#(lf)        AND OutcomeToolTitle IN (#(lf)            'kessler 10',#(lf)            'matrix',#(lf)            'Hua Oranga - Primary Care'#(lf)        )#(lf)        INNER JOIN rbeal.otFactOutcomeToolResponseAnswer ON otDimOutcomeToolTemplate.OutcomeToolTemplateID = otFactOutcomeToolResponseAnswer.OutcomeToolTemplateID#(lf)        AND otDimOutcomeToolTemplate.OutcomeToolQuestionID = otFactOutcomeToolResponseAnswer.outcometoolquestionid#(lf)        AND otFactOutcomeToolResponse.OutcomeToolResponseID = otFactOutcomeToolResponseAnswer.OutcomeToolResponseID#(lf)      --  LEFT OUTER JOIN rbeal.dlDimUser ON otFactOutcomeToolResponse.ResponseCreatedUserID = dlDimUser.UserID#(lf)    UNION ALL#(lf)    SELECT#(lf)        'MNB' + ',' + CAST(otFactoutcomeToolResponse.PersonID AS varchar(10)) AS personidkey,#(lf)        'MNB' + ',' + CAST(#(lf)            otFactOutcomeToolResponse.OutcomeToolResponseID AS varchar(20)#(lf)        ) AS assessmentidkey,#(lf)        'MNB' + ',' + CAST(#(lf)            otFactOutcomeToolResponse.ReferralID AS varchar(20)#(lf)        ) AS referralassessmentidkey,#(lf)        otFactoutcomeToolResponse.PersonID,#(lf)        cast(otFactOutcomeToolResponse.ResponseCreatedDate as date) as ResponseCreatedDate,#(lf)        --dlDimUser.UserUsername AS AssessmentCompletedBy,#(lf)        otFactOutcomeToolResponse.OutcomeToolResponseID AS AssessmentId,#(lf)        otFactOutcomeToolResponse.ReferralID,#(lf)        otFactOutcomeToolResponseAnswer.OutcomeToolQuestionID,#(lf)#(tab)#(tab)otdimoutcometoolTemplate.questiontext,#(lf)        OutcomeToolTitle,#(lf)        -- iSNULL(responseAnswerSelectedValue , 0) AS ResponseAnswerSelectedValue#(lf)#(tab)#(tab)cast(isnull(responseAnswerSelectedValue,0) as int) as responseanswerselectedvalue#(lf)    FROM#(lf)        rbmnb.otFactOutcomeToolResponse#(lf)        INNER JOIN rbmnb.otDimOutcomeToolTemplate ON otFactOutcomeToolResponse.OutcomeToolTemplateID = otDimOutcomeToolTemplate.OutcomeToolTemplateID#(lf)        AND otdimoutcometooltemplate.OutcomeToolQuestionID IN (#(lf)            'q1',#(lf)            'q2',#(lf)            'q3',#(lf)            'q4',#(lf)            'q5',#(lf)            'q6',#(lf)            'q7',#(lf)            'q8',#(lf)            'q9',#(lf)            'q10',#(lf)            'q11',#(lf)            'q12',#(lf)            'q1A',#(lf)            'q2A',#(lf)            'q3A',#(lf)            'q4A',#(lf)            'q1B',#(lf)            'q2B',#(lf)            'q3B',#(lf)            'q4B',#(lf)            'q1C',#(lf)            'q2C',#(lf)            'q3C',#(lf)            'q4C',#(lf)            'q1D',#(lf)            'q2D',#(lf)            'q3D',#(lf)            'q4D',#(lf)#(tab)#(tab)#(tab)'score1',#(lf)#(tab)#(tab)#(tab)'score2',#(lf)#(tab)#(tab)#(tab)'score3',#(lf)#(tab)#(tab)#(tab)'score4'#(lf)        )#(lf)        AND OutcomeToolTitle IN (#(lf)            'kessler 10',#(lf)            'matrix',#(lf)            'Hua Oranga - Primary Care'#(lf)        )#(lf)        INNER JOIN rbmnb.otFactOutcomeToolResponseAnswer ON otDimOutcomeToolTemplate.OutcomeToolTemplateID = otFactOutcomeToolResponseAnswer.OutcomeToolTemplateID#(lf)        AND otDimOutcomeToolTemplate.OutcomeToolQuestionID = otFactOutcomeToolResponseAnswer.outcometoolquestionid#(lf)        AND otFactOutcomeToolResponse.OutcomeToolResponseID = otFactOutcomeToolResponseAnswer.OutcomeToolResponseID#(lf)       -- LEFT OUTER JOIN rbmnb.dlDimUser ON otFactOutcomeToolResponse.ResponseCreatedUserID = dlDimUser.UserID#(lf))#(lf)#(lf)#(lf)#(lf),#(lf)#(lf)----======I need the added scores for Hua Oranga.  Score 1,2,3,4 are place holders for a sum that doesn't exist - looks good in the data table though#(lf)--======= so I'm summing the values for A-D for Q1,2,3 and 4 then inbedding them into what should be Score1,2,3,4 #(lf)--======= things always look good until  you want to use them!#(lf)--===here's the summing#(lf)scores as#(lf)(#(lf)select #(lf)#(lf)personidkey, assessmentidkey,left(outcometoolquestionid,2) as qid , sum(responseanswerselectedvalue ) as score#(lf)#(lf) from datablock1#(lf)where outcometooltitle like 'hua ora%'#(lf)and outcometoolquestionid not like 'score%'#(lf)#(lf)group by #(lf)personidkey, assessmentidkey,left(outcometoolquestionid,2)#(lf)),#(lf)--===making them compatible#(lf)scores_1 as#(lf)(#(lf)#(lf)select personidkey, assessmentidkey, #(lf)case when qid = 'q1' then 'Score1'#(lf)when qid = 'q2' then 'Score2'#(lf)when qid  = 'q3' then 'Score3'#(lf)when qid = 'q4' then 'Score4'#(lf)end as qid,#(lf)score #(lf)from scores#(lf))#(lf)--====and voila - bringing them back together again#(lf),datablock2 as#(lf)(#(lf)select #(lf)datablock1.personidkey#(lf),datablock1.assessmentidkey#(lf),datablock1.referralassessmentidkey#(lf),datablock1.personid#(lf),datablock1.responsecreateddate#(lf),datablock1.assessmentid#(lf),datablock1.referralid#(lf),datablock1.outcometoolquestionid#(lf),#(lf)case when questiontext ='Taha Tinana' then 'Taha Tinana (physical wellbeing)'#(lf)when questiontext = 'Taha Wairua' then 'Taha Wairua (spiritual wellbeing)'#(lf)when questiontext = 'Taha Whanau' then 'Taha Whanau (family wellbeing)'#(lf)when questiontext = 'taha hinengaro' then 'Taha Hinengaro (mental wellbeing)'#(lf)else questiontext#(lf)end as questiontext#(lf)#(lf),datablock1.outcometooltitle#(lf),case when score is not null then score#(lf) else responseanswerselectedvalue#(lf) end as responseanswerselectedvalue#(lf) from datablock1#(lf)left join scores_1 on datablock1.personidkey = scores_1.personidkey#(lf)and datablock1.assessmentidkey = scores_1.assessmentidkey#(lf)and outcometooltitle = 'hua oranga - primary care'#(lf)and datablock1.outcometoolquestionid = scores_1.qid#(lf)),#(lf)alldata as#(lf)(#(lf)select#(lf)datablock2.PersonID,#(lf)        datablock2.AssessmentID,#(lf)        referraldata0.ReferralID,#(lf)        datablock2.personidkey,#(lf)        datablock2.assessmentidkey,#(lf)        datablock2.referralassessmentidkey,#(lf)        referraldata0.referralidkey,#(lf)#(tab)#(tab)referraldata0.company,#(lf)        CASE#(lf)            WHEN referralassessmentidkey IS NULL#(lf)            AND referralidkey IS NOT NULL THEN 'Referral Derived'#(lf)            WHEN referralassessmentidkey = referralidkey#(lf)            AND referralidkey IS NOT NULL THEN 'Referral Stated'#(lf)            WHEN referralidkey IS NULL THEN 'Referral Not Found'#(lf)        END AS referralstatus,#(lf)        datablock2.ResponseCreatedDate,#(lf)      --  datablock2.AssessmentCompletedBy,#(lf)#(tab)    referraldata0.TeamIDKey,#(lf)#(tab)#(tab)Referraldata0.dim_client_team_unique_key,#(lf)        referraldata0.TeamID,#(lf)        referraldata0.TeamName,#(lf)#(tab)#(tab)peoplewithethnicitygroup.persondateofbirth,#(lf)#(tab)#(tab)peoplewithethnicitygroup.ethnicitygroup,#(lf)#(tab)#(tab)peoplewithethnicitygroup.maori_indicator,#(lf)#(tab)#(tab)peoplewithethnicitygroup.pasifika_indicator,#(lf)#(tab)#(tab)peoplewithethnicitygroup.gendertext,#(lf)        datablock2.OutcomeToolTitle,#(lf)        datablock2.outcometoolquestionid,#(lf)#(tab)#(tab)datablock2.questiontext,#(lf)#(tab)#(tab)datablock2.responseanswerselectedvalue#(lf)#(tab)#(tab)#(lf)#(tab)#(tab)from datablock2#(lf)inner join PeoplewithEthnicityGroup on datablock2.personidkey = PeoplewithEthnicityGroup.PersonIDkey#(lf)#(lf)left JOIN referraldata0 ON DataBlock2.personidkey = referraldata0.PersonidKey #(lf)        AND CAST(DataBlock2.ResponseCreatedDate AS DATE) BETWEEN dateadd(DAY, - 7, referraldata0.accepteddate)#(lf)        AND dateadd(DAY, + 7, referraldata0.proxyenddate) --====making sure we join the assessment from a company to the referral from the same company#(lf)        AND LEFT(datablock2.assessmentidkey, 3) = LEFT(referraldata0.referralidkey, 3)  --ie same company#(lf)#(lf)--order by datablock2.personidkey, datablock2.assessmentidkey, datablock2.outcometooltitle, datablock2.outcometoolquestionid#(lf)),#(lf)rankings as (#(lf)select #(lf)row_number () over (partition by personidkey, outcometooltitle order by personidkey, outcometooltitle, assessmentidkey) as order_asc,#(lf)row_number () over (partition by personidkey, outcometooltitle order by personidkey, outcometooltitle,  assessmentidkey desc) as order_desc,#(lf)row_number () over (partition by personidkey, assessmentidkey  order by personidkey, assessmentidkey) as assessment_count#(lf), personidkey, referralidkey, assessmentidkey, outcometooltitle, responsecreateddate, teamidkey,  dim_client_team_unique_key#(lf)from#(lf)(#(lf)select distinct personidkey, referralidkey, assessmentidkey , outcometooltitle, responsecreateddate, teamidkey, dim_client_team_unique_key#(lf)from alldata#(lf)) as data1#(lf)),#(lf)alldata99 as#(lf)(select #(lf) rankings.order_asc, rankings.order_desc , rankings.assessment_count, alldata.*, rankings2.responsecreateddate as date_last_assessment,#(lf) rankings2.teamidkey as last_team_id,#(lf) floor(datediff(day,persondateofbirth,alldata.responsecreateddate)/365.25) as age_response#(lf)#(lf)from alldata#(lf)inner join rankings on alldata.personidkey = rankings.personidkey and alldata.referralidkey = rankings.referralidkey#(lf)and alldata.assessmentidkey = rankings.assessmentidkey and alldata.OutcomeToolTitle = rankings.OutcomeToolTitle#(lf)--====I want the visual in PBI to filter on the latest response but connect the ones prior to this response, so I'm finding the last responsedate here#(lf)--==== bit bodgey.... #(lf)inner join rankings rankings2 on #(lf)alldata.personidkey = rankings2.personidkey and alldata.OutcomeToolTitle = rankings2.OutcomeToolTitle#(lf)#(lf)and rankings2.order_desc = 1#(lf)),#(lf)--===adding in totals - will the pain ever end?#(lf)totals as#(lf)(select #(lf)#(tab)#(lf)#(tab)order_asc#(lf),#(tab)order_desc#(lf),   assessment_count#(lf),#(tab)PersonID#(lf),#(tab)AssessmentID#(lf),#(tab)ReferralID#(lf),#(tab)personidkey#(lf),#(tab)assessmentidkey#(lf),#(tab)referralassessmentidkey#(lf),#(tab)referralidkey#(lf),#(tab)company#(lf),#(tab)referralstatus#(lf),#(tab)ResponseCreatedDate#(lf),#(tab)TeamIDKey#(lf),   dim_client_team_unique_key#(lf),#(tab)TeamID#(lf),#(tab)TeamName#(lf),#(tab)persondateofbirth#(lf),#(tab)ethnicitygroup#(lf),#(tab)maori_indicator#(lf),#(tab)pasifika_indicator#(lf),#(tab)gendertext#(lf),#(tab)OutcomeToolTitle#(lf)--,#(tab)'Total' as outcometoolquestionid#(lf)--,#(tab)questiontext#(lf),#(tab)date_last_assessment#(lf),#(tab)last_team_id#(lf),#(tab)age_response#(lf),#(tab)sum(responseanswerselectedvalue) as responseanswerselectedvalue#(lf)#(lf)from alldata99#(lf)where outcometoolquestionid not in (#(lf)--====these are already in score1,2,3,4#(lf)#(tab)#(tab)    'q1A',#(lf)            'q2A',#(lf)            'q3A',#(lf)            'q4A',#(lf)            'q1B',#(lf)            'q2B',#(lf)            'q3B',#(lf)            'q4B',#(lf)            'q1C',#(lf)            'q2C',#(lf)            'q3C',#(lf)            'q4C',#(lf)            'q1D',#(lf)            'q2D',#(lf)            'q3D',#(lf)            'q4D')#(lf)#(lf)group by #(lf)#(tab)order_asc#(lf),#(tab)order_desc#(lf), assessment_count #(lf),#(tab)PersonID#(lf),#(tab)AssessmentID#(lf),#(tab)ReferralID#(lf),#(tab)personidkey#(lf),#(tab)assessmentidkey#(lf),#(tab)referralassessmentidkey#(lf),#(tab)referralidkey#(lf),#(tab)company#(lf),#(tab)referralstatus#(lf),#(tab)ResponseCreatedDate#(lf),#(tab)TeamIDKey#(lf),#(tab)dim_client_team_unique_key#(lf),#(tab)TeamID#(lf),#(tab)TeamName#(lf),#(tab)persondateofbirth#(lf),#(tab)ethnicitygroup#(lf),#(tab)maori_indicator#(lf),#(tab)pasifika_indicator#(lf),#(tab)gendertext#(lf),#(tab)OutcomeToolTitle#(lf)--,#(tab)questiontext#(lf)--,#(tab)sum(responseanswerselectedvalue) as responseanswerselectedvalue#(lf),#(tab)date_last_assessment#(lf),#(tab)last_team_id#(lf),#(tab)age_response#(lf)#(lf)),#(lf)Totals2 as#(lf)(select #(lf)#(tab)order_asc#(lf),#(tab)order_desc#(lf),   assessment_count#(lf),#(tab)PersonID#(lf),#(tab)AssessmentID#(lf),#(tab)ReferralID#(lf),#(tab)personidkey#(lf),#(tab)assessmentidkey#(lf),#(tab)referralassessmentidkey#(lf),#(tab)referralidkey#(lf),#(tab)company#(lf),#(tab)referralstatus#(lf),#(tab)ResponseCreatedDate#(lf),#(tab)TeamIDKey#(lf),#(tab)dim_client_team_unique_key#(lf),#(tab)TeamID#(lf),#(tab)TeamName#(lf),#(tab)persondateofbirth#(lf),#(tab)ethnicitygroup#(lf),#(tab)maori_indicator#(lf),#(tab)pasifika_indicator#(lf),#(tab)gendertext#(lf),#(tab)OutcomeToolTitle#(lf),#(tab)outcometoolquestionid#(lf),#(tab)questiontext#(lf),#(tab)date_last_assessment#(lf),#(tab)last_team_id#(lf),#(tab)age_response#(lf),#(tab)responseanswerselectedvalue#(lf)from alldata99#(lf)union all#(lf)select #(lf)#(tab)order_asc#(lf),#(tab)order_desc#(lf),   assessment_count#(lf),#(tab)PersonID#(lf),#(tab)AssessmentID#(lf),#(tab)ReferralID#(lf),#(tab)personidkey#(lf),#(tab)assessmentidkey#(lf),#(tab)referralassessmentidkey#(lf),#(tab)referralidkey#(lf),#(tab)company#(lf),#(tab)referralstatus#(lf),#(tab)ResponseCreatedDate#(lf),#(tab)TeamIDKey#(lf),#(tab)dim_client_team_unique_key#(lf),#(tab)TeamID#(lf),#(tab)TeamName#(lf),#(tab)persondateofbirth#(lf),#(tab)ethnicitygroup#(lf),#(tab)maori_indicator#(lf),#(tab)pasifika_indicator#(lf),#(tab)gendertext#(lf),#(tab)OutcomeToolTitle#(lf),#(tab)'Q99' as outcometoolquestionid#(lf),#(tab)'Total' as questiontext#(lf),#(tab)date_last_assessment#(lf),#(tab)last_team_id#(lf),#(tab)age_response#(lf),#(tab)responseanswerselectedvalue#(lf)from Totals#(lf))#(lf)select#(lf)#(lf)case when order_asc = 1 and assessment_count = 1 then 'First Assessment'#(lf)when order_desc = 1 and assessment_count = 1  then 'Last Assessment'#(lf)when order_desc = 2 and assessment_count = 1 then 'Previous Assessment'#(lf)else ''#(lf)end as keepers,#(lf)case when order_asc = 1 and order_desc = 1 and assessment_count = 1 then 'Only 1 assessment'#(lf)else ''#(lf)end as assessment_status ,#(lf)*,#(lf)case when questiontext like '10%' or questiontext like '11%' or questiontext like '12%' then questiontext#(lf)else ' '+questiontext#(lf)end as question #(lf)from totals2;#(lf)"]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"ResponseCreatedDate", type date}, {"date_last_assessment", type date}}),
+				    #"Replaced Value" = Table.ReplaceValue(#"Changed Type","In the past 4 weeks, about how often did you feel","",Replacer.ReplaceText,{"questiontext"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Replaced Value",{{"assessment_status", "Assessment Status"}, {"keepers", "Assessment Performed Type"}, {"responseanswerselectedvalue", "Response Answer Selected Value"}, {"OutcomeToolTitle", "Outcome Tool Title"}, {"ResponseCreatedDate", "Response Created Date"}, {"assessmentidkey", "Assessment ID Key"}, {"questiontext", "Question Text"}, {"outcometoolquestionid", "Outcome Tool Question ID"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

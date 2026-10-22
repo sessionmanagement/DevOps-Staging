@@ -1,0 +1,120 @@
+table 'Employee Service Mapping'
+	lineageTag: 7deba37b-ee42-4110-83cf-aa3acaefd966
+
+	column Employee
+		dataType: string
+		lineageTag: 57c9b4c4-a6f6-4060-b69f-92234b0d9844
+		summarizeBy: none
+		sourceColumn: Employee
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: d1ba0244-fda2-48b1-8d56-85cbcaa30269
+		summarizeBy: sum
+		sourceColumn: Employee KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 049c2221-13a9-4d07-b888-f9596619ca84
+		summarizeBy: count
+		sourceColumn: Employee ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Email'
+		dataType: string
+		lineageTag: 79d09719-4818-4eb9-8628-8c1355e310b1
+		summarizeBy: none
+		sourceColumn: Employee Email
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Company'
+		dataType: string
+		lineageTag: a12511f7-6422-4180-a3b0-31715ce95818
+		summarizeBy: none
+		sourceColumn: Employee Company
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Service KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 45e2fea6-6f59-4c51-9c58-93203b060746
+		summarizeBy: sum
+		sourceColumn: Dim Service KEY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Bu'
+		dataType: string
+		lineageTag: 69539209-046d-4860-b785-4b4183c90cc2
+		summarizeBy: none
+		sourceColumn: Employee Bu
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Company Name'
+		dataType: string
+		lineageTag: 2fd1e435-fecb-4a5b-9943-ffa6b235218e
+		summarizeBy: none
+		sourceColumn: Company Name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Employee Service Mapping' = m
+		mode: import
+		queryGroup: Mapping
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="WITH hierarchy_cte AS (#(lf)    -- Level 1#(lf)    SELECT #(lf)        employee_displayname AS parent,#(lf)        employee_people_leader_person_display_name_level_1 AS child,#(lf)        employee_Business_unit_name AS parent_bu,#(lf)        employee_people_leader_business_unit_name_level_1 AS child_bu#(lf)    FROM [edw].[vw_dim_employee_hierarchy]#(lf)    WHERE DWHIsCurrent = 1#(lf)      AND employee_people_leader_person_display_name_level_1 IS NOT NULL#(lf)#(lf)    UNION ALL#(lf)#(lf)    -- Level 2#(lf)    SELECT #(lf)        employee_displayname AS parent,#(lf)        employee_people_leader_person_display_name_level_2 AS child,#(lf)        employee_Business_unit_name AS parent_bu,#(lf)        employee_people_leader_business_unit_name_level_2 AS child_bu#(lf)    FROM [edw].[vw_dim_employee_hierarchy]#(lf)    WHERE DWHIsCurrent = 1#(lf)      AND employee_people_leader_person_display_name_level_2 IS NOT NULL#(lf)#(lf)    UNION ALL#(lf)#(lf)    -- Level 3#(lf)    SELECT #(lf)        employee_displayname AS parent,#(lf)        employee_people_leader_person_display_name_level_3 AS child,#(lf)        employee_Business_unit_name AS parent_bu,#(lf)        employee_people_leader_business_unit_name_level_3 AS child_bu#(lf)    FROM [edw].[vw_dim_employee_hierarchy]#(lf)    WHERE DWHIsCurrent = 1#(lf)      AND employee_people_leader_person_display_name_level_3 IS NOT NULL#(lf)#(lf)    UNION ALL#(lf)#(lf)    -- Level 4#(lf)    SELECT #(lf)        employee_displayname AS parent,#(lf)        employee_people_leader_person_display_name_level_4 AS child,#(lf)        employee_Business_unit_name AS parent_bu,#(lf)        employee_people_leader_business_unit_name_level_4 AS child_bu#(lf)    FROM [edw].[vw_dim_employee_hierarchy]#(lf)    WHERE DWHIsCurrent = 1#(lf)      AND employee_people_leader_person_display_name_level_4 IS NOT NULL#(lf)#(lf)    UNION ALL#(lf)#(lf)    -- Level 5#(lf)    SELECT #(lf)        employee_displayname AS parent,#(lf)        employee_people_leader_person_display_name_level_5 AS child,#(lf)        employee_Business_unit_name AS parent_bu,#(lf)        employee_people_leader_business_unit_name_level_5 AS child_bu#(lf)    FROM [edw].[vw_dim_employee_hierarchy]#(lf)    WHERE DWHIsCurrent = 1#(lf)      AND employee_people_leader_person_display_name_level_5 IS NOT NULL#(lf)#(lf)    UNION ALL#(lf)#(lf)    -- Level 6#(lf)    SELECT #(lf)        employee_displayname AS parent,#(lf)        employee_people_leader_person_display_name_level_6 AS child,#(lf)        employee_Business_unit_name AS parent_bu,#(lf)        employee_people_leader_business_unit_name_level_6 AS child_bu#(lf)    FROM [edw].[vw_dim_employee_hierarchy]#(lf)    WHERE DWHIsCurrent = 1#(lf)      AND employee_people_leader_person_display_name_level_6 IS NOT NULL#(lf)#(lf)    UNION ALL#(lf)#(lf)    -- Level 7#(lf)    SELECT #(lf)        employee_displayname AS parent,#(lf)        employee_people_leader_person_display_name_level_7 AS child,#(lf)        employee_Business_unit_name AS parent_bu,#(lf)        employee_people_leader_business_unit_name_level_7 AS child_bu#(lf)    FROM [edw].[vw_dim_employee_hierarchy]#(lf)    WHERE DWHIsCurrent = 1#(lf)      AND employee_people_leader_person_display_name_level_7 IS NOT NULL#(lf)#(lf)    UNION ALL#(lf)#(lf)    -- Level 8#(lf)    SELECT #(lf)        employee_displayname AS parent,#(lf)        employee_people_leader_person_display_name_level_8 AS child,#(lf)        employee_Business_unit_name AS parent_bu,#(lf)        employee_people_leader_business_unit_name_level_8 AS child_bu#(lf)    FROM [edw].[vw_dim_employee_hierarchy]#(lf)    WHERE DWHIsCurrent = 1#(lf)      AND employee_people_leader_person_display_name_level_8 IS NOT NULL#(lf)#(lf)    UNION ALL#(lf)#(lf)    -- Level 9#(lf)    SELECT #(lf)        employee_displayname AS parent,#(lf)        employee_people_leader_person_display_name_level_9 AS child,#(lf)        employee_Business_unit_name AS parent_bu,#(lf)        employee_people_leader_business_unit_name_level_9 AS child_bu#(lf)    FROM [edw].[vw_dim_employee_hierarchy]#(lf)    WHERE DWHIsCurrent = 1#(lf)      AND employee_people_leader_person_display_name_level_9 IS NOT NULL#(lf)),#(lf)Employee_Hierarchy_CTE AS (#(lf)    SELECT DISTINCT #(lf)        h.parent AS [Employee],#(lf)        h.child AS [Leader],#(lf)        h.parent_bu AS [Employee BU],#(lf)        h.child_bu AS [Leader BU],#(lf)        e.dim_employee_key AS [Employee Key],#(lf)        l.dim_employee_key AS [Leader Key],#(lf)        e.employee_id AS [Employee ID],#(lf)        l.employee_id AS [Leader ID],#(lf)        e.employee_primary_email_address AS [Employee Email],#(lf)        l.employee_primary_email_address AS [Leader Email],#(lf)        e.employee_company_name AS [Employee Company],#(lf)        l.employee_company_name AS [Leader Company]#(lf)    FROM hierarchy_cte h#(lf)    LEFT JOIN [edw].[vw_dim_employee_hierarchy] e #(lf)        ON h.parent = e.employee_displayname #(lf)        AND h.parent_bu = e.employee_Business_unit_name#(lf)    LEFT JOIN [edw].[vw_dim_employee_hierarchy] l #(lf)        ON h.child = l.employee_displayname #(lf)        AND h.child_bu = l.employee_Business_unit_name#(lf)    WHERE h.parent <> h.child#(lf)      AND e.DWHIsCurrent = 1#(lf)      AND l.DWHIsCurrent = 1#(lf))#(lf)SELECT DISTINCT#(lf)    [Employee],#(lf)    --[Leader],#(lf)    --[Leader BU],#(lf)    [Employee Key],#(lf)    --[Leader Key],#(lf)    [Employee ID],#(lf)    --[Leader ID],#(lf)    [Employee Email],#(lf)    --[Leader Email],#(lf)    [Employee Company],#(lf)   --, [Leader Company],#(lf)#(tab)ps.dim_service_key AS Dim_Service_Key,#(lf)    [Employee BU]#(lf)FROM Employee_Hierarchy_CTE as h#(lf)LEFT JOIN [edw].[vw_dim_service] ps ON h.[Employee BU] = ps.[service_name]#(lf)#(tab)#(tab)WHERE (ps.[DWHIsCurrent] = 1#(lf)#(tab)#(tab)OR ps.DWHIsCurrent IS NULL)#(lf)#(tab)#(tab)--AND Employee LIKE '%chatterji%'"]),
+				    ApplyNamingConventions = (columnName as text) as text =>
+				        let
+				            replaceClient = Text.Replace(columnName, "client_", "Tangata_Whaiora_"),
+				            replaceUnderscore = Text.Replace(replaceClient, "_", " "),
+				            renameDWHBatchId = Text.Replace(replaceUnderscore, "DWHBatchId", "DWH Batch Id"),
+				            renameDWHCreatedAt = Text.Replace(renameDWHBatchId, "DWHCreatedAt", "DWH Created At"),
+				            renameDWHDMLOperation = Text.Replace(renameDWHCreatedAt, "DWHDMLOperation", "DWH DML Operation"),
+				            renameDWHEffectiveFrom = Text.Replace(renameDWHDMLOperation, "DWHEffectiveFrom", "DWH Effective From"),
+				            renameDWHEffectiveTo = Text.Replace(renameDWHEffectiveFrom, "DWHEffectiveTo", "DWH Effective To"),
+				            renameDWHIsCurrent = Text.Replace(renameDWHEffectiveTo, "DWHIsCurrent", "DWH Is Current"),
+				            renameDWHModifiedOn = Text.Replace(renameDWHIsCurrent, "DWHModifiedOn", "DWH Modified On"),
+				            renameDWHSourceSystem = Text.Replace(renameDWHModifiedOn, "DWHSourceSystem", "DWH Source System"),
+				            capitaliseWords = Text.Proper(renameDWHSourceSystem),
+				            capitaliseID = Text.Replace(capitaliseWords, "Id", "ID"),
+				            capitaliseKEY = Text.Replace(capitaliseID, "Key", "KEY"),
+				            capitaliseDWH = Text.Replace(capitaliseKEY, "Dwh", "DWH")
+				        in
+				            capitaliseDWH,
+				    #"Transformed Column Names" = Table.TransformColumnNames(Source, each ApplyNamingConventions(_)),
+				    #"Merged Queries" = Table.NestedJoin(#"Transformed Column Names", {"Dim Service KEY", "Employee Company"}, #"Dim Service Company Mapping", {"Dim Service KEY", "Customcompany"}, "Dim Service Company Mapping", JoinKind.LeftOuter),
+				    #"Expanded Dim Service Company Mapping" = Table.ExpandTableColumn(#"Merged Queries", "Dim Service Company Mapping", {"Company Name"}, {"Company Name"})
+				in
+				    #"Expanded Dim Service Company Mapping"
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,54 @@
+/// Self-service semantic model template. Contains reusable components: Date Table, Changelog, Measures table, Model Info documentation tables, connection parameters, and naming convention function. Add your fact and dimension tables, then create measures in the Measures table.
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-NZ
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+queryGroup Changelog
+
+	annotation PBI_QueryGroupOrder = 0
+
+queryGroup Parameters
+
+	annotation PBI_QueryGroupOrder = 1
+
+queryGroup 'Dim Date'
+
+	annotation PBI_QueryGroupOrder = 2
+
+queryGroup 'Dim Tables'
+
+	annotation PBI_QueryGroupOrder = 3
+
+/// Reusable M functions for data transformation
+queryGroup Functions
+
+	annotation PBI_QueryGroupOrder = 4
+
+queryGroup 'Fact Tables'
+
+	annotation PBI_QueryGroupOrder = 5
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_ProTooling = ["DevMode","MCP-PBIModeling","TMDLView_Desktop"]
+
+annotation PBI_QueryOrder = ["Changelog","Semantic Model","Server","Database","Date Table","fnApplyNamingConventions","Company","Service"]
+
+ref table Measures​
+ref table Changelog
+ref table 'Date Table'
+ref table DateTableTemplate_eda9bb0b-a290-4750-a018-4a8317a9bfdc
+ref table '_Model Info - Tables'
+ref table '_Model Info - Columns'
+ref table '_Model Info - Measures'
+ref table '_Model Info - Relationships'
+ref table Company
+ref table Service
+ref table LocalDateTable_15f854a3-9a0d-4ac4-9391-f7e0286d1081
+
+ref cultureInfo en-US
+

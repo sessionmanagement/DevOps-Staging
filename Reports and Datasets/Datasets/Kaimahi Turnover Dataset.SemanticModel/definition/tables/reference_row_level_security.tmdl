@@ -1,0 +1,107 @@
+table reference_row_level_security
+	lineageTag: 2c1ad029-8cde-44a6-aa82-922573bf87ec
+
+	column supervisor_person_id
+		dataType: string
+		lineageTag: 7336d8ca-75f4-4e86-85e4-5077f3be0f06
+		summarizeBy: none
+		sourceColumn: supervisor_person_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column supervisor_employee_number
+		dataType: int64
+		formatString: 0
+		lineageTag: 11e32af9-8a31-450e-8ec9-1dc5f97567ad
+		summarizeBy: sum
+		sourceColumn: supervisor_employee_number
+
+		annotation SummarizationSetBy = Automatic
+
+	column supervisor_display_name
+		dataType: string
+		lineageTag: 32fce2f6-6faa-420b-9ea1-4a681e805ac2
+		summarizeBy: none
+		sourceColumn: supervisor_display_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column supervisor_job_title
+		dataType: string
+		lineageTag: bacf27af-2718-4909-897a-2bc134cf12f2
+		summarizeBy: none
+		sourceColumn: supervisor_job_title
+
+		annotation SummarizationSetBy = Automatic
+
+	column supervisor_email
+		dataType: string
+		lineageTag: 37b9a854-4711-470b-9c7a-56273ed30898
+		summarizeBy: none
+		sourceColumn: supervisor_email
+
+		annotation SummarizationSetBy = Automatic
+
+	column supervisor_employment_status
+		dataType: string
+		lineageTag: 7649ab14-c6f7-4388-827c-41fb4b716b79
+		summarizeBy: none
+		sourceColumn: supervisor_employment_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column intellihr_business_unit_id
+		dataType: string
+		lineageTag: 02b75f21-a8fc-4cc0-9bd1-3ce2cc1662f5
+		summarizeBy: none
+		sourceColumn: intellihr_business_unit_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_unit_name
+		dataType: string
+		lineageTag: 68033918-1762-4599-b3a2-cf127380d6c3
+		summarizeBy: none
+		sourceColumn: business_unit_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column intellihr_bc_code
+		dataType: string
+		lineageTag: d071ae08-8e44-4877-b8e5-856f85fa53db
+		summarizeBy: none
+		sourceColumn: intellihr_bc_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column supervisor_businessEntity_id
+		dataType: string
+		lineageTag: 90c10554-c5dd-43cf-afac-4ebb6aa0e80b
+		summarizeBy: none
+		sourceColumn: supervisor_businessEntity_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column supervisor_businessEntity_name
+		dataType: string
+		lineageTag: 67a8c233-f97d-4789-8813-100273f8eff3
+		summarizeBy: none
+		sourceColumn: supervisor_businessEntity_name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition reference_row_level_security = m
+		mode: import
+		queryGroup: Workings
+		source =
+				let
+				    Source = Sql.Database("sql-prod-aus-svc-datawarehouse-01.database.windows.net", "sqldb-prod-datawarehouse-01", [Query="-- RLS_type 'Employee' (edw.update_row_level_security_kaimahi): each viewer's mapped kaimahi, mapped to that kaimahi's current IntelliHR business unit#(lf)SELECT DISTINCT#(lf)    e.employee_profile_system_id AS supervisor_person_id,#(lf)    g.employee_id AS supervisor_employee_number,#(lf)    e.employee_name AS supervisor_display_name,#(lf)    e.employee_job_name AS supervisor_job_title,#(lf)    LOWER(LTRIM(RTRIM(g.email))) AS supervisor_email,#(lf)    CAST(NULL AS NVARCHAR(36)) AS supervisor_businessEntity_id,#(lf)    h.employee_company_name AS supervisor_businessEntity_name,#(lf)    e.employee_employment_status AS supervisor_employment_status,#(lf)    bu.business_unit_id AS intellihr_business_unit_id,#(lf)    bu.business_unit_name AS business_unit_name,#(lf)    CAST(NULL AS NVARCHAR(50)) AS intellihr_bc_code#(lf)FROM edw.row_level_security_general AS g#(lf)INNER JOIN edw.dim_employee_hierarchy AS h#(lf)    ON h.employee_id = g.mapped_employee_id#(lf)    AND h.DWHIsCurrent = 1#(lf)    AND h.DWHDMLOperation <> 'D'#(lf)INNER JOIN edw.dim_business_unit_hierarchy AS bu#(lf)    ON bu.business_unit_name = h.employee_Business_unit_name#(lf)    AND bu.DWHDMLOperation <> 'D'#(lf)    AND bu.is_active_flag = 1#(lf)    AND bu.dim_business_unit_hierarchy_key > 0#(lf)LEFT JOIN edw.dim_employee AS e#(lf)    ON e.dim_employee_key = g.dim_employee_key#(lf)WHERE g.RLS_type = 'Employee'#(lf)    AND g.email IS NOT NULL#(lf)    AND LTRIM(RTRIM(g.email)) <> ''#(lf)    AND bu.business_unit_id IS NOT NULL#(lf)    -- own business unit only for people leaders (viewers mapped to at least one other kaimahi), as the legacy isSupervisor rule did#(lf)    AND EXISTS (#(lf)        SELECT 1#(lf)        FROM edw.row_level_security_general AS x#(lf)        WHERE x.RLS_type = 'Employee'#(lf)            AND x.employee_id = g.employee_id#(lf)            AND x.mapped_employee_id <> x.employee_id#(lf)    );"]),
+				    #"Lowercased Text" = Table.TransformColumns(Source,{{"supervisor_email", each Text.Lower(Text.Trim(_)), type text}}),
+				    #"Removed Duplicates" = Table.Distinct(#"Lowercased Text")
+				in
+				    #"Removed Duplicates"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

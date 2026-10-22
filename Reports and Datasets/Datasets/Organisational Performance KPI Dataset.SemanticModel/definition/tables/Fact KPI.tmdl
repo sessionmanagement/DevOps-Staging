@@ -1,0 +1,220 @@
+table 'Fact KPI'
+	lineageTag: e27c3a6a-90f0-4373-b4b3-8af5cef3d3c3
+
+	column 'KPI Value'
+		dataType: double
+		lineageTag: 053ff01a-ed8d-4bce-9b16-82f2c26bf845
+		summarizeBy: sum
+		sourceColumn: KPI Value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'KPI Name'
+		dataType: string
+		lineageTag: 98895ed4-96b7-44c2-bf76-e4a1d56432a9
+		summarizeBy: none
+		sourceColumn: KPI Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Green Threshold'
+		dataType: double
+		lineageTag: 0dad541f-dd7d-4347-b8b7-897abb945beb
+		summarizeBy: sum
+		sourceColumn: Green Threshold
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Amber Threshold'
+		dataType: double
+		lineageTag: c19443fb-b041-440a-9da4-779d2a46eed6
+		summarizeBy: sum
+		sourceColumn: Amber Threshold
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Green Sign'
+		dataType: string
+		lineageTag: 7a38ca7e-8373-4e86-8e1c-ba8c05e3be6a
+		summarizeBy: none
+		sourceColumn: Green Sign
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Amber Sign'
+		dataType: string
+		lineageTag: a1bf7470-5667-4235-af20-cc19228398a8
+		summarizeBy: none
+		sourceColumn: Amber Sign
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Rollup Green Threshold'
+		dataType: double
+		lineageTag: 046c0426-c3ad-4e05-abee-d7fbd7644e91
+		summarizeBy: sum
+		sourceColumn: Rollup Green Threshold
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Rollup Green Sign'
+		dataType: string
+		lineageTag: fcbce13b-4dd6-44a3-86e3-8e358b5ef357
+		summarizeBy: none
+		sourceColumn: Rollup Green Sign
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Rollup Amber Threshold'
+		dataType: double
+		lineageTag: 8e54d204-ab64-4ca9-a09f-a5f20669cc0c
+		summarizeBy: sum
+		sourceColumn: Rollup Amber Threshold
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Rollup Amber Sign'
+		dataType: string
+		lineageTag: 58fe18c9-1042-47cf-92f8-ee685ffb0d65
+		summarizeBy: none
+		sourceColumn: Rollup Amber Sign
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'KPI Status'
+		dataType: string
+		lineageTag: 33832d72-56f1-454d-8ea3-24554fae045f
+		summarizeBy: none
+		sourceColumn: KPI Status
+		sortByColumn: ColourOrder
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Company KEY'
+		dataType: double
+		formatString: 0
+		lineageTag: af802dce-1209-4639-90d8-5dee9b0815a8
+		summarizeBy: none
+		sourceColumn: Dim Company KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Fact KPI Key'
+		dataType: int64
+		formatString: 0
+		lineageTag: ec989493-bf81-4384-9829-d2dff40ab7af
+		summarizeBy: count
+		sourceColumn: Fact KPI Key
+
+		annotation SummarizationSetBy = Automatic
+
+	column ColourCode =
+			
+			IF('Fact KPI'[KPI Status] = "Green", "#018DB1",// "#30ba8d",
+			IF('Fact KPI'[KPI Status] = "Amber", "#FFD40B",
+			IF('Fact KPI'[KPI Status] = "Red", "#f47c20")))
+		dataType: string
+		lineageTag: 1c587cd6-3955-4079-a21d-45158ed08a79
+		summarizeBy: none
+		isDataTypeInferred
+
+		annotation SummarizationSetBy = Automatic
+
+	column ColourOrder
+		dataType: int64
+		formatString: 0
+		lineageTag: 0d257d6d-f473-4dc3-8134-601c3e481baf
+		summarizeBy: sum
+		sourceColumn: ColourOrder
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim KPI Key'
+		dataType: int64
+		formatString: 0
+		lineageTag: 0a2ed2fa-1d0e-4175-a3fb-05711d5d99cc
+		summarizeBy: none
+		sourceColumn: Dim KPI Key
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Entity KEY'
+		dataType: string
+		lineageTag: 351b2165-2f38-4801-a904-f7024f693f58
+		summarizeBy: none
+		sourceColumn: Entity KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Property KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 91d01d4a-39ea-42b0-ac70-e4fdef6c66f0
+		summarizeBy: sum
+		sourceColumn: Dim Property KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Service KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 9c078088-32eb-4476-8716-897b357f8803
+		summarizeBy: none
+		sourceColumn: Dim Service KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Percentage Achieved' = DIVIDE('Fact KPI'[KPI Value], 'Fact KPI'[Green Threshold], 0)
+		dataType: double
+		lineageTag: fa15b54f-bc39-438e-be4b-9eba9312c2df
+		summarizeBy: sum
+		isDataTypeInferred
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Fact KPI' = m
+		mode: import
+		queryGroup: 'Dataset Fact Tables'
+		source =
+				let
+				    Source = Table.Combine(
+				        {
+				            #"Leave balance does not exceed 200hrs",
+				            #"Hours worked in fortnights < 96hrs [including external hrs]",
+				            #"All households have an occupancy agreement",
+				            #"Time since last leave < 6 months"
+				        }
+				    ),
+				    #"Added Index" = Table.AddIndexColumn(Source, "Fact KPI Key", 1, 1, Int64.Type),
+				    #"Added Conditional Column" = Table.AddColumn(
+				        #"Added Index",
+				        "ColourOrder",
+				        each if [KPI Status] = "Green" then 1 else if [KPI Status] = "Amber" then
+				            2
+				        else if [KPI Status] = "Red" then
+				            3
+				        else
+				            null
+				    ),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Added Conditional Column", {{"ColourOrder", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

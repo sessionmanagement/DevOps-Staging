@@ -1,0 +1,211 @@
+table 'RLS with Additional Access'
+	lineageTag: d8ebee58-b65c-4ef4-ba62-278cb77d8eee
+
+	column 'Hierarchy Number'
+		dataType: int64
+		formatString: 0
+		lineageTag: 77721332-e13b-4f7f-96d6-ea1fb838f050
+		summarizeBy: sum
+		sourceColumn: Hierarchy Number
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service Name'
+		dataType: string
+		lineageTag: 0c455c60-c654-4973-9785-1f467054b8e5
+		summarizeBy: none
+		sourceColumn: Service Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Service ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: aaf28226-7109-47f1-8c52-49cf321a7fe0
+		summarizeBy: count
+		sourceColumn: Service ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Service KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 58437985-45a5-4189-ae19-1f442e48158b
+		summarizeBy: sum
+		sourceColumn: Dim Service KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Company KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: 6b8c4977-7b0e-47b9-80cf-3f1557ffc0c3
+		summarizeBy: sum
+		sourceColumn: Dim Company KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dim Employee KEY'
+		dataType: int64
+		formatString: 0
+		lineageTag: a6ca406b-3050-4504-aa13-4f90629b3707
+		summarizeBy: sum
+		sourceColumn: Dim Employee KEY
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: fb050080-0ebd-4f6a-aeb4-3bef29c38ee1
+		summarizeBy: count
+		sourceColumn: Employee ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Company
+		dataType: string
+		lineageTag: 570c6613-62be-42ab-ab3a-a1ebb9c5d68a
+		summarizeBy: none
+		sourceColumn: Company
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Region Name'
+		dataType: string
+		lineageTag: 0994db2c-de72-45ff-baf1-66f783329939
+		summarizeBy: none
+		sourceColumn: Region Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'District Name'
+		dataType: string
+		lineageTag: 65b1299b-7aa8-4151-89ec-734ec91a697b
+		summarizeBy: none
+		sourceColumn: District Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Department Name'
+		dataType: string
+		lineageTag: fcd0cf46-63ad-4d96-aa75-b5aa95084141
+		summarizeBy: none
+		sourceColumn: Department Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Employee Job Name'
+		dataType: string
+		lineageTag: 9ecb251e-e5c5-4449-88db-bee89339aa0a
+		summarizeBy: none
+		sourceColumn: Employee Job Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 91c51c87-6dc9-4f68-96b7-73888b8e9224
+		summarizeBy: count
+		sourceColumn: Tangata Whaiora Team ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team Name'
+		dataType: string
+		lineageTag: 9484fd73-4ae3-460e-90d7-e7323b7ba84c
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Team Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'User Principal Name'
+		dataType: string
+		lineageTag: 9859b084-84c8-4cc9-908b-6c7a0c29a0aa
+		summarizeBy: none
+		sourceColumn: User Principal Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'RLS Join'
+		dataType: string
+		lineageTag: df9e5dcf-ac9a-4e95-aac9-a450a2147370
+		summarizeBy: none
+		sourceColumn: RLS Join
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team Area'
+		dataType: string
+		lineageTag: 60188315-d186-4165-a223-18e4787d0544
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Team Area
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Tangata Whaiora Team Function'
+		dataType: string
+		lineageTag: d9aa1c36-3042-4b4a-b38a-6148782b81f9
+		summarizeBy: none
+		sourceColumn: Tangata Whaiora Team Function
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'RLS with Additional Access' = m
+		mode: import
+		queryGroup: Timi
+		source =
+				let
+				    // Load both tables
+				    RowLevelSecurity = @#"RLS - New RB Structure ALL services",
+				    AdditionalAccess = #"Additional Access (2)",
+				
+				    // Join tables
+				    JoinedTable = Table.Join(
+				        AdditionalAccess, "Person to Impersonate Email", RowLevelSecurity, "User Principal Name", JoinKind.RightOuter
+				    ),
+				
+				    #"Added Conditional Column" = Table.AddColumn(
+				        JoinedTable, "Custom", each if [Requester Email] = null then [User Principal Name] else [Requester Email]
+				    ),
+				
+				    #"Removed Columns" = Table.RemoveColumns(
+				        #"Added Conditional Column",
+				        {
+				            "Report",
+				            "Requester Email",
+				            "Person to Impersonate Email",
+				            "Expiry Date",
+				            "Access Reason",
+				            "Approved By Email",
+				            "Approved Date",
+				            "Modified",
+				            "Created",
+				            "Created By Email",
+				            "Modified By Email",
+				            "Version",
+				            "User Principal Name"
+				        }
+				    ),
+				
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Columns", {{"Custom", "User Principal Name"}}),
+				
+				    #"Reordered Columns" = Table.ReorderColumns(
+				        #"Renamed Columns", {"User Principal Name"}
+				    ),
+				
+				    #"Changed Type" = Table.TransformColumnTypes(#"Reordered Columns", {{"User Principal Name", type text}}),
+				    #"Appended Query" = Table.Combine({#"Changed Type", #"RLS - New RB Structure ALL services"}),
+				    #"Removed Duplicates" = Table.Distinct(#"Appended Query"),
+				    #"Filtered Rows" = Table.SelectRows(#"Removed Duplicates", each ([Tangata Whaiora Team ID] <> null)),
+				    #"Inserted Merged Column" = Table.AddColumn(#"Filtered Rows", "RLS Join", each Text.Combine({[Company], "", Text.From([Tangata Whaiora Team ID], "en-NZ")}), type text),
+				    #"Replaced Value" = Table.ReplaceValue(#"Inserted Merged Column","Emerge","E",Replacer.ReplaceText,{"RLS Join"}),
+				    #"Replaced Value1" = Table.ReplaceValue(#"Replaced Value","Mind and Body","M",Replacer.ReplaceText,{"RLS Join"})
+				in
+				    #"Replaced Value1"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

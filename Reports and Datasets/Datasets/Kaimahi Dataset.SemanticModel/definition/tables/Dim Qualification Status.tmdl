@@ -1,0 +1,46 @@
+table 'Dim Qualification Status'
+	lineageTag: 5ff24683-a18e-4b0b-b212-c02fdb614d9f
+
+	column 'KPI Status'
+		dataType: int64
+		formatString: 0
+		lineageTag: 017d8107-46bb-403e-8be9-0b46d447258f
+		summarizeBy: none
+		sourceColumn: KPI Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column Meaning
+		dataType: string
+		lineageTag: bc5a421d-c9d3-4b63-96e6-ec2ae0a83ac6
+		summarizeBy: none
+		sourceColumn: Meaning
+
+		annotation SummarizationSetBy = Automatic
+
+	column Indicator
+		dataType: string
+		lineageTag: 38d2d2ff-5d3d-4ec1-9e28-5551951ff2cb
+		summarizeBy: none
+		sourceColumn: Indicator
+
+		annotation SummarizationSetBy = Automatic
+
+	column TextColour
+		dataType: string
+		lineageTag: f7bfbf84-158f-4494-af2d-4bf24334a9b1
+		summarizeBy: none
+		sourceColumn: TextColour
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Dim Qualification Status' = m
+		mode: import
+		queryGroup: Dim
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WMlTSUQpJzE5VcEwuyczPA/IySkoKiq309TP1MpOS9JLz9S3SKyzNs7KM9T3zUjKTE0vyi3QhivUK8tKBGpRdDUzMTcyVYnWilYyA/KDUsszUcmwmFZSZmoWlmQUgmQRRDDPJ2djCzMgJbJIxkO+YnJEJlAfLYRgW4hRpaOkRFoJkWEBqWn5RLlA9zDxTSwtDCxOl2FgA", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"KPI Status" = _t, Meaning = _t, Indicator = _t, TextColour = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"KPI Status", Int64.Type}, {"Meaning", type text}})
+				in
+				    #"Changed Type"
+

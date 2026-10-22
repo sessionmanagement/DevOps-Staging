@@ -1,0 +1,20 @@
+/// Single-row table storing the model refresh timestamp in NZ time. Evaluated during model processing, not at query time.
+table _LastRefresh
+	isHidden
+	lineageTag: 7e2788cc-48ea-474e-9d62-5aaf45c01043
+
+	column RefreshDateTime
+		lineageTag: 65de9347-3630-46ab-a553-bc11a36576f3
+		isNameInferred
+		sourceColumn: [RefreshDateTime]
+
+	partition _LastRefresh = calculated
+		mode: import
+		source =
+				VAR _UTCNow = UTCNOW()
+				VAR _Year = YEAR(_UTCNow)
+				VAR _SeptLastSun = DATE(_Year, 9, 30) - WEEKDAY(DATE(_Year, 9, 30), 1) + 1
+				VAR _AprFirstSun = DATE(_Year, 4, 1) + (8 - WEEKDAY(DATE(_Year, 4, 1), 1)) - 7
+				VAR _NZOffset = IF(DATEVALUE(_UTCNow) >= _SeptLastSun || DATEVALUE(_UTCNow) < _AprFirstSun, 13, 12)
+				RETURN ROW("RefreshDateTime", _UTCNow + _NZOffset/24)
+

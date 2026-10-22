@@ -1,0 +1,32 @@
+table fact_roster
+	lineageTag: 0a57334e-fc42-448f-96e5-55bab453dee1
+
+	column dim_service_key
+		dataType: int64
+		formatString: 0
+		lineageTag: ec3415d2-ae5f-46c8-b512-6e5de92a6522
+		summarizeBy: none
+		sourceColumn: dim_service_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column roster_shifts
+		dataType: string
+		lineageTag: badd8b81-4991-431a-8f3b-d45913e042e3
+		summarizeBy: none
+		sourceColumn: roster_shifts
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_roster = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(Server, Database, [Query="-- ============================================================#(lf)-- Model:  Payrun Dataset#(lf)-- Table:  fact_roster#(lf)-- Source: native query  FROM [edw].[fact_sixdegree_roster]#(lf)-- Used columns: 2 (mapped 2, unmapped 0)#(lf)-- Auto-generated from pbi_complete_dump.csv + model M + EDW/ODS schema.#(lf)-- Review before use; verify joins/filters against the model.#(lf)-- ============================================================#(lf)SELECT#(lf)    [dim_service_key],#(lf)    [roster_shifts]#(lf)FROM [edw].[fact_sixdegree_roster];#(lf)"])
+				in
+				    Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

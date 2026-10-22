@@ -1,0 +1,90 @@
+expression mdl_prog = ```
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT [id] AS [id]#(lf)      ,[category] AS [category]#(lf)      ,[sort_order] AS [sortorder]#(lf)      ,[full_name] AS [fullname]#(lf)      ,[short_name] AS [shortname]#(lf)      ,[id_number] AS [idnumber]#(lf)      ,[summary] AS [summary]#(lf)      ,[end_note] AS [endnote]#(lf)      ,[visible] AS [visible]#(lf)      ,[available_from] AS [availablefrom]#(lf)      ,[available_until] AS [availableuntil]#(lf)      ,[available] AS [available]#(lf)      ,[time_created] AS [timecreated]#(lf)      ,[time_modified] AS [timemodified]#(lf)      ,[user_modified] AS [usermodified]#(lf)      ,[icon] AS [icon]#(lf)      ,[exceptions_sent] AS [exceptionssent]#(lf)      ,[audience_visible] AS [audiencevisible]#(lf)      ,[certif_id] AS [certifid]#(lf)      ,[assignments_deferred] AS [assignmentsdeferred]#(lf)      ,[allow_extension_requests] AS [allowextensionrequests]#(lf)      ,[ODSIsCurrent] AS [ODSIsCurrent]#(lf)      ,[ODSEffectiveFrom] AS [ODSEffectiveFrom]#(lf)      ,[ODSEffectiveTo] AS [ODSEffectiveTo]#(lf)      ,[ODSDMLOperation] AS [ODSDMLOperation]#(lf)      ,[ODSBatchId] AS [ODSBatchId]#(lf)      ,[ODSSourceSystem] AS [ODSSourceSystem]#(lf)  FROM [Akoranga].[mdl_prog]#(lf)  WHERE [ODSIsCurrent] = 1#(lf)  AND [ODSDMLOperation] <> 'D'#(lf)"]),
+		    /*
+		    Source = PowerBI.Dataflows(null),
+		    #"3c01db72-9e98-4fb4-aa15-55049acf117e" = Source{[workspaceId="3c01db72-9e98-4fb4-aa15-55049acf117e"]}[Data],
+		    #"85c6f243-1766-4790-8734-9df2391a34dd" = #"3c01db72-9e98-4fb4-aa15-55049acf117e"{[dataflowId="85c6f243-1766-4790-8734-9df2391a34dd"]}[Data],
+		    #"totaraem_prod-totara mdl_prog1" = #"85c6f243-1766-4790-8734-9df2391a34dd"{[entity="totaraem_prod-totara mdl_prog"]}[Data],
+		*/
+		    #"Removed Other Columns" = Table.SelectColumns(Source,{"certifid", "timemodified", "timecreated", "idnumber", "shortname", "fullname", "category", "id"}),
+		    #"Removed Columns" = Table.RemoveColumns(#"Removed Other Columns",{"timemodified", "timecreated"}),
+		
+		    #"Added Refresh Date" = Table.AddColumn(#"Removed Columns", "Refresh Date", 
+		        each DateTimeZone.FixedLocalNow(), type datetimezone),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Added Refresh Date",{{"Refresh Date", type datetime}}),
+		    #"Sorted Rows" = Table.Sort(#"Changed Type",{{"certifid", Order.Ascending}})
+		in
+		    #"Sorted Rows"
+		```
+	lineageTag: b4fcb866-87bb-432a-8f6f-3f9a0dc774a5
+	queryGroup: 'Akoranga Data Load'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression 'mdl_user - Remove duplicate Emails' =
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT [id] AS [id]#(lf)      ,[auth] AS [auth]#(lf)      ,[confirmed] AS [confirmed]#(lf)      ,[policy_agreed] AS [policyagreed]#(lf)      ,[deleted] AS [deleted]#(lf)      ,[suspended] AS [suspended]#(lf)      ,[mnethost_id] AS [mnethostid]#(lf)      ,[user_name] AS [username]#(lf)      ,[password] AS [password]#(lf)      ,[id_number] AS [idnumber]#(lf)      ,[first_name] AS [firstname]#(lf)      ,[last_name] AS [lastname]#(lf)      ,[email] AS [email]#(lf)      ,[email_stop] AS [emailstop]#(lf)      ,[skype] AS [skype]#(lf)      ,[phone_1] AS [phone1]#(lf)      ,[phone_2] AS [phone2]#(lf)      ,[institution] AS [institution]#(lf)      ,[department] AS [department]#(lf)      ,[address] AS [address]#(lf)      ,[city] AS [city]#(lf)      ,[country] AS [country]#(lf)      ,[lang] AS [lang]#(lf)      ,[calendar_type] AS [calendartype]#(lf)      ,[theme] AS [theme]#(lf)      ,[timezone] AS [timezone]#(lf)      ,[first_access] AS [firstaccess]#(lf)      ,[last_access] AS [lastaccess]#(lf)      ,[last_login] AS [lastlogin]#(lf)      ,[current_login] AS [currentlogin]#(lf)      ,[last_ip] AS [lastip]#(lf)      ,[secret] AS [secret]#(lf)      ,[picture] AS [picture]#(lf)      ,[url] AS [url]#(lf)      ,[description] AS [description]#(lf)      ,[description_format] AS [descriptionformat]#(lf)      ,[mail_format] AS [mailformat]#(lf)      ,[mail_digest] AS [maildigest]#(lf)      ,[mail_display] AS [maildisplay]#(lf)      ,[auto_subscribe] AS [autosubscribe]#(lf)      ,[track_forums] AS [trackforums]#(lf)      ,[time_created] AS [timecreated]#(lf)      ,[time_modified] AS [timemodified]#(lf)      ,[trust_bit_mask] AS [trustbitmask]#(lf)      ,[image_alt] AS [imagealt]#(lf)      ,[last_name_phonetic] AS [lastnamephonetic]#(lf)      ,[first_name_phonetic] AS [firstnamephonetic]#(lf)      ,[middle_name] AS [middlename]#(lf)      ,[alternate_name] AS [alternatename]#(lf)      ,[totara_sync] AS [totarasync]#(lf)      ,[tenant_id] AS [tenantid]#(lf)      ,[ODSIsCurrent] AS [ODSIsCurrent]#(lf)      ,[ODSEffectiveFrom] AS [ODSEffectiveFrom]#(lf)      ,[ODSEffectiveTo] AS [ODSEffectiveTo]#(lf)      ,[ODSDMLOperation] AS [ODSDMLOperation]#(lf)      ,[ODSBatchId] AS [ODSBatchId]#(lf)      ,[ODSSourceSystem] AS [ODSSourceSystem]#(lf)  FROM [Akoranga].[mdl_user]#(lf)  WHERE [ODSIsCurrent] = 1#(lf)  AND [ODSDMLOperation] <> 'D'#(lf)"]),
+		    // Source = PowerBI.Dataflows(null),
+		    // #"3c01db72-9e98-4fb4-aa15-55049acf117e" = Source{[workspaceId="3c01db72-9e98-4fb4-aa15-55049acf117e"]}[Data],
+		    // #"85c6f243-1766-4790-8734-9df2391a34dd" = #"3c01db72-9e98-4fb4-aa15-55049acf117e"{[dataflowId="85c6f243-1766-4790-8734-9df2391a34dd"]}[Data],
+		    // #"totaraem_prod-totara mdl_user1" = #"85c6f243-1766-4790-8734-9df2391a34dd"{[entity="totaraem_prod-totara mdl_user"]}[Data],
+		    // CJN 2023-07-03: Was     #"Filtered Rows1" = Table.SelectRows(#"Kept First Rows", each ([suspended] = false) and ([deleted] = false)),
+		    // I'm assuming False now = 0
+		    #"Filtered Rows1" = Table.SelectRows(Source, each ([suspended] = 0) and ([deleted] = 0)),
+		    #"Filtered Rows" = Table.SelectRows(#"Filtered Rows1", each [idnumber] <> null and [idnumber] <> ""),
+		    #"Removed Other Columns" = Table.SelectColumns(#"Filtered Rows",{"id", "email", "ODSEffectiveFrom"}),
+		    #"Grouped Rows" = Table.Group(#"Removed Other Columns", {"email"}, {{"MaxID", each List.Max([id]), type nullable number}})
+		in
+		    #"Grouped Rows"
+	lineageTag: 5d194810-8821-4f2d-8e3c-293dac789525
+	queryGroup: 'Akoranga Data Load'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression mdl_prog_user_assignment =
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT [id] AS [id]#(lf)      ,[program_id] AS [programid]#(lf)      ,[user_id] AS [userid]#(lf)      ,[assignment_id] AS [assignmentid]#(lf)      ,[time_assigned] AS [timeassigned]#(lf)      ,[exception_status] AS [exceptionstatus]#(lf)      ,[ODSIsCurrent] AS [ODSIsCurrent]#(lf)      ,[ODSEffectiveFrom] AS [ODSEffectiveFrom]#(lf)      ,[ODSEffectiveTo] AS [ODSEffectiveTo]#(lf)      ,[ODSDMLOperation] AS [ODSDMLOperation]#(lf)      ,[ODSBatchId] AS [ODSBatchId]#(lf)      ,[ODSSourceSystem] AS [ODSSourceSystem]#(lf)  FROM [Akoranga].[mdl_prog_user_assignment]#(lf)  WHERE [ODSIsCurrent] = 1#(lf)  AND [ODSDMLOperation] <> 'D'#(lf)"]),
+		    // and [userid] = 2786)
+		
+		    // Selecting specific columns
+		    #"Removed Other Columns" = Table.SelectColumns(Source,{"id", "programid", "userid", "assignmentid", "timeassigned", "exceptionstatus", "ODSEffectiveFrom"}),
+		
+		    // Sorting rows by userid, id, and programid
+		    #"Sorted Rows" = Table.Sort(#"Removed Other Columns",{{"userid", Order.Ascending},{"id", Order.Ascending},{"programid", Order.Ascending}}),
+		
+		    // Merging with mdl_prog_user_assignment_removeDuplicateEALDates table
+		    #"Merged Queries" = Table.NestedJoin(#"Sorted Rows", {"userid", "ODSEffectiveFrom"}, mdl_prog_user_assignment_removeDuplicateEALDates, {"userid", "max_eal_date"}, "mdl_prog_user_assignment_removeDuplicateEALDates", JoinKind.Inner),
+		
+		    // Removing the merged table column
+		    #"Removed Columns" = Table.RemoveColumns(#"Merged Queries",{"mdl_prog_user_assignment_removeDuplicateEALDates"})
+		in
+		    #"Removed Columns"
+	lineageTag: 323a2332-bb84-4f33-8de2-81ff66759a75
+	queryGroup: 'Akoranga Data Load'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
+expression mdl_prog_user_assignment_removeDuplicateEALDates =
+		let
+		    Source = Sql.Database("synapseausprod-ondemand.sql.azuresynapse.net", "ODS", [Query="SELECT [id] AS [id]#(lf)      ,[program_id] AS [programid]#(lf)      ,[user_id] AS [userid]#(lf)      ,[assignment_id] AS [assignmentid]#(lf)      ,[time_assigned] AS [timeassigned]#(lf)      ,[exception_status] AS [exceptionstatus]#(lf)      ,[ODSIsCurrent] AS [ODSIsCurrent]#(lf)      ,[ODSEffectiveFrom] AS [ODSEffectiveFrom]#(lf)      ,[ODSEffectiveTo] AS [ODSEffectiveTo]#(lf)      ,[ODSDMLOperation] AS [ODSDMLOperation]#(lf)      ,[ODSBatchId] AS [ODSBatchId]#(lf)      ,[ODSSourceSystem] AS [ODSSourceSystem]#(lf)  FROM [Akoranga].[mdl_prog_user_assignment]#(lf)  WHERE [ODSIsCurrent] = 1#(lf)  AND [ODSDMLOperation] <> 'D'#(lf)"]),
+		    #"Removed Other Columns" = Table.SelectColumns(Source,{"id", "programid", "userid", "assignmentid", "timeassigned", "exceptionstatus", "ODSEffectiveFrom"}),
+		    #"Sorted Rows" = Table.Sort(#"Removed Other Columns",{{"userid", Order.Ascending},{"id", Order.Ascending},{"programid", Order.Ascending}}),
+		    #"Removed Other Columns1" = Table.SelectColumns(#"Sorted Rows",{"userid", "ODSEffectiveFrom"}),
+		    #"Grouped Rows" = Table.Group(#"Removed Other Columns1", {"userid"}, {{"max_eal_date", each List.Max([ODSEffectiveFrom]), type nullable datetime}}),
+		    #"Sorted Rows1" = Table.Sort(#"Grouped Rows",{{"userid", Order.Ascending}})
+		in
+		    #"Sorted Rows1"
+	lineageTag: c892e133-4c6b-4c5e-9b55-04a5c034dda5
+	queryGroup: 'Akoranga Data Load'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
