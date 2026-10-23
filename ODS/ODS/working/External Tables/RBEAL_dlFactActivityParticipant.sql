@@ -1,0 +1,24 @@
+﻿CREATE EXTERNAL TABLE [working].[RBEAL_dlFactActivityParticipant] (
+    [ActivityParticipantID] INT NULL,
+    [ActivityID] INT NULL,
+    [ActivityParticipantEntityType] NVARCHAR (50) NULL,
+    [EntityID] INT NULL,
+    [ReferralID] INT NULL,
+    [ActivityParticipantIsAttendee] INT NULL,
+    [ActivityParticipantIsRelatedTo] INT NULL,
+    [ActivityParticipantCreatedDate] DATETIME NULL,
+    [ActivityParticipantCreatedUserID] INT NULL,
+    [ActivityParticipantOtherContactName] NVARCHAR (MAX) NULL,
+    [OtherContactTypeID] INT NULL,
+    [CreatedApplicationId] INT NULL,
+    [ActivityParticipantCreatedApplicationSyncDate] DATETIME NULL,
+    [ODSSourceSystem] NVARCHAR (500) NULL,
+    [ODSCreatedAt] DATETIME NULL,
+    [ODSBatchId] INT NULL
+)
+    WITH (
+    DATA_SOURCE = [data],
+    LOCATION = N'RBEAL/dlFactActivityParticipant/working',
+    FILE_FORMAT = [parquet]
+    );
+

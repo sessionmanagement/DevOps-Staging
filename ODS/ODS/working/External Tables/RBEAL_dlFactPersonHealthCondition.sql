@@ -1,0 +1,20 @@
+﻿CREATE EXTERNAL TABLE [working].[RBEAL_dlFactPersonHealthCondition] (
+    [PersonHealthConditionId] INT NULL,
+    [PersonId] INT NULL,
+    [PersonHealthConditionHealthConditionType] NVARCHAR (50) NULL,
+    [HealthConditionTypeId] INT NULL,
+    [PersonHealthConditionNotes] VARCHAR (MAX) NULL,
+    [PersonHealthConditionRank] INT NULL,
+    [PersonHealthConditionCreatedDate] DATETIME NULL,
+    [PersonHealthConditionCreatedUserId] INT NULL,
+    [PersonHealthConditionIsCurrent] INT NULL,
+    [ODSSourceSystem] NVARCHAR (500) NULL,
+    [ODSCreatedAt] DATETIME NULL,
+    [ODSBatchId] INT NULL
+)
+    WITH (
+    DATA_SOURCE = [data],
+    LOCATION = N'RBEAL/dlFactPersonHealthCondition/working',
+    FILE_FORMAT = [parquet]
+    );
+
