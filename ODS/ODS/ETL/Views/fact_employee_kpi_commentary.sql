@@ -1,0 +1,10 @@
+﻿CREATE VIEW [ETL].[fact_employee_kpi_commentary] AS 
+SELECT  [response_id]
+      ,[measure_selected]
+      ,[commentary]
+      ,[company_id]
+      ,[service_id]
+      ,[kpi_id]
+      ,[responder]
+      ,[submitted_date]
+  FROM [kpi].[commentary]

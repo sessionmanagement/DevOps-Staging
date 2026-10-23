@@ -1,0 +1,279 @@
+﻿
+CREATE procedure [Akoranga].[UpdateAkorangamdl_facetoface] 
+	@pBatchID int,
+	@pMode varchar(10) = 'Full'
+as begin
+
+	set nocount on;
+	set xact_abort on;
+
+	declare @pErrorRecords		int;
+	declare @pInsertRecords		int;
+	declare @pUpdateRecords		int;
+	declare @pDeleteRecords		int;
+	declare @pCompleted			int;
+	declare @pTargetRecords		int;
+
+	-- Variables
+	declare @batchID int = @pBatchID;
+	declare @SourceSystem nvarchar(120) = '[akoranga].[mdl_facetoface]';
+	
+	declare @stagedRecords int = 0;
+	declare @targetRecords int = 0;
+	declare @insertedRecords int = 0;
+	declare @updatedRecords int = 0;
+	declare @deletedRecords int = 0;
+	
+	declare @systemCurrentDate datetime = getdate();
+	declare @SystemEffectiveFrom datetime = @systemCurrentDate;
+	declare @SystemEffectiveTo datetime = dateadd(second,-1,@SystemEffectiveFrom);
+	declare @SystemDefaultEffectiveFrom datetime = '1 January 1900';
+	declare @SystemDefaultEffectiveTo datetime = '31 December 2999 23:59:59';
+
+
+	-- Check if there are records in the source table
+	select @stagedRecords = count(1) from [Staging].[Akoranga_mdl_facetoface];
+
+	-- Do not run if there are no records in source
+	if( @stagedRecords = 0 )
+	begin
+		-- Select return parameters as a dataset
+		select	0				as ErrorRecords,
+				0				as InsertRecords,
+				0				as UpdateRecords,
+				0				as DeleteRecords,
+				1				as Completed,
+				null			as TargetRecords;
+		return;
+	end;
+
+
+	-- Check if there are records in the target table
+	set @targetRecords = (select count(1) from [Working].[Akoranga_mdl_facetoface]);
+
+	-- On first pass / initial load only insert from landing, as existing data folders (main/working) will be empty
+	if ( (@pMode = 'initial') or (@targetRecords = 0) )
+	begin
+
+		create external table [Akoranga].[mdl_facetoface]
+			with (
+				location = 'Akoranga/mdl_facetoface/main' ,
+				data_source = [data],
+				file_format = [parquet]
+			) as 		
+		select  src.[id] ,src.[course] ,src.[name] ,src.[intro] ,src.[intro_format] ,src.[third_party] ,src.[third_party_waitlist] ,src.[display] ,src.[time_created] ,src.[time_modified] ,src.[short_name] ,src.[show_on_calendar] ,src.[user_cal_entry] ,src.[multiple_sessions] ,src.[completion_status_required] ,src.[manager_reserve] ,src.[max_manager_reserves] ,src.[reserve_cancel_days] ,src.[reserve_days] ,src.[declare_interest] ,src.[interest_only_if_full] ,src.[allow_cancellations_default] ,src.[cancellations_cutoff_default] ,src.[select_job_assignment_on_signup] ,src.[force_select_job_assignment] ,src.[approval_type] ,src.[approval_role] ,src.[approval_terms] ,src.[approval_admins] ,src.[multi_signup_fully] ,src.[multi_signup_partly] ,src.[multi_signup_no_show] ,src.[multi_signup_unable_to] ,src.[multi_signup_maximum] ,src.[wait_list_auto_clean] ,src.[declutter_session_table] ,src.[session_attendance] ,src.[attendance_time] ,src.[event_grading_manual] ,src.[event_grading_method] ,src.[completion_pass] ,src.[completion_delay] ,src.[legacy_notifications] , CAST(1 AS int) as [ODSIsCurrent], @SystemEffectiveFrom as [ODSEffectiveFrom], @SystemDefaultEffectiveTo as [ODSEffectiveTo], CAST('I' AS varchar(1)) as [ODSDMLOperation], @batchID as [ODSBatchId], @SourceSystem as [ODSSourceSystem]
+			from [Staging].[Akoranga_mdl_facetoface] src
+		
+		-- Select return parameters as a dataset
+		select	0				as ErrorRecords,
+				@stagedRecords	as InsertRecords,
+				0				as UpdateRecords,
+				0				as DeleteRecords,
+				1				as Completed,
+				@stagedRecords	as TargetRecords;
+
+		return;
+
+	end;
+
+	begin try
+
+		create external table [Akoranga].[mdl_facetoface]
+			with (
+				location = 'Akoranga/mdl_facetoface/main' ,
+				data_source = [data],
+				file_format = [parquet]
+			)
+
+		as 
+
+		with cte_SummaryOfChanges as 
+		(
+
+			-- New in source, no record in target
+			select  src.[id] , 'New' as MergeType
+			from [Staging].[Akoranga_mdl_facetoface] as src
+				left outer join [Working].[Akoranga_mdl_facetoface] trg
+				on src.[id] = trg.[id] and isnull(trg.[ODSIsCurrent], 0) = 1
+			where  trg.[id] is null
+
+			union all
+
+			-- Match, but current record in target is marked as soft delete
+			select  src.[id] ,  'NTD' as MergeType
+			from [Staging].[Akoranga_mdl_facetoface] as src
+			inner join [Working].[Akoranga_mdl_facetoface] trg
+				on src.[id] = trg.[id]
+			where   isnull(trg.[ODSIsCurrent], 1) = 1
+				and isnull(trg.[ODSDMLOperation], 'X') = 'D'
+
+			union all
+
+			-- Match, source data different from target data (following anything other than soft delete)
+			select  src.[id] , 'Chg' as MergeType
+			from [Staging].[Akoranga_mdl_facetoface] as src
+				inner join [Working].[Akoranga_mdl_facetoface] trg
+				on src.[id] = trg.[id]
+			where   isnull(trg.[ODSIsCurrent], 1) = 1
+				and isnull(trg.[ODSDMLOperation], 'X') != 'D'
+				and exists
+				( 
+					select src.[course], src.[name], src.[intro], src.[intro_format], src.[third_party], src.[third_party_waitlist], src.[display], src.[time_created], src.[time_modified], src.[short_name], src.[show_on_calendar], src.[user_cal_entry], src.[multiple_sessions], src.[completion_status_required], src.[manager_reserve], src.[max_manager_reserves], src.[reserve_cancel_days], src.[reserve_days], src.[declare_interest], src.[interest_only_if_full], src.[allow_cancellations_default], src.[cancellations_cutoff_default], src.[select_job_assignment_on_signup], src.[force_select_job_assignment], src.[approval_type], src.[approval_role], src.[approval_terms], src.[approval_admins], src.[multi_signup_fully], src.[multi_signup_partly], src.[multi_signup_no_show], src.[multi_signup_unable_to], src.[multi_signup_maximum], src.[wait_list_auto_clean], src.[declutter_session_table], src.[session_attendance], src.[attendance_time], src.[event_grading_manual], src.[event_grading_method], src.[completion_pass], src.[completion_delay], src.[legacy_notifications]
+					except
+					select trg.[course], trg.[name], trg.[intro], trg.[intro_format], trg.[third_party], trg.[third_party_waitlist], trg.[display], trg.[time_created], trg.[time_modified], trg.[short_name], trg.[show_on_calendar], trg.[user_cal_entry], trg.[multiple_sessions], trg.[completion_status_required], trg.[manager_reserve], trg.[max_manager_reserves], trg.[reserve_cancel_days], trg.[reserve_days], trg.[declare_interest], trg.[interest_only_if_full], trg.[allow_cancellations_default], trg.[cancellations_cutoff_default], trg.[select_job_assignment_on_signup], trg.[force_select_job_assignment], trg.[approval_type], trg.[approval_role], trg.[approval_terms], trg.[approval_admins], trg.[multi_signup_fully], trg.[multi_signup_partly], trg.[multi_signup_no_show], trg.[multi_signup_unable_to], trg.[multi_signup_maximum], trg.[wait_list_auto_clean], trg.[declutter_session_table], trg.[session_attendance], trg.[attendance_time], trg.[event_grading_manual], trg.[event_grading_method], trg.[completion_pass], trg.[completion_delay], trg.[legacy_notifications]
+				)
+
+			union all
+ 
+			-- Match, source data identical to target (following anything other than soft delete)
+			select  src.[id] , 'Non' as MergeType
+			from [Staging].[Akoranga_mdl_facetoface] as src
+				inner join [Working].[Akoranga_mdl_facetoface] trg
+				on src.[id] = trg.[id]
+			where   isnull(trg.[ODSIsCurrent], 1) = 1
+				and isnull(trg.[ODSDMLOperation], 'X') != 'D'
+				and not exists
+				( 
+					select src.[course], src.[name], src.[intro], src.[intro_format], src.[third_party], src.[third_party_waitlist], src.[display], src.[time_created], src.[time_modified], src.[short_name], src.[show_on_calendar], src.[user_cal_entry], src.[multiple_sessions], src.[completion_status_required], src.[manager_reserve], src.[max_manager_reserves], src.[reserve_cancel_days], src.[reserve_days], src.[declare_interest], src.[interest_only_if_full], src.[allow_cancellations_default], src.[cancellations_cutoff_default], src.[select_job_assignment_on_signup], src.[force_select_job_assignment], src.[approval_type], src.[approval_role], src.[approval_terms], src.[approval_admins], src.[multi_signup_fully], src.[multi_signup_partly], src.[multi_signup_no_show], src.[multi_signup_unable_to], src.[multi_signup_maximum], src.[wait_list_auto_clean], src.[declutter_session_table], src.[session_attendance], src.[attendance_time], src.[event_grading_manual], src.[event_grading_method], src.[completion_pass], src.[completion_delay], src.[legacy_notifications]
+					except
+					select trg.[course], trg.[name], trg.[intro], trg.[intro_format], trg.[third_party], trg.[third_party_waitlist], trg.[display], trg.[time_created], trg.[time_modified], trg.[short_name], trg.[show_on_calendar], trg.[user_cal_entry], trg.[multiple_sessions], trg.[completion_status_required], trg.[manager_reserve], trg.[max_manager_reserves], trg.[reserve_cancel_days], trg.[reserve_days], trg.[declare_interest], trg.[interest_only_if_full], trg.[allow_cancellations_default], trg.[cancellations_cutoff_default], trg.[select_job_assignment_on_signup], trg.[force_select_job_assignment], trg.[approval_type], trg.[approval_role], trg.[approval_terms], trg.[approval_admins], trg.[multi_signup_fully], trg.[multi_signup_partly], trg.[multi_signup_no_show], trg.[multi_signup_unable_to], trg.[multi_signup_maximum], trg.[wait_list_auto_clean], trg.[declutter_session_table], trg.[session_attendance], trg.[attendance_time], trg.[event_grading_manual], trg.[event_grading_method], trg.[completion_pass], trg.[completion_delay], trg.[legacy_notifications]
+				)
+
+			union all
+
+			-- Record in Target, not Source - soft delete.  Ignore any existing soft deletes in target
+			select  trg.[id] , 'Del' as MergeType
+			from [Staging].[Akoranga_mdl_facetoface] as src
+				right outer join [Working].[Akoranga_mdl_facetoface] trg
+				on src.[id] = trg.[id]
+			where  src.[id] is null
+				and trg.[ODSIsCurrent] = 1 
+				and isnull(trg.[ODSDMLOperation], 'X') != 'D'
+
+			union all
+
+			-- Previously soft deleted records that (still) dont exist in source
+			select  trg.[id] ,  'Non' as MergeType
+			from [Staging].[Akoranga_mdl_facetoface] as src
+				right outer join [Working].[Akoranga_mdl_facetoface] trg
+					on src.[id] = trg.[id]
+			where  src.[id] is null    
+				and isnull(trg.[ODSIsCurrent], 1) = 1
+				and isnull(trg.[ODSDMLOperation], 'X') = 'D'
+
+			union all
+
+
+			-- Old versions of any row-versioned record
+			select DISTINCT trg.[id] , 'Old' as MergeType
+			from [Working].[Akoranga_mdl_facetoface] trg
+			where isnull(trg.[ODSIsCurrent], 0) = 0
+
+		),
+
+		cte_AllChanges as 
+		(
+
+			/* "INSERTS" - add new versions of records */
+
+			-- New in source, either brand new or new following previous soft delete
+			select  src.[id] ,src.[course] ,src.[name] ,src.[intro] ,src.[intro_format] ,src.[third_party] ,src.[third_party_waitlist] ,src.[display] ,src.[time_created] ,src.[time_modified] ,src.[short_name] ,src.[show_on_calendar] ,src.[user_cal_entry] ,src.[multiple_sessions] ,src.[completion_status_required] ,src.[manager_reserve] ,src.[max_manager_reserves] ,src.[reserve_cancel_days] ,src.[reserve_days] ,src.[declare_interest] ,src.[interest_only_if_full] ,src.[allow_cancellations_default] ,src.[cancellations_cutoff_default] ,src.[select_job_assignment_on_signup] ,src.[force_select_job_assignment] ,src.[approval_type] ,src.[approval_role] ,src.[approval_terms] ,src.[approval_admins] ,src.[multi_signup_fully] ,src.[multi_signup_partly] ,src.[multi_signup_no_show] ,src.[multi_signup_unable_to] ,src.[multi_signup_maximum] ,src.[wait_list_auto_clean] ,src.[declutter_session_table] ,src.[session_attendance] ,src.[attendance_time] ,src.[event_grading_manual] ,src.[event_grading_method] ,src.[completion_pass] ,src.[completion_delay] ,src.[legacy_notifications] 
+					, 1 as [ODSIsCurrent], null as [ODSEffectiveFrom], null as [ODSEffectiveTo], 'I' as [ODSDMLOperation], null as [ODSBatchId], null as [ODSSourceSystem]
+			from [Staging].[Akoranga_mdl_facetoface] src
+				inner join cte_SummaryOfChanges chg 
+				   on src.[id] = chg.[id]
+			where chg.MergeType IN ('New', 'NTD')
+  
+			union all
+
+			-- "Soft delete" row version - i.e. record missing in source that was previously in target
+			select  trg.[id] ,trg.[course] ,trg.[name] ,trg.[intro] ,trg.[intro_format] ,trg.[third_party] ,trg.[third_party_waitlist] ,trg.[display] ,trg.[time_created] ,trg.[time_modified] ,trg.[short_name] ,trg.[show_on_calendar] ,trg.[user_cal_entry] ,trg.[multiple_sessions] ,trg.[completion_status_required] ,trg.[manager_reserve] ,trg.[max_manager_reserves] ,trg.[reserve_cancel_days] ,trg.[reserve_days] ,trg.[declare_interest] ,trg.[interest_only_if_full] ,trg.[allow_cancellations_default] ,trg.[cancellations_cutoff_default] ,trg.[select_job_assignment_on_signup] ,trg.[force_select_job_assignment] ,trg.[approval_type] ,trg.[approval_role] ,trg.[approval_terms] ,trg.[approval_admins] ,trg.[multi_signup_fully] ,trg.[multi_signup_partly] ,trg.[multi_signup_no_show] ,trg.[multi_signup_unable_to] ,trg.[multi_signup_maximum] ,trg.[wait_list_auto_clean] ,trg.[declutter_session_table] ,trg.[session_attendance] ,trg.[attendance_time] ,trg.[event_grading_manual] ,trg.[event_grading_method] ,trg.[completion_pass] ,trg.[completion_delay] ,trg.[legacy_notifications] 
+					, 1 as [ODSIsCurrent], null as [ODSEffectiveFrom], null as [ODSEffectiveTo], 'D' as [ODSDMLOperation], null as [ODSBatchId], null as [ODSSourceSystem]
+			from [Working].[Akoranga_mdl_facetoface] trg
+				inner join cte_SummaryOfChanges chg 
+					on trg.[id] = chg.[id]
+			where chg.MergeType IN ('Del')
+				and trg.[ODSIsCurrent] = 1
+
+			union all
+
+			-- Match, source data different from target data - i.e. basic new version of record
+			select  src.[id] ,src.[course] ,src.[name] ,src.[intro] ,src.[intro_format] ,src.[third_party] ,src.[third_party_waitlist] ,src.[display] ,src.[time_created] ,src.[time_modified] ,src.[short_name] ,src.[show_on_calendar] ,src.[user_cal_entry] ,src.[multiple_sessions] ,src.[completion_status_required] ,src.[manager_reserve] ,src.[max_manager_reserves] ,src.[reserve_cancel_days] ,src.[reserve_days] ,src.[declare_interest] ,src.[interest_only_if_full] ,src.[allow_cancellations_default] ,src.[cancellations_cutoff_default] ,src.[select_job_assignment_on_signup] ,src.[force_select_job_assignment] ,src.[approval_type] ,src.[approval_role] ,src.[approval_terms] ,src.[approval_admins] ,src.[multi_signup_fully] ,src.[multi_signup_partly] ,src.[multi_signup_no_show] ,src.[multi_signup_unable_to] ,src.[multi_signup_maximum] ,src.[wait_list_auto_clean] ,src.[declutter_session_table] ,src.[session_attendance] ,src.[attendance_time] ,src.[event_grading_manual] ,src.[event_grading_method] ,src.[completion_pass] ,src.[completion_delay] ,src.[legacy_notifications] 
+					, 1 as [ODSIsCurrent], null as [ODSEffectiveFrom], null as [ODSEffectiveTo], 'U' as [ODSDMLOperation], null as [ODSBatchId], null as [ODSSourceSystem]
+			from [Staging].[Akoranga_mdl_facetoface] src
+				inner join cte_SummaryOfChanges chg 
+					on src.[id] = chg.[id]
+			where chg.MergeType = 'Chg'
+
+			union all
+
+			/* "UPDATES" - expire old versions of records that have been newly updated or deleted.  Set system flags accordingly. */
+
+			-- Expire old versions of records that have had new version added
+			select  trg.[id] ,trg.[course] ,trg.[name] ,trg.[intro] ,trg.[intro_format] ,trg.[third_party] ,trg.[third_party_waitlist] ,trg.[display] ,trg.[time_created] ,trg.[time_modified] ,trg.[short_name] ,trg.[show_on_calendar] ,trg.[user_cal_entry] ,trg.[multiple_sessions] ,trg.[completion_status_required] ,trg.[manager_reserve] ,trg.[max_manager_reserves] ,trg.[reserve_cancel_days] ,trg.[reserve_days] ,trg.[declare_interest] ,trg.[interest_only_if_full] ,trg.[allow_cancellations_default] ,trg.[cancellations_cutoff_default] ,trg.[select_job_assignment_on_signup] ,trg.[force_select_job_assignment] ,trg.[approval_type] ,trg.[approval_role] ,trg.[approval_terms] ,trg.[approval_admins] ,trg.[multi_signup_fully] ,trg.[multi_signup_partly] ,trg.[multi_signup_no_show] ,trg.[multi_signup_unable_to] ,trg.[multi_signup_maximum] ,trg.[wait_list_auto_clean] ,trg.[declutter_session_table] ,trg.[session_attendance] ,trg.[attendance_time] ,trg.[event_grading_manual] ,trg.[event_grading_method] ,trg.[completion_pass] ,trg.[completion_delay] ,trg.[legacy_notifications] 
+					, 0 as [ODSIsCurrent], trg.[ODSEffectiveFrom] as [ODSEffectiveFrom], null as [ODSEffectiveTo], trg.[ODSDMLOperation] as [ODSDMLOperation], trg.[ODSBatchId] as [ODSBatchId], trg.[ODSSourceSystem] as [ODSSourceSystem]
+			from [Working].[Akoranga_mdl_facetoface] trg
+				inner join cte_SummaryOfChanges chg 
+					on trg.[id] = chg.[id]
+			where chg.MergeType IN ('Chg', 'Del', 'NTD')
+				and trg.[ODSIsCurrent] = 1
+
+			union all
+
+			/*  "UNCHANGED" - copy across all records that have not otherwise been changed */
+
+			-- Match, source data different from target data, or soft delete - expire old versions of records
+			select  trg.[id] ,trg.[course] ,trg.[name] ,trg.[intro] ,trg.[intro_format] ,trg.[third_party] ,trg.[third_party_waitlist] ,trg.[display] ,trg.[time_created] ,trg.[time_modified] ,trg.[short_name] ,trg.[show_on_calendar] ,trg.[user_cal_entry] ,trg.[multiple_sessions] ,trg.[completion_status_required] ,trg.[manager_reserve] ,trg.[max_manager_reserves] ,trg.[reserve_cancel_days] ,trg.[reserve_days] ,trg.[declare_interest] ,trg.[interest_only_if_full] ,trg.[allow_cancellations_default] ,trg.[cancellations_cutoff_default] ,trg.[select_job_assignment_on_signup] ,trg.[force_select_job_assignment] ,trg.[approval_type] ,trg.[approval_role] ,trg.[approval_terms] ,trg.[approval_admins] ,trg.[multi_signup_fully] ,trg.[multi_signup_partly] ,trg.[multi_signup_no_show] ,trg.[multi_signup_unable_to] ,trg.[multi_signup_maximum] ,trg.[wait_list_auto_clean] ,trg.[declutter_session_table] ,trg.[session_attendance] ,trg.[attendance_time] ,trg.[event_grading_manual] ,trg.[event_grading_method] ,trg.[completion_pass] ,trg.[completion_delay] ,trg.[legacy_notifications] 
+					, trg.[ODSIsCurrent] as [ODSIsCurrent], trg.[ODSEffectiveFrom] as [ODSEffectiveFrom], trg.[ODSEffectiveTo] as [ODSEffectiveTo], trg.[ODSDMLOperation] as [ODSDMLOperation], trg.[ODSBatchId] as [ODSBatchId], trg.[ODSSourceSystem] as [ODSSourceSystem]
+			from [Working].[Akoranga_mdl_facetoface] trg
+				inner join cte_SummaryOfChanges chg 
+					on trg.[id] = chg.[id]
+			where (chg.MergeType = 'Old' and trg.[ODSIsCurrent] != 1) or (chg.MergeType = 'Non' and trg.[ODSIsCurrent] = 1)
+
+		)
+
+		select  src.[id] ,src.[course] ,src.[name] ,src.[intro] ,src.[intro_format] ,src.[third_party] ,src.[third_party_waitlist] ,src.[display] ,src.[time_created] ,src.[time_modified] ,src.[short_name] ,src.[show_on_calendar] ,src.[user_cal_entry] ,src.[multiple_sessions] ,src.[completion_status_required] ,src.[manager_reserve] ,src.[max_manager_reserves] ,src.[reserve_cancel_days] ,src.[reserve_days] ,src.[declare_interest] ,src.[interest_only_if_full] ,src.[allow_cancellations_default] ,src.[cancellations_cutoff_default] ,src.[select_job_assignment_on_signup] ,src.[force_select_job_assignment] ,src.[approval_type] ,src.[approval_role] ,src.[approval_terms] ,src.[approval_admins] ,src.[multi_signup_fully] ,src.[multi_signup_partly] ,src.[multi_signup_no_show] ,src.[multi_signup_unable_to] ,src.[multi_signup_maximum] ,src.[wait_list_auto_clean] ,src.[declutter_session_table] ,src.[session_attendance] ,src.[attendance_time] ,src.[event_grading_manual] ,src.[event_grading_method] ,src.[completion_pass] ,src.[completion_delay] ,src.[legacy_notifications] , 
+			CAST(isnull(ODSIsCurrent, 1) AS int) as ODSIsCurrent, 
+			isnull(ODSEffectiveFrom, @SystemEffectiveFrom) as ODSEffectiveFrom, 
+			isnull(ODSEffectiveTo, case ODSIsCurrent when 1 then @SystemDefaultEffectiveTo else @SystemEffectiveTo end) as ODSEffectiveTo, 
+			CAST(isnull([ODSDMLOperation], 'I') AS varchar(1)) as [ODSDMLOperation], 
+			isnull(ODSBatchId, @batchId) as ODSBatchId, 
+			isnull(ODSSourceSystem, @SourceSystem) as ODSSourceSystem
+		from cte_AllChanges as src;
+
+		set @insertedRecords = (select count(1) from [Akoranga].[mdl_facetoface] 
+									where [ODSDMLOperation] = 'I' 
+										and [ODSIsCurrent] = 1
+										and [ODSBatchId] = @batchId);
+		set @updatedRecords = (select count(1) from [Akoranga].[mdl_facetoface] 
+									where [ODSDMLOperation] = 'U' 
+										and [ODSIsCurrent] = 1
+										and [ODSBatchId] = @batchId);
+		set @deletedRecords = (select count(1) from [Akoranga].[mdl_facetoface] 
+									where [ODSDMLOperation] = 'D' 
+										and [ODSIsCurrent] = 1
+										and [ODSBatchId] = @batchId);
+
+		-- Select return parameters as a dataset
+		select	0					as ErrorRecords,
+				@insertedRecords	as InsertRecords,
+				@updatedRecords		as UpdateRecords,
+				@deletedRecords		as DeleteRecords,
+				1					as Completed,
+				@targetRecords		as TargetRecords;
+
+		return;
+	end try
+	begin catch
+		-- Select return parameters as a dataset
+		select	0				as ErrorRecords,
+				0				as InsertRecords,
+				0				as UpdateRecords,
+				0				as DeleteRecords,
+				0				as Completed,
+				0				as TargetRecords;
+
+		throw;
+	end catch
+
+end;

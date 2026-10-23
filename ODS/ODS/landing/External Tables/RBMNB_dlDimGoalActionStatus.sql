@@ -1,0 +1,15 @@
+﻿CREATE EXTERNAL TABLE [landing].[RBMNB_dlDimGoalActionStatus] (
+    [GoalActionStatusID] INT NULL,
+    [GoalActionStatusCode] NVARCHAR (30) NULL,
+    [GoalActionStatusText] NVARCHAR (50) NULL,
+    [GoalActionStatusDescription] NVARCHAR (300) NULL,
+    [GoalActionStatusIsCompletedStatus] INT NULL,
+    [GoalActionStatusIsCancelledStatus] INT NULL,
+    [GoalActionStatusSortIndex] INT NULL
+)
+    WITH (
+    DATA_SOURCE = [data],
+    LOCATION = N'RBMNB/dlDimGoalActionStatus/landing',
+    FILE_FORMAT = [parquet]
+    );
+

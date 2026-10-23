@@ -1,0 +1,6 @@
+﻿
+create view [Staging].[vw_SnapHire_applications]
+as 
+select
+	 src.[Job_ID] 	,src.[ApplicationID] 	,src.[Title] 	,src.[Business_Group_Level_1] 	,src.[Job_Locations] 	,src.[Job_Type] 	,src.[Recruiter_Name] 	,src.[Hiring_Manager] 	,src.[Job_Seeker_ID] 	,src.[Job_Seeker_Name] 	,src.[Job_Seeker_Email] 	,src.[Candidate_Type] 	,src.[Date_Submitted] 	,src.[Exit_Status_Name] 	,src.[Current_Status] 	,src.[Is_Hired_Flag] 	,src.[Hire_Date] 	,src.[Hire_In_Calendar_Days] 	,src.[Hire_In_Week_Days] 	,src.[Job_Seeker_Source] 	,src.[Application_Source] 	,src.[Sourcing_Detailed] 
+from [Landing].[SnapHire_applications] as src;

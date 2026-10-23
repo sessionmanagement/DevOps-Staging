@@ -1,0 +1,43 @@
+﻿CREATE EXTERNAL TABLE [RBEAL].[dlDimAccount] (
+    [AccountID] INT NULL,
+    [AccountName] NVARCHAR (300) NULL,
+    [AccountLocation] NVARCHAR (200) NULL,
+    [AccountDescriptionHTML] NVARCHAR (MAX) NULL,
+    [AccountDescriptionRaw] NVARCHAR (MAX) NULL,
+    [IndustryTypeID] INT NULL,
+    [AccountOwnerUserID] INT NULL,
+    [AccountPostalAddressLine1] NVARCHAR (200) NULL,
+    [AccountPostalAddressLine2] NVARCHAR (200) NULL,
+    [AccountPostalAddressSuburb] NVARCHAR (100) NULL,
+    [AccountPostalAddressCity] NVARCHAR (100) NULL,
+    [AccountPostalAddressPostCode] NVARCHAR (100) NULL,
+    [PostalAddressCountryID] INT NULL,
+    [AccountStreetAddressLine1] NVARCHAR (200) NULL,
+    [AccountStreetAddressLine2] NVARCHAR (200) NULL,
+    [AccountStreetAddressSuburb] NVARCHAR (100) NULL,
+    [AccountStreetAddressCity] NVARCHAR (100) NULL,
+    [RegionID] INT NULL,
+    [StreetAddressCountryID] INT NULL,
+    [AccountPhone] NVARCHAR (50) NULL,
+    [AccountAlternativePhone] NVARCHAR (50) NULL,
+    [AccountFax] NVARCHAR (50) NULL,
+    [AccountWebsiteAddress] NVARCHAR (100) NULL,
+    [AccountPrimaryEmailAddress] NVARCHAR (100) NULL,
+    [AccountUDF1] NVARCHAR (MAX) NULL,
+    [AccountUDF2] NVARCHAR (MAX) NULL,
+    [AccountUDF3] NVARCHAR (MAX) NULL,
+    [AccountUDF4] NVARCHAR (MAX) NULL,
+    [AccountUDF5] NVARCHAR (MAX) NULL,
+    [AccountIsEmployer] INT NULL,
+    [PrimaryContactID] INT NULL,
+    [CompanyId] INT NULL,
+    [ODSCreatedAt] DATETIME NULL,
+    [ODSBatchId] INT NULL,
+    [ODSSourceSystem] NVARCHAR (120) NULL
+)
+    WITH (
+    DATA_SOURCE = [data],
+    LOCATION = N'RBEAL/dlDimAccount/main',
+    FILE_FORMAT = [parquet]
+    );
+

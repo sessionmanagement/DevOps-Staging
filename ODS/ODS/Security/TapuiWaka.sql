@@ -1,0 +1,3 @@
+﻿CREATE SCHEMA [TapuiWaka]
+    AUTHORIZATION [dbo];
+

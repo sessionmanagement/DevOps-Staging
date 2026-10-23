@@ -1,0 +1,37 @@
+﻿CREATE EXTERNAL TABLE [staging].[kpi_measure] (
+    [id] INT NULL,
+    [gap_analysis_notes] NVARCHAR (500) NULL,
+    [gap_analysis_status] NVARCHAR (30) NULL,
+    [kpi_target_amber] NVARCHAR (150) NULL,
+    [kpi_target_green] NVARCHAR (150) NULL,
+    [kpi_g_sign] NVARCHAR (10) NULL,
+    [kpi_g_value] NVARCHAR (10) NULL,
+    [kpi_a_sign] NVARCHAR (10) NULL,
+    [kpi_a_value] NVARCHAR (20) NULL,
+    [kpi_target_rollup_amber] NVARCHAR (150) NULL,
+    [kpi_target_rollup_green] NVARCHAR (150) NULL,
+    [kpi_ru_g_sign] NVARCHAR (10) NULL,
+    [kpi_ru_g_value] NVARCHAR (10) NULL,
+    [kpi_ru_a_sign] NVARCHAR (10) NULL,
+    [kpi_ru_a_value] NVARCHAR (10) NULL,
+    [related_kpi_outcome_lookup] INT NULL,
+    [sfa_rollup_area] NVARCHAR (150) NULL,
+    [sfa_rollup_area_lookup_id] INT NULL,
+    [specific_measure] NVARCHAR (200) NULL,
+    [status] NVARCHAR (50) NULL,
+    [what_is_measured] NVARCHAR (300) NULL,
+    [call_to_action] NVARCHAR (200) NULL,
+    [linked_improvement_initiative_lookup_id] INT NULL,
+    [data_source_system] NVARCHAR (100) NULL,
+    [transitional_housing_mapping] NVARCHAR (40) NULL,
+    [sim_title] NVARCHAR (120) NULL,
+    [additional_reporting] NVARCHAR (300) NULL,
+    [additional_report_name] NVARCHAR (50) NULL,
+    [relevant_bu] NVARCHAR (80) NULL
+)
+    WITH (
+    DATA_SOURCE = [data],
+    LOCATION = N'kpi/measure/staging',
+    FILE_FORMAT = [parquet]
+    );
+

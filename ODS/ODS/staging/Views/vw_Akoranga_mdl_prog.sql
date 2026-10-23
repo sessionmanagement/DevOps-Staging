@@ -1,0 +1,6 @@
+﻿
+create view [Staging].[vw_Akoranga_mdl_prog]
+as 
+select
+	 src.[id] 	,src.[category] 	,src.[sort_order] 	,src.[full_name] 	,src.[short_name] 	,src.[id_number] 	,src.[summary] 	,src.[end_note] 	,src.[visible] 	,src.[available_from] 	,src.[available_until] 	,src.[available] 	,src.[time_created] 	,src.[time_modified] 	,src.[user_modified] 	,src.[icon] 	,src.[exceptions_sent] 	,src.[audience_visible] 	,src.[certif_id] 	,src.[assignments_deferred] 	,src.[allow_extension_requests] 
+from [Landing].[Akoranga_mdl_prog] as src;

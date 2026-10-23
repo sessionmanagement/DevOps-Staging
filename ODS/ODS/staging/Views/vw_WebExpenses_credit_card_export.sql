@@ -1,0 +1,6 @@
+﻿
+create view [Staging].[vw_WebExpenses_credit_card_export]
+as 
+select
+	 src.[company] 	,src.[claimant_name] 	,src.[expense_date] 	,src.[posted_on] 	,src.[claim_number] 	,src.[status] 	,src.[description] 	,src.[category] 	,src.[gl_code] 	,src.[currency] 	,src.[amount] 	,src.[base_amount] 	,src.[exchange_rate] 	,src.[billing_currency] 	,src.[billing_amount] 	,src.[cc_exchange_rate] 	,src.[source] 	,src.[upload_date] 	,src.[approver_name] 	,src.[billing_account] 	,src.[billing_period] 
+from [Landing].[WebExpenses_credit_card_export] as src;

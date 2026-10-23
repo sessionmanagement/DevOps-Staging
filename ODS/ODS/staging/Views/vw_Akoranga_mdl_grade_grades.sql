@@ -1,0 +1,6 @@
+﻿
+create view [Staging].[vw_Akoranga_mdl_grade_grades]
+as 
+select
+	 src.[id] 	,src.[item_id] 	,src.[user_id] 	,src.[raw_grade] 	,src.[raw_grade_max] 	,src.[raw_grade_min] 	,src.[raw_scale_id] 	,src.[user_modified] 	,src.[final_grade] 	,src.[hidden] 	,src.[locked] 	,src.[lock_time] 	,src.[exported] 	,src.[overridden] 	,src.[excluded] 	,src.[feedback] 	,src.[feedback_format] 	,src.[information] 	,src.[information_format] 	,src.[time_created] 	,src.[time_modified] 	,src.[aggregation_status] 	,src.[aggregation_weight] 
+from [Landing].[Akoranga_mdl_grade_grades] as src;

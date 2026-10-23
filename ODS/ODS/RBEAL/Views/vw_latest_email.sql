@@ -1,0 +1,2 @@
+﻿create view [RBEAL].vw_latest_email as (select entityid,emailemail,EmailIsPrimary,row_number () over (partition by [EntityID] order by [EntityID], 
+  emailid,emailcreateddate desc) as row_order from  [RBEAL].dlFactEmail) 

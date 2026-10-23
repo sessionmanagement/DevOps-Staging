@@ -1,0 +1,3 @@
+﻿CREATE SCHEMA [EcoPortal]
+    AUTHORIZATION [dbo];
+

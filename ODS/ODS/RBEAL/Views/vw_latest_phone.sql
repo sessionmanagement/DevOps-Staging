@@ -1,0 +1,2 @@
+﻿create view [RBEAL].vw_latest_phone as (  select entityid,phonephonenumber,PhoneNumberTypeID,row_number () over (partition by [EntityID] order by [EntityID], 
+ phoneid,phonecreateddate desc) as row_order from  [RBEAL].dlFactPhone)

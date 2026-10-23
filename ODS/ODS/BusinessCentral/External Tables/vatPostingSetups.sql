@@ -1,0 +1,43 @@
+﻿CREATE EXTERNAL TABLE [BusinessCentral].[vatPostingSetups] (
+    [systemId] NVARCHAR (MAX) NULL,
+    [adjustForPaymentDiscount] BIT NULL,
+    [allowNonDeductibleVAT] NVARCHAR (MAX) NULL,
+    [blocked] BIT NULL,
+    [certificateOfSupplyRequired] BIT NULL,
+    [description] NVARCHAR (MAX) NULL,
+    [euService] BIT NULL,
+    [nonDedPurchaseVATAccount] NVARCHAR (MAX) NULL,
+    [nonDeductibleVAT] BIGINT NULL,
+    [purchVATUnrealAccount] NVARCHAR (MAX) NULL,
+    [purchaseVATAccount] NVARCHAR (MAX) NULL,
+    [reverseChrgVATAcc] NVARCHAR (MAX) NULL,
+    [reverseChrgVATUnrealAcc] NVARCHAR (MAX) NULL,
+    [salesVATAccount] NVARCHAR (MAX) NULL,
+    [salesVATUnrealAccount] NVARCHAR (MAX) NULL,
+    [systemCreatedAt] DATETIME2 (7) NULL,
+    [systemCreatedBy] NVARCHAR (MAX) NULL,
+    [systemModifiedAt] DATETIME2 (7) NULL,
+    [systemModifiedBy] NVARCHAR (MAX) NULL,
+    [taxCategory] NVARCHAR (MAX) NULL,
+    [unrealizedVATType] NVARCHAR (MAX) NULL,
+    [vat] FLOAT (53) NULL,
+    [vatBusPostingGroup] NVARCHAR (MAX) NULL,
+    [vatCalculationType] NVARCHAR (MAX) NULL,
+    [vatClauseCode] NVARCHAR (MAX) NULL,
+    [vatIdentifier] NVARCHAR (MAX) NULL,
+    [vatProdPostingGroup] NVARCHAR (MAX) NULL,
+    [Company_Name] NVARCHAR (100) NULL,
+    [Company_Id] NVARCHAR (100) NULL,
+    [ODSSourceSystem] NVARCHAR (500) NULL,
+    [ODSBatchId] INT NULL,
+    [ODSDMLOperation] CHAR (1) NULL,
+    [ODSEffectiveTo] DATETIME NULL,
+    [ODSEffectiveFrom] DATETIME NULL,
+    [ODSIsCurrent] INT NULL
+)
+    WITH (
+    DATA_SOURCE = [data],
+    LOCATION = N'BusinessCentral/vatPostingSetups/main',
+    FILE_FORMAT = [delta]
+    );
+

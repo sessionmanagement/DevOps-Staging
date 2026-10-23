@@ -1,0 +1,33 @@
+﻿
+CREATE   view [staging].[vw_IntelliHR_people]
+as 
+select
+	 src.[people_id] 
+	,src.[displayName] 
+	,src.[firstName] 
+	,src.[middleName] 
+	,src.[lastName] 
+	,src.[preferredName] 
+	,src.[dateOfBirth] 
+	,src.[gender] 
+	,src.[isSupervisor] 
+	,src.[employeeNumber] 
+	,src.[autoIncrementIntellihrId] 
+	,src.[title] 
+	,src.[emergencyContact_name] 
+	,src.[emergencyContact_relationship] 
+	,src.[emergencyContact_phone] 
+	,src.[emergencyContact_email] 
+	,src.[employmentStatus] 
+	,src.[workRights_name] 
+	,src.[workRights_country] 
+	,src.[workRights_expirationDate] 
+	,src.[primaryEmailAddress_email] 
+	,src.[primaryEmailAddress_isPersonal] 
+	,src.[primaryPhoneNumber_number] 
+	,src.[primaryPhoneNumber_fullNumber] 
+	,src.[primaryPhoneNumber_isPersonal] 
+	,src.[createdAt] 
+	,src.[updatedAt] 
+from [Landing].[IntelliHR_people] as src
+where src.[employeeNumber] > 0;

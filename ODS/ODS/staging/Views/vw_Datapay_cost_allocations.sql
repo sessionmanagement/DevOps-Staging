@@ -1,0 +1,6 @@
+﻿
+create view [Staging].[vw_Datapay_cost_allocations]
+as 
+select
+	 src.[employee_code] 	,src.[first_name] 	,src.[last_name] 	,src.[home_costing_percentage] 	,src.[home_cost_box_division] 	,src.[home_cost_box_division_code] 	,src.[home_cost_box_cost_centre] 	,src.[home_cost_box_cost_centre_code] 	,src.[home_cost_box_department] 	,src.[home_cost_box_department_code] 	,src.[home_cost_box_sub_department] 	,src.[home_cost_box_sub_department_code] 	,src.[net_home_cost_box_division] 	,src.[net_home_cost_box_division_code] 	,src.[net_home_cost_box_cost_centre] 	,src.[net_home_cost_box_cost_centre_code] 	,src.[net_home_cost_box_department] 	,src.[net_home_cost_box_department_code] 	,src.[net_home_cost_box_sub_department] 	,src.[net_home_cost_box_sub_department_code] 
+from [Landing].[Datapay_cost_allocations] as src;

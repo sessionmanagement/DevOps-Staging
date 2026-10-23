@@ -1,0 +1,37 @@
+﻿CREATE EXTERNAL TABLE [landing].[RBEAL_dlFactIncident] (
+    [IncidentID] INT NULL,
+    [IncidentDate] DATETIME NULL,
+    [IncidentTitle] NVARCHAR (500) NULL,
+    [IncidentDescriptionRaw] NVARCHAR (MAX) NULL,
+    [IncidentDescriptionHtml] NVARCHAR (MAX) NULL,
+    [IncidentLocation] NVARCHAR (MAX) NULL,
+    [IncidentImmediateActionTakenRaw] NVARCHAR (MAX) NULL,
+    [IncidentImmediateActionTakenHtml] NVARCHAR (MAX) NULL,
+    [IncidentPossiblePreventionRaw] NVARCHAR (MAX) NULL,
+    [IncidentPossiblePreventionHtml] NVARCHAR (MAX) NULL,
+    [IncidentFurtherActionRequiredRaw] NVARCHAR (MAX) NULL,
+    [IncidentFurtherActionRequiredHtml] NVARCHAR (MAX) NULL,
+    [IncidentInvestigationDetailsRaw] NVARCHAR (MAX) NULL,
+    [IncidentInvestigationDetailsHtml] NVARCHAR (MAX) NULL,
+    [CurrentOwnerUserID] INT NULL,
+    [CurrentInvestigatorUserID] INT NULL,
+    [CurrentReporterUserID] INT NULL,
+    [IncidentIsPublish] INT NULL,
+    [IncidentPublishedDate] DATETIME NULL,
+    [AreaID] INT NULL,
+    [IncidentCreatedDate] DATETIME NULL,
+    [IncidentCreatedUserID] INT NULL,
+    [CurrentIncidentStatusTypeID] INT NULL,
+    [IncidentOutcomeDetailsRaw] NVARCHAR (MAX) NULL,
+    [IncidentOutcomeDetailsHtml] NVARCHAR (MAX) NULL,
+    [TeamID] INT NULL,
+    [CurrentSuspensionID] INT NULL,
+    [IncidentReportedByName] NVARCHAR (100) NULL,
+    [CompanyId] INT NULL
+)
+    WITH (
+    DATA_SOURCE = [data],
+    LOCATION = N'RBEAL/dlFactIncident/landing',
+    FILE_FORMAT = [parquet]
+    );
+

@@ -1,0 +1,41 @@
+﻿CREATE EXTERNAL TABLE [landing].[RBMNB_legacyFactReferral] (
+    [ID] INT NULL,
+    [PersonID] INT NULL,
+    [ServiceStartDate] DATETIME NULL,
+    [ServiceEndDate] DATETIME NULL,
+    [ReceivedDate] DATETIME NULL,
+    [SourceReferrerID] INT NULL,
+    [SourceReferralID] INT NULL,
+    [TeamID] INT NULL,
+    [OrganisationID] INT NULL,
+    [CurrentReferralStatusTypeID] INT NULL,
+    [ReferralPriorityID] INT NULL,
+    [ExpectedArrivalDate] DATETIME NULL,
+    [ExpectedDepartureDate] DATETIME NULL,
+    [ActualArrivalDate] DATETIME NULL,
+    [ActualDepartureDate] DATETIME NULL,
+    [EndDate] DATETIME NULL,
+    [Notes] NVARCHAR (MAX) NULL,
+    [InterviewUserID] INT NULL,
+    [InterviewDate] DATETIME NULL,
+    [CreatedUserID] INT NULL,
+    [CreatedDate] DATETIME NULL,
+    [IsInbound] INT NULL,
+    [PendingDate] DATETIME NULL,
+    [PendingReason] INT NULL,
+    [WaitlistDate] DATETIME NULL,
+    [WaitlistReason] INT NULL,
+    [AcceptedDate] DATETIME NULL,
+    [AcceptedReason] INT NULL,
+    [DischargeDate] DATETIME NULL,
+    [DischargeReason] INT NULL,
+    [DeclineDate] DATETIME NULL,
+    [DeclineReason] INT NULL,
+    [DischargeComments] NVARCHAR (MAX) NULL
+)
+    WITH (
+    DATA_SOURCE = [data],
+    LOCATION = N'RBMNB/legacyFactReferral/landing',
+    FILE_FORMAT = [parquet]
+    );
+

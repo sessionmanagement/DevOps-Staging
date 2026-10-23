@@ -1,0 +1,6 @@
+﻿
+create view [Staging].[vw_EmpLive_time_sheets_entries]
+as 
+select
+	 src.[id] 	,src.[service_name_id] 	,src.[job_id] 	,src.[role_id] 	,src.[work_type_id] 	,src.[employee_id] 	,src.[start_date] 	,src.[start_time] 	,src.[end_date] 	,src.[end_time] 	,src.[actual_start_date] 	,src.[actual_start_time] 	,src.[actual_end_date] 	,src.[actual_end_time] 	,src.[comments] 	,src.[approval_status] 	,src.[clocking_start_id] 	,src.[clocking_end_id] 	,src.[pay_interpretation_id] 	,src.[roster_entry_id] 
+from [Landing].[EmpLive_time_sheets_entries] as src;

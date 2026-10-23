@@ -1,0 +1,30 @@
+﻿
+
+create view [staging].[vw_KPI_kpi_dimensions]
+as 
+select
+	 src.[id] 
+	,src.[gap_analysis_notes] 
+	,src.[gap_analysis_status] 
+	,src.[kpi_target_green] 
+	,src.[kpi_g_sign] 
+	,src.[kpi_g_value] 
+	,src.[kpi_ru_g_sign] 
+	,src.[kpi_ru_g_value] 
+	,src.[kpi_target_amber] 
+	,src.[kpi_a_sign] 
+	,src.[kpi_a_value] 
+	,src.[kpi_ru_a_sign] 
+	,src.[kpi_ru_a_value] 
+	,src.[kpi_target_rollup_amber] 
+	,src.[kpi_target_rollup_green] 
+	,src.[related_kpi_outcome_lookup_value] 
+	,src.[related_outcome] 
+	,src.[sfa_rollup_area] 
+	,src.[sfa_rollup_areas_strategic_focus_area] 
+	,src.[sfa_rollup_areas_lookup_value] 
+	,src.[specific_measure] 
+	,src.[status] 
+	,src.[what_is_measured] 
+	,src.[call_to_action] 
+from [Landing].[KPI_kpi_dimensions] as src;

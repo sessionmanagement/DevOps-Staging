@@ -1,0 +1,32 @@
+﻿
+
+CREATE view [staging].[vw_On_Call_call_log]
+as 
+select
+	 src.[on_call_id] 
+	,src.[on_call_title] 
+	,src.[call_date_time] 
+	,src.[event_name] 
+	,src.[region_id] 
+	,src.[service_id] 
+	,src.[category_id] 
+	,src.[call_received_from] 
+	,src.[extra_time] 
+	,src.[issue_description] 
+	,src.[outcome] 
+	,src.[incident_report_required] 
+	,src.[escalated_to_another_tier] 
+	,src.[escalated_to_id] 
+	,src.[escalated_to] 
+	,src.[escalation_comments] 
+	,src.[shift_covered] 
+	,src.[hours_covered] 
+	,src.[event_status] 
+	,src.[on_call_staff_member_id] 
+	,src.[travel_time] 
+	,src.[over_96_hours] 
+	,src.[shift_covered_kaimahi] 
+	,src.[created_by] 
+	,src.[created_date_time] 
+	,src.[call_duration]
+from [Landing].[On_Call_call_log] as src;

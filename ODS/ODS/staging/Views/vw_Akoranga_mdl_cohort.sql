@@ -1,0 +1,6 @@
+﻿
+create view [Staging].[vw_Akoranga_mdl_cohort]
+as 
+select
+	 src.[id] 	,src.[context_id] 	,src.[name] 	,src.[id_number] 	,src.[description] 	,src.[description_format] 	,src.[visible] 	,src.[component] 	,src.[time_created] 	,src.[time_modified] 	,src.[cohort_type] 	,src.[modifier_id] 	,src.[visibility] 	,src.[alert_members] 	,src.[start_date] 	,src.[end_date] 	,src.[active] 	,src.[calculation_status] 	,src.[active_collection_id] 	,src.[draft_collection_id] 	,src.[broken] 
+from [Landing].[Akoranga_mdl_cohort] as src;

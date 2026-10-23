@@ -1,0 +1,10 @@
+﻿CREATE EXTERNAL TABLE [staging].[IntelliHR_qualification_types] (
+    [qualification_type_id] NVARCHAR (36) NULL,
+    [name] NVARCHAR (200) NULL
+)
+    WITH (
+    DATA_SOURCE = [data],
+    LOCATION = N'IntelliHR/qualification_types/staging',
+    FILE_FORMAT = [parquet]
+    );
+

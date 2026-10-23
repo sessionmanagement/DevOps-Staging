@@ -1,0 +1,6 @@
+﻿
+create view [Staging].[vw_Akoranga_mdl_facetoface_sessions]
+as 
+select
+	 src.[id] 	,src.[face_to_face] 	,src.[capacity] 	,src.[allow_over_book] 	,src.[wait_list_everyone] 	,src.[details] 	,src.[normal_cost] 	,src.[discount_cost] 	,src.[allow_cancellations] 	,src.[cancellation_cut_off] 	,src.[time_created] 	,src.[time_modified] 	,src.[user_modified] 	,src.[self_approval] 	,src.[min_capacity] 	,src.[cut_off] 	,src.[send_capacity_email] 	,src.[registration_time_start] 	,src.[registration_time_finish] 	,src.[cancelled_status] 
+from [Landing].[Akoranga_mdl_facetoface_sessions] as src;

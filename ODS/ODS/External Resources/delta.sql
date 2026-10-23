@@ -1,0 +1,5 @@
+﻿CREATE EXTERNAL FILE FORMAT [delta]
+    WITH (
+    FORMAT_TYPE = DELTA
+    );
+
