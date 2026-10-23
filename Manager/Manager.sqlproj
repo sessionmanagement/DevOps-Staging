@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Name>Manager</Name>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>4.1</ProjectVersion>
+    <ProjectGuid>{abe6d4bf-2990-4e32-b21b-09476ac9d208}</ProjectGuid>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider</DSP>
+    <OutputType>Database</OutputType>
+    <RootPath>
+    </RootPath>
+    <RootNamespace>Manager</RootNamespace>
+    <AssemblyName>Manager</AssemblyName>
+    <ModelCollation>1033, CI</ModelCollation>
+    <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
+    <DeployToDatabase>True</DeployToDatabase>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetLanguage>CS</TargetLanguage>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <SqlServerVerification>False</SqlServerVerification>
+    <IncludeCompositeObjects>True</IncludeCompositeObjects>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
+    <!-- Default to the v11.0 targets path if the targets file for the current VS version is not found -->
+    <SSDTExists Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets')">True</SSDTExists>
+    <VisualStudioVersion Condition="'$(SSDTExists)' == ''">11.0</VisualStudioVersion>
+  </PropertyGroup>
+  <Import Condition="'$(SQLDBExtensionsRefPath)' != ''" Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <ItemGroup>
+    <Folder Include="Properties" />
+    <Folder Include="meta_data\" />
+    <Folder Include="meta_data\Tables\" />
+    <Folder Include="meta_data\Stored Procedures\" />
+    <Folder Include="Security\" />
+    <Folder Include="Predacpac_deployment_scripts" />
+    <Folder Include="Predacpac_deployment_scripts\Archive" />
+    <Folder Include="load_check\" />
+    <Folder Include="load_check\Tables\" />
+    <Folder Include="config\" />
+    <Folder Include="config\Tables\" />
+    <Folder Include="dq\" />
+    <Folder Include="dq\Tables\" />
+    <Folder Include="dq\Views\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="meta_data\Tables\table_business_id.sql" />
+    <Build Include="meta_data\Tables\row_count.sql" />
+    <Build Include="meta_data\Tables\mismatches.sql" />
+    <Build Include="meta_data\Tables\duplicate_check.sql" />
+    <Build Include="meta_data\Stored Procedures\record_data_key_mismatches.sql" />
+    <Build Include="meta_data\Stored Procedures\check_table_duplicates.sql" />
+    <Build Include="meta_data\Stored Procedures\record_edw_row_counts.sql" />
+    <Build Include="meta_data\Stored Procedures\check_business_key_duplicates.sql" />
+    <Build Include="Security\meta_data.sql" />
+    <Build Include="meta_data\Tables\source_system.sql" />
+    <Build Include="meta_data\Tables\schemas.sql" />
+    <Build Include="meta_data\Tables\data_landing_type.sql" />
+    <Build Include="load_check\Tables\check_detail.sql" />
+    <Build Include="load_check\Tables\row_count.sql" />
+    <Build Include="Security\load_check.sql" />
+    <Build Include="config\Tables\configuration.sql" />
+    <Build Include="Security\config.sql" />
+    <Build Include="dq\Tables\dq_dictionary.sql" />
+    <Build Include="dq\Tables\dq_results.sql" />
+    <Build Include="Security\dq.sql" />
+    <Build Include="meta_data\Tables\table_detail.sql" />
+    <Build Include="load_check\Tables\load_execution.sql" />
+    <Build Include="dq\Tables\view_column_flags.sql" />
+    <Build Include="dq\Views\vw_kpi_data_quality_score.sql" />
+    <Build Include="dq\Views\vw_kpi_data_quality_detail.sql" />
+  </ItemGroup>
+</Project>
