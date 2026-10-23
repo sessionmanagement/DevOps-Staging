@@ -1,0 +1,177 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# ## Update ODS Audit Columns
+# 
+# 
+# 
+
+# In[2]:
+
+
+from delta.tables import DeltaTable
+from pyspark.sql.types import *
+import pyspark.sql.functions as F
+from pyspark.sql.window import Window
+from datetime import datetime
+
+
+# In[3]:
+
+
+storage_account = "stprodaussvcsyn"
+container = "ods"
+batch_id = 164360
+
+
+# In[4]:
+
+
+glEntries_df = spark.read.format('delta').load(f"abfss://{container}@{storage_account}.dfs.core.windows.net/BusinessCentral/glEntries/main")
+
+# need to optimize the delta due to the number of files
+
+
+# In[5]:
+
+
+# get dataframe of the rows that were just inserted using the batch id
+glEntries_by_batchid_df = glEntries_df.filter( glEntries_df['ODSBatchId'] == batch_id )
+
+
+# In[6]:
+
+
+# filter gl entries to be only the ones who have just been inserted
+updated_records = glEntries_df.join(glEntries_by_batchid_df, glEntries_df['systemId'] == glEntries_by_batchid_df['systemId'], 'leftsemi')
+
+
+# In[7]:
+
+
+# next we need a datafrom for all the records where there are more than 1 row per record
+record_list = updated_records.groupBy("systemId").agg(F.count('systemId').alias('row_count')).where(F.col('row_count') > 1).select('systemId').collect()
+
+records_list_array = [ str(row.systemId) for row in record_list]
+
+
+# In[8]:
+
+
+#  Filter the dataframe to be the records where there is more than one row per record so we got
+updated_records_filter = glEntries_df.filter(F.col('systemId').isin(records_list_array)  ).selectExpr("systemId", "accountId", "addCurrencyCreditAmount", "addCurrencyDebitAmount", "additionalCurrencyAmount", "adjustment", "amount", "basAdjustment", "basDocNo", "basVersion", "balAccountNo", "balAccountType", "businessUnitCode", "closeIncomeStatementDimID", "comment", "consolBASDocNo", "consolVersionNo", "creditAmount", "debitAmount", "description", "dimensionChangesCount", "dimensionSetID", "documentDate", "documentNo", "documentType", "entryNo", "externalDocumentNo", "faEntryNo", "faEntryType", "gLAccountName", "gLAccountNo", "genBusPostingGroup", "genPostingType", "genProdPostingGroup", "globalDimension1Code", "globalDimension2Code", "icPartnerCode", "jobNo", "journalBatchName", "journalTemplName", "lastDimCorrectionEntryNo", "lastDimCorrectionNode", "lastModifiedDateTime", "noSeries", "nonDeductibleVATAmount", "nonDeductibleVATAmountACY", "postingDate", "priorYearEntry", "prodOrderNo", "quantity", "reasonCode", "reversed", "reversedEntryNo", "reversedByEntryNo", "shortcutDimension3Code", "shortcutDimension4Code", "shortcutDimension5Code", "shortcutDimension6Code", "shortcutDimension7Code", "shortcutDimension8Code", "sourceCode", "sourceNo", "sourceType", "systemCreatedEntry", "systemCreatedAt", "systemCreatedBy", "systemModifiedAt", "systemModifiedBy", "taxAreaCode", "taxGroupCode", "taxLiable", "transactionNo", "useTax", "userID", "vatAmount", "vatBusPostingGroup", "vatProdPostingGroup", "vatReportingDate", "Company_Name", "Company_Id", "ODSSourceSystem", "ODSBatchId", "ODSDMLOperation", "ODSEffectiveTo", "ODSEffectiveFrom", "ODSIsCurrent").orderBy(F.col('systemId'), F.col('systemModifiedAt'), F.col('ODSEffectiveFrom'))
+
+
+# In[9]:
+
+
+display(updated_records_filter.selectExpr("systemId", "systemModifiedAt", "ODSEffectiveFrom", "ODSEffectiveTo", "ODSIsCurrent", "Reversed"))
+
+
+# In[10]:
+
+
+glEntries_df = (glEntries_df
+                                .withColumn("ODSEffectiveFrom", F.when ((F.col('systemId') == '4f27f90e-b4bb-ee11-9078-000d3ad128b7') & ( F.to_date(F.col('systemModifiedAt'), "yyyy-MM-dd HH:mm:ss") == F.lit("2024-01-25 19:00:55") ) 
+                                                                    , F.lit('2024-01-26 14:41:33.707')).otherwise(F.col('ODSEffectiveFrom'))
+                                                                    )
+                                .withColumn("ODSEffectiveTo", F.when ((F.col('systemId') == '4f27f90e-b4bb-ee11-9078-000d3ad128b7') & ( F.to_date(F.col('systemModifiedAt'), "yyyy-MM-dd HH:mm:ss") == F.lit("2024-01-25 19:00:55") ) 
+                                                                    , F.lit('2024-01-28 14:45:41.900')).otherwise(F.col('ODSEffectiveTo'))
+                                                                    )
+                                
+                                .withColumn("ODSIsCurrent", F.when ((F.col('systemId') == '4f27f90e-b4bb-ee11-9078-000d3ad128b7') & ( F.to_date(F.col('systemModifiedAt'), "yyyy-MM-dd HH:mm:ss") == F.lit("2024-01-25 19:00:55") ) 
+                                                                    , F.lit(0)).otherwise(F.col('ODSIsCurrent'))
+                                                                    )
+                                .withColumn("ODSEffectiveFrom", F.when ((F.col('systemId') == '4f27f90e-b4bb-ee11-9078-000d3ad128b7') & ( F.to_date(F.col('systemModifiedAt'), "yyyy-MM-dd HH:mm:ss") == F.lit("2024-01-28 03:57:34") ) 
+                                                                    , F.lit('2024-01-28 14:45:41.900')).otherwise(F.col('ODSEffectiveFrom'))
+                                                                    )
+                                .withColumn("ODSEffectiveTo", F.when ((F.col('systemId') == '4f27f90e-b4bb-ee11-9078-000d3ad128b7') & ( F.to_date(F.col('systemModifiedAt'), "yyyy-MM-dd HH:mm:ss") == F.lit("2024-01-28 03:57:34") ) 
+                                                                    , F.lit('2999-12-31 23:59:59')).otherwise(F.col('ODSEffectiveTo'))
+                                                                    )
+                                
+                                .withColumn("ODSIsCurrent", F.when ((F.col('systemId') == '4f27f90e-b4bb-ee11-9078-000d3ad128b7') & ( F.to_date(F.col('systemModifiedAt'), "yyyy-MM-dd HH:mm:ss") == F.lit("2024-01-28 03:57:34") ) 
+                                                                    , F.lit(1)).otherwise(F.col('ODSIsCurrent'))
+                                                                    )
+                                # Next incorrect record
+                                .withColumn("ODSEffectiveFrom", F.when ((F.col('systemId') == '5027f90e-b4bb-ee11-9078-000d3ad128b7') & ( F.to_date(F.col('systemModifiedAt'), "yyyy-MM-dd HH:mm:ss") == F.lit("2024-01-25 19:00:55") ) 
+                                                                    , F.lit('2024-01-26 14:41:33.707')).otherwise(F.col('ODSEffectiveFrom'))
+                                                                    )
+                                .withColumn("ODSEffectiveTo", F.when ((F.col('systemId') == '5027f90e-b4bb-ee11-9078-000d3ad128b7') & ( F.to_date(F.col('systemModifiedAt'), "yyyy-MM-dd HH:mm:ss") == F.lit("2024-01-25 19:00:55") ) 
+                                                                    , F.lit('2024-01-28 14:45:41.901')).otherwise(F.col('ODSEffectiveTo'))
+                                                                    )
+                                
+                                .withColumn("ODSIsCurrent", F.when ((F.col('systemId') == '5027f90e-b4bb-ee11-9078-000d3ad128b7') & ( F.to_date(F.col('systemModifiedAt'), "yyyy-MM-dd HH:mm:ss") == F.lit("2024-01-25 19:00:55") ) 
+                                                                    , F.lit(0)).otherwise(F.col('ODSIsCurrent'))
+                                                                    )
+                                .withColumn("ODSEffectiveFrom", F.when ((F.col('systemId') == '5027f90e-b4bb-ee11-9078-000d3ad128b7') & ( F.to_date(F.col('systemModifiedAt'), "yyyy-MM-dd HH:mm:ss") == F.lit("2024-01-28 03:57:34") ) 
+                                                                    , F.lit('2024-01-28 14:45:41.901')).otherwise(F.col('ODSEffectiveFrom'))
+                                                                    )
+                                .withColumn("ODSEffectiveTo", F.when ((F.col('systemId') == '5027f90e-b4bb-ee11-9078-000d3ad128b7') & ( F.to_date(F.col('systemModifiedAt'), "yyyy-MM-dd HH:mm:ss") == F.lit("2024-01-28 03:57:34") ) 
+                                                                    , F.lit('2999-12-31 23:59:59')).otherwise(F.col('ODSEffectiveTo'))
+                                                                    )
+                                
+                                .withColumn("ODSIsCurrent", F.when ((F.col('systemId') == '5027f90e-b4bb-ee11-9078-000d3ad128b7') & ( F.to_date(F.col('systemModifiedAt'), "yyyy-MM-dd HH:mm:ss") == F.lit("2024-01-28 03:57:34") ) 
+                                                                    , F.lit(1)).otherwise(F.col('ODSIsCurrent'))
+                                                                    )
+                                )
+
+
+# In[11]:
+
+
+glEntries_df = (glEntries_df
+                        .withColumn("ODSEffectiveFrom", F.to_timestamp("ODSEffectiveFrom"))
+                        .withColumn("ODSEffectiveTo", F.to_timestamp("ODSEffectiveTo"))
+                        )
+
+
+# In[12]:
+
+
+glEntries_df.write.format("delta").mode("overwrite").save(f"abfss://{container}@{storage_account}.dfs.core.windows.net/BusinessCentral/glEntries/main")
+
+
+# In[110]:
+
+
+display(glEntries_df.filter( (F.col('systemId').isin (['4f27f90e-b4bb-ee11-9078-000d3ad128b7', '5027f90e-b4bb-ee11-9078-000d3ad128b7'])) ).selectExpr("systemId", "systemModifiedAt", "ODSEffectiveFrom", "ODSEffectiveTo", "ODSIsCurrent", "Reversed"))
+
+
+# In[116]:
+
+
+glEntries_agg_df = (glEntries_df
+                        .withColumn("Month", F.month(F.col("postingDate")))
+                        .withColumn("Year", F.year(F.col("postingDate")))
+                        .groupBy(["Year", "Month"])
+                        .agg(
+                                F.format_number(F.sum("creditAmount"),5).alias("sum_creditamount"),
+                                F.format_number(F.sum("debitAmount"),5).alias("sum_debitamount"),
+                                F.format_number(F.sum("amount"),5).alias("sum_amount")
+                        )
+
+) 
+        
+
+
+# In[ ]:
+
+
+display(glEntries_agg_df)
+
+
+# In[ ]:
+
+
+glEntries_agg_df = (glEntries_df
+                        .withColumn("Month", F.month(F.col("postingDate")))
+                        .withColumn("Year", F.year(F.col("postingDate")))
+                        .groupBy(["Year", "Month", "Company_Name"])
+                        .agg(
+                                F.format_number(F.sum("creditAmount"),5).alias("sum_creditamount"),
+                                F.format_number(F.sum("debitAmount"),5).alias("sum_debitamount"),
+                                F.format_number(F.sum("amount"),5).alias("sum_amount")
+                        )
+
+) 
+

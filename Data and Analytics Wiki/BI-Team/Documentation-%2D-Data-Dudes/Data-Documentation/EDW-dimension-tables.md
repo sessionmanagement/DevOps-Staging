@@ -1,0 +1,47 @@
+           
+| TABLE_NAME | TABLE_TYPE | Sources | Table sources | ODS View Source | Granularity | Notes | Rows |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| dim_age_group | Dimension Static | General |  | <Manual> | Simple |  |  |
+| dim_business_unit_hierarchy | Dimension SCD1 | IntelliHR | [IntelliHR].[business_unit] - Multiple self joins to create full hierachy | etl.dim_business_unit_hierarchy | Simple | Multiple self joins to create full hierachy | 299 |
+| dim_client | Dimension SCD2 | RBEAL,RBMNB |  rbeal.dldimperson, RBEAL.dlDimEthnicity, RBEAL.dlFactPersonHealthCondition, rbeal.dlfactaddress, +same in rbmnb | etl.dim_client | Complex, combined | Cleaning hard coded in view |  |
+| dim_client_absence | Dimension SCD2 | RBEAL,RBMNB | [RBEAL].[dlFactPersonStatus], +same in rbmnb |  |  |  |  |
+| dim_client_activity_breakdown_type | Dimension SCD1 | RBEAL,RBMNB | [RBEAL].[dlDimActivityBreakdownType],RBEAL.dlDimTeamConfiguration, [RBEAL].[dlDimActivityBreakdownType] (Parent Join), +same in rbmnb | etl.dim_client_activity_breakdown_type | Simple |  |  |
+| dim_client_personal_goal_action_status | Dimension SCD2 | RBEAL,RBMNB | [RBEAL].[dlDimGoalActionStatus], +same in rbmnb | etl.dim_client_personal_goal_action_status | Simple |  |  |
+| dim_client_personal_goal_status | Dimension SCD2 | RBEAL,RBMNB | [RBEAL].[dlDimGoalStatusType], +same in rbmnb | etl.dim_client_personal_goal_status | Simple |  | 10 |
+| dim_client_person_relationship | Dimension SCD1 | RBEAL,RBMNB | [RBEAL].[dlFactPersonRelationship], [RBEAL].[dlDimRelationshipType], [RBEAL].[dlDimUser], [RBEAL].[dlFactReferral] , [RBEAL].[dlDimTeam], [RBEAL].[dlFactReferralStatus],[RBEAL].[dlDimReferralStatusType] |  |  |
+| dim_client_referral | Dimension SCD1 | RBEAL,RBMNB | rbeal.dlfactreferral, rbeal.dldimreferrer, rbeal.dlfactreferralstatus, rbeal.dlfactreferralstatustype, dldimreferralstatustypereason, +same in rbmnb | etl.dim_client_referral |  |  | 10 |
+| dim_client_team | Dimension SCD1 | RBEAL,RBMNB | rbeal.dldimteam, rbeal.dlDimTeamFunction, +same in rbmnb | etl.dim_client_team | Simple |  | 758 |
+| dim_company | Dimension SCD2 | RBEAL,RBMNB, IntelliHR, Business Central | [RBEAL].[dlDimCompany], [DataPay].[companies], IntelliHR.business_entities, BusinessCentral.dimensionValues, [RBMNB].[dlDimCompany], +same in rbmnb | etl.dim_company | Simple | Only 4 rows | 4 |
+| dim_course | Dimension SCD2 | Akoranga | [Akoranga].[mdl_course_categories] | etl.dim_course | Simple |  |  |
+| dim_date | Dimension Static | General |  | <Manual> | Simple, Day |  |  |
+| dim_department | Dimension SCD2 | Business Central | [BusinessCentral].[dimensionValues]..[dimensionCode] = 'DEPARTMENT' | etl.dim_department | Simple, Department |  | 26 |
+| dim_district | Dimension SCD2 | Business Central | [BusinessCentral].[dimensionValues]..[dimensionCode] = 'DISTRICT' | etl.dim_district | Simple, District |  | 60 |
+| dim_employee | Dimension SCD2 | IntelliHR, Datapay | [IntelliHR].[jobs], [IntelliHR].[people], [Datapay].[employees], [IntelliHR].[people_addresses], [IntelliHR].[people_custom_fields] | etl.dim_employee |  |  | 7496 |
+| dim_employee_hierarchy | Dimension SCD1 | IntelliHR | INTELLIHR.JOBS, intellihr.people | etl.dim_employee_hierarchy |  |  | 9554 |
+| dim_ethnicity | Dimension SCD1 | IntelliHR + RecordBase | [ETL].[reference_recordbase_person_ethnicity], [ETL].[reference_intelliHR_person_ethnicity] | etl.dim_ethnicity | Combined | Merge data, cleaning hard coded in view | 2524 |
+| dim_finance_budget_holder | Dimension SCD2 | Business Central | [BusinessCentral].[dimensionValues] .. [dimensionCode] = 'BUDGET HOLDER' | etl.dim_finance_budget_holder | Simple, Budget Holder |  | 23 |
+| dim_finance_contract | Dimension SCD2 | Business Central | [BusinessCentral].[dimensionValues] .. [dimensionCode] = 'CONTRACT' | etl.dim_finance_contract | Simple, Contract |  | 714 |
+| dim_finance_customer | Dimension SCD2 | Business Central | [BusinessCentral].[dimensionValues] .. [dimensionCode] = 'Customer' | etl.dim_finance_customer | Simple, Customer |  | 5148 |
+| dim_finance_funder | Dimension SCD2 | Business Central | [BusinessCentral].[dimensionValues] .. [dimensionCode] = 'FUNDER' | etl.dim_finance_funder | Simple, Funder |  | 55 |
+| dim_finance_funding_agency | Dimension SCD2 | Business Central | [BusinessCentral].[dimensionValues] .. [dimensionCode] = 'FUNDING AGENCY' | etl.dim_finance_funding_agency | Simple, Funding Agency |  | 24 |
+| dim_finance_general_ledger_account | Dimension SCD2 | Business Central | [BusinessCentral].[glAccounts] GLA | etl.dim_finance_general_ledger_account | Simple | Data expanded in view, hard coded | 1625 |
+| dim_finance_vendor | Dimension SCD2 | Business Central | [BusinessCentral].[dimensionValues]..[dimensionCode] = 'VENDOR' | etl.dim_finance_vendor | Simple, Vendor |  | 9674 |
+| dim_gender | Dimension SCD1 | RBEAL,RBMNB, IntelliHR, Datapay, EmpLive, Zavanti | [RBEAL].[dlDimGender], Datapay.employees, EmpLive.employees, IntelliHR.people, [Zavanti].[vw_OptionsetMetadata] ([OptionSetName] = 'gendercode') | etl.dim_gender | Simple  | Uses other (Only 4 genders) | 4 |
+| dim_kpi | Dimension SCD2 | Sharepoint | Sharepoint list | etl.dim_KPI | Simple  |  | 200 |
+| dim_leave_type | Dimension SCD1 | DataPay | [DataPay].[leave_types], [DataPay].[companies] | etl.dim_leave_type | Grouped By Company and Leave type group |  | 80 |
+| dim_location | Dimension SCD2 | Business Central | [BusinessCentral].[dimensionValues]..[dimensionCode] = 'LOCATE' | etl.dim_location | Unit, Street No, Road .. Business Key |  | 792 |
+| dim_nationality | Dimension SCD1 | IntelliHR | [IntelliHR].[custom_field_definition_option]..custom_field_definition_id = '4bbbf7e6-19ce-450e-a884-27fa3d687a1c' | etl.dim_nationality | Simple, Country | Not related to ethnicity? Essentially a country table | 197 |
+| dim_payroll_category | Dimension SCD1 | EmpLive | [EmpLive].[time_categories] | etl.dim_payroll_category | Simple | Hard coded grouping | 47 |
+| dim_powerbi_activity_type | Dimension Static | PowerBI | <Hard coded> | etl.dim_powerbi_activity_type | Simple | Hard coded text selection | 99 |
+| dim_program | Dimension SCD2 | Akoranga | [Akoranga].mdl_prog, [Akoranga].mdl_context, [Akoranga].mdl_course_categories | etl.dim_program | Simple |  |  |
+| dim_property | Dimension SCD2 | Zavanti | Zavanti.vw_zav_property, Zavanti.vw_StateMetadata, Zavanti.vw_StatusMetadata, Zavanti.vw_GlobalOptionsetMetadata (with hard coded option selections), Zavanti.vw_account, Zavanti.vw_zav_postalcity, Zavanti.vw_zav_servicename, Zavanti.vw_contact, Zavanti.vw_systemuser + Many others | etl.dim_property | Simple, per property | Very complex view joining to get results | 3190 |
+| dim_property_detail | Dimension SCD2 | Zavanti | Zavanti.vw_zav_property, Zavanti.vw_StateMetadata, Zavanti.vw_StatusMetadata, Zavanti.vw_GlobalOptionsetMetadata (with hard coded option selections) | etl.dim_property_detail | Simple, per property | Main view + 2 with multiple reference join options, hard coded options | 3190 |
+| dim_property_healthy_homes | Dimension SCD2 | Zavanti | Zavanti.vw_zav_property, Zavanti.vw_StateMetadata, Zavanti.vw_StatusMetadata, Zavanti.vw_GlobalOptionsetMetadata (with hard coded option selections) | etl.dim_property_healthy_homes | Simple, per property | Main view + 2 with multiple reference join options, hard coded options | 3190 |
+| dim_property_lease | Dimension SCD2 | Zavanti | [Zavanti].[vw_zav_leasedetails], [Zavanti].[vw_zav_leasecontract], [Zavanti].[vw_team], [Zavanti].[vw_systemuser], Zavanti.vw_GlobalOptionsetMetadata, [Zavanti].[vw_OptionsetMetadata] (with hard coded option selections) | etl.dim_property_lease | Simple, per lease | Main view + 2 with multiple reference join options, hard coded options | 1978 |
+| dim_property_maintenace_type | Dimension SCD2 | Zavanti | [Zavanti].[vw_zav_maintenancetype], [Zavanti].[vw_GlobalOptionsetMetadata], [Zavanti].[vw_OptionsetMetadata]  (with hard coded option selections) | etl.dim_property_maintenace_type | Grouped, lease types | Complext query structure to get grouped structure | 18 |
+| dim_property_maintenace | Dimension SCD2 | Zavanti | [Zavanti].[vw_zav_maintenancetask], [vw_zav_inspection], [vw_StateMetadata] [vw_StatusMetadata], [vw_OptionsetMetadata], [vw_OptionsetMetadata], [vw_GlobalOptionsetMetadata], [vw_businessunit], [vw_systemuser] | etl.dim_property_maintenace | simple per maintenance instance |  |  |
+| dim_property_program | Dimension SCD2 | Zavanti | [Zavanti].[vw_zav_subprogram], [Zavanti].[vw_StateMetadata], [Zavanti].[vw_team], [Zavanti].[vw_systemuser] | etl.dim_property_program | Grouped |  | 15 |
+| dim_property_tenancy | Dimension SCD2 | Zavanti | [Zavanti].[vw_opportunity], [vw_OptionsetMetadata], [vw_GlobalOptionsetMetadata], [vw_zav_voidcategory], [vw_systemuser] | etl.dim_property_tenancy | simple per tenancy instance |  |  |
+| dim_region | Dimension SCD2 | Business Central | [BusinessCentral].[dimensionValues] .. [dimensionCode] = 'REGION' | etl.dim_region | Simple |  | 40 |
+| dim_service | Dimension SCD2 | Business Central, Datapay, IntelliHR | [BusinessCentral].[dimensionValues]..[dimensionCode] = 'service name',[BusinessCentral].[dimensionHierarchies],datapay.cost_structures, intellihr.business_unit | etl.dim_service | Simple | From BC with other system joins | 1025 |
+| dim_time | Dimension Static | General |  | <Manual> | simple, Second |  |  |
