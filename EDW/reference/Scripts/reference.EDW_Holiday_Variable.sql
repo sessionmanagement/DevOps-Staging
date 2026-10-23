@@ -1,0 +1,16 @@
+﻿
+if( (select count(1) from [reference].[EDW_Holiday_Variable]) = 0 )
+begin
+
+	SET IDENTITY_INSERT [reference].[EDW_Holiday_Variable] ON
+	INSERT INTO [reference].[EDW_Holiday_Variable] ([EDW_Holiday_VariableId], [holiday_name], [holiday_start_date], [holiday_end_date], [week_day_number], [week_day_occurrence_number], [number_of_days_to_adjust], [national_holiday_flag], [regional_holiday_flag], [ignore_in_dim_date_calc_flag]) VALUES (1, N'Labour Day', N'1910-10-01', NULL, 2, 4, 0, 1, 0, 0)
+	INSERT INTO [reference].[EDW_Holiday_Variable] ([EDW_Holiday_VariableId], [holiday_name], [holiday_start_date], [holiday_end_date], [week_day_number], [week_day_occurrence_number], [number_of_days_to_adjust], [national_holiday_flag], [regional_holiday_flag], [ignore_in_dim_date_calc_flag]) VALUES (2, N'Kings Birthday', N'1937-06-01', N'1952-05-31', 2, 1, 0, 1, 0, 0)
+	INSERT INTO [reference].[EDW_Holiday_Variable] ([EDW_Holiday_VariableId], [holiday_name], [holiday_start_date], [holiday_end_date], [week_day_number], [week_day_occurrence_number], [number_of_days_to_adjust], [national_holiday_flag], [regional_holiday_flag], [ignore_in_dim_date_calc_flag]) VALUES (3, N'Queens Birthday', N'1952-06-01', N'2023-05-31', 2, 1, 0, 1, 0, 0)
+	INSERT INTO [reference].[EDW_Holiday_Variable] ([EDW_Holiday_VariableId], [holiday_name], [holiday_start_date], [holiday_end_date], [week_day_number], [week_day_occurrence_number], [number_of_days_to_adjust], [national_holiday_flag], [regional_holiday_flag], [ignore_in_dim_date_calc_flag]) VALUES (4, N'Kings Birthday', N'2023-06-01', NULL, 2, 1, 0, 1, 0, 0)
+	INSERT INTO [reference].[EDW_Holiday_Variable] ([EDW_Holiday_VariableId], [holiday_name], [holiday_start_date], [holiday_end_date], [week_day_number], [week_day_occurrence_number], [number_of_days_to_adjust], [national_holiday_flag], [regional_holiday_flag], [ignore_in_dim_date_calc_flag]) VALUES (5, N'Canterbury Anniversary Day', N'1900-11-01', NULL, 3, 1, 10, 0, 1, 0)
+	INSERT INTO [reference].[EDW_Holiday_Variable] ([EDW_Holiday_VariableId], [holiday_name], [holiday_start_date], [holiday_end_date], [week_day_number], [week_day_occurrence_number], [number_of_days_to_adjust], [national_holiday_flag], [regional_holiday_flag], [ignore_in_dim_date_calc_flag]) VALUES (6, N'Hawkes Bay Anniversary Day', N'1910-10-01', NULL, 2, 4, -3, 0, 1, 0)
+	INSERT INTO [reference].[EDW_Holiday_Variable] ([EDW_Holiday_VariableId], [holiday_name], [holiday_start_date], [holiday_end_date], [week_day_number], [week_day_occurrence_number], [number_of_days_to_adjust], [national_holiday_flag], [regional_holiday_flag], [ignore_in_dim_date_calc_flag]) VALUES (7, N'Marlborough Anniversary Day', N'1910-10-01', NULL, 2, 4, 7, 0, 1, 0)
+	INSERT INTO [reference].[EDW_Holiday_Variable] ([EDW_Holiday_VariableId], [holiday_name], [holiday_start_date], [holiday_end_date], [week_day_number], [week_day_occurrence_number], [number_of_days_to_adjust], [national_holiday_flag], [regional_holiday_flag], [ignore_in_dim_date_calc_flag]) VALUES (8, N'South Canterbury Anniversary Day', N'1900-09-01', NULL, 2, 4, 0, 0, 1, 0)
+	SET IDENTITY_INSERT [reference].[EDW_Holiday_Variable] OFF
+
+END

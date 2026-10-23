@@ -1,0 +1,135 @@
+﻿CREATE TABLE [landing].[edw_dim_property_tenancy] (
+    [property_tenancy_id]                                                 UNIQUEIDENTIFIER   NULL,
+    [property_id]                                                         UNIQUEIDENTIFIER   NULL,
+    [property_tenancy_tenancy_type]                                       VARCHAR (40)       NULL,
+    [property_tenancy_owning_business_unit_name]                          VARCHAR (20)       NULL,
+    [property_tenancy_tenancy_identifier]                                 VARCHAR (20)       NULL,
+    [property_tenancy_tenancy_reference]                                  VARCHAR (20)       NULL,
+    [property_tenancy_tenancy_name]                                       VARCHAR (100)      NULL,
+    [property_tenancy_property_name]                                      VARCHAR (100)      NULL,
+    [property_tenancy_household_name]                                     VARCHAR (100)      NULL,
+    [property_tenancy_customer_name]                                      VARCHAR (100)      NULL,
+    [property_tenancy_lease_agreement_datetime]                           DATETIME2 (7)      NULL,
+    [property_tenancy_tenancy_start_date]                                 DATE               NULL,
+    [property_tenancy_activate_tenancy_datetime]                          DATETIME2 (7)      NULL,
+    [property_tenancy_actual_start_date]                                  DATE               NULL,
+    [property_tenancy_fixed_term_tenancy_end_date]                        DATE               NULL,
+    [property_tenancy_short_term_tenancy_end_date]                        DATE               NULL,
+    [property_tenancy_expected_vacated_date]                              DATE               NULL,
+    [property_tenancy_signed_msd_responsibilities_conditions_datetime]    DATETIME2 (7)      NULL,
+    [property_tenancy_signed_sng_forms_datetime]                          DATETIME2 (7)      NULL,
+    [property_tenancy_actual_close_date]                                  DATE               NULL,
+    [property_tenancy_bond_lodged_date]                                   DATE               NULL,
+    [property_tenancy_bond_refund_lodged_date]                            DATE               NULL,
+    [property_tenancy_check_bodycorp_or_residents_datetime]               DATETIME2 (7)      NULL,
+    [property_tenancy_notice_to_vacate_date]                              DATE               NULL,
+    [property_tenancy_health_disability_information_datetime]             DATETIME2 (7)      NULL,
+    [property_tenancy_tenancy_pack_datetime]                              DATETIME2 (7)      NULL,
+    [property_tenancy_refund_lodged_date]                                 DATE               NULL,
+    [property_tenancy_pay_tenancy_services_by_date]                       DATE               NULL,
+    [property_tenancy_short_term_in_days]                                 BIGINT             NULL,
+    [property_tenancy_bond_reference]                                     VARCHAR (20)       NULL,
+    [property_tenancy_tenancy_service_bond_number]                        VARCHAR (20)       NULL,
+    [property_tenancy_tenancy_services_property_identifier]               VARCHAR (20)       NULL,
+    [property_tenancy_arrears_arrangement_activated]                      VARCHAR (10)       NULL,
+    [property_tenancy_arrears_arrangement_signed]                         VARCHAR (10)       NULL,
+    [property_tenancy_bond_refund_sng_claim_completed]                    VARCHAR (10)       NULL,
+    [property_tenancy_bond_refund_sng_claim_lodged]                       VARCHAR (10)       NULL,
+    [property_tenancy_exit_point]                                         VARCHAR (50)       NULL,
+    [property_tenancy_expected_payment_day]                               VARCHAR (10)       NULL,
+    [property_tenancy_expected_payment_frequency]                         VARCHAR (20)       NULL,
+    [property_tenancy_leaving_reason]                                     VARCHAR (50)       NULL,
+    [property_tenancy_rent_charged_day]                                   VARCHAR (10)       NULL,
+    [property_tenancy_rent_paid_in_advance]                               VARCHAR (10)       NULL,
+    [property_tenancy_inspection_frequency]                               VARCHAR (10)       NULL,
+    [property_tenancy_weeks_bond_requested]                               VARCHAR (10)       NULL,
+    [property_tenancy_weekly_rent_payable]                                NUMERIC (18, 4)    NULL,
+    [property_tenancy_manager_name]                                       VARCHAR (100)      NULL,
+    [property_tenancy_manager_email]                                      VARCHAR (120)      NULL,
+    [property_tenancy_rent]                                               NUMERIC (38, 2)    NULL,
+    [property_tenancy_rent_base]                                          NUMERIC (38, 2)    NULL,
+    [property_tenancy_primary_tenant_recordbaseid]                        VARCHAR (50)       NULL,
+    [property_tenancy_primary_tenant_gender]                              VARCHAR (50)       NULL,
+    [primary_contact_ethnicity_name]                                      VARCHAR (100)      NULL,
+    [property_tenancy_primary_tenant_date_of_birth]                       DATETIME2 (7)      NULL,
+    [property_tenancy_number_signatories]                                 BIGINT             NULL,
+    [property_tenancy_second_client_name]                                 VARCHAR (640)      NULL,
+    [property_tenancy_rent_amount_start_date]                             DATE               NULL,
+    [property_tenancy_vacated_date]                                       DATE               NULL,
+    [property_tenancy_agreement_to_extend_tenancy_received_flag]          INT                NULL,
+    [property_tenancy_guidance_on_rent_payment_process_flag]              INT                NULL,
+    [property_tenancy_household_composition_correct_flag]                 INT                NULL,
+    [property_tenancy_household_members_correct_flag]                     INT                NULL,
+    [property_tenancy_housing_first_flag]                                 INT                NULL,
+    [property_tenancy_ignore_create_void_checklist_flag]                  INT                NULL,
+    [property_tenancy_ingoing_property_condition_report_flag]             INT                NULL,
+    [property_tenancy_ingoing_tenancy_inspection_property_condition_flag] INT                NULL,
+    [property_tenancy_insulation_statement_flag]                          INT                NULL,
+    [property_tenancy_insurance_statement_flag]                           INT                NULL,
+    [property_tenancy_invoices_final_charges_to_tenant_added_flag]        INT                NULL,
+    [property_tenancy_any_tenant_under_age_18_flag]                       INT                NULL,
+    [property_tenancy_tenancy_appropriately_housed_flag]                  INT                NULL,
+    [property_tenancy_keys_handed_over_at_tenancy_signing_flag]           INT                NULL,
+    [property_tenancy_lease_agreement_flag]                               INT                NULL,
+    [property_tenancy_market_renter_flag]                                 INT                NULL,
+    [property_tenancy_msd_notified_to_stop_redirection_flag]              INT                NULL,
+    [property_tenancy_msd_referral_letter_received_flag]                  INT                NULL,
+    [property_tenancy_offboarding_activities_completed_flag]              INT                NULL,
+    [property_tenancy_offer_tenant_redirection_water_payment_flag]        INT                NULL,
+    [property_tenancy_pcr_signed_flag]                                    INT                NULL,
+    [property_tenancy_pet_authorisation_paperwork_completed_flag]         INT                NULL,
+    [property_tenancy_previous_tenancy_finalised_flag]                    INT                NULL,
+    [property_tenancy_primary_support_needs_entered_flag]                 INT                NULL,
+    [property_tenancy_health_disability_information_flag]                 INT                NULL,
+    [property_tenancy_tenancy_pack_flag]                                  INT                NULL,
+    [property_tenancy_risks_entered_flag]                                 INT                NULL,
+    [property_tenancy_routine_inspection_frequency_checkbox_flag]         INT                NULL,
+    [property_tenancy_check_next_inspection_date_flag]                    INT                NULL,
+    [property_tenancy_setup_rent_review_dates_flag]                       INT                NULL,
+    [property_tenancy_signed_msd_responsibilities_conditions_flag]        INT                NULL,
+    [property_tenancy_signed_sng_forms_flag]                              INT                NULL,
+    [property_tenancy_subsidy_flag]                                       INT                NULL,
+    [property_tenancy_support_people_emergency_contacts_uptodate_flag]    INT                NULL,
+    [property_tenancy_contribution_rent_setup_flag]                       INT                NULL,
+    [property_tenancy_initial_assessment_completed_flag]                  INT                NULL,
+    [property_tenancy_tenancy_programme_correct_flag]                     INT                NULL,
+    [property_tenancy_tenancy_started_bos_correct_details_flag]           INT                NULL,
+    [property_tenancy_tenant_confirmed_condition_flag]                    INT                NULL,
+    [property_tenancy_tenant_confirms_ingoing_inventory_list_flag]        INT                NULL,
+    [property_tenancy_transfer_flag]                                      INT                NULL,
+    [property_tenancy_understand_sooh_process_flag]                       INT                NULL,
+    [property_tenancy_vacate_confirmation_flag]                           INT                NULL,
+    [property_tenancy_household_in_greatest_need_flag]                    INT                NULL,
+    [property_tenancy_tenant_homeless_flag]                               INT                NULL,
+    [property_tenancy_water_redirection_started_flag]                     INT                NULL,
+    [property_tenancy_welcome_visit_complete_flag]                        INT                NULL,
+    [property_tenancy_created_datetime]                                   DATETIMEOFFSET (7) NULL,
+    [property_tenancy_modified_datetime]                                  DATETIME2 (7)      NULL,
+    [property_tenancy_is_delete_flag]                                     INT                NULL,
+    [property_tenant_opportunity_status]                                  NVARCHAR (40)      NULL
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+GO
+
+

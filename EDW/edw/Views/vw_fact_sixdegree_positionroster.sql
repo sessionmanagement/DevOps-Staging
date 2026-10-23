@@ -1,0 +1,22 @@
+CREATE VIEW [edw].[vw_fact_sixdegree_positionroster]
+AS
+SELECT
+	 [fact_sixdegree_positionroster_key]
+	,[position_description]
+	,[sixd_position_key]
+	,[dim_service_key]
+	,[entity_code]
+	,[entity_parent_code]
+	--,[hours]
+	--,[fte]
+	--,[allocated_fte]
+	,[fte_pa]
+	,[hours_pw]
+	,[DWHBatchId]
+	,[DWHEffectiveFrom]
+	,[DWHEffectiveTo]
+	,[DWHDMLOperation]
+	,[DWHIsCurrent]
+	,[DWHSourceSystem]
+FROM [edw].[fact_sixdegree_positionroster]
+GO

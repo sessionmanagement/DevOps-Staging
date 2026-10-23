@@ -1,0 +1,38 @@
+﻿CREATE TABLE [edw].[fact_client_referral_V2] (
+    [fact_client_referral_key]                           INT            IDENTITY (100000, 1) NOT NULL,
+    [fact_client_referral_unique_key]                    NVARCHAR (200) NOT NULL,
+    [dim_company_key]                                    INT            NOT NULL,
+    [dim_employee_key]                                   INT            NOT NULL,
+    [dim_client_key]                                     INT            NOT NULL,
+    [dim_client_referral_key]                            INT            NOT NULL,
+    [dim_client_team_key]                                INT            NOT NULL,
+    [dim_service_key]                                    INT            NOT NULL,
+    [client_id]                                          INT            NOT NULL,
+    [client_referral_id]                                 INT            NOT NULL,
+    [client_referral_responsible_user_id]                INT            NULL,
+    [is_case_worker_flag]                                INT            NULL,
+    [user_employee_number]                               NVARCHAR (50)  NULL,
+    [client_team_id]                                     INT            NULL,
+    [client_referral_person_relationship_start_date_key] INT            NULL,
+    [client_referral_person_relationship_end_date_key]   INT            NULL,
+    [client_referral_received_date_key]                  INT            NULL,
+    [client_referral_created_date_key]                   INT            NULL,
+    [client_referral_end_date_key]                       INT            NULL,
+    [client_referral_discharge_date_key]                 INT            NULL,
+    [client_referral_accepted_date_key]                  INT            NULL,
+    [client_referral_waitlist_date_key]                  INT            NULL,
+    [client_referral_decline_date_key]                   INT            NULL,
+    [client_referral_bed_nights]                         INT            NULL,
+    [client_referral_hospital_nights]                    INT            NULL,
+    [client_referral_absence]                            INT            NULL,
+    [DWHSourceSystem]                                    NVARCHAR (500) NOT NULL,
+    [DWHBatchId]                                         INT            NOT NULL,
+    [DWHDMLOperation]                                    CHAR (1)       NOT NULL,
+    [DWHModifiedOn]                                      DATETIME       NOT NULL,
+    [DWHCreatedAt]                                       DATETIME       NOT NULL,
+    [client_referral_pending_date_key]                   INT            NULL,
+    CONSTRAINT [PK_EDW_fact_referral_2] PRIMARY KEY NONCLUSTERED ([fact_client_referral_key] ASC)
+);
+
+
+

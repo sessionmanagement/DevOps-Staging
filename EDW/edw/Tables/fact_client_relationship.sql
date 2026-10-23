@@ -1,0 +1,26 @@
+﻿CREATE TABLE [edw].[fact_client_relationship] (
+    [fact_client_relationship_key]  INT            IDENTITY (1, 1) NOT NULL,
+    [dim_company_key]               INT            NOT NULL,
+    [dim_primary_client_key]        INT            NOT NULL,
+    [dim_related_client_key]        INT            NOT NULL,
+    [dim_primary_client_unique_key] NVARCHAR (30)  NULL,
+    [dim_related_client_unique_key] NVARCHAR (30)  NULL,
+    [client_relationship_id]        INT            NULL,
+    [primary_client_id]             INT            NULL,
+    [primary_first_name]            NVARCHAR (50)  NULL,
+    [primary_last_name]             NVARCHAR (50)  NULL,
+    [relationship]                  NVARCHAR (200) NULL,
+    [related_client_id]             INT            NULL,
+    [related_first_name]            NVARCHAR (50)  NULL,
+    [related_last_name]             NVARCHAR (50)  NULL,
+    [relationship_start_date]       DATETIME       NULL,
+    [relationship_end_date]         DATETIME       NULL,
+    [DWHBatchId]                    INT            NOT NULL,
+    [DWHEffectiveFrom]              DATETIME       NOT NULL,
+    [DWHEffectiveTo]                DATETIME       NOT NULL,
+    [DWHDMLOperation]               CHAR (1)       NOT NULL,
+    [DWHIsCurrent]                  BIT            NOT NULL,
+    [DWHSourceSystem]               NVARCHAR (500) NOT NULL,
+    CONSTRAINT [PK__edw_fact_client_relationship] PRIMARY KEY NONCLUSTERED ([fact_client_relationship_key] ASC)
+);
+

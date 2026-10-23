@@ -1,0 +1,25 @@
+﻿CREATE TABLE [staging].[ODSETLfact_employee_qualification] (
+    [ODSfact_employee_qualificationID]       INT             IDENTITY (1, 1) NOT NULL,
+    [dim_employee_key]                       INT             NULL,
+    [dim_service_key]                        INT             NULL,
+    [dim_company_key]                        INT             NULL,
+    [dim_employee_qualification_library_key] INT             NULL,
+    [dim_employee_qualification_type_key]    INT             NULL,
+    [qualification_instance_id]              NVARCHAR (36)   NULL,
+    [expiry_date]                            DATETIME2 (7)   NULL,
+    [issue_date]                             DATETIME2 (7)   NULL,
+    [issuing_organisation]                   NVARCHAR (200)  NULL,
+    [notes]                                  NVARCHAR (2000) NULL,
+    [employee_id]                            INT             NULL,
+    [service_name]                           NVARCHAR (100)  NULL,
+    [company_name]                           NVARCHAR (100)  NULL,
+    [person_link]                            NVARCHAR (36)   NULL,
+    [qualification_status]                   NVARCHAR (50)   NULL,
+    [employee_qualification_library_id]      NVARCHAR (36)   NULL,
+    [employee_qualification_requirement_flag] INT            NULL,
+    [employee_qualification_type_id]         NVARCHAR (36)   NULL,
+    [qualification_library_item_link]        NVARCHAR (36)   NULL,
+    [registration_number]                    NVARCHAR (80)   NULL,
+    CONSTRAINT [PK_Temp_Staging_ODSETLfact_employee_qualification] PRIMARY KEY NONCLUSTERED ([ODSfact_employee_qualificationID] ASC)
+);
+

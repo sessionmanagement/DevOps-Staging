@@ -1,0 +1,52 @@
+﻿CREATE TABLE [landing].[edw_fact_powerbi_activity_log] (
+    [powerbi_activity_log_internal_id] VARCHAR (50)  NULL,
+    [activity]                         VARCHAR (200) NULL,
+    [is_success]                       BIT           NULL,
+    [item_name]                        VARCHAR (MAX) NULL,
+    [item_type]                        VARCHAR (10)  NULL,
+    [usertype]                         INT           NULL,
+    [userid]                           VARCHAR (50)  NULL,
+    [clientip]                         VARCHAR (200) NULL,
+    [useragent]                        VARCHAR (200) NULL,
+    [distributionmethod]               VARCHAR (200) NULL,
+    [consumptionmethod]                VARCHAR (200) NULL,
+    [bkworkspaceid]                    VARCHAR (200) NULL,
+    [workspacename]                    VARCHAR (200) NULL,
+    [bkreportid]                       VARCHAR (50)  NULL,
+    [reportname]                       VARCHAR (200) NULL,
+    [folderdisplayname]                VARCHAR (200) NULL,
+    [importsource]                     VARCHAR (50)  NULL,
+    [importtype]                       VARCHAR (50)  NULL,
+    [importdisplayname]                VARCHAR (200) NULL,
+    [dataconnectivitymode]             VARCHAR (200) NULL,
+    [bkdatasetid]                      VARCHAR (50)  NULL,
+    [datasetname]                      VARCHAR (200) NULL,
+    [refreshtype]                      VARCHAR (50)  NULL,
+    [bkgatewayclusterid]               VARCHAR (50)  NULL,
+    [gatewayclustername]               VARCHAR (1)   NULL,
+    [gatewayclustertype]               VARCHAR (1)   NULL,
+    [bkartifactid]                     VARCHAR (50)  NULL,
+    [artifactname]                     VARCHAR (200) NULL,
+    [capacityname]                     VARCHAR (200) NULL,
+    [capacityusers]                    VARCHAR (1)   NULL,
+    [capacitystate]                    VARCHAR (1)   NULL,
+    [exportedartifactexporttype]       VARCHAR (50)  NULL,
+    [exportedartifacttype]             VARCHAR (200) NULL,
+    [auditedartifactname]              VARCHAR (200) NULL,
+    [auditedartifactitemtype]          VARCHAR (1)   NULL,
+    [otherdatasetnames]                VARCHAR (1)   NULL,
+    [otherdatasourcetypes]             VARCHAR (1)   NULL,
+    [otherdatasourceconnectiondetails] VARCHAR (1)   NULL,
+    [sharingrecipientemails]           VARCHAR (1)   NULL,
+    [sharingresharepermissions]        VARCHAR (1)   NULL,
+    [subscribeerecipientemails]        VARCHAR (1)   NULL,
+    [subscribeerecipientnames]         VARCHAR (1)   NULL,
+    [createdatekey]                    NCHAR (8)     NULL,
+    [createtimekey]                    VARCHAR (30)  NULL
+);
+
+
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [BK_Landing_edw_fact_powerbi_activity_log]
+    ON [landing].[edw_fact_powerbi_activity_log]([powerbi_activity_log_internal_id] ASC);
+

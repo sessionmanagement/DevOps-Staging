@@ -1,0 +1,22 @@
+﻿create   view [edw].[vw_dim_client_referral_service_level]
+
+as
+
+SELECT [dim_client_referral_service_level_key]
+      ,[dim_client_key]
+      ,[dim_client_referral_key]
+      ,[client_referral_service_level_id]
+      ,[company_id]
+      ,[client_id]
+      ,[client_referral_id]
+      ,[service_level_code]
+      ,[service_level]
+      ,[effective_date]
+      ,[service_level_group]
+      ,[DWHBatchId]
+      ,[DWHEffectiveFrom]
+      ,[DWHEffectiveTo]
+      ,[DWHDMLOperationField]
+      ,[DWHIsCurrent]
+      ,[DWHSourceSystem]
+  FROM [edw].[dim_client_referral_service_level]

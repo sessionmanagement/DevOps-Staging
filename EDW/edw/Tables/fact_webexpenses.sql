@@ -1,0 +1,28 @@
+﻿CREATE TABLE [edw].[fact_webexpenses] (
+    [fact_webexpenses_key]      INT             IDENTITY (1, 1) NOT NULL,
+    [expense_key]               NVARCHAR (62)   NOT NULL,
+    [dim_webexpense_key]        INT             NULL,
+    [claim_number]              INT             NULL,
+    [dim_claimant_employee_key] INT             NULL,
+    [user_id]                   INT             NULL,
+    [expense_date]              DATETIME2 (0)   NULL,
+    [expense_date_key]          INT             NULL,
+    [posted_on]                 DATETIME2 (0)   NULL,
+    [posted_on_key]             INT             NULL,
+    [upload_date]               DATETIME2 (0)   NULL,
+    [upload_date_key]           INT             NULL,
+    [amount]                    DECIMAL (18, 2) NULL,
+    [base_amount]               DECIMAL (18, 2) NULL,
+    [exchange_rate]             DECIMAL (18, 6) NULL,
+    [billing_amount]            DECIMAL (18, 2) NULL,
+    [cc_exchange_rate]          DECIMAL (18, 6) NULL,
+    [dim_approver_employee_key] INT             NULL,
+    [DWHBatchId]                INT             NOT NULL,
+    [DWHEffectiveFrom]          DATETIME        NOT NULL,
+    [DWHEffectiveTo]            DATETIME        NOT NULL,
+    [DWHDMLOperation]           CHAR (1)        NOT NULL,
+    [DWHIsCurrent]              BIT             NOT NULL,
+    [DWHSourceSystem]           NVARCHAR (500)  NOT NULL,
+    CONSTRAINT [PK__edw_fact_webexpenses] PRIMARY KEY NONCLUSTERED ([fact_webexpenses_key] ASC)
+);
+

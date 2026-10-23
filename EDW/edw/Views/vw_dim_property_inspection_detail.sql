@@ -1,0 +1,25 @@
+﻿
+CREATE VIEW [edw].[vw_dim_property_inspection_detail]
+AS
+
+
+SELECT [dim_property_inspection_detail_key]
+      ,[dim_property_key]
+      ,[property_inspection_detail_id]
+      ,[property_id]
+      ,[asset_condition_id]
+      ,[asset_condition]
+      ,[property_is_clean]
+      ,[inspection_comments]
+      ,[property_inspection_id]
+      ,[property_undamaged]
+      ,[property_working]
+      ,[asset_name]
+      ,[inspection_area]
+      ,[property_asset_name]
+      ,[EDWBatchId]
+      ,[EDWCreatedAt]
+      ,[EDWModifiedOn]
+      ,[EDWDMLOperation]
+      ,[EDWSourceSystem]
+  FROM [edw].[dim_property_inspection_detail]

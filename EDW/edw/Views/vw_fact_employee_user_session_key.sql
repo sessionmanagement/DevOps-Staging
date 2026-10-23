@@ -1,0 +1,26 @@
+﻿create view edw.vw_fact_employee_user_session_key
+
+as
+
+SELECT [fact_employee_user_session_key]
+      ,[dim_employee_key]
+      ,[employee_session_id]
+      ,[UserID]
+      ,[sign_on_date]
+      ,[IP_address]
+      ,[browser_name]
+      ,[browser_version]
+      ,[application_id]
+      ,[user_agent]
+      ,[impersonator_id]
+      ,[identity_sign_on_session]
+      ,[employee_id]
+      ,[employee_email]
+      ,[employee_role]
+      ,[session_location]
+      ,[DWHBatchId]
+      ,[DWHCreatedAt]
+      ,[DWHModifiedOn]
+      ,[DWHDMLOperation]
+      ,[DWHSourceSystem]
+  FROM [edw].[fact_employee_user_session]

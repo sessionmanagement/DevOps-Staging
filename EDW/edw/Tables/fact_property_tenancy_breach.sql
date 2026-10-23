@@ -1,0 +1,26 @@
+﻿CREATE TABLE [edw].[fact_property_tenancy_breach] (
+    [fact_property_tenancy_breach_key] INT              IDENTITY (1, 1) NOT NULL,
+    [dim_property_tenancy_key]         INT              NULL,
+    [tenancy_breach_id]                UNIQUEIDENTIFIER NULL,
+    [property_tenancy_id]              UNIQUEIDENTIFIER NULL,
+    [breach]                           VARCHAR (400)    NULL,
+    [tenancy_breach]                   VARCHAR (400)    NULL,
+    [breach_date]                      DATETIME2 (7)    NULL,
+    [breach_id]                        VARCHAR (400)    NULL,
+    [breach_status]                    VARCHAR (700)    NULL,
+    [tribunal_order_id]                UNIQUEIDENTIFIER NULL,
+    [tribunal_order]                   VARCHAR (400)    NULL,
+    [breach_end_date]                  DATETIME2 (7)    NULL,
+    [breach_start_date]                DATETIME2 (7)    NULL,
+    [tribunal_outcome_id]              UNIQUEIDENTIFIER NULL,
+    [tribunal_outcome]                 VARCHAR (400)    NULL,
+    [case_number]                      VARCHAR (800)    NULL,
+    [tribunal_outcome_reason]          VARCHAR (400)    NULL,
+    [DWHBatchId]                       INT              NOT NULL,
+    [DWHCreatedAt]                     DATETIME         NOT NULL,
+    [DWHModifiedOn]                    DATETIME         NOT NULL,
+    [DWHDMLOperation]                  CHAR (1)         NOT NULL,
+    [DWHSourceSystem]                  NVARCHAR (500)   NOT NULL,
+    CONSTRAINT [PK__edw_fact_property_tenancy_breach] PRIMARY KEY NONCLUSTERED ([fact_property_tenancy_breach_key] ASC)
+);
+

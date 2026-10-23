@@ -1,0 +1,22 @@
+﻿CREATE TABLE [landing].[edw_dim_kpi_target_definitions] (
+    [target_definition_id]          INT            NULL,
+    [service_id]                    INT            NULL,
+    [service_type_id]               INT            NULL,
+    [region]                        NVARCHAR (50)  NULL,
+    [temp_region]                   NVARCHAR (50)  NULL,
+    [district]                      NVARCHAR (50)  NULL,
+    [bed_nights]                    INT            NULL,
+    [caseload]                      INT            NULL,
+    [fully_staffed_fte]             NUMERIC (8, 2) NULL,
+    [support_hours]                 NUMERIC (8, 2) NULL,
+    [programmes_delivered]          INT            NULL,
+    [service_action_plan_link]      NVARCHAR (300) NULL,
+    [bed_nights_applies]            BIT            NULL,
+    [fully_staffed_applies]         BIT            NULL,
+    [support_hours_applies]         BIT            NULL,
+    [prog_delivered_target_applies] BIT            NULL,
+    [caseload_target_applies]       BIT            NULL,
+    [goal_planning_applies]         BIT            NULL,
+    [outcome_tool_review]           NUMERIC (8, 2) NULL
+);
+

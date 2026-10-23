@@ -1,0 +1,28 @@
+﻿create view edw.vw_fact_property_rent_charges
+
+as
+
+SELECT [fact_property_rent_charges_key]
+      ,[dim_property_key]
+      ,[dim_company_key]
+      ,[dim_employee_key]
+      ,[rent_charge_id]
+      ,[rent_charge_name]
+      ,[property_id]
+      ,[property_name]
+      ,[provider_name]
+      ,[company_name]
+      ,[agreed_rent]
+      ,[market_rent]
+      ,[supplement_amount]
+      ,[start_date]
+      ,[end_date]
+      ,[employee_id]
+      ,[employee_name]
+      ,[DWHBatchId]
+      ,[DWHEffectiveFrom]
+      ,[DWHEffectiveTo]
+      ,[DWHDMLOperation]
+      ,[DWHIsCurrent]
+      ,[DWHSourceSystem]
+  FROM [edw].[fact_property_rent_charges]

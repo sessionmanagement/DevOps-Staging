@@ -1,0 +1,53 @@
+﻿CREATE TABLE [landing].[edw_dim_property_lease] (
+    [property_lease_details_id]                                                 NVARCHAR (40)   NULL,
+    [property_id]                                                               NVARCHAR (40)   NULL,
+    [property_lease_status]                                                     NVARCHAR (20)   NULL,
+    [property_lease_state]                                                      NVARCHAR (20)   NULL,
+    [property_lease_details_name]                                               NVARCHAR (400)  NULL,
+    [property_lease_details_lease_type_code]                                    NVARCHAR (200)  NULL,
+    [property_lease_details_contract_name]                                      NVARCHAR (200)  NULL,
+    [property_lease_details_lease_contract_code]                                NVARCHAR (80)   NULL,
+    [property_lease_details_date_lodged]                                        DATE            NULL,
+    [property_lease_details_term]                                               FLOAT (53)      NULL,
+    [property_lease_details_term_days]                                          INT             NULL,
+    [property_lease_details_from_date]                                          DATE            NULL,
+    [property_lease_details_to_date]                                            DATE            NULL,
+    [property_lease_details_bond_comments]                                      NVARCHAR (MAX)  NULL,
+    [property_lease_details_bond_total_date]                                    DATETIME2 (7)   NULL,
+    [property_lease_details_right_of_renewal_years]                             NVARCHAR (20)   NULL,
+    [property_lease_details_next_right_of_renewal_date]                         DATE            NULL,
+    [property_lease_details_next_rent_lease_review_date]                        DATE            NULL,
+    [property_lease_details_expected_hand_back_date]                            DATE            NULL,
+    [property_lease_details_legal_owner_name]                                   NVARCHAR (200)  NULL,
+    [property_lease_details_CORT_signatory_name]                                NVARCHAR (100)  NULL,
+    [property_lease_details_property_reference]                                 NVARCHAR (100)  NULL,
+    [property_lease_details_property_name]                                      NVARCHAR (400)  NULL,
+    [property_lease_details_property_owner_contact]                             NVARCHAR (100)  NULL,
+    [property_lease_details_rent_lease_payment_reference]                       NVARCHAR (100)  NULL,
+    [property_lease_details_tenancy_services_reference]                         NVARCHAR (20)   NULL,
+    [property_lease_details_agreement_type]                                     NVARCHAR (20)   NULL,
+    [property_lease_details_frequency]                                          NVARCHAR (20)   NULL,
+    [property_lease_details_landlord_charge_amount_gst_exclusive]               NVARCHAR (20)   NULL,
+    [property_lease_details_rent_lease_payment_day]                             NVARCHAR (20)   NULL,
+    [property_lease_details_crba8_bank_deposit_confirmation_in_sharepoint_flag] INT             NULL,
+    [property_lease_details_landlord_agreement_in_sharepoint_flag]              INT             NULL,
+    [property_lease_details_owning_user]                                        NVARCHAR (100)  NULL,
+    [property_lease_details_property_owner_contact_name]                        NVARCHAR (100)  NULL,
+    [property_lease_details_crba8_landlord_annual_charge_amount]                NUMERIC (38, 4) NULL,
+    [property_lease_details_new_landlord_lease_charge_amount]                   NUMERIC (38, 4) NULL,
+    [property_lease_details_bond_amount]                                        NUMERIC (38, 2) NULL,
+    [property_lease_details_bond_total]                                         NUMERIC (38, 2) NULL,
+    [property_lease_details_landlord_monthly_charge_amount]                     NUMERIC (38, 4) NULL,
+    [property_lease_details_crba8_bank_automatic_payment_number]                NVARCHAR (20)   NULL,
+    [property_lease_details_crba8_last_rent_review_date]                        DATE            NULL,
+    [property_lease_details_deleted_flag]                                       INT             NULL,
+    [synapse_link_sink_modified_on]                                             DATETIME2 (7)   NULL
+);
+
+
+
+
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [BK_Landing_edw_dim_property_lease]
+    ON [landing].[edw_dim_property_lease]([property_lease_details_id] ASC);
+

@@ -1,0 +1,17 @@
+﻿
+CREATE VIEW [edw].[vw_dim_client_incident_severity]
+AS
+SELECT [dim_client_incident_severity_key]
+      ,[dim_client_incident_company_key_severity_id_key]
+      ,[dim_company_key]
+      ,[incident_severity_id]
+      ,[incident_severity_value]
+      ,[incident_severity_text]
+      ,[is_incident_severity_active]
+      ,[DWHBatchId]
+      ,[DWHEffectiveFrom]
+      ,[DWHEffectiveTo]
+      ,[DWHDMLOperation]
+      ,[DWHIsCurrent]
+      ,[DWHSourceSystem]
+  FROM [edw].[dim_client_incident_severity]

@@ -1,0 +1,2 @@
+DROP PROCEDURE IF EXISTS edw.kpi_tenancy_sp_67_breaches_followed_up_in_14_plus_1_days
+GO

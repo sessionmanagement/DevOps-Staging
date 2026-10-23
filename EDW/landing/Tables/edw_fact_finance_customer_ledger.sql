@@ -1,0 +1,71 @@
+﻿CREATE TABLE [landing].[edw_fact_finance_customer_ledger] (
+    [PartitionKey]              NVARCHAR (129)   NULL,
+    [RowKey]                    NVARCHAR (107)   NULL,
+    [CUSTOMER]                  INT              NULL,
+    [BUDGET HOLDER]             INT              NULL,
+    [CONTRACT]                  INT              NULL,
+    [DEPARTMENT]                INT              NULL,
+    [DISTRICT]                  INT              NULL,
+    [FUNDER]                    INT              NULL,
+    [FUNDING AGENCY]            INT              NULL,
+    [LOCATE]                    INT              NULL,
+    [REGION]                    INT              NULL,
+    [SERVICE NAME]              INT              NULL,
+    [VENDOR]                    INT              NULL,
+    [User_ID]                   NVARCHAR (117)   NULL,
+    [Amount]                    DECIMAL (38, 18) NULL,
+    [Amount__LCY_]              DECIMAL (38, 18) NULL,
+    [Bal__Account_No_]          NVARCHAR (104)   NULL,
+    [Bal__Account_Type]         NVARCHAR (100)   NULL,
+    [Closed_by_Amount]          DECIMAL (38, 18) NULL,
+    [Closed_by_Amount__LCY_]    DECIMAL (38, 18) NULL,
+    [Closed_by_Currency_Amount] DECIMAL (38, 18) NULL,
+    [Closed_by_Currency_Code]   NVARCHAR (100)   NULL,
+    [Credit_Amount]             DECIMAL (38, 18) NULL,
+    [Credit_Amount__LCY_]       DECIMAL (38, 18) NULL,
+    [Customer_No_]              NVARCHAR (107)   NULL,
+    [Customer_Posting_Group]    NVARCHAR (106)   NULL,
+    [Debit_Amount]              DECIMAL (38, 18) NULL,
+    [Debit_Amount__LCY_]        DECIMAL (38, 18) NULL,
+    [Description]               NVARCHAR (160)   NULL,
+    [Dimension_Set_ID]          INT              NULL,
+    [Document_Date]             DATETIME2 (0)    NULL,
+    [Document_No_]              NVARCHAR (111)   NULL,
+    [Document_Type]             NVARCHAR (100)   NULL,
+    [Due_Date]                  DATETIME2 (0)    NULL,
+    [Entry_No_]                 INT              NULL,
+    [No__Series]                NVARCHAR (109)   NULL,
+    [Open]                      INT              NULL,
+    [Original_Amount]           DECIMAL (38, 18) NULL,
+    [Payment_Method_Code]       NVARCHAR (106)   NULL,
+    [Payment_Reference]         NVARCHAR (100)   NULL,
+    [Posting_Date]              DATETIME2 (0)    NULL,
+    [Profit__LCY_]              DECIMAL (38, 18) NULL,
+    [Reason_Code]               NVARCHAR (109)   NULL,
+    [Rem__Amt]                  DECIMAL (38, 18) NULL,
+    [Rem__Amt_for_WHT]          DECIMAL (38, 18) NULL,
+    [Remaining_Amount]          DECIMAL (38, 18) NULL,
+    [Reversed]                  INT              NULL,
+    [Reversed_Entry_No_]        INT              NULL,
+    [Sales__LCY_]               DECIMAL (38, 18) NULL,
+    [Sell_to_Customer_No_]      NVARCHAR (107)   NULL,
+    [Source_Code]               NVARCHAR (110)   NULL,
+    [Transaction_No_]           INT              NULL,
+    [WHT_Amount]                DECIMAL (38, 18) NULL,
+    [WHT_Payment]               INT              NULL,
+    [__CompanyName]             NVARCHAR (129)   NULL,
+    [ODSIsCurrent]              INT              NULL,
+    [ODSEffectiveFrom]          DATETIME         NULL,
+    [ODSEffectiveTo]            DATETIME         NULL,
+    [ODSDMLOperation]           VARCHAR (1)      NULL
+);
+
+
+
+
+
+
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [BK_Landing_edw_fact_customer_ledger]
+    ON [landing].[edw_fact_finance_customer_ledger]([RowKey] ASC, [PartitionKey] ASC);
+

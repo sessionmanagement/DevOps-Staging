@@ -1,0 +1,28 @@
+﻿CREATE TABLE [edw].[fact_property_tribunal_order] (
+    [fact_property_tribunal_order_key] INT              IDENTITY (1, 1) NOT NULL,
+    [property_tribunal_order_id]       UNIQUEIDENTIFIER NULL,
+    [property_tenancy_breach_id]       UNIQUEIDENTIFIER NULL,
+    [property_tenancy_id]              UNIQUEIDENTIFIER NULL,
+    [property_id]                      UNIQUEIDENTIFIER NULL,
+    [dim_property_tenancy_key]         INT              NULL,
+    [dim_property_key]                 INT              NULL,
+    [tribunal_order]                   VARCHAR (400)    NULL,
+    [notes]                            VARCHAR (2000)   NULL,
+    [tribunal_outcome]                 VARCHAR (400)    NULL,
+    [tribunal_outcome_reason]          VARCHAR (400)    NULL,
+    [tribunal_order_start_date]        DATETIME         NULL,
+    [tribunal_order_owner]             VARCHAR (60)     NULL,
+    [modified_by]                      VARCHAR (60)     NULL,
+    [modified_date]                    DATETIME         NULL,
+    [created_date]                     DATETIME         NULL,
+    [tribunal_order_state]             VARCHAR (20)     NULL,
+    [tribunal_order_status]            VARCHAR (20)     NULL,
+    [DWHBatchId]                       INT              NOT NULL,
+    [DWHEffectiveFrom]                 DATETIME         NOT NULL,
+    [DWHEffectiveTo]                   DATETIME         NOT NULL,
+    [DWHDMLOperation]                  CHAR (1)         NOT NULL,
+    [DWHIsCurrent]                     BIT              NOT NULL,
+    [DWHSourceSystem]                  NVARCHAR (100)   NOT NULL,
+    CONSTRAINT [PK__edw_fact_property_tribunal_order] PRIMARY KEY NONCLUSTERED ([fact_property_tribunal_order_key] ASC)
+);
+

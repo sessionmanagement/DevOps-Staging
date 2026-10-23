@@ -1,0 +1,85 @@
+﻿CREATE TABLE [landing].[edw_dim_property] (
+    [property_id]                                    UNIQUEIDENTIFIER NULL,
+    [property_acquired_date]                         DATETIME2 (7)    NULL,
+    [property_bc_service_code]                       VARCHAR (200)    NULL,
+    [property_bc_service_name]                       VARCHAR (200)    NULL,
+    [property_assigned_tenancy_manager]              VARCHAR (250)    NULL,
+    [property_city_name]                             VARCHAR (50)     NULL,
+    [property_confirmed_disposal_date]               DATETIME2 (7)    NULL,
+    [property_contract_bc_service]                   VARCHAR (200)    NULL,
+    [property_contract_bc_service_code]              VARCHAR (200)    NULL,
+    [property_current_rent]                          NUMERIC (38, 4)  NULL,
+    [property_current_rent_base]                     NUMERIC (38, 4)  NULL,
+    [property_current_tenancy]                       VARCHAR (250)    NULL,
+    [property_date_constructed]                      DATETIME2 (7)    NULL,
+    [property_days_available_to_let]                 INT              NULL,
+    [property_days_under_maintenence]                INT              NULL,
+    [property_disposal_date]                         DATETIME2 (7)    NULL,
+    [property_district]                              VARCHAR (50)     NULL,
+    [property_full_address]                          VARCHAR (250)    NULL,
+    [property_gifted_name]                           VARCHAR (50)     NULL,
+    [property_hud_msd_reference_number]              VARCHAR (400)    NULL,
+    [property_latitude]                              NUMERIC (38, 10) NULL,
+    [property_legal_owner]                           VARCHAR (250)    NULL,
+    [property_longitude]                             NUMERIC (38, 10) NULL,
+    [property_name]                                  VARCHAR (250)    NULL,
+    [property_no_of_people_allowed_to_reside]        INT              NULL,
+    [property_no_of_rooms]                           VARCHAR (24)     NULL,
+    [property_owner_account]                         VARCHAR (250)    NULL,
+    [property_owner_contact]                         VARCHAR (250)    NULL,
+    [property_owner_organisation_contact_email]      VARCHAR (400)    NULL,
+    [property_parent_hierarchy]                      VARCHAR (400)    NULL,
+    [property_postal_region]                         VARCHAR (50)     NULL,
+    [property_postcode]                              VARCHAR (16)     NULL,
+    [property_program]                               VARCHAR (400)    NULL,
+    [property_property_manager]                      VARCHAR (250)    NULL,
+    [property_property_manager_email]                VARCHAR (400)    NULL,
+    [property_property_manager_mobile_number]        VARCHAR (400)    NULL,
+    [property_property_ownership]                    VARCHAR (20)     NULL,
+    [property_property_service_name]                 VARCHAR (400)    NULL,
+    [property_property_service_code]                 VARCHAR (400)    NULL,
+    [property_property_type]                         VARCHAR (400)    NULL,
+    [property_provider_agreement_number]             VARCHAR (400)    NULL,
+    [property_reason_for_disposal]                   VARCHAR (250)    NULL,
+    [property_reference_id]                          VARCHAR (400)    NULL,
+    [property_relettable_date]                       DATETIME2 (7)    NULL,
+    [property_statecode]                             VARCHAR (10)     NULL,
+    [property_status]                                VARCHAR (50)     NULL,
+    [property_statuscode]                            VARCHAR (10)     NULL,
+    [property_street_name]                           VARCHAR (100)    NULL,
+    [property_street_number]                         VARCHAR (50)     NULL,
+    [property_sub_program]                           VARCHAR (400)    NULL,
+    [property_sub_property_type]                     VARCHAR (400)    NULL,
+    [property_suburb]                                VARCHAR (50)     NULL,
+    [property_target_group]                          VARCHAR (50)     NULL,
+    [property_territory]                             VARCHAR (800)    NULL,
+    [property_total_days_vacant]                     INT              NULL,
+    [property_total_heat_source_capacity_kw]         NUMERIC (38, 2)  NULL,
+    [property_total_irrs]                            NUMERIC (38, 2)  NULL,
+    [property_total_irrs_base]                       NUMERIC (38, 2)  NULL,
+    [property_total_irrs_date]                       DATETIME2 (7)    NULL,
+    [property_total_irrs_state]                      INT              NULL,
+    [property_void_status]                           VARCHAR (50)     NULL,
+    [property_transitional_housing_market_rent_base] NUMERIC (38, 2)  NULL,
+    [property_unit]                                  VARCHAR (50)     NULL,
+    [property_year_built]                            VARCHAR (10)     NULL,
+    [property_zav_transitional_housing_market_rent]  NUMERIC (38, 2)  NULL,
+    [synapse_link_sink_modified_on]                  DATETIME2 (7)    NULL
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+GO
+
+

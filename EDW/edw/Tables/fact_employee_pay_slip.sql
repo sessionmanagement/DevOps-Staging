@@ -1,0 +1,26 @@
+﻿CREATE TABLE [edw].[fact_employee_pay_slip] (
+    [fact_employee_pay_slip_key]        INT            IDENTITY (1, 1) NOT NULL,
+    [dim_employee_pay_slip_key]         INT            NULL,
+    [dim_company_key_pay_packet_id_key] BIGINT         NULL,
+    [dim_employee_key]                  INT            NOT NULL,
+    [dim_company_key]                   INT            NOT NULL,
+    [dim_pay_run_date_key]              INT            NULL,
+    [dim_pay_period_start_date_key]     INT            NULL,
+    [dim_pay_period_end_date_key]       INT            NULL,
+    [pay_packet_id]                     INT            NULL,
+    [employee_id]                       INT            NULL,
+    [gross_total_amount]                FLOAT (53)     NULL,
+    [deduction_total_amount]            FLOAT (53)     NULL,
+    [net_total_amount]                  FLOAT (53)     NULL,
+    [pay_run_date]                      DATE           NULL,
+    [pay_period_start_date]             DATE           NULL,
+    [pay_period_end_date]               DATE           NULL,
+    [company_code]                      INT            NULL,
+    [DWHBatchId]                        INT            NOT NULL,
+    [DWHCreatedAt]                      DATETIME       NOT NULL,
+    [DWHModifiedOn]                     DATETIME       NOT NULL,
+    [DWHDMLOperation]                   CHAR (1)       NOT NULL,
+    [DWHSourceSystem]                   NVARCHAR (500) NOT NULL,
+    CONSTRAINT [PK__edw_fact_employee_pay_slip] PRIMARY KEY NONCLUSTERED ([fact_employee_pay_slip_key] ASC)
+);
+

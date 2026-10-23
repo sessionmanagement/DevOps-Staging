@@ -1,0 +1,18 @@
+﻿
+CREATE VIEW [edw].[vw_dim_client_incident_status_type]
+AS
+SELECT [dim_client_incident_status_type_key]
+      ,[dim_client_incident_company_key_status_type_id_key]
+      ,[dim_company_key]
+      ,[incident_status_type_id]
+      ,[incident_status_type_code]
+      ,[incident_status_type_text]
+      ,[incident_status_type_description]
+      ,[incident_status_type_group]
+      ,[DWHBatchId]
+      ,[DWHEffectiveFrom]
+      ,[DWHEffectiveTo]
+      ,[DWHDMLOperation]
+      ,[DWHIsCurrent]
+      ,[DWHSourceSystem]
+  FROM [edw].[dim_client_incident_status_type]

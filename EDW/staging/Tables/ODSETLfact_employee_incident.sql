@@ -1,0 +1,25 @@
+﻿CREATE TABLE [staging].[ODSETLfact_employee_incident] (
+    [fact_employee_incident_key]                      INT             IDENTITY (1, 1) NOT NULL,
+    [dim_employee_incident_key]                       INT             NULL,
+    [dim_employee_incident_id_key]                    NVARCHAR (4000) NULL,
+    [dim_client_incident_company_key_incident_id_key] BIGINT          NULL,
+    [dim_client_incident_key]                         INT             NULL,
+    [dim_incident_date_key]                           INT             NULL,
+    [dim_incident_reported_date_key]                  INT             NULL,
+    [dim_investigation_start_date_key]                INT             NULL,
+    [dim_investigation_end_date_key]                  INT             NULL,
+    [dim_incident_close_out_date_key]                 INT             NULL,
+    [incident_id]                                     NVARCHAR (4000) NULL,
+    [incident_date]                                   NVARCHAR (4000) NULL,
+    [incident_reported_date]                          NVARCHAR (4000) NULL,
+    [investigation_start_date]                        NVARCHAR (4000) NULL,
+    [investigation_end_date]                          NVARCHAR (4000) NULL,
+    [incident_close_out_date]                         NVARCHAR (4000) NULL,
+    [actual_severity_gauge_score]                     DECIMAL (18, 6) NULL,
+    [ongoing_risk_gauge_score]                        DECIMAL (18, 6) NULL,
+    [number_of_times_incident_occurred]               DECIMAL (18, 6) NULL,
+    [incident_recordbase_detail]                      NVARCHAR (4000) NULL,
+    [client_incident_id]                              NVARCHAR (4000) NULL,
+    CONSTRAINT [PK_Temp_Staging_ODSETLfact_employee_incident] PRIMARY KEY NONCLUSTERED ([fact_employee_incident_key] ASC)
+);
+

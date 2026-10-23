@@ -1,0 +1,61 @@
+﻿CREATE TABLE [landing].[edw_dim_property_maintenance] (
+    [property_maintenance_id]                                              UNIQUEIDENTIFIER   NULL,
+    [property_maintenance_task_state]                                      VARCHAR (10)       NULL,
+    [property_maintenance_task_state_status]                               VARCHAR (10)       NULL,
+    [property_maintenance_type]                                            VARCHAR (20)       NULL,
+    [property_maintenance_acknowledgment_type]                             VARCHAR (40)       NULL,
+    [property_maintenance_contractor_status]                               VARCHAR (20)       NULL,
+    [property_maintenance_contractor_status_datetime]                      DATETIME2 (7)      NULL,
+    [property_maintenance_damage_type]                                     VARCHAR (40)       NULL,
+    [property_maintenance_key_access_information]                          VARCHAR (700)      NULL,
+    [property_maintenance_property_status]                                 VARCHAR (40)       NULL,
+    [property_maintenance_send_workorder_to]                               VARCHAR (20)       NULL,
+    [property_maintenance_task_status]                                     VARCHAR (20)       NULL,
+    [property_maintenance_task_urgency]                                    VARCHAR (20)       NULL,
+    [property_maintenance_post_inspection_done_flag]                       INT                NULL,
+    [property_maintenance_tenant_consent_flag]                             INT                NULL,
+    [property_maintenance_acknowledgment_sent_to_tenant_flag]              INT                NULL,
+    [property_maintenance_cancel_work_task_flag]                           INT                NULL,
+    [property_maintenance_completed_satisfactorily_flag]                   INT                NULL,
+    [property_maintenance_confirmed_for_payment_flag]                      INT                NULL,
+    [property_maintenance_ecd_processed_queue_flag]                        INT                NULL,
+    [property_maintenance_email_flag]                                      INT                NULL,
+    [property_maintenance_exported_flag]                                   INT                NULL,
+    [property_maintenance_finalised_work_task_flag]                        INT                NULL,
+    [property_maintenance_flexi_fund_flag]                                 INT                NULL,
+    [property_maintenance_letter_flag]                                     INT                NULL,
+    [property_maintenance_onhold_flag]                                     INT                NULL,
+    [property_maintenance_phonecall_flag]                                  INT                NULL,
+    [property_maintenance_tenant_damage_flag]                              INT                NULL,
+    [property_maintenance_tenant_liable_flag]                              INT                NULL,
+    [property_maintenance_tenants_charged_flag]                            INT                NULL,
+    [property_maintenance_text_message_flag]                               INT                NULL,
+    [property_maintenance_work_quote_processed_queue_flag]                 INT                NULL,
+    [property_maintenance_work_task_completion_processed_queue_flag]       INT                NULL,
+    [property_maintenance_legal_owner_primary_contact]                     VARCHAR (200)      NULL,
+    [property_maintenance_owner_recovery_flag]                             INT                NULL,
+    [property_maintenance_send_email_notification_when_pfm_cancelled_flag] INT                NULL,
+    [property_maintenance_support_email_flag]                              INT                NULL,
+    [property_maintenance_suppress_tenant_email_flag]                      INT                NULL,
+    [property_maintenance_tenants_permission_flag]                         INT                NULL,
+    [property_maintenance_inspection_identifier]                           VARCHAR (10)       NULL,
+    [property_maintenance_cancellation_requested_by]                       VARCHAR (100)      NULL,
+    [property_maintenance_client]                                          VARCHAR (100)      NULL,
+    [property_maintenance_housing_officer]                                 VARCHAR (100)      NULL,
+    [property_maintenance_zav_invoice_approved_by]                         VARCHAR (100)      NULL,
+    [property_maintenance_key_support_contact]                             VARCHAR (100)      NULL,
+    [property_maintenance_owning_business_unit_name]                       VARCHAR (640)      NULL,
+    [property_maintenance_owning_user]                                     VARCHAR (100)      NULL,
+    [property_maintenance_created_datetime]                                DATETIMEOFFSET (7) NULL,
+    [property_maintenance_modified_datetime]                               DATETIME2 (7)      NULL
+);
+
+
+
+
+
+
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [BK_Landing_edw_dim_property_maintenance]
+    ON [landing].[edw_dim_property_maintenance]([property_maintenance_id] ASC);
+

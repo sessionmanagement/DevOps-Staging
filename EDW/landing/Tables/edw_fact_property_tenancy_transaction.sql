@@ -1,0 +1,53 @@
+﻿CREATE TABLE [landing].[edw_fact_property_tenancy_transaction] (
+    [property_tenancy_transaction_id]                       UNIQUEIDENTIFIER   NULL,
+    [property_id]                                           UNIQUEIDENTIFIER   NULL,
+    [property_tenancy_id]                                   UNIQUEIDENTIFIER   NULL,
+    [property_program_id]                                   UNIQUEIDENTIFIER   NULL,
+    [property_subprogram_id]                                UNIQUEIDENTIFIER   NULL,
+    [property_tenancy_transaction_date_id]                  INT                NULL,
+    [property_tenancy_transaction_rent_from_date_id]        INT                NULL,
+    [property_tenancy_transaction_rent_to_date_id]          INT                NULL,
+    [property_tenancy_transaction_rent_paid_to_date_id]     INT                NULL,
+    [property_tenancy_transaction_as_at_date_id]            INT                NULL,
+    [property_tenancy_transaction_name]                     VARCHAR (200)      NULL,
+    [property_tenancy_transaction_type_code]                VARCHAR (10)       NULL,
+    [property_tenancy_transaction_type]                     VARCHAR (100)      NULL,
+    [property_tenancy_transaction_account_type]             VARCHAR (40)       NULL,
+    [property_tenancy_transaction_subtransaction_name]      VARCHAR (40)       NULL,
+    [property_tenancy_transaction_comments]                 VARCHAR (MAX)      NULL,
+    [property_tenancy_transaction_state]                    VARCHAR (10)       NULL,
+    [property_tenancy_transaction_status]                   VARCHAR (10)       NULL,
+    [property_tenancy_transaction_payment_type_id]          BIGINT             NULL,
+    [property_tenancy_transaction_rent_nonrent]             VARCHAR (20)       NULL,
+    [property_tenancy_transaction_credit_debit]             VARCHAR (10)       NULL,
+    [property_tenancy_transaction_arrears_arrangement]      VARCHAR (200)      NULL,
+    [property_tenancy_transaction_import_payment_name]      VARCHAR (100)      NULL,
+    [property_tenancy_transaction_rent_generation_batch]    VARCHAR (20)       NULL,
+    [property_tenancy_transaction_bc_entry_number]          VARCHAR (10)       NULL,
+    [property_tenancy_transaction_amount]                   NUMERIC (38, 4)    NULL,
+    [property_tenancy_transaction_balance_non_rent]         NUMERIC (38, 2)    NULL,
+    [property_tenancy_transaction_balance_rent]             NUMERIC (38, 2)    NULL,
+    [property_tenancy_transaction_balance_total]            NUMERIC (38, 2)    NULL,
+    [property_tenancy_transaction_receipt_number]           BIGINT             NULL,
+    [property_tenancy_transaction_suspense_account_flag]    INT                NULL,
+    [property_tenancy_transaction_from_zavanti_import_flag] INT                NULL,
+    [property_tenancy_transaction_created_datetime]         DATETIMEOFFSET (7) NULL,
+    [property_tenancy_transaction_modified_datetime]        DATETIME2 (7)      NULL,
+    [property_tenancy_transaction_is_delete_flag]           INT                NULL
+);
+
+
+
+
+
+
+
+
+
+
+
+
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [BK_Landing_edw_fact_property_tenancy_transaction]
+    ON [landing].[edw_fact_property_tenancy_transaction]([property_tenancy_transaction_id] ASC);
+

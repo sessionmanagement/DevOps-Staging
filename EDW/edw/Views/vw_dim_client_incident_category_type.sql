@@ -1,0 +1,18 @@
+﻿
+CREATE VIEW [edw].[vw_dim_client_incident_category_type]
+AS
+SELECT [dim_client_incident_category_type_key]
+      ,[dim_client_incident_company_key_category_type_id_key]
+      ,[dim_company_key]
+      ,[incident_category_type_id]
+      ,[incident_category_type_text]
+      ,[incident_category_type_parent_Id]
+      ,[incident_category_type_parent_text]
+      ,[is_incident_category_type_active]
+      ,[DWHBatchId]
+      ,[DWHEffectiveFrom]
+      ,[DWHEffectiveTo]
+      ,[DWHDMLOperation]
+      ,[DWHIsCurrent]
+      ,[DWHSourceSystem]
+  FROM [edw].[dim_client_incident_category_type]
